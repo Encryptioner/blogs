@@ -1,5 +1,7 @@
 # 📬 My Go-To Engineering Newsletters (30+ Summarized)
 
+Engineering newsletters offer a streamlined way for professionals to stay informed about industry trends, learn new skills, and connect with a community. They are a convenient way to access curated information and expert insights, keeping you ahead of the curve in a rapidly evolving field.
+
 Here’s a quick breakdown of the newsletters I read regularly, their key topics, and why they’re valuable for software engineers.
 
 ---
@@ -15,7 +17,7 @@ Here’s a quick breakdown of the newsletters I read regularly, their key topics
 **2. Quastor**
 
 * **Focus**: System design, big tech engineering blog summaries, technical deep dives.
-* **Why Read**: Summaries of big tech engineering blog and guides on API design, database paradigms, and performance optimization
+* **Why Read**: Summaries of big tech engineering blogs and guides on API design, database paradigms, and performance optimization
 * **Subscription**: [blog.quastor.org](https://blog.quastor.org/)
 
 **3. System Design One by Neo Kim**
@@ -36,7 +38,7 @@ Here’s a quick breakdown of the newsletters I read regularly, their key topics
 
 **5. Engineering Leadership by Gregor Ojstersek**
 
-* **Focus**: Engineering management, career growth , industry insights, career development and personal journey.
+* **Focus**: Engineering management, career growth, industry insights, career development, and personal journey.
 * **Why Read**: Covers team scaling, stakeholder management, and overcoming imposter syndrome to improve leadership skills for tech leads/EMs.
 * **Subscription**: [newsletter.eng-leadership.com](https://newsletter.eng-leadership.com/)
 
@@ -219,7 +221,7 @@ By subscribing to these newsletters, you can stay updated on various aspects of 
 
 That's all!
 
-I hope you've found the article useful. You should try to use `Apps Script` if you haven't already. It has many interesting use cases. Feel free to share your thoughts and experiences.
+I hope you've found the article useful. You should read the newsletters if you haven't already. Those are full of knowledge and experience. Reading newsletters could be part of your career growth and personal improvement.
 
 Check more on
 - [Website](https://encryptioner.github.io)
