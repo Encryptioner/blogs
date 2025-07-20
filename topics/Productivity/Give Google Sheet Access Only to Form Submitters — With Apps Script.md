@@ -1,18 +1,18 @@
 
 # Give Google Sheet Access Only to Form Submitters — With Apps Script
 
-As a senior software engineer, I've often seen internal teams at companies rely on **Google Forms + Sheets** for quick data collection — feedback surveys, attendance, registration, you name it.
+As a senior software engineer, I've seen teams across companies rely on **Google Forms + Sheets** for quick data collection — feedback surveys, attendance tracking, event registration, you name it.
 
 But here’s a common issue that comes up:
 **How do you restrict access to the Google Sheet so only the people who submitted the form can view it?**
 
-Google Forms doesn’t offer this natively. But with a little Apps Script magic, you can make it happen.
+Google Forms doesn't offer this natively (which is honestly surprising given how common this need is). But with a little Apps Script magic, you can make it happen.
 
 ---
 
 ## The Problem
 
-Let’s say you’re running a private beta program. You collect sign-ups via Google Form. Now you want only those who signed up (and no one else) to see the list.
+Let's say you're running a private beta program. You collect sign-ups via Google Form. Now you want only those who signed up (and no one else) to see the list.
 
 Manually adding viewers to the Sheet? Not scalable.
 Leaving it public? Not secure.
@@ -33,7 +33,7 @@ We hook into [Google Apps Script](https://developers.google.com/apps-script) and
 3. Remove emails who shouldn't have access anymore.
 4. Always preserve admin users (like yourself).
 
-Here’s the full working script that I use:
+Here's the battle-tested script I've used in my projects:
 
 ```js
 function updateSheetSharing() {
@@ -204,25 +204,27 @@ This design allows Google to handle massive scale while maintaining reliability.
 
 I’ve used this in social group's data collection, closed feedback loops, and classroom setups. It works beautifully when:
 
-* You want lightweight access control.
-* You trust the form submitters.
-* You don’t want to set up a whole database + auth system.
+* You want lightweight access control without complex infrastructure
+* You trust the form submitters (or validate their identity)
+* You don't want to set up a whole database + auth system
+* You need something that "just works" without ongoing maintenance
 
-It’s not enterprise-grade security — but for small teams and quick workflows, it’s a great solution.
+It's not enterprise-grade security — but for small teams and quick workflows, it's a surprisingly robust solution that I've seen work reliably in production.
 
 ---
 
 ## Final Thoughts
 
-Apps Script has a *quiet superpower*: It brings automation to everyday Google tools.
+Apps Script has a *quiet superpower*: It brings automation to everyday Google tools that teams already use daily.
 
-With just \~50 lines of code, you can build a simple access control system — tailored to your workflow.
+What I love about this approach is its simplicity. With just \~50 lines of code, you can build a simple access control system that feels like it was always meant to be there — tailored to your specific workflow.
 
-And that’s why I still reach for Apps Script for glue code like this.
+
+And that's why I still reach for Apps Script for glue code like this — it's the Swiss Army knife of Google Workspace automation.
 
 ---
 
-Feel free to adapt this script for your own use case. If you're dealing with something more complex (like edit permissions, or syncing to multiple sheets), you’ll want to add further checks — but this core pattern will get you a long way.
+Feel free to adapt this script for your own use case. If you're dealing with something more complex (like edit permissions, or syncing to multiple sheets), you'll want to add further checks — but this core pattern will get you a long way.
 
 
 ## End
