@@ -40,6 +40,7 @@ function updateSheetSharing() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = spreadsheet.getSheets()[0]; // First sheet
 
+  // update this column according to your sheet
   const emailColumnIndex = 2; // Column B = 2
   const startRow = 2; // Header on row 1
 
@@ -136,6 +137,67 @@ function updateSheetSharing() {
 
   This is crucial for debugging. If your script isn't working as expected, check the Executions menu first to see if triggers are firing and what errors might be occurring.
   
+---
+
+## Deep Dive: How Google Handles Millions of Triggers
+
+Ever wonder how Google manages Apps Script triggers for millions of users worldwide? Here's what's happening behind the scenes:
+
+### Google's Trigger Infrastructure
+
+**Event-Driven Architecture**: Google uses a sophisticated event-driven system where every Google Workspace action (form submission, sheet edit, time-based events) generates events that flow through their infrastructure.
+
+**Distributed Processing**: When you submit a form, Google's systems:
+1. Detect the form submission event
+2. Route it to the appropriate Apps Script project
+3. Execute your script in a sandboxed environment
+4. Handle the response and any side effects (like sharing permissions)
+
+**Scalability Challenges**: Google processes billions of events daily across:
+- Form submissions
+- Sheet modifications  
+- Time-based triggers
+- Calendar events
+- Email triggers
+
+### Why the 6-Minute Limit?
+
+The execution time limit isn't arbitrary. Google's infrastructure needs to:
+- **Resource Management**: Prevent runaway scripts from consuming excessive resources
+- **Fair Usage**: Ensure all users get reasonable access to computing resources
+- **Cost Control**: Apps Script runs on Google's infrastructure, and they need to manage operational costs
+- **Reliability**: Shorter execution times mean faster recovery from failures
+
+### Event Processing Pipeline
+
+```
+Form Submission → Event Queue → Trigger Router → Script Execution → Result Handler
+```
+
+1. **Event Queue**: Google maintains massive queues of events waiting to be processed
+2. **Trigger Router**: Routes events to the correct Apps Script projects
+3. **Script Execution**: Runs your code in isolated containers
+4. **Result Handler**: Processes the output and applies changes (like sharing permissions)
+
+### Why Triggers Sometimes Fail
+
+**Rate Limiting**: Google implements sophisticated rate limiting to prevent abuse and ensure fair resource distribution.
+
+**Resource Contention**: During peak hours, the system might be under higher load, causing occasional delays or failures.
+
+**Network Issues**: Between Google's internal services (Forms → Sheets → Apps Script), network hiccups can cause temporary failures.
+
+**Quota Management**: Google tracks usage across all services to prevent any single user from overwhelming the system.
+
+### The Magic of "Eventually Consistent"
+
+Google's systems are designed for "eventual consistency" - meaning:
+- Your trigger might not fire immediately
+- There might be a few seconds delay
+- But the system guarantees it will eventually process your event
+
+This design allows Google to handle massive scale while maintaining reliability.
+
 ---
 
 ## Why I Use This
