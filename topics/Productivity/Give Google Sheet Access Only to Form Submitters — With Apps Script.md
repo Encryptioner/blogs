@@ -26,7 +26,7 @@ The goal:
 
 ## The Approach
 
-We hook into Google Apps Script and:
+We hook into [Google Apps Script](https://developers.google.com/apps-script) and:
 
 1. Read the email column from the sheet.
 2. Add new emails as viewers.
@@ -91,7 +91,7 @@ function updateSheetSharing() {
 ## Deployment Tips
 
 * **Trigger it on Form Submit**:
-  Go to **Triggers → Add Trigger** → Choose `updateSheetSharing` → Event: `On form submit`.
+  Go to **Triggers → Add Trigger** → Choose `updateSheetSharing` → Event: `On form submit`. See [Google's trigger documentation](https://developers.google.com/apps-script/guides/triggers) for more details.
 
 * **Avoid Too Many Writes**:
   If your form gets hundreds of submissions daily, consider adding debounce logic or batching updates periodically.
@@ -102,6 +102,40 @@ function updateSheetSharing() {
 * **Security Reminder**:
   Never share sheet access based on user input *unless you validate the email* (i.e., restrict form to logged-in users and auto-capture email).
 
+* **"Google hasn't verified this app" Warning**:
+  You'll likely see this warning when first running the script. This happens because Apps Script is accessing sensitive Google services (Sheets, Drive) and requesting OAuth scopes that Google considers sensitive.
+
+  **Solution for Personal/Internal Use:**
+  When you see the warning screen:
+  1. Click "Advanced" at the bottom
+  2. Click "Go to [your project name] (unsafe)"
+  3. Accept the permissions manually for your account
+
+  This is safe for personal scripts or internal organizational use. The warning appears because Google hasn't reviewed your specific script, but you can authorize it yourself.
+
+* **Domain Restrictions**:
+  Some organizations block external sharing entirely. If you're in a corporate environment, check with your IT team about Google Workspace sharing policies.
+
+* **Quota Limits**:
+  Apps Script has daily quotas for API calls. For high-volume forms, monitor your usage in the Apps Script dashboard under "Quotas" to avoid hitting limits. Check [Google's quota limits](https://developers.google.com/apps-script/guides/services/quotas) for current limits.
+
+* **Testing in Development**:
+  Test the script on a copy of your sheet first. Create a test form and sheet to verify everything works before deploying to production.
+
+* **Execution Time Limits**:
+  Apps Script has a maximum execution time of 6 minutes per invocation. If your script processes a large number of emails, it might timeout. For high-volume scenarios, consider batching operations or using time-based triggers instead of form submission triggers. See [Google's execution limits](https://developers.google.com/apps-script/guides/services/quotas#current_limitations) for detailed information.
+
+* **Monitoring Executions**:
+  After setting up triggers, you can monitor their execution in the Apps Script dashboard:
+  - Go to **Executions** in the left sidebar
+  - See a list of all recent trigger runs with timestamps
+  - Check execution status (success/failed)
+  - Click on any execution to view detailed logs
+  - Failed executions show error messages and stack traces
+  - Successful runs show "Execution completed" status
+
+  This is crucial for debugging. If your script isn't working as expected, check the Executions menu first to see if triggers are firing and what errors might be occurring.
+  
 ---
 
 ## Why I Use This
