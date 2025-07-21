@@ -8,6 +8,8 @@
 
 *"The best way to understand a tool is to build it yourself."*
 
+**5-Minute Journey Through Low-Level Programming**
+
 ---
 
 ## Slide 2: The Journey Begins
@@ -45,6 +47,8 @@
 
 *"AI generated most of my code, but I learned the fundamentals."*
 
+**Question:** How many of you have wondered what happens when you type `ls`?
+
 ---
 
 ## Slide 4: The "Which" Challenge - Simple but Powerful
@@ -70,7 +74,28 @@ $ which python
 
 ---
 
-## Slide 5: The Shell Challenge - Going Deep
+## Slide 5: What is a Shell?
+
+# 🐚 What is a Shell, Really?
+
+**A shell is your interface to the operating system:**
+- **Command Interpreter**: Reads your commands and executes them
+- **Process Manager**: Creates, manages, and monitors programs
+- **Environment Controller**: Manages variables, paths, and settings
+
+**When you type `ls -la`:**
+1. Shell reads your input
+2. Parses command into `ls` and `-la`
+3. Searches PATH for `ls` executable
+4. Creates new process with `fork()`
+5. Replaces process with `ls` using `exec()`
+6. Waits for completion with `wait()`
+
+*"A shell is just a program that runs other programs."*
+
+---
+
+## Slide 6: The Shell Challenge - Going Deep
 
 # 🐚 Challenge 2: Building a Shell
 
@@ -85,9 +110,11 @@ $ which python
 - Built-in commands (`cd`, `pwd`, `exit`)
 - Signal handling (`Ctrl+C`)
 
+**Check it out:** [github.com/Encryptioner/ccsh-shell](https://github.com/Encryptioner/ccsh-shell)
+
 ---
 
-## Slide 6: The "Aha!" Moments
+## Slide 7: The "Aha!" Moments
 
 # 💡 What I Discovered
 
@@ -110,7 +137,37 @@ if (pid == 0) {
 
 ---
 
-## Slide 7: AI as a Learning Partner
+## Slide 8: Building with Makefiles
+
+# 🔨 How Makefiles Work
+
+**What is a Makefile?**
+- A recipe for building software
+- Automates compilation process
+- Handles dependencies automatically
+
+**Simple Makefile Example:**
+```makefile
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -g
+LDFLAGS = -lreadline
+
+ccsh: ccsh.c
+	$(CC) $(CFLAGS) -o ccsh ccsh.c $(LDFLAGS)
+
+clean:
+	rm -f ccsh
+```
+
+**How it works:**
+- `make` reads the Makefile
+- Checks if `ccsh` is newer than `ccsh.c`
+- Runs the compilation command if needed
+- `make clean` removes built files
+
+---
+
+## Slide 9: AI as a Learning Partner
 
 # 🤖 AI + Fundamentals = Powerful Learning
 
@@ -129,7 +186,7 @@ if (pid == 0) {
 
 ---
 
-## Slide 8: Real-World Applications
+## Slide 10: Real-World Applications
 
 # 🌍 Beyond the Challenges
 
@@ -152,7 +209,7 @@ if (pid == 0) {
 
 ---
 
-## Slide 9: The Learning Path
+## Slide 11: The Learning Path
 
 # 📚 Your Journey Starts Here
 
@@ -173,7 +230,7 @@ if (pid == 0) {
 
 ---
 
-## Slide 10: Getting Started
+## Slide 12: Getting Started
 
 # 🚀 Start Your Own Adventure
 
@@ -182,14 +239,19 @@ if (pid == 0) {
 2. Build incrementally - don't jump to complex tools
 3. Use AI as a learning partner, not a crutch
 
-**Resources:**
-- [My Shell Implementation Guide](https://encryptioner.github.io)
-- [Coding Challenges Community](https://codingchallenges.fyi)
-- [Unix Programming Manual](https://man7.org/linux/man-pages/)
+**Get Started:**
+```bash
+git clone https://github.com/Encryptioner/ccsh-shell
+cd ccsh-shell
+make
+./ccsh
+```
+
+**Demo:** Let me show you what it looks like in action...
 
 ---
 
-## Slide 11: The Benefits for Others
+## Slide 13: The Benefits for Others
 
 # 🎯 Why This Matters for Everyone
 
@@ -210,7 +272,7 @@ if (pid == 0) {
 
 ---
 
-## Slide 12: Key Takeaways
+## Slide 14: Key Takeaways
 
 # 🎯 Key Takeaways
 
@@ -231,7 +293,7 @@ if (pid == 0) {
 
 ---
 
-## Slide 13: The Bottom Line
+## Slide 15: The Bottom Line
 
 # 🎉 The Bottom Line
 
@@ -245,13 +307,13 @@ if (pid == 0) {
 
 ---
 
-## Slide 14: Resources & Next Steps
+## Slide 16: Resources & Next Steps
 
 # 📚 Resources & Next Steps
 
 **Start Your Journey:**
 - [Coding Challenges FYI](https://codingchallenges.fyi)
-- [My Shell Implementation](https://github.com/Encryptioner/ccsh)
+- [My Shell Implementation](https://github.com/Encryptioner/ccsh-shell)
 - [Unix Programming Manual](https://man7.org/linux/man-pages/)
 
 **Connect & Learn:**
@@ -261,9 +323,11 @@ if (pid == 0) {
 
 **Next Challenge:** Build your own version of `ls` or `cat`!
 
+**Call to Action:** Start with one simple tool today!
+
 ---
 
-## Slide 15: Thank You
+## Slide 17: Thank You
 
 # Thank You!
 
