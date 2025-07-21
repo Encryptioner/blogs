@@ -29,10 +29,10 @@
 
 # 🛠️ Two Powerful Solutions
 
-**1. Google Apps Script**  
+**1. [Google Apps Script](https://dev.to/mir_mursalin_ankur/give-google-sheet-access-only-to-form-submitters-with-apps-script-1anh)**  
 Automated access control for Google Forms + Sheets
 
-**2. Bitbucket MCP with Cursor**  
+**2. [Bitbucket MCP with Cursor](https://dev.to/mir_mursalin_ankur/integrating-bitbucket-mcp-with-cursor-a-practical-guide-for-developers-1e5b)**  
 Unified repository management
 
 *Both solutions focus on eliminating manual work and reducing context switching*
@@ -254,8 +254,4 @@ By automating repetitive tasks, we free up time for:
 
 **Questions & Discussion**
 
-- Please share your thought
-
-**Connect:**  
-- [encryptioner.github.io](https://encryptioner.github.io)
-- [linkedin.com/in/mir-mursalin-ankur](https://linkedin.com/in/mir-mursalin-ankur)
+- Please share your thoughts
