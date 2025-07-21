@@ -1,6 +1,10 @@
 # Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers
 
-As developers, we all want our workflows to be smooth and efficient. Managing repositories, reviewing pull requests, and keeping track of changes can get tedious—especially when it means switching between your editor and browser. Recently, I set up the Bitbucket MCP (Model Context Protocol) server with Cursor IDE, and it’s made these tasks much more convenient. Here’s a practical guide based on my experience, with tips that apply even if you use other tools.
+As developers, we all want our workflows to be smooth and efficient. Managing repositories, reviewing pull requests, and keeping track of changes can get tedious—especially when it means switching between your editor and browser. Recently, I set up the Bitbucket MCP (Model Context Protocol) server with Cursor IDE, and it’s made these tasks much more convenient. 
+
+While Cursor supports [bugbot](https://docs.cursor.com/bugbot) for GitHub PR reviews, there’s nothing similar out-of-the-box for [bitbucket](https://bitbucket.org/) users. Setting up Bitbucket MCP with Cursor changed that for me—and made my dev life a lot smoother.
+
+Here’s a practical guide based on my experience, with tips that apply even if you use other tools.
 
 ## Why Integrate Bitbucket MCP with Cursor?
 
