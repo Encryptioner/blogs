@@ -13,6 +13,10 @@ Blogs on various topics
 - [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
 
 
+## Presentations
+- [Automation_of_Daily_Workflow_Presentation](./presentations/Automation_of_Daily_Workflow_Presentation.md)
+
+
 ## Links
 - [DEV Community](https://dev.to/mir_mursalin_ankur)
 - [Medium](https://mir-mursalin-ankur.medium.com/)
