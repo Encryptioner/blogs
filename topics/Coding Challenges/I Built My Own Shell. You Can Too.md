@@ -4,7 +4,7 @@
 
 ## The "Why" Behind the Madness
 
-As a senior software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
+As a lead software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
 
 Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It was like finding a missing puzzle piece. Here was my chance to peel back the layers and understand the fundamentals that power every terminal session.
 

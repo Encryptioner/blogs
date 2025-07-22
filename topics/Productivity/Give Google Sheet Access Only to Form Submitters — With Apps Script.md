@@ -1,7 +1,7 @@
 
 # Give Google Sheet Access Only to Form Submitters — With Apps Script
 
-As a senior software engineer, I've seen teams across companies rely on **Google Forms + Sheets** for quick data collection — feedback surveys, attendance tracking, event registration, you name it.
+As a lead software engineer, I've seen teams across companies rely on **Google Forms + Sheets** for quick data collection — feedback surveys, attendance tracking, event registration, you name it.
 
 But here’s a common issue that comes up:
 **How do you restrict access to the Google Sheet so only the people who submitted the form can view it?**
