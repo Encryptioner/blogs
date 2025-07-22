@@ -24,7 +24,7 @@ All from within Cursor, so you spend more time coding and less time navigating w
 
 ## Step-by-Step Setup
 
-### 1. Install the Bitbucket MCP Server
+### 1. Install the [Bitbucket MCP Server](https://github.com/MatanYemini/bitbucket-mcp)
 In your project directory, run:
 ```bash
 pnpm install -D bitbucket-mcp
