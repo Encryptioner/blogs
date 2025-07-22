@@ -14,7 +14,7 @@
 
 ## Slide 2: The Journey Begins
 
-# 🎯 My Coding Challenge Adventure
+# 🎯 [My Coding Challenge Adventure](https://github.com/Encryptioner/blogs/tree/master/topics/Coding%20Challenges)
 
 **Two challenges that changed everything:**
 
