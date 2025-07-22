@@ -20,7 +20,7 @@ When you type `ls -la`, here's what happens:
 
 Simple, right? But the devil is in the details.
 
-## The Journey Begins: ccsh
+## The Journey Begins: [ccsh](https://github.com/Encryptioner/ccsh-shell)
 
 I decided to build **ccsh** (Compact C Shell)—a minimal but functional Unix-like shell. Here's what I learned along the way:
 
