@@ -141,6 +141,6 @@ Check more on
 - [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
-- [Nerddevs](https://nerddevs.com/blog/)
+- [Nerddevs](https://nerddevs.com/author/ankur/)
 
 -----
