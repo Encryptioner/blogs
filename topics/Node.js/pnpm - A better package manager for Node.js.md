@@ -107,3 +107,4 @@ Check more on
 - [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Website](https://encryptioner.github.io)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/blog/)
