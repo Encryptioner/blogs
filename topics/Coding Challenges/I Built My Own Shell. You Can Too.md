@@ -4,9 +4,9 @@
 
 ## The "Why" Behind the Madness
 
-As a senior software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
+As a senior software engineer, I've spent years working with shells—Bash, Zsh—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
 
-Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It was like finding a missing puzzle piece. Here was my chance to peel back the layers and understand the fundamentals that power every terminal session.
+Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It gave motivation to uncover the invisible scene of most common functionalities. It was my chance to peel back the layers and understand the fundamentals that power every terminal session.
 
 ## What is a Shell, Really?
 
@@ -43,7 +43,7 @@ I chose to implement everything in a single `ccsh.c` file for simplicity. Here's
 
 ### What is a Makefile?
 
-A Makefile is a configuration file that tells the `make` utility how to build your project. It's like a recipe that automates the compilation process. Instead of typing long gcc commands, you just run `make`.
+A Makefile is a configuration file that tells the [make](https://faculty.cs.niu.edu/~hutchins/csci480/make.htm) utility how to build your project. It's like a recipe that automates the compilation process. Instead of typing long gcc commands, you just run `make`.
 
 ### Simple Build
 ```bash
@@ -63,9 +63,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g
 LDFLAGS = -lreadline
 
-# Build target: ccsh depends on ccsh.c
-ccsh: ccsh.c
-	$(CC) $(CFLAGS) -o ccsh ccsh.c $(LDFLAGS)
+# Build target: ccsh depends on main.c
+ccsh: main.c
+	$(CC) $(CFLAGS) -o ccsh main.c $(LDFLAGS)
 
 # Clean up build artifacts
 clean:
@@ -315,6 +315,8 @@ That's all!
 I hope you've found the article useful. You should try building your own shell if you haven't already. Feel free to share your thoughts in the comments below.
 
 Check more on
-- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Website](https://encryptioner.github.io)
+- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
+- [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/)

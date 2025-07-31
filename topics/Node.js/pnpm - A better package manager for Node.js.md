@@ -104,6 +104,8 @@ That's all!
 I hope you've found the article useful. U should try `pnpm` if u haven't already. Feel free to share your thoughts in the comments below.
 
 Check more on
-- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Website](https://encryptioner.github.io)
+- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
+- [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/)
