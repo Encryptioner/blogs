@@ -1,4 +1,4 @@
-# I Built My Own Shell. You Can Too.
+# I Built My Own Shell for Fun. You Can Too.
 
 *Ever wondered what happens when you type `ls` and hit Enter? I did too. So I built my own shell to find out.*
 

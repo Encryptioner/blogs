@@ -4,7 +4,7 @@ Blogs on various topics
 ## Topics
 
 #### Coding Challenges
-- [I Built My Own Shell. You Can Too](./topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell.%20You%20Can%20Too.md)
+- [I Built My Own Shell for Fun. You Can Too](./topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md)
 
 #### Node.js
 - [pnpm - A better package manager for Node.js](./topics/Node.js/pnpm%20-%20A%20better%20package%20manager%20for%20Node.js.md)
