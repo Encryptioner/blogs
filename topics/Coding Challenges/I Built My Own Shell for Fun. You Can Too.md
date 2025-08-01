@@ -1,10 +1,10 @@
-# I Built My Own Shell for Fun. You Can Too.
+# I Built My Own Shell for Fun. You Can Too
 
 *Ever wondered what happens when you type `ls` and hit Enter? I did too. So I built my own shell to find out.*
 
 ## The "Why" Behind the Madness
 
-As a lead software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
+As a lead software engineer, I've spent years working with shells—Bash, Zsh—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
 
 Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It gave motivation to uncover the invisible scene of most common functionalities. It was my chance to peel back the layers and understand the fundamentals that power every terminal session.
 
