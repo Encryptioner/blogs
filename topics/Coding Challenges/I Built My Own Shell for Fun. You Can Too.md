@@ -314,7 +314,7 @@ If you're interested in low-level programming, I highly recommend building a she
 4. Add pipes
 5. Build in job control
 
-The [codingchallenges.fyi shell challenge](https://codingchallenges.fyi/challenges/challenge-shell) is an excellent starting point. you can also check
+The [codingchallenges.fyi shell challenge](https://codingchallenges.fyi/challenges/challenge-shell) is an excellent starting point. you can also check:
 - [My Shell Implementation](https://github.com/Encryptioner/ccsh-shell)
 - [Unix Programming Manual](https://man7.org/linux/man-pages/)
 
