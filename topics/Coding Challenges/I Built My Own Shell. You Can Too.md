@@ -4,7 +4,7 @@
 
 ## The "Why" Behind the Madness
 
-As a lead software engineer, I've spent years working with shells—Bash, Zsh—but I never really understood what was happening under the hood. Sure, I knew about processes, and system calls, but the actual mechanics of how a shell works? That was a black box.
+As a lead software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
 
 Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It gave motivation to uncover the invisible scene of most common functionalities. It was my chance to peel back the layers and understand the fundamentals that power every terminal session.
 
@@ -20,7 +20,7 @@ When you type `ls -la`, here's what happens:
 
 Simple, right? But the devil is in the details.
 
-## The Journey Begins: ccsh
+## The Journey Begins: [ccsh](https://github.com/Encryptioner/ccsh-shell)
 
 I decided to build **ccsh** (Compact C Shell)—a minimal but functional Unix-like shell. Here's what I learned along the way:
 
@@ -346,4 +346,4 @@ Check more on
 - [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
-- [Nerddevs](https://nerddevs.com/)
+- [Nerddevs](https://nerddevs.com/author/ankur/)

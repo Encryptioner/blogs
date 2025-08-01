@@ -17,7 +17,7 @@ Blogs on various topics
 
 
 ## Presentations
-- [Automation_of_Daily_Workflow_Presentation](./presentations/Automation_of_Daily_Workflow_Presentation.md)
+- [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 - [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
 
 
@@ -31,3 +31,4 @@ Blogs on various topics
 - [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/author/ankur/)
