@@ -6,7 +6,7 @@
 
 As a lead software engineer, I've spent years working with shells—Bash, Zsh, Fish—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.
 
-Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It was like finding a missing puzzle piece. Here was my chance to peel back the layers and understand the fundamentals that power every terminal session.
+Then I stumbled upon [codingchallenges.fyi](https://codingchallenges.fyi/challenges/intro) and their [shell challenge](https://codingchallenges.fyi/challenges/challenge-shell). It gave motivation to uncover the invisible scene of most common functionalities. It was my chance to peel back the layers and understand the fundamentals that power every terminal session.
 
 ## What is a Shell, Really?
 
@@ -37,17 +37,45 @@ But more importantly, C gives me direct access to the system calls that power ev
 
 These are the same system calls that Bash, Zsh, and every other shell use under the hood.
 
+## AI as My Learning Partner
+
+Here's the honest truth: **AI generated most of my code, but I understood every line.**
+
+### How AI Helped Me:
+
+- **Generated boilerplate code structure** - I didn't start from scratch
+- **Explained complex system calls** - When I was stuck on `fork()` vs `exec()`
+- **Debugged memory management issues** - C's manual memory management is tricky
+- **Suggested best practices** - Error handling, code organization, security considerations
+
+### The Key Insight:
+
+**AI is a tool, not a replacement.** Understanding the fundamentals is crucial. Here's what I learned:
+
+- **80% understanding is enough** - If this isn't your core job, you don't need to memorize every system call
+- **AI accelerates learning** - When you know the basics, AI can help you build faster
+- **Fundamentals matter** - You still need to understand what `fork()` does, even if AI wrote the code
+
+### My Approach:
+
+1. **Start with understanding** - Learn what each system call does conceptually
+2. **Use AI for implementation** - Let AI handle the boilerplate and edge cases
+3. **Review and modify** - Understand AI generated lines. If necessary, get clarification from alternate source
+4. **Test and debug** - Break things to understand them better
+
+*"AI generated the code, but I understood most of the lines. That's the sweet spot."*
+
 ## Building the Shell
 
-I chose to implement everything in a single `ccsh.c` file for simplicity. Here's how to build it:
+I chose to implement everything in a single `main.c` file for simplicity. Here's how to build it:
 
 ### What is a Makefile?
 
-A Makefile is a configuration file that tells the `make` utility how to build your project. It's like a recipe that automates the compilation process. Instead of typing long gcc commands, you just run `make`.
+A Makefile is a configuration file that tells the [make](https://faculty.cs.niu.edu/~hutchins/csci480/make.htm) utility how to build your project. It's like a recipe that automates the compilation process. Instead of typing long gcc commands, you just run `make`.
 
 ### Simple Build
 ```bash
-gcc -Wall -Wextra -std=c99 -g ccsh.c -o ccsh -lreadline
+gcc -Wall -Wextra -std=c99 -g main.c -o ccsh -lreadline
 ```
 
 **What each flag does:**
@@ -63,9 +91,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g
 LDFLAGS = -lreadline
 
-# Build target: ccsh depends on ccsh.c
-ccsh: ccsh.c
-	$(CC) $(CFLAGS) -o ccsh ccsh.c $(LDFLAGS)
+# Build target: ccsh depends on main.c
+ccsh: main.c
+	$(CC) $(CFLAGS) -o ccsh main.c $(LDFLAGS)
 
 # Clean up build artifacts
 clean:
@@ -80,7 +108,7 @@ install: ccsh
 - `CC = gcc`: Define the compiler
 - `CFLAGS`: Compiler flags for warnings and standards
 - `LDFLAGS`: Linker flags for external libraries
-- `ccsh: ccsh.c`: Target `ccsh` depends on `ccsh.c`
+- `ccsh: main.c`: Target `ccsh` depends on `main.c`
 - `clean`: Remove built files
 
 ### Building and Running
@@ -103,35 +131,35 @@ cd /path/to/directory    # Change directory
 pwd                      # Print working directory
 exit                     # Exit shell
 jobs                     # List background jobs
-fg %1                   # Bring job to foreground
+fg %1                    # Bring job to foreground
 help                     # Show help information
 ```
 
 ### 2. Alias System
 ```bash
 alias ll="ls -lah"       # Create alias
-alias                     # List all aliases
+alias                    # List all aliases
 unalias ll               # Remove alias
 ```
 
 ### 3. Background Job Management
 ```bash
-sleep 10 &              # Run in background
+sleep 10 &               # Run in background
 jobs                     # List background jobs
-fg %1                   # Bring to foreground
+fg %1                    # Bring to foreground
 ```
 
 ### 4. I/O Redirection
 ```bash
-ls > output.txt         # Redirect output
-cat < input.txt         # Redirect input
-echo "hello" >> log.txt # Append output
+ls > output.txt          # Redirect output
+cat < input.txt          # Redirect input
+echo "hello" >> log.txt  # Append output
 ```
 
 ### 5. Globbing Support
 ```bash
-ls *.txt               # List all .txt files
-cp file?.txt backup/   # Copy files matching pattern
+ls *.txt                 # List all .txt files
+cp file?.txt backup/     # Copy files matching pattern
 ```
 
 ## The "Aha!" Moments
@@ -141,9 +169,6 @@ I never fully understood how `Ctrl+C` works until I implemented it. When you pre
 1. Create a new process group for each command
 2. Handle signals appropriately
 3. Restore the shell's process group when the command finishes
-
-### File Descriptors and Redirection
-Understanding that `2>&1` means "make stderr point to the same place as stdout" was a revelation. File descriptors are just numbers, and you can manipulate them with `dup2()`.
 
 ### Environment Variables
 I always knew about `PATH`, but seeing how the shell searches for executables was enlightening. It's just a simple loop through directories, checking if the file exists and is executable.
@@ -289,7 +314,9 @@ If you're interested in low-level programming, I highly recommend building a she
 4. Add pipes
 5. Build in job control
 
-The [codingchallenges.fyi shell challenge](https://codingchallenges.fyi/challenges/challenge-shell) is an excellent starting point.
+The [codingchallenges.fyi shell challenge](https://codingchallenges.fyi/challenges/challenge-shell) is an excellent starting point. you can also check
+- [My Shell Implementation](https://github.com/Encryptioner/ccsh-shell)
+- [Unix Programming Manual](https://man7.org/linux/man-pages/)
 
 ## What's Next?
 
@@ -315,7 +342,8 @@ That's all!
 I hope you've found the article useful. You should try building your own shell if you haven't already. Feel free to share your thoughts in the comments below.
 
 Check more on
-- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Website](https://encryptioner.github.io)
+- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
+- [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
 - [Nerddevs](https://nerddevs.com/author/ankur/)
