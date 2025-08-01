@@ -1,5 +1,12 @@
 # Building Your Own Shell: A Fun Journey into System Programming
 
+<div 
+    class="text-center"
+>
+    <img src="../assets/Build-Your-Own-Shell.png">
+</div>
+
+
 *Ever wondered what happens when you type `ls` and hit Enter? Let's satisfy that curiosity by building our own shell!*
 
 ## The "Why" Behind the Madness
