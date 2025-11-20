@@ -1,5 +1,5 @@
-# Blogs
-Blogs on various topics
+# Blogs & Presentations
+Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete details.
 
 ## Topics
 

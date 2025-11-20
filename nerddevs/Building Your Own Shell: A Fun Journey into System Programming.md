@@ -3,7 +3,7 @@
 <div 
     class="text-center"
 >
-    <img src="../assets/Build-Your-Own-Shell.png">
+    <img src="../assets/B-6/Build-Your-Own-Shell.png">
 </div>
 
 
