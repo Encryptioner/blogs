@@ -513,13 +513,13 @@ The script bumps the version, creates the tag, and pushes it. GitHub Actions see
 
 ## Real-World Example: From Hobby Project to Published Package
 
-This entire guide came from real experience. I took a hobby project — an HTML-to-PDF generator I built for a specific application — and transformed it into a framework-agnostic package anyone can use.
+This guide is based on a real-world transformation: turning an HTML-to-PDF generator from a single-application solution into a framework-agnostic package that any developer can use.
 
 **The package:** [`@encryptioner/html-to-pdf-generator`](https://www.npmjs.com/package/@encryptioner/html-to-pdf-generator)
 
 **What it does:** Modern multi-page PDF generator from HTML content with smart pagination and styling support.
 
-**The journey:**
+**The transformation journey:**
 - Started as tightly coupled code in a single project
 - Extracted the core logic into a standalone library
 - Made it framework-agnostic (works with React, Vue, vanilla JS, Node.js)
@@ -527,15 +527,15 @@ This entire guide came from real experience. I took a hobby project — an HTML-
 - Set up automated publishing with GitHub Actions
 - Documented everything in a useful README
 
-**The result:**
+**The outcome:**
 A package that solves a real problem for developers who need to generate clean, multi-page PDFs from HTML without fighting with browser print dialogs or complex PDF libraries.
 
-You can install it right now:
+Installation:
 ```bash
 npm install @encryptioner/html-to-pdf-generator
 ```
 
-That transition from "code that works for me" to "code that works for everyone" is exactly what this guide is about. The technical steps matter, but the mindset shift matters more — thinking about edge cases, documentation, and user experience.
+This transition from "code that works for one project" to "code that works for everyone" demonstrates what successful package publishing looks like. The technical steps matter, but the mindset shift matters more — thinking about edge cases, documentation, and user experience.
 
 ---
 
