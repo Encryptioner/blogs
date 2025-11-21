@@ -1,2 +1,26 @@
-# IDEA config files
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE - VSCode
+.vscode/
+!.vscode/settings.json.example
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# IDE - IntelliJ
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Temporary files
+*.swp
+*.swo
+*~
+.tmp/
+tmp/
+
+# Misc
+*.tgz

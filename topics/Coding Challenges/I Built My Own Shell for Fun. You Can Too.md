@@ -1,11 +1,8 @@
 # I Built My Own Shell for Fun. You Can Too
 
-<div 
-    class="text-center"
->
-    <img src="../../assets/B-6/Build-Your-Own-Shell.png">
-</div>
-
+<p align="center">
+    <img src="../../assets/B-6/Build-Your-Own-Shell.png" alt="Build-Your-Own-Shell">
+</p>
 
 *Ever wondered what happens when you type `ls` and hit Enter? I did too. So I built my own shell to find out.*
 

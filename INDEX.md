@@ -7,6 +7,7 @@
 4. Productivity: [Give Google Sheet Access Only to Form Submitters — With Apps Script](./topics/Productivity/Give%20Google%20Sheet%20Access%20Only%20to%20Form%20Submitters%20—%20With%20Apps%20Script.md)
 5. Productivity: [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
 6. Coding Challenges: [I Built My Own Shell for Fun. You Can Too](./topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md)
+7. Node.js: [Publishing Your First NPM Package: A Real-World Guide That Actually Helps](./topics/Node.js/Publishing%20Your%20First%20NPM%20Package:%20A%20Real-World%20Guide%20That%20Actually%20Helps.md)
  
 
 
