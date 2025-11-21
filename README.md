@@ -8,6 +8,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 
 #### Node.js
 - [pnpm - A better package manager for Node.js](./topics/Node.js/pnpm%20-%20A%20better%20package%20manager%20for%20Node.js.md)
+- [Publishing Your First NPM Package: A Real-World Guide That Actually Helps](./topics/Node.js/Publishing%20Your%20First%20NPM%20Package:%20A%20Real-World%20Guide%20That%20Actually%20Helps.md)
 
 #### Productivity
 - [📬 My Go-To Engineering Newsletters (30+ Summarized)](./topics/Productivity/📬%20My%20Go-To%20Engineering%20Newsletters%20(30+%20Summarized).md)
