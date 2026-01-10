@@ -16,6 +16,9 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Give Google Sheet Access Only to Form Submitters — With Apps Script](./topics/Productivity/Give%20Google%20Sheet%20Access%20Only%20to%20Form%20Submitters%20—%20With%20Apps%20Script.md)
 - [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
 
+#### Software Business
+- [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
+
 
 ## Presentations
 - [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)

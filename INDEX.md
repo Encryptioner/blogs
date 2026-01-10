@@ -8,6 +8,7 @@
 5. Productivity: [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
 6. Coding Challenges: [I Built My Own Shell for Fun. You Can Too](./topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md)
 7. Node.js: [Publishing Your First NPM Package: A Real-World Guide That Actually Helps](./topics/Node.js/Publishing%20Your%20First%20NPM%20Package:%20A%20Real-World%20Guide%20That%20Actually%20Helps.md)
+8. Software Business Models: [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
  
 
 
