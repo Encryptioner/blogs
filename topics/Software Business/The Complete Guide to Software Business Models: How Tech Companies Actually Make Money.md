@@ -1,5 +1,9 @@
 # The Complete Guide to Software Business Models: How Tech Companies Actually Make Money
 
+<div align="center">
+  <img src="../../assets/B-8/How Tech Companies Actually Make Money.jpeg" alt="How Tech Companies Actually Make Money"/>
+</div>
+
 If you've ever wondered how your favorite apps stay free, why some software charges monthly while others are one-time purchases, or how tech giants like Google and Apple structure their businesses, you're in the right place.
 
 The software industry has evolved far beyond simple "buy once, use forever" models. Today's tech landscape features dozens of sophisticated business models, each designed to solve specific problems and create value in unique ways. Understanding these models isn't just for entrepreneurs—it helps you make smarter decisions as a consumer, investor, or anyone navigating the digital economy.
