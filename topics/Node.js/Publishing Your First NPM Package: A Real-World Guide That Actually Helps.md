@@ -422,6 +422,7 @@ If it is important to create `Releases` manually, follow this:
 5. Publish
 
 Once the tag is pushed, GitHub Actions takes over and handles publishing.
+
 ---
 
 ## Step 15: When Things Go Wrong
