@@ -18,6 +18,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
+- [Inside Bangladesh's Software Industry: Companies, Models, and Opportunities](./topics/Software%20Business/Inside%20Bangladesh's%20Software%20Industry:%20Companies,%20Models,%20and%20Opportunities.md)
 
 
 ## Presentations
