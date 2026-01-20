@@ -4,10 +4,9 @@
   <img src="../../assets/B-9/Inside Bangladesh's Software Industry- Companies, Models, and Opportunities.png" alt="Inside Bangladesh's Software Industry"/>
 </div>
 
-
 When you think about software outsourcing destinations, Bangladesh probably isn't the first name that comes to mind. But it should be.
 
-Tucked between India, Myanmar and **Bay of Bengal**, this country of 170 million people has built a diverse software ecosystem with companies doing remarkable work—from government systems that serve millions to products used by British Council and ACCA for global examinations.
+Beside the **Bay of Bengal**, this country of 170 million people has built a diverse software ecosystem with companies doing remarkable work—from government systems that serve millions to products used by British Council and ACCA for global examinations.
 
 Let me walk you through the companies, what they actually do, and the business models that work.
 
@@ -191,14 +190,14 @@ Selise is a global IT delivery organization with significant Bangladesh operatio
 - **Website:** https://nerddevs.com
 - **Product Website:** https://biddaan.com
 - **Founded:** 2015
-- **Employees:** 16+ (small but impactful)
+- **Employees:** 20+ (small but impactful)
 - **Specialization:** EdTech and messaging solutions
 
 NerdDevs represents a different model—staying small, focusing intensely on specific problems, and building both client work and own products simultaneously.
 
 Their flagship partnership achievement is **TestReach**, an online assessment platform that ACCA (Association of Chartered Certified Accountants), British Council, CIPS, and iSQI use for global examinations. If you've taken a professional certification exam in the UK, there's a decent chance NerdDevs wrote part of the software.
 
-They also built **Second Text**, a messaging app used in the US market that handles 4-5 million messages monthly—managing that volume reliably requires serious engineering.
+They also built **Genius** and other messaging apps, which are mostly used in the US market that handles 4-5 million messages monthly—managing that volume reliably requires serious engineering.
 
 **For the Bangladesh market, their major products include:**
 

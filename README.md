@@ -20,6 +20,9 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
 - [Inside Bangladesh's Software Industry: Companies, Models, and Opportunities](./topics/Software%20Business/Inside%20Bangladesh's%20Software%20Industry:%20Companies,%20Models,%20and%20Opportunities.md)
 
+### Career
+- Navigating Bangladesh's Software Industry - Guide for Developers: [Navigating Bangladesh's Software Industry - A Practical Guide for Developers in 2026](./topics/Career/Navigating%20Bangladesh's%20Software%20Industry%20-%20A%20Practical%20Guide%20for%20Developers%20in%202026.md)
+
 
 ## Presentations
 - [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
