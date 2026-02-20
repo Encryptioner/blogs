@@ -13,6 +13,10 @@
 10. Navigating Bangladesh's Software Industry - Guide for Developers: [Navigating Bangladesh's Software Industry - A Practical Guide for Developers in 2026](./topics/Career/Navigating%20Bangladesh's%20Software%20Industry%20-%20A%20Practical%20Guide%20for%20Developers%20in%202026.md)
 
 
+11. Productivity: [Claude Code Agent Swarms - Multi-Agent Development Guide](./topics/Productivity/Claude%20Code%20Agent%20Swarms%20-%20Multi-Agent%20Development%20Guide.md)
+12. Productivity: [Agent Swarm Plans for Side Projects](./topics/Productivity/Agent%20Swarm%20Plans%20for%20Side%20Projects.md)
+13. Productivity: [Agent Teams for browser-ide - Deep Analysis and Steps](./topics/Productivity/Agent%20Teams%20for%20browser-ide%20-%20Deep%20Analysis%20and%20Steps.md)
+
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
