@@ -256,24 +256,27 @@ exit 0
 
 ---
 
-## 3. Skills (Slash Commands)
+## 3. Skills & Custom Commands (Slash Commands)
 
-Skills are reusable markdown workflows invoked as `/command-name`. Since Claude Code v2.1.3, slash commands and skills are unified.
+Skills are reusable markdown workflows invoked as `/command-name`. Since Claude Code v2.1.3, slash commands and skills are unified - a file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review`.
 
 ### File Locations
 
-| Location | Scope |
-|----------|-------|
-| `.claude/skills/` | Project (shared via git) |
-| `~/.claude/skills/` | Global (all projects) |
-| `.claude/commands/` | Legacy path (still works) |
+| Location | Type | Scope |
+|----------|------|-------|
+| `.claude/skills/<name>/SKILL.md` | Skill (new) | Project (shared via git) |
+| `~/.claude/skills/<name>/SKILL.md` | Skill (new) | Global (all projects) |
+| `.claude/commands/<name>.md` | Command (legacy) | Project (shared via git) |
+| `~/.claude/commands/<name>.md` | Command (legacy) | Global (all projects) |
+
+**Skills are recommended** over commands because they support directory structures with supporting files, frontmatter controls, and progressive context loading.
 
 ### SKILL.md Format
 
 ```markdown
 ---
 name: code-review
-description: Reviews code for quality, security, and best practices.
+description: Reviews code for quality, security, and best practices. Use when analyzing PRs, diffs, or checking code quality.
 allowed-tools: Read, Grep, Glob, Bash(git diff *)
 ---
 
@@ -287,28 +290,71 @@ allowed-tools: Read, Grep, Glob, Bash(git diff *)
 $ARGUMENTS
 ```
 
+### All YAML Frontmatter Fields
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `name` | Yes | string | Becomes `/command-name`. Max 64 chars, lowercase letters/numbers/hyphens |
+| `description` | Yes | string | **Primary trigger for auto-invocation.** Include what + when + when-not |
+| `allowed-tools` | No | array | Tools Claude can use without permission prompts |
+| `disable-model-invocation` | No | boolean | `true` = only user can invoke (not auto). For dangerous ops |
+| `user-invocable` | No | boolean | `false` = only Claude can invoke. For internal helpers |
+| `context` | No | string | `fork` = runs in isolated sub-agent context |
+| `agent` | No | string | Which agent to use with `context: fork` |
+
+### Invocation Control Matrix
+
+| Configuration | User Can Invoke? | Claude Auto-Invokes? | Use Case |
+|---------------|------------------|----------------------|----------|
+| (defaults) | Yes | Yes | Normal skill |
+| `disable-model-invocation: true` | Yes | **No** | Dangerous ops: deploy, commit, send |
+| `user-invocable: false` | **No** | Yes | Internal helpers, background knowledge |
+
+### `$ARGUMENTS` Variable
+
+Everything typed after the command is passed as `$ARGUMENTS`:
+
+```
+/deploy staging     → $ARGUMENTS = "staging"
+/fix-issue 123      → $ARGUMENTS = "123"
+/translate Spanish Hello world → $ARGUMENTS = "Spanish Hello world"
+```
+
+Positional access: `$ARGUMENTS[0]`, `$ARGUMENTS[1]`, or shorthand `$0`, `$1`.
+
+If `$ARGUMENTS` is not referenced in SKILL.md, it's auto-appended at the end.
+
 ### Directory-Based Skill (with Supporting Files)
+
+Skills use three-level progressive context loading:
 
 ```
 .claude/skills/
   dexie-expert/
-    SKILL.md           # Required
-    PATTERNS.md        # Reference docs
-    MIGRATIONS.md      # Migration guides
+    SKILL.md           # Level 2: loaded when skill triggers (<5K words)
+    scripts/            # Level 3: loaded on-demand
+      validate-schema.ts
+    references/         # Level 3: loaded on-demand
+      PATTERNS.md
+      MIGRATIONS.md
+    assets/             # NOT loaded into context (for output templates)
+      template.html
 ```
 
-### YAML Frontmatter Fields
+**Level 1** (always): name + description (~100 tokens) - for discovery
+**Level 2** (when triggered): full SKILL.md body
+**Level 3** (as needed): scripts/, references/ - loaded during execution
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Becomes `/command-name` |
-| `description` | Yes | Used for auto-detection |
-| `allowed-tools` | No | Restricts tools available |
-| `args` | No | Named parameters |
+### Namespaced Commands via Subdirectories
 
-### `$ARGUMENTS` Variable
-
-Pass user text: `/deploy-feature my-branch production` - `$ARGUMENTS` becomes `my-branch production`
+```
+.claude/commands/
+  posts/
+    new.md            → invoked as /posts:new
+  deploy/
+    staging.md        → invoked as /deploy:staging
+    production.md     → invoked as /deploy:production
+```
 
 ### Built-in Commands
 
@@ -323,12 +369,485 @@ Pass user text: `/deploy-feature my-branch production` - `$ARGUMENTS` becomes `m
 | `/agents` | Manage custom agents |
 | `/resume` | Resume previous session |
 
-### Best Practices
+### Context Fork (Isolated Execution)
 
-- Keep each skill focused on ONE purpose
-- Make `description` very specific with example triggers
-- Use skills (not CLAUDE.md) for domain knowledge that only applies sometimes
-- Use `allowed-tools` to restrict permissions for safety
+```yaml
+---
+name: deep-research
+description: Research a topic thoroughly with extensive analysis.
+context: fork
+agent: Explore
+---
+```
+
+Runs in an isolated sub-agent with separate conversation history. Main context stays clean. Use for long analyses, research, or skills that generate extensive output.
+
+---
+
+### Creating Custom Commands: Complete Examples
+
+Here are practical, real-world custom commands you can add to any project.
+
+#### Example 1: Interview & Spec Writer
+
+Creates a detailed spec by interviewing the developer using AskUserQuestion.
+
+`.claude/skills/interview-spec/SKILL.md`:
+
+```markdown
+---
+name: interview-spec
+description: Interview the developer in detail about a feature using AskUserQuestion, then write a comprehensive spec. Use when planning new features, writing PRDs, or capturing detailed requirements.
+disable-model-invocation: true
+---
+
+# Feature Interview & Spec Writer
+
+You are a senior product engineer conducting a detailed feature interview.
+
+## Interview Process
+
+Interview the developer using the AskUserQuestion tool about $ARGUMENTS.
+Ask questions in rounds. Each round should have 2-4 focused questions.
+Continue until all aspects are covered.
+
+### Round 1: Core Concept
+- What problem does this solve? Who is the user?
+- What's the scope? (MVP vs full vision)
+- Are there existing patterns in the codebase to follow?
+
+### Round 2: Technical Implementation
+- What components/services need to change?
+- What new types/interfaces are needed?
+- What's the data model? State management approach?
+- Are there performance constraints?
+
+### Round 3: UI & UX
+- What's the user flow? Entry points?
+- What does the error state look like?
+- What's the loading state? Empty state?
+- Mobile/responsive considerations?
+
+### Round 4: Edge Cases & Tradeoffs
+- What happens with invalid input?
+- What are the security implications?
+- What tradeoffs are we making? What are we NOT building?
+- What could go wrong? Failure modes?
+
+### Round 5: Testing & Acceptance
+- What are the acceptance criteria?
+- What tests should be written?
+- How do we verify this works end-to-end?
+
+## Important Rules
+- Ask non-obvious questions. Skip anything that's self-evident.
+- Push back on vague answers. Ask for specifics.
+- Identify hidden complexity the developer might not have considered.
+- After each round, summarize what you've learned before proceeding.
+- Continue interviewing until the feature is fully specified.
+
+## Output
+
+After the interview is complete, write a comprehensive spec to `PRD/specs/$ARGUMENTS.md` with:
+
+```
+# Feature Spec: [Name]
+
+## Overview
+[One paragraph summary]
+
+## Requirements
+- FR-001: [Requirement 1]
+- FR-002: [Requirement 2]
+
+## Technical Design
+### Architecture
+### Data Model
+### API/Service Changes
+### State Management
+
+## UI/UX
+### User Flow
+### Wireframes (ASCII)
+### Error States
+### Loading States
+
+## Edge Cases & Error Handling
+
+## Security Considerations
+
+## Testing Plan
+- Unit tests
+- Integration tests
+- E2E tests
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Out of Scope
+
+## Open Questions
+```
+```
+
+**Usage:** `/interview-spec git-blame-feature`
+
+---
+
+#### Example 2: Manual Test Case Generator
+
+Generates structured manual test cases for QA with a standard template.
+
+`.claude/skills/manual-test-cases/SKILL.md`:
+
+```markdown
+---
+name: manual-test-cases
+description: Generate manual test cases for new features and regression testing. Outputs structured test cases with ID, Portal, Module, Test Case, Pre Conditions, Steps, Expected Result, and Priority. Use when writing QA test plans, creating test documentation, or preparing for manual testing rounds.
+disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, Write
+---
+
+# Manual Test Case Generator
+
+Generate comprehensive manual test cases for $ARGUMENTS.
+
+## Process
+
+1. **Read the feature code/spec** - Understand what was built or changed
+2. **Identify test scenarios** - Cover:
+   - Happy path (normal usage)
+   - Boundary values (min/max/empty/large)
+   - Error handling (invalid input, network failure, permission denied)
+   - Regression (ensure existing functionality still works)
+   - Security (XSS, injection, unauthorized access)
+   - Accessibility (keyboard navigation, screen reader)
+   - Cross-browser/device (if applicable)
+3. **Generate test cases** in the standard format below
+
+## Test Case Format
+
+Output a Markdown table with these columns:
+
+| ID | Portal | Module | Test Case | Pre Conditions | Steps | Expected Result | Priority |
+|----|--------|--------|-----------|----------------|-------|-----------------|----------|
+
+### Column Definitions
+
+- **ID**: Sequential identifier. Format: `TC-[MODULE]-[NUMBER]` (e.g., `TC-AUTH-001`)
+- **Portal**: Which application/platform (e.g., `Web App`, `Mobile App`, `Admin Panel`, `API`)
+- **Module**: Feature area (e.g., `Authentication`, `File Explorer`, `Git`, `Terminal`)
+- **Test Case**: Clear, concise test case title starting with a verb (e.g., "Verify user can login with valid credentials")
+- **Pre Conditions**: What must be true BEFORE the test runs (e.g., "User is logged in", "Project is open", "Git repo initialized")
+- **Steps**: Numbered steps to reproduce. Be specific with UI elements and actions
+- **Expected Result**: What should happen. Be precise and measurable
+- **Priority**: `P0` (Critical - blocks release), `P1` (High - core functionality), `P2` (Medium - important but not blocking), `P3` (Low - nice to have)
+
+## Priority Guidelines
+
+| Priority | Criteria | Examples |
+|----------|----------|---------|
+| **P0** | Data loss, security breach, app crash, login failure | Cannot save file, XSS vulnerability, app freezes |
+| **P1** | Core feature broken, major UX issue | Editor not loading, terminal not responding, git commit fails |
+| **P2** | Feature works but imperfect, minor UX issues | Styling off, slow performance, missing tooltip |
+| **P3** | Cosmetic, edge cases unlikely in production | Alignment pixel-off, rare timezone issue |
+
+## Test Case Categories
+
+### New Feature Tests
+Test the NEW functionality end-to-end:
+- All user-facing workflows
+- All API endpoints (if applicable)
+- State transitions
+- Error handling and recovery
+
+### Regression Tests
+Ensure EXISTING features still work:
+- Features that share code/services with the new feature
+- Features that depend on modified data models
+- UI components that were refactored
+- APIs that changed signature or behavior
+
+Mark regression tests with `[REGRESSION]` prefix in the Test Case column.
+
+## Output
+
+Write test cases to `tests/manual/[module-name]-test-cases.md`.
+
+If the file exists, APPEND new test cases (don't overwrite existing ones).
+
+Include a header with:
+- Feature/module name
+- Date generated
+- Total test case count by priority
+- Coverage summary (which areas are covered)
+
+## Example Output
+
+```markdown
+# Manual Test Cases: Git Blame Feature
+
+**Date:** 2026-02-20
+**Total:** 12 test cases (P0: 2, P1: 4, P2: 4, P3: 2)
+**Coverage:** Happy path, error handling, regression, edge cases
+
+| ID | Portal | Module | Test Case | Pre Conditions | Steps | Expected Result | Priority |
+|----|--------|--------|-----------|----------------|-------|-----------------|----------|
+| TC-BLAME-001 | Web App | Git | Verify blame annotations show for tracked file | 1. Project open 2. Git repo initialized 3. File has commits | 1. Open a tracked file in editor 2. Click "Toggle Blame" in status bar | Inline blame annotations appear showing author, date, and commit hash for each line | P1 |
+| TC-BLAME-002 | Web App | Git | Verify blame handles file not in git | 1. Project open 2. New unsaved file open | 1. Open a new untitled file 2. Click "Toggle Blame" | Toast notification: "File is not tracked by git" | P2 |
+| TC-BLAME-003 | Web App | Git | [REGRESSION] Verify editor still opens files after blame feature | 1. Project open | 1. Click any file in File Explorer 2. Verify file opens in editor 3. Edit the file 4. Save | File opens, edits are accepted, save works normally | P0 |
+```
+```
+
+**Usage:**
+- `/manual-test-cases git-blame-feature`
+- `/manual-test-cases authentication-redesign`
+- `/manual-test-cases terminal-split-panes`
+
+---
+
+#### Example 3: Simple Deploy Command (Manual-Only)
+
+`.claude/commands/deploy.md` (legacy format, still works):
+
+```markdown
+Deploy the application to $ARGUMENTS environment.
+
+1. Run `pnpm validate` (type-check + lint + build)
+2. If validation fails, STOP and report errors
+3. Run `pnpm test` - all tests must pass
+4. If deploying to production:
+   - Confirm with user before proceeding
+   - Tag the release: `git tag v$(date +%Y%m%d-%H%M%S)`
+5. Execute: `pnpm deploy:$ARGUMENTS`
+6. Run smoke tests against deployed environment
+7. Report deployment status
+```
+
+**Usage:** `/deploy staging` or `/deploy production`
+
+---
+
+#### Example 4: Component Generator with Template
+
+`.claude/skills/new-component/SKILL.md`:
+
+```markdown
+---
+name: new-component
+description: Scaffold a new React component with test file, types, and proper conventions.
+disable-model-invocation: true
+allowed-tools: Write, Read, Glob
+---
+
+# New Component Generator
+
+Create a new component named $ARGUMENTS.
+
+## Files to Create
+
+1. `src/components/$ARGUMENTS/$ARGUMENTS.tsx` - Component implementation
+2. `src/components/$ARGUMENTS/$ARGUMENTS.test.tsx` - Test file
+3. `src/components/$ARGUMENTS/index.ts` - Re-export
+
+## Component Template
+
+- Use named export (not default)
+- Add `data-testid="$ARGUMENTS"` to root element
+- Use `@/` path aliases for imports
+- Use Tailwind CSS + clsx for styling
+- Accept `className` prop for composition
+- Use specific Zustand selectors (not whole-state destructuring)
+
+## Test Template
+
+- Import from the component file
+- Test rendering
+- Test user interactions
+- Test edge cases (empty props, loading state)
+- Use `screen.getByTestId('$ARGUMENTS')` for queries
+```
+
+**Usage:** `/new-component FilePreview`
+
+---
+
+#### Example 5: PR Description Generator
+
+`.claude/skills/pr-description/SKILL.md`:
+
+```markdown
+---
+name: pr-description
+description: Generate a comprehensive PR description from git diff and commit history.
+disable-model-invocation: true
+allowed-tools: Bash(git *)
+---
+
+# PR Description Generator
+
+Generate a pull request description for the current branch.
+
+## Steps
+
+1. Run `git log main..HEAD --oneline` to get all commits
+2. Run `git diff main...HEAD --stat` to get changed files summary
+3. Run `git diff main...HEAD` to get full diff
+4. Analyze the changes and generate:
+
+## Output Format
+
+```markdown
+## Summary
+[2-3 bullet points explaining WHAT changed and WHY]
+
+## Changes
+- [File-level breakdown of what was modified]
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] E2E tests added/updated
+- [ ] Manual testing performed
+
+## Screenshots
+[If UI changes, note where screenshots should go]
+
+## Checklist
+- [ ] Code follows project conventions
+- [ ] No `any` types introduced
+- [ ] Error handling follows Result<T> pattern
+- [ ] data-testid added to new interactive elements
+```
+
+$ARGUMENTS
+```
+
+**Usage:** `/pr-description` or `/pr-description --include-screenshots`
+
+---
+
+#### Example 6: Database Migration Skill with Script
+
+`.claude/skills/create-migration/SKILL.md`:
+
+```markdown
+---
+name: create-migration
+description: Create a database migration for Dexie.js schema changes.
+disable-model-invocation: true
+allowed-tools: Read, Write, Bash(pnpm test *)
+---
+
+# Dexie Migration Generator
+
+Create a migration for: $ARGUMENTS
+
+## Process
+
+1. Read current schema from `src/lib/database.ts`
+2. Read `references/MIGRATION_GUIDE.md` for patterns
+3. Increment the Dexie version number
+4. Add the new table/index/column
+5. Write migration code with proper upgrade function
+6. Run `pnpm test src/lib/database.test.ts` to verify
+
+## Rules
+
+- ALWAYS increment version number
+- ALWAYS use transactions for data migrations
+- NEVER delete existing stores without a migration path
+- Test with both fresh install and upgrade from previous version
+
+See `references/MIGRATION_GUIDE.md` for detailed patterns.
+```
+
+`.claude/skills/create-migration/references/MIGRATION_GUIDE.md`:
+
+```markdown
+# Dexie Migration Patterns
+
+## Adding a New Store
+db.version(N).stores({ newStore: '++id, field1, field2' });
+
+## Adding an Index
+db.version(N).stores({ existingStore: '++id, field1, *newField' });
+
+## Data Migration
+db.version(N).stores({...}).upgrade(tx => {
+  return tx.table('store').toCollection().modify(item => {
+    item.newField = defaultValue;
+  });
+});
+```
+
+---
+
+### How to Add Commands to Your Project (Step by Step)
+
+#### Method 1: Skills (Recommended)
+
+```bash
+# Create the skill directory
+mkdir -p .claude/skills/my-skill
+
+# Create the SKILL.md
+cat > .claude/skills/my-skill/SKILL.md << 'EOF'
+---
+name: my-skill
+description: What this skill does and when to use it.
+---
+
+# My Skill
+
+Instructions here. $ARGUMENTS
+EOF
+
+# Commit to share with team
+git add .claude/skills/my-skill/
+git commit -m "Add /my-skill custom command"
+```
+
+#### Method 2: Commands (Legacy, Simpler)
+
+```bash
+# Create the commands directory
+mkdir -p .claude/commands
+
+# Create the command
+cat > .claude/commands/my-command.md << 'EOF'
+Do something with $ARGUMENTS.
+
+1. Step one
+2. Step two
+3. Step three
+EOF
+
+# Commit to share with team
+git add .claude/commands/my-command.md
+git commit -m "Add /my-command custom command"
+```
+
+#### Method 3: Personal Global Commands
+
+```bash
+# Available across ALL your projects (not shared with team)
+mkdir -p ~/.claude/skills/my-personal-skill
+# Create SKILL.md in there
+```
+
+### Best Practices for Custom Commands
+
+1. **Keep each skill focused on ONE purpose** - `/review` not `/review-and-deploy-and-test`
+2. **Make `description` specific with trigger keywords** - Claude uses this for auto-detection
+3. **Use `disable-model-invocation: true` for dangerous ops** - deploy, commit, send messages
+4. **Include error handling in instructions** - what to do when steps fail
+5. **Use skills (not CLAUDE.md) for domain knowledge** that only applies sometimes
+6. **Use `allowed-tools` to restrict permissions** - prevents accidental writes in review skills
+7. **Test with varied phrasings** if relying on auto-invocation
+8. **Namespace with subdirectories** for large command libraries: `/deploy:staging`, `/deploy:production`
+9. **Commit `.claude/skills/` and `.claude/commands/` to git** - the whole team benefits
+10. **Use `context: fork` for long analyses** - keeps main conversation clean
 
 ---
 
