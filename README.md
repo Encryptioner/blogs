@@ -18,6 +18,10 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Claude Code Agent Swarms - Multi-Agent Development Guide](./topics/Productivity/Claude%20Code%20Agent%20Swarms%20-%20Multi-Agent%20Development%20Guide.md)
 - [Agent Swarm Plans for Side Projects](./topics/Productivity/Agent%20Swarm%20Plans%20for%20Side%20Projects.md)
 - [Agent Teams for browser-ide - Deep Analysis and Steps](./topics/Productivity/Agent%20Teams%20for%20browser-ide%20-%20Deep%20Analysis%20and%20Steps.md)
+- [Claude Code Plugins, Tools & Productivity Features - Complete Guide](./topics/Productivity/Claude%20Code%20Plugins%20Tools%20and%20Productivity%20Features%20-%20Complete%20Guide.md)
+- [Claude Code for Existing Projects - Onboarding Guide](./topics/Productivity/Claude%20Code%20for%20Existing%20Projects%20-%20Onboarding%20Guide.md)
+- [Claude Code for New Projects with TDD - Complete Framework](./topics/Productivity/Claude%20Code%20for%20New%20Projects%20with%20TDD%20-%20Complete%20Framework.md)
+- [Agent Teams + TDD - Multi-Agent Test-Driven Development](./topics/Productivity/Agent%20Teams%20+%20TDD%20-%20Multi-Agent%20Test-Driven%20Development.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
