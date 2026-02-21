@@ -22,6 +22,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Claude Code for Existing Projects - Onboarding Guide](./topics/Productivity/Claude%20Code%20for%20Existing%20Projects%20-%20Onboarding%20Guide.md)
 - [Claude Code for New Projects with TDD - Complete Framework](./topics/Productivity/Claude%20Code%20for%20New%20Projects%20with%20TDD%20-%20Complete%20Framework.md)
 - [Agent Teams + TDD - Multi-Agent Test-Driven Development](./topics/Productivity/Agent%20Teams%20+%20TDD%20-%20Multi-Agent%20Test-Driven%20Development.md)
+- [Claude Code Permissions Management - The Ninja Guide](./topics/Productivity/Claude%20Code%20Permissions%20Management%20-%20The%20Ninja%20Guide.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)

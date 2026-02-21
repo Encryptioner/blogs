@@ -20,6 +20,7 @@
 15. Productivity: [Claude Code for Existing Projects - Onboarding Guide](./topics/Productivity/Claude%20Code%20for%20Existing%20Projects%20-%20Onboarding%20Guide.md)
 16. Productivity: [Claude Code for New Projects with TDD - Complete Framework](./topics/Productivity/Claude%20Code%20for%20New%20Projects%20with%20TDD%20-%20Complete%20Framework.md)
 17. Productivity: [Agent Teams + TDD - Multi-Agent Test-Driven Development](./topics/Productivity/Agent%20Teams%20+%20TDD%20-%20Multi-Agent%20Test-Driven%20Development.md)
+18. Productivity: [Claude Code Permissions Management - The Ninja Guide](./topics/Productivity/Claude%20Code%20Permissions%20Management%20-%20The%20Ninja%20Guide.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
