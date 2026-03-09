@@ -1,6 +1,6 @@
 # Claude Code Configuration Blueprint: Security, Skills, and Settings for Production Teams
 
-> A battle-tested configuration guide for Claude Code. Covers layered security with permissions, reusable skills for the full dev lifecycle, CLAUDE.md architecture for teams, and auto-memory for cross-session intelligence. Ready-to-use config files included.
+> Configure Claude Code once — get security, reusable workflows, and cross-session intelligence across every project. A practical blueprint covering layered permissions, custom slash-command skills, CLAUDE.md architecture, and the spec-to-ship workflow.
 
 ---
 
@@ -8,384 +8,177 @@
 
 You've used Claude Code on a project or two. You know the basics. Now you want to:
 
-- Stop Claude from touching secrets, credentials, or system files
+- Lock down secrets and credentials so Claude can never touch them
 - Share team standards via git without leaking personal preferences
-- Create reusable workflows (plan, implement, test, review, ship)
+- Build a spec-to-ship workflow that adapts to features, fixes, and hotfixes
 - Make Claude remember lessons across sessions
 - Configure once, benefit everywhere
 
-This guide gives you copy-paste configs and explains the **why** behind each decision.
+This guide gives you the blueprint and explains the **why** behind each decision.
 
 ---
 
 ## The Configuration Architecture
 
-Claude Code loads configuration from multiple layers, each with a specific purpose:
+Claude Code loads configuration from multiple layers:
 
 ```
-Layer 1: ~/.claude/settings.json          (personal global - OS security, universal rules)
-Layer 2: ~/.claude/CLAUDE.md              (personal global - workflow preferences)
-Layer 3: ~/.claude/skills/*/SKILL.md      (personal global - reusable slash commands)
-Layer 4: .claude/settings.json            (project shared - team permissions via git)
-Layer 5: .claude/settings.local.json      (project personal - gitignored overrides)
-Layer 6: CLAUDE.md                        (project shared - coding standards via git)
-Layer 7: CLAUDE.local.md                  (project personal - gitignored preferences)
+Personal (not in any repo):
+  ~/.claude/settings.json          → OS-level security (deny list for all projects)
+  ~/.claude/CLAUDE.md              → Personal workflow preferences
+  ~/.claude/skills/*/SKILL.md      → Reusable slash commands (/spec, /plan, /ship)
+
+Team-shared (committed to git):
+  .claude/settings.json            → Project permissions (copy from settings.example.json)
+  CLAUDE.md                        → Coding standards, architecture, PR review rules
+
+Personal overrides (gitignored):
+  .claude/settings.local.json      → Your personal project overrides
+  CLAUDE.local.md                  → Your personal project preferences
 ```
 
-**Design principle:** Layers 1-3 are personal (not in any repo). Layers 4 and 6 are team-shared (committed to git). Layers 5 and 7 are personal overrides (gitignored).
+**Design principle:** Global config handles security. Project config handles standards. Personal overrides handle preferences. Nothing leaks between layers.
 
-**Critical rule:** Project CLAUDE.md must be self-contained. It cannot depend on global skills or global CLAUDE.md, because teammates won't have your personal config.
+**Critical rule:** Project CLAUDE.md must be self-contained. Teammates don't have your global skills or CLAUDE.md, so project files can't depend on them.
 
 ---
 
-## Part 1: Security - The Permission System
+## Part 1: Security — The Permission System
 
-### How Permissions Work
+### Three Tiers, Strict Order
 
-Permissions use three tiers evaluated in strict order:
-
-1. **Deny** - Always blocks. Cannot be overridden. Not even by `--dangerously-skip-permissions`.
-2. **Ask** - Always prompts for confirmation. Persists even in dangerous mode.
-3. **Allow** - Auto-approved. No prompts.
+1. **Deny** — Always blocks. Cannot be overridden. Not even by `--dangerously-skip-permissions`.
+2. **Ask** — Always prompts for confirmation.
+3. **Allow** — Auto-approved. No prompts.
 
 **Deny always wins.** If a command matches both `allow` and `deny`, it's blocked.
 
-### Pattern Syntax Quick Reference
+### Global Settings: Your Security Perimeter
 
-```
-Bash(exact command)       - matches only that exact command
-Bash(command *)           - matches command with any arguments (space before *)
-Bash(command:*)           - matches command variations (no space, colon prefix)
-Read(path/to/file)        - matches exact file
-Read(path/**/*.json)      - matches glob pattern
-Read(~/.ssh/**)           - ~ expands to home directory on any OS
-```
-
-**Space matters:** `Bash(ls *)` matches `ls -la` but NOT `lsof`. `Bash(ls*)` matches both.
-
-### Global Settings: OS-Level Security
-
-This goes in `~/.claude/settings.json` and protects you across ALL projects:
+This goes in `~/.claude/settings.json` — protects you across ALL projects:
 
 ```json
 {
   "permissions": {
     "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
-      "Bash(git show:*)",
-      "Bash(git stash list)",
-      "Bash(nvm use:*)",
-      "Bash(nvm list)",
-      "Bash(node:*)",
-      "Bash(ls:*)",
-      "Bash(echo:*)",
-      "Bash(cat:*)",
-      "Bash(mv:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)"
+      "Read", "Edit", "Write", "Glob", "Grep",
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
+      "Bash(git branch:*)", "Bash(git show:*)",
+      "Bash(nvm use:*)", "Bash(node:*)", "Bash(ls:*)"
     ],
     "ask": [
-      "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(git checkout:*)",
-      "Bash(git switch:*)",
-      "Bash(git stash:*)",
-      "Bash(git tag:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm install)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(npm install:*)",
-      "Bash(docker:*)",
-      "Bash(pm2:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(ssh:*)",
-      "Bash(scp:*)"
+      "Bash(git push:*)", "Bash(git commit:*)", "Bash(git merge:*)",
+      "Bash(pnpm install:*)", "Bash(pnpm add:*)", "Bash(npm install:*)",
+      "Bash(docker:*)", "Bash(curl:*)", "Bash(ssh:*)"
     ],
     "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(sudo:*)",
-      "Bash(chmod:*)",
-      "Bash(chown:*)",
-      "Bash(mkfs:*)",
-      "Bash(dd if=:*)",
+      "Bash(rm -rf:*)", "Bash(sudo:*)", "Bash(chmod:*)",
+      "Bash(git push --force:*)", "Bash(git reset --hard:*)",
 
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git reset --hard:*)",
-      "Bash(git clean -f:*)",
+      "Read(.env)", "Read(.env.*)", "Write(.env)", "Write(.env.*)",
+      "Edit(.env)", "Edit(.env.*)",
 
-      "Read(.env)",
-      "Read(.env.*)",
-      "Write(.env)",
-      "Write(.env.*)",
-      "Edit(.env)",
-      "Edit(.env.*)",
-
-      "Read(~/.ssh/**)",
-      "Write(~/.ssh/**)",
-      "Edit(~/.ssh/**)",
-      "Read(~/.aws/**)",
-      "Write(~/.aws/**)",
-      "Edit(~/.aws/**)",
-      "Read(~/.gnupg/**)",
-      "Write(~/.gnupg/**)",
-      "Read(~/.npmrc)",
-      "Write(~/.npmrc)",
-      "Edit(~/.npmrc)",
-      "Read(~/.netrc)",
-      "Write(~/.netrc)",
-      "Read(~/.docker/config.json)",
-      "Write(~/.docker/config.json)",
-      "Read(~/.kube/config)",
-      "Write(~/.kube/config)",
-      "Read(~/.config/gh/hosts.yml)",
-      "Write(~/.config/gh/hosts.yml)",
-
-      "Read(~/.config/gcloud/**)",
-      "Write(~/.config/gcloud/**)",
-      "Read(~/.azure/**)",
-      "Write(~/.azure/**)",
+      "Read(~/.ssh/**)", "Read(~/.aws/**)", "Read(~/.gnupg/**)",
+      "Read(~/.npmrc)", "Read(~/.docker/config.json)",
+      "Read(~/.kube/config)", "Read(~/.config/gh/hosts.yml)",
 
       "Read(~/Library/Keychains/**)",
-      "Read(~/Library/Caches/Google/Chrome/**)",
       "Read(~/Library/Application Support/Google/Chrome/Default/Login Data*)",
-      "Read(~/Library/Application Support/Google/Chrome/Default/Cookies*)",
-      "Read(~/Library/Application Support/Firefox/**)",
-      "Read(~/Library/Cookies/**)",
-
       "Read(~/.local/share/keyrings/**)",
       "Read(~/.config/google-chrome/Default/Login Data*)",
-      "Read(~/.config/google-chrome/Default/Cookies*)",
-      "Read(~/.mozilla/firefox/**)",
-
       "Read(/mnt/c/Users/*/AppData/Local/Google/Chrome/User Data/Default/Login Data*)",
-      "Read(/mnt/c/Users/*/AppData/Local/Google/Chrome/User Data/Default/Cookies*)",
-      "Read(/mnt/c/Users/*/AppData/Roaming/Mozilla/Firefox/**)",
 
-      "Bash(kill -9:*)",
-      "Bash(pkill:*)",
-      "Bash(killall:*)",
-      "Bash(shutdown:*)",
-      "Bash(reboot:*)",
-      "Bash(systemctl:*)",
-      "Bash(launchctl:*)"
+      "Bash(kill -9:*)", "Bash(shutdown:*)", "Bash(reboot:*)"
     ]
   }
 }
 ```
 
-#### Why These Specific Rules?
+#### Why These Specific Categories?
 
-| Tier | Category | Rationale |
-|------|----------|-----------|
-| **Allow** | Read/Edit/Write/Glob/Grep | Core tools Claude needs to function |
-| **Allow** | Read-only git (`status`, `diff`, `log`) | Safe - no mutations |
-| **Allow** | `nvm`, `node`, `ls`, `cat`, `mv` | Basic file operations |
-| **Ask** | `git push/commit/merge` | Affects remote state and history |
-| **Ask** | `pnpm/npm install/add/remove` | Modifies dependencies |
-| **Ask** | `docker`, `pm2`, `curl`, `ssh` | Infrastructure and network access |
-| **Deny** | `rm -rf`, `sudo`, `chmod` | Destructive system commands |
-| **Deny** | `git push --force`, `reset --hard` | Irreversible git operations |
-| **Deny** | `.env*` files | Secrets and API keys |
-| **Deny** | `~/.ssh`, `~/.aws`, `~/.gnupg` | Credential stores |
-| **Deny** | `~/.npmrc`, `~/.netrc` | Auth tokens |
-| **Deny** | `~/.docker/config.json`, `~/.kube/config` | Container/K8s creds |
-| **Deny** | `~/.config/gcloud`, `~/.azure` | Cloud provider creds |
-| **Deny** | Browser data (Chrome, Firefox) | Login data, cookies, passwords |
-| **Deny** | `kill -9`, `shutdown`, `reboot` | Process/system control |
+| Category | Tier | Rationale |
+|----------|------|-----------|
+| Read/Edit/Write/Glob/Grep | Allow | Core tools Claude needs to function |
+| Read-only git (`status`, `diff`, `log`) | Allow | Safe — no mutations |
+| `git push/commit/merge` | Ask | Affects remote state and history |
+| `pnpm/npm install` | Ask | Modifies dependencies |
+| `docker`, `curl`, `ssh` | Ask | Infrastructure and network access |
+| `rm -rf`, `sudo`, `chmod` | Deny | Destructive system commands |
+| `git push --force`, `reset --hard` | Deny | Irreversible git operations |
+| `.env*` files | Deny | Secrets and API keys |
+| `~/.ssh`, `~/.aws`, keychains | Deny | Credential stores |
+| Browser login data | Deny | Passwords and cookies |
 
-**Cross-OS coverage:** The deny list covers macOS (`~/Library/`), Linux (`~/.local/share/`, `~/.config/`, `~/.mozilla/`), and Windows WSL (`/mnt/c/Users/*/AppData/`).
+**Cross-OS coverage:** The deny list covers macOS (`~/Library/`), Linux (`~/.local/share/`, `~/.config/`), and Windows WSL (`/mnt/c/Users/*/AppData/`). One config, all platforms.
 
 ### Project Settings: Team-Shared Safety
 
-Create `.claude/settings.example.json` in your repo (committed to git). Team members copy it to `.claude/settings.json`.
+Create `.claude/settings.example.json` in your repo. Team members copy it to `.claude/settings.json`.
 
-Add this to `.gitignore`:
-```
+```gitignore
+# .gitignore
 .claude/*
 !.claude/*.example*
 ```
 
-This ensures `settings.example.json` is shared but personal `settings.local.json` stays private.
-
-#### For a Node.js/TypeScript Monorepo
+Project deny lists should only contain **project-specific** rules — not OS-level security (that's in global settings):
 
 ```json
 {
   "permissions": {
     "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep",
-      "Bash(pnpm serve:*)",
-      "Bash(pnpm build:*)",
-      "Bash(pnpm build)",
-      "Bash(pnpm clean)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm lint-fix:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm test)",
-      "Bash(npx eslint:*)",
-      "Bash(npx vue-tsc:*)",
-      "Bash(npx tsc:*)",
-      "Bash(nvm use:*)",
-      "Bash(node:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
-      "Bash(git show:*)"
-    ],
-    "ask": [
-      "Bash(git push:*)",
-      "Bash(git commit:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm install)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm remove:*)",
-      "Write(package.json)",
-      "Edit(package.json)",
-      "Write(pnpm-lock.yaml)",
-      "Edit(pnpm-lock.yaml)",
-      "Bash(docker:*)",
-      "Bash(curl:*)"
+      "Read", "Edit", "Write", "Glob", "Grep",
+      "Bash(pnpm build:*)", "Bash(pnpm lint:*)", "Bash(pnpm test:*)",
+      "Bash(npx tsc:*)", "Bash(npx vue-tsc:*)"
     ],
     "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Write(.env)",
-      "Write(.env.*)",
-      "Edit(.env)",
-      "Edit(.env.*)",
-      "Read(node_modules/**)",
-      "Read(dist/**)",
-      "Read(logs/**)"
+      "Read(.env)", "Read(.env.*)", "Write(.env)", "Write(.env.*)",
+      "Read(src/configs/server.config.json)",
+      "Read(src/configs/aws.config.json)",
+      "Read(node_modules/**)", "Read(dist/**)"
     ]
   }
 }
 ```
 
-**Notice:** Project deny list only has project-specific rules (`.env`, `node_modules`, `dist`, `logs`). OS-level security is handled by the global settings.
-
-#### For a Project with Config Files Containing Secrets
-
-Add these to the project deny list:
-
-```json
-"Read(src/configs/server.config.json)",
-"Read(src/configs/aws.config.json)",
-"Read(src/configs/ai.config.json)",
-"Read(src/certs/*.pem)"
-```
-
-#### For a Project with Database Migrations
-
-Put migration commands in the ask tier (not allow):
-
-```json
-"ask": [
-  "Bash(pnpm db:migrate)",
-  "Bash(pnpm db:seed)",
-  "Bash(docker-compose:*)"
-]
-```
-
-Allow schema generation (no mutations):
-```json
-"allow": [
-  "Bash(pnpm db:generate)"
-]
-```
-
 ---
 
-## Part 2: CLAUDE.md - The Team Playbook
+## Part 2: CLAUDE.md — The Team Playbook
 
-### Structure Template
+This is the most impactful file in your repo. A well-written CLAUDE.md turns Claude from a generic assistant into a team member who knows your codebase.
+
+### What to Include
 
 ```markdown
 # CLAUDE.md
 
 ## Commands
-- `pnpm dev` - Start development server
-- `pnpm build` - Production build
-- `pnpm test` - Run all tests
-- `pnpm lint-fix` - Lint and fix all packages
+- `pnpm dev` — Start development server
+- `pnpm build` — Production build
+- `pnpm lint-fix` — Lint and fix all packages
 
 ## Project Context
-[One paragraph: what this project does, key business features]
+[One paragraph: what this project does, who uses it, key business features]
 
 ## Architecture Overview
-### Monorepo Structure (if applicable)
-- `packages/client` - Frontend (Vue/React/etc)
-- `packages/server` - Backend API
-- `packages/shared` - Shared types and utilities
-
-### Key Patterns
-- [Module pattern: Controller -> Service -> Repository]
-- [Auth: JWT + OAuth]
-- [State management: Pinia/Redux/etc]
+- `packages/client` — Vue 3 frontend
+- `packages/server` — Express API
+- `packages/shared` — Types, DTOs, utilities
 
 ## Coding Standards
-- [Language]: TypeScript strict mode
-- [Imports]: Absolute paths, destructured
-- [Naming]: camelCase functions, PascalCase components
-- [Error handling]: try/catch on all API calls with loading states
+- TypeScript strict mode, no `any` types
+- Absolute imports only (no `../../`)
+- API payloads: declare as typed constants before passing
 
 ## Common PR Review Issues (MUST follow)
-### 1. Type Safety
-- Never use `any` or `unknown`
-- Declare API payloads as typed constants before passing
-
-### 2. Dead Code Cleanup
-- Remove unused imports, variables, functions
-- Remove unused i18n keys when deleting components
-
-### 3. Naming Conventions
-- Getter functions: `get` prefix (`getCoursePrice`)
-- Event handlers: `on` prefix (`onSubmitClick`)
-- API routes: plural nouns (`/users` not `/user`)
-
-## General Rules (MUST follow)
-### Planning Before Implementation
-- ALWAYS confirm the plan before implementing
-- List target files before editing
-- Enter plan mode for non-trivial tasks (3+ steps)
-
-### Incremental Verification
-- Type-check after each logical group of edits
-- Fix errors immediately - don't continue to the next file
-- Never mark a task complete without proving it works
-
-### Core Principles
-- Simplicity First: minimal changes, minimal impact
-- No Laziness: find root causes, no temporary fixes
-- Autonomous Bug Fixing: given a bug report, just fix it
+1. **Type Safety** — Never use `any`. Declare API payloads as typed constants.
+2. **Dead Code** — Remove unused imports, variables, i18n keys.
+3. **Naming** — Getters: `get` prefix. Event handlers: `on` prefix.
+4. **Error Handling** — Wrap all API calls in try/catch with loading states.
 
 ## Workflow
-- Commit at logical milestones - don't accumulate huge uncommitted changes
+- Commit at logical milestones — don't accumulate huge changes
 - Use screenshots for debugging UI issues
-- When deleting components, also remove their unused i18n keys
-
-## Testing
-- Incremental type checking: after each file edit, not at the end
-- Test at minimum 375px (mobile), 768px (tablet), 1280px (desktop)
 ```
 
 ### What Makes a Great CLAUDE.md
@@ -393,401 +186,262 @@ Allow schema generation (no mutations):
 | Do | Don't |
 |----|-------|
 | Include commands Claude needs to run | Include formatting rules (use a linter) |
-| Document non-obvious patterns | Document obvious language features |
-| List PR review pain points | Write a textbook on your stack |
-| Keep under 200 lines | Duplicate what's in README |
-| Include coding standards from real reviews | Include aspirational rules nobody follows |
-
-### CLAUDE.local.md - Personal Overrides
-
-This file is gitignored. Use it for personal preferences:
-
-```markdown
-# Personal preferences
-- I prefer verbose git commit messages
-- Always ask before modifying package.json
-- Use Bangla for i18n keys by default
-```
+| Document non-obvious architecture patterns | Document obvious language features |
+| List real PR review pain points | Write a textbook on your stack |
+| Keep it under 200 lines | Duplicate your README |
+| Extract rules from the last 50-100 PR reviews | Add aspirational rules nobody follows |
 
 ### Subdirectory CLAUDE.md
 
-For large projects, place CLAUDE.md files in subdirectories. They're loaded lazily when Claude accesses files in that directory:
+For large projects, place additional CLAUDE.md files in subdirectories. They're loaded lazily when Claude works in that directory:
 
 ```
 project/
   CLAUDE.md              # Project-wide rules
   packages/
-    server/
-      CLAUDE.md          # Server-specific patterns
-    client/
-      CLAUDE.md          # Frontend-specific conventions
+    server/CLAUDE.md     # Server-specific patterns
+    client/CLAUDE.md     # Frontend conventions
 ```
 
 ---
 
-## Part 3: Skills - Reusable Workflows
+## Part 3: Skills — The Spec-to-Ship Workflow
 
-Skills are prompt templates at `~/.claude/skills/<name>/SKILL.md`, invoked with `/command`.
+Skills are slash commands that live at `~/.claude/skills/<name>/SKILL.md`. They encode reusable workflows you trigger when needed. Here's the workflow chain I use for every ticket:
 
-### Skill: Plan Before Implementation
+### The Full Chain
 
-**File:** `~/.claude/skills/plan-work/SKILL.md`
+```
+/spec → /grill (auto) → /plan-work → /grill (auto) → /implement → /verify → /pre-review → /ship
+```
+
+Not every task needs the full chain. The workflow adapts to scale:
+
+| Task Type | Workflow |
+|-----------|----------|
+| **New feature** | Full chain — spec → grill → plan → grill → implement → verify → pre-review → ship |
+| **Major enhancement** | Full chain |
+| **Minor enhancement** | Light spec → plan (single file) → implement → verify → pre-review → ship |
+| **Bug fix** | Bug spec or skip → plan → implement → verify → ship |
+| **Hotfix** | Inline plan → implement → verify → ship |
+
+### Ticket Directory Structure
+
+Every ticket gets its own `ai/<ticket-no>/` directory:
+
+```
+ai/BSP-146/
+├── requirements/
+│   ├── original-requirement.md    # User's raw requirement (verbatim)
+│   ├── spec.md                    # Clarified technical spec
+│   └── grill-log.md              # Spec review findings
+├── plans/
+│   ├── overview.md               # High-level implementation plan
+│   ├── phase-1-data-model.md     # Detailed phase plan
+│   ├── phase-2-api.md
+│   └── grill-log.md              # Plan review findings
+└── tests/
+    └── manual-test-cases.csv
+```
+
+### Skill 1: `/spec` — Requirements to Technical Spec
+
+The entry point for all ticket work. Claude reviews the codebase, asks clarification questions, writes a structured spec, then auto-grills it.
 
 ```markdown
-# Plan (Non-TDD)
+# Spec: BSP-146 — Bulk Enrollment System
 
-Plan before implementing. Confirm targets, approach, and get approval.
+**Status:** Grilled | Approved
+**Original Requirement:** See `original-requirement.md`
+
+## Overview
+Allow admins to enroll multiple students into a course batch at once,
+with fee calculation and payment tracking per student.
+
+## Clarifications
+1. **Q:** Does this include partial payment support?
+   **A:** Yes, students can pay in installments.
+
+## Functional Requirements
+
+### FR-1: Bulk student selection
+- **Description:** Admin selects multiple students from a searchable list
+- **Acceptance criteria:**
+  - [ ] Search by name, email, or phone
+  - [ ] Select/deselect individual students
+  - [ ] Select all matching search results
+- **Affected modules:** server/enrollment, client/admin/enrollment
+
+## Change Log
+| Date | Section Changed | What Changed | Why |
+|------|----------------|--------------|-----|
+```
+
+The Change Log is key — specs evolve during planning and implementation as new insights surface. Track changes instead of pretending the spec was perfect from day one.
+
+### Skill 2: `/grill` — The Hard Critic
+
+A skeptical staff engineer reviews every spec and plan through 7 lenses:
+
+1. **Completeness** — Are requirements testable? What happens on error?
+2. **Security** — Auth gaps? Input validation? Data exposure?
+3. **Architecture** — Does this follow existing patterns? Scalability?
+4. **Data Integrity** — Migration safety? Rollback plan?
+5. **Project Impact** — Which packages are affected? Breaking changes?
+6. **Testing Gaps** — Missing negative tests? Race conditions?
+7. **Assumptions** — What if they're wrong?
+
+Each finding gets a severity:
+
+| Severity | Action |
+|----------|--------|
+| **BLOCKER** | Must fix before proceeding |
+| **CRITICAL** | Should fix before proceeding |
+| **MAJOR** | Strongly recommend fixing |
+| **MINOR** | Consider fixing |
+| **NOTE** | Informational |
+
+Verdict: **PASS** / **PASS WITH CONDITIONS** / **NEEDS REWORK** / **REJECT**
+
+### Skill 3: `/plan-work` — Phase-by-Phase Planning
+
+Reads the approved spec, creates an overview plan plus detailed phase files, then auto-grills the plan. Each phase traces back to specific spec requirements — no orphan work.
+
+```markdown
+# Phase 1: Data Model & Types
+
+**Spec Requirements Covered:** FR-1, FR-2
+
+## Changes
+
+### File: packages/types/src/enrollment/IBulkEnrollment.ts
+- **Action:** Create
+- **What:** Interface for bulk enrollment request/response
+- **Why:** FR-1 needs typed student selection data
+
+### File: packages/dto/src/enrollment/BulkEnrollmentDto.ts
+- **Action:** Create
+- **What:** Validation schema for bulk enrollment API
+- **Why:** FR-2 requires validated fee calculations
+
+## Verification Steps
+- [ ] Type check passes after creating types
+- [ ] DTO validates correctly with test data
+```
+
+### Skill 4: `/implement` — Build with Guardrails
+
+Follows the plan phase by phase. The key addition: **mid-implementation discovery handling**.
+
+During implementation, you discover things the spec didn't anticipate. Instead of stopping or ignoring it:
+
+- **Minor** (doesn't change scope): Note it, continue, mention in checkpoint summary
+- **Moderate** (changes approach, same scope): Inform user, update phase plan, continue
+- **Significant** (changes scope): STOP, update spec's Change Log, optionally re-grill
+
+Plus a mandatory spec alignment review at ~50% completion — catching drift early is 10x cheaper than catching it at the end.
+
+### Skill 5: `/verify` → `/pre-review` → `/ship`
+
+The finishing workflow:
+
+- **`/verify`** — Auto-detect project type, run type check + lint, rebuild shared packages if needed
+- **`/pre-review`** — Check every change against CLAUDE.md standards AND the original spec. Walk through each FR and confirm its acceptance criteria are met. No spec gap goes unnoticed.
+- **`/ship`** — Branch management, staged commits (never `git add -A`), and PR creation with summary + test plan
+
+### Building Your Own Skills
+
+A skill is just a `SKILL.md` file with optional YAML frontmatter:
+
+```markdown
+---
+name: my-skill
+description: Short description for trigger matching. Include trigger phrases
+  like "when the user says X" to help Claude know when to invoke this skill.
+---
+
+# Skill Title
 
 ## When to Use
-- Before any non-trivial implementation (3+ steps)
-- When architectural decisions are involved
-- When multiple files/packages will be modified
+- [Trigger conditions]
 
 ## Process
+### Step 1: [Name]
+[Instructions Claude follows]
 
-### Step 1: Understand the Request
-- Read the user's request carefully
-- Identify ambiguities and ask clarifying questions
-
-### Step 2: Assess Impact
-- Which packages/modules are affected?
-- Are shared types/utilities changing?
-- Does this affect other repos or services?
-
-### Step 3: Write the Plan
-Present a numbered plan:
-1. **Target files**: List every file to create/modify/delete
-2. **Approach**: Describe the implementation strategy
-3. **Dependencies**: Note any package installs or config changes
-4. **Risks**: Flag potential breaking changes
-5. **Verification**: How to confirm it works
-
-### Step 4: Get Approval
-- Present the plan and WAIT for explicit approval
-- Do NOT start implementing until the user says "go" or "approved"
+### Step 2: [Name]
+[More instructions]
 
 ## Rules
-- NEVER skip planning for non-trivial tasks
-- If the plan changes mid-implementation, STOP and re-plan
-- If something goes sideways, STOP and re-plan immediately
+- [Hard constraints]
 ```
 
-### Skill: Incremental Implementation
-
-**File:** `~/.claude/skills/implement/SKILL.md`
-
-```markdown
-# Implement
-
-Guided implementation with incremental type checking.
-
-## When to Use
-- After a plan has been approved
-- When making changes across multiple files
-
-## Process
-
-### Step 1: Check Prerequisites
-- Read CLAUDE.md for project conventions
-- Read package.json for available scripts
-- Identify type-check command (tsc, vue-tsc, turbo typecheck)
-
-### Step 2: Build Order
-For monorepos, follow dependency order:
-1. Shared types/interfaces
-2. Shared utilities/constants
-3. DTOs/validation schemas
-4. Backend modules
-5. Frontend components/views
-
-### Step 3: Implement with Verification
-For each file or tightly-coupled group:
-1. Make the changes
-2. Run type checker immediately
-3. Fix any errors before moving to next file
-4. If shared packages changed, rebuild them first
-
-### Step 4: Final Verification
-- Run full type check across all packages
-- Run linter
-- Run relevant tests
-- Verify no unused imports or dead code
-
-## Rules
-- NEVER batch all edits then check at the end
-- Fix errors immediately - don't accumulate them
-- After editing types, check ALL files that import them
-- For shared package changes: rebuild BEFORE checking downstream
-```
-
-### Skill: Pre-Review Self-Check
-
-**File:** `~/.claude/skills/pre-review/SKILL.md`
-
-```markdown
-# Pre-Review
-
-Self-review against project standards before presenting work.
-
-## When to Use
-- Before saying "done" or "complete"
-- Before creating a PR
-- After finishing a feature or fix
-
-## Checklist
-
-### Type Safety
-- [ ] No `any` or `unknown` types
-- [ ] API payloads use typed constants
-- [ ] All function parameters and returns are typed
-
-### Dead Code
-- [ ] No unused imports
-- [ ] No unused variables or functions
-- [ ] No commented-out code blocks
-- [ ] Removed i18n keys for deleted components
-
-### Naming
-- [ ] Getter functions use `get` prefix
-- [ ] Event handlers use `on` prefix
-- [ ] API routes use plural nouns
-
-### Error Handling
-- [ ] All API calls wrapped in try/catch
-- [ ] Loading states on buttons that trigger API requests
-- [ ] User-facing error messages for failures
-
-### Code Quality
-- [ ] No hardcoded magic values (use constants)
-- [ ] No duplicate logic (extract to shared helper)
-- [ ] Follows existing codebase patterns
-- [ ] Absolute import paths (no `../../`)
-
-### Verification
-- [ ] Type check passes
-- [ ] Lint passes
-- [ ] No regressions in existing tests
-- [ ] Changes demonstrated to work (not just "should work")
-
-## Process
-1. Run through each checklist item
-2. Fix any issues found
-3. Run type check + lint one final time
-4. Report: "Pre-review complete. [N] issues found and fixed."
-```
-
-### Skill: Ship (Commit + PR)
-
-**File:** `~/.claude/skills/ship/SKILL.md`
-
-```markdown
-# Ship
-
-Branch management, commit, push, and create PR.
-
-## When to Use
-- When work is complete and verified
-- When the user says "commit", "ship", "create PR"
-
-## Process
-
-### Step 1: Verify Before Shipping
-- Run type check
-- Run lint
-- Run relevant tests
-- Check for uncommitted files that should be included
-
-### Step 2: Stage Changes
-- Stage specific files (not `git add -A`)
-- Never stage: .env, credentials, node_modules, dist, logs
-- Review staged diff before committing
-
-### Step 3: Commit
-- Write concise commit message (imperative mood)
-- Format: `type: description` (feat, fix, refactor, style, docs, test)
-- Body: explain WHY, not WHAT (the diff shows the what)
-
-### Step 4: Push & PR (if requested)
-- Push to remote with tracking
-- Create PR with:
-  - Title: short, under 70 characters
-  - Body: Summary bullets + Test plan checklist
-
-## Rules
-- NEVER commit secrets (.env, config files with credentials)
-- NEVER force push
-- ALWAYS verify before committing
-- Ask before pushing to shared branches (main, develop, staging)
-```
-
-### Skill: TDD Testing
-
-**File:** `~/.claude/skills/test-tdd/SKILL.md`
-
-```markdown
-# TDD Testing (Full Pyramid)
-
-Execute Test-Driven Development: unit, integration, and E2E tests.
-
-## Test Pyramid
-
-| Layer | Share | Scope | Speed |
-|-------|-------|-------|-------|
-| Unit | 70% | Single function/service/component | < 5ms |
-| Integration | 20% | Module boundaries, API endpoints | < 100ms |
-| E2E | 10% | Full user flows in browser | < 30s |
-
-## Red-Green-Refactor Cycle
-
-### 1. RED - Write failing test
-Write the test first. Run it. Confirm it FAILS.
-Verify the failure is for the RIGHT reason (missing method, not syntax error).
-
-### 2. GREEN - Minimal implementation
-Write the minimum code to make the test pass.
-Run ALL tests - confirm nothing else broke.
-
-### 3. REFACTOR - Clean up
-Improve code quality. Run ALL tests. Still green.
-
-## Backend Unit Test Pattern
-
-```typescript
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-describe('ServiceName', () => {
-  let service: ServiceName;
-  let mockRepository: MockType;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockRepository = {
-      find: vi.fn(),
-      findOne: vi.fn(),
-      create: vi.fn(),
-    };
-    service = new ServiceName(mockRepository);
-  });
-
-  describe('methodName', () => {
-    it('should [expected behavior] when [condition]', async () => {
-      // Arrange
-      mockRepository.findOne.mockResolvedValue(mockData);
-      // Act
-      const result = await service.methodName(input);
-      // Assert
-      expect(result).toEqual(expected);
-    });
-
-    it('should throw when [error condition]', async () => {
-      mockRepository.findOne.mockResolvedValue(null);
-      await expect(service.methodName(input))
-        .rejects.toThrow(NotFoundException);
-    });
-  });
-});
-```
-
-## Frontend Component Test Pattern
-
-```typescript
-import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
-import MyComponent from '../MyComponent.vue';
-
-describe('MyComponent', () => {
-  it('should render when condition is met', () => {
-    const wrapper = mount(MyComponent, {
-      props: { title: 'Hello' },
-    });
-    expect(wrapper.find('[data-testid="title"]').text())
-      .toBe('Hello');
-  });
-
-  it('should emit event on user action', async () => {
-    const wrapper = mount(MyComponent);
-    await wrapper.find('[data-testid="submit-btn"]')
-      .trigger('click');
-    expect(wrapper.emitted('submit')).toHaveLength(1);
-  });
-});
-```
-
-## Execution Order
-1. Backend unit tests (fastest feedback)
-2. Backend integration tests
-3. Frontend component tests
-4. E2E browser tests (slowest)
-
-## Rules
-- NEVER write implementation before its test (in TDD mode)
-- ALWAYS clear mocks in beforeEach
-- ALWAYS use descriptive names: `should [behavior] when [condition]`
-- NEVER test implementation details - test behavior and contracts
-```
+**Tips for effective skills:**
+- Write them as instructions TO Claude, not documentation ABOUT a process
+- Include trigger phrases in the description for better auto-detection
+- Add cross-references: "Next skill: `/implement`"
+- Keep each skill focused — one workflow, one skill
 
 ---
 
-## Part 4: Global CLAUDE.md - Personal Workflow
+## Part 4: Global CLAUDE.md — Personal Workflow
 
-`~/.claude/CLAUDE.md` applies to all projects. Keep it for personal workflow preferences:
+`~/.claude/CLAUDE.md` applies to all your projects. Keep it for personal workflow preferences that supplement (never override) project CLAUDE.md:
 
 ```markdown
 # Personal Workflow Preferences
 
-These supplement (never override) each project's CLAUDE.md.
-
 ## Workflow Orchestration
 
-### Plan Mode Default
-- Enter plan mode for ANY non-trivial task (3+ steps)
-- If something goes sideways, STOP and re-plan immediately
+### Ticket-Based Workflow
+All non-trivial work follows the skill chain:
+/spec → /grill → /plan-work → /grill → /implement → /verify → /pre-review → /ship
 
-### Subagent Strategy
-- Use subagents to keep main context window clean
-- One task per subagent for focused execution
+Scale-adaptive:
+- Features: full chain
+- Bug fixes: skip spec, lightweight plan
+- Hotfixes: inline plan, direct fix
+
+### Spec-First Principle
+- Start every ticket with /spec unless it's a trivial fix
+- The spec is the single source of truth
+- Never assume requirements — ask if unclear
 
 ### Self-Improvement Loop
-- After ANY correction from user: update auto memory with the pattern
+- After ANY correction: update auto memory with the pattern
 - If corrected on something from memory, update the incorrect entry immediately
 
-### Autonomous Bug Fixing
-- When given a bug report: just fix it
-- Point at logs, errors, failing tests - then resolve them
-
 ## Context Management
-- Reset context mid-session when switching between unrelated tasks
-- Don't rely on context after heavy compaction - re-read critical files
 - Commit frequently at logical milestones
 - When context is ~50% consumed, summarize key decisions before compaction
 - Use subagents for heavy research to keep main context clean
+- Re-read spec and plan files after context compaction
 ```
 
 ---
 
-## Part 5: Auto Memory - Cross-Session Intelligence
+## Part 5: Auto Memory — Cross-Session Intelligence
 
-Claude Code has a persistent memory directory per project at `~/.claude/projects/<project-path>/memory/`. A `MEMORY.md` file (first 200 lines) is loaded into every conversation.
+Claude Code has a persistent memory directory per project. A `MEMORY.md` file (first 200 lines) is loaded into every conversation.
 
-### What to Store in Memory
+### What to Store
 
 ```markdown
 # Memory - Project Name
 
 ## Project Context
 - Monorepo: client, server, shared packages
-- Admin repo at separate location
-- Uses Bitbucket (not GitHub) - `gh` CLI won't work for PRs
+- Uses Bitbucket (not GitHub) — `gh` CLI won't work for PRs
+- Admin repo exists separately — shared types must stay in sync
 
 ## Patterns Learned
 - Always rebuild shared packages after type changes
-- The enrollment module has 3 sub-algorithms (Phase1, Phase2, Basic1)
-- Payment flow: INITIATING -> PENDING -> VALID/INVALID
+- Payment flow: INITIATING → PENDING → VALID/INVALID
+- Enrollment has 3 sub-algorithms (Phase1, Phase2, Basic1)
 
-## Common Mistakes to Avoid
-- Don't use relative imports - project uses absolute paths
-- Don't put domain helpers in global helpers file
-- Always update both language files (bn.json + en.json)
+## Workflow
+- 13 global skills, full chain: spec → grill → plan → implement → verify → ship
+- Directory structure: ai/<ticket-no>/requirements/, plans/, tests/
 ```
 
 ### Memory Rules
@@ -795,17 +449,36 @@ Claude Code has a persistent memory directory per project at `~/.claude/projects
 | Do | Don't |
 |----|-------|
 | Store stable patterns confirmed across sessions | Store session-specific context |
-| Store key architectural decisions | Store speculative conclusions |
-| Store user preferences they've explicitly stated | Store info that duplicates CLAUDE.md |
-| Update when corrected | Store incomplete/unverified info |
+| Store user preferences they've explicitly stated | Store speculative conclusions |
+| Update immediately when corrected | Store info that duplicates CLAUDE.md |
 
 ---
 
-## Part 6: Hooks - Automated Quality Gates
+## Part 6: Hooks — Automated Quality Gates
 
 Hooks run automatically at lifecycle events. Configure in settings.json:
 
-### Notification Hook (Know When Claude Needs You)
+### Pre-Commit Lint Guard
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "If this is a git commit command, verify that lint and type-check have been run. If not, block with: 'Run lint and type-check before committing.'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Notification When Claude Needs Input
 
 ```json
 {
@@ -825,126 +498,66 @@ Hooks run automatically at lifecycle events. Configure in settings.json:
 }
 ```
 
-### Pre-Commit Lint Hook
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "If this is a git commit command, verify that lint and type-check have been run in this session. If not, block with: 'Run lint and type-check before committing.'"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Post-Edit Type Check Reminder
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "If more than 3 files have been edited since the last type-check, remind: 'Consider running type-check before continuing.'"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
 ---
 
 ## Part 7: Putting It All Together
 
-### New Project Setup Checklist
+### New Project Setup (5 Minutes)
 
-1. **Create CLAUDE.md** - Project context, commands, architecture, coding standards
-2. **Create `.claude/settings.example.json`** - Project-specific permissions (deny config files, node_modules)
+1. **Create CLAUDE.md** — Commands, architecture, coding standards, PR review rules
+2. **Create `.claude/settings.example.json`** — Project-specific deny list (config files, .env, node_modules)
 3. **Add to `.gitignore`**: `.claude/*` and `!.claude/*.example*`
-4. **Document in README**: "Copy `.claude/settings.example.json` to `.claude/settings.json`"
+4. **Ensure `~/.claude/settings.json`** has the global security deny list
 
-### New Team Member Onboarding
-
-1. Copy `.claude/settings.example.json` to `.claude/settings.json`
-2. Ensure `~/.claude/settings.json` has the global security deny list
-3. Create `CLAUDE.local.md` for personal preferences
-4. Run a test session: `claude` then ask "summarize this project's architecture"
-
-### The Security Layers in Practice
+### How the Layers Work in Practice
 
 ```
-Request: "Read the AWS config file"
+Claude tries to read .env.local
+  → Project deny: "Read(.env.*)" → BLOCKED
 
-Layer 1 (Global deny):  ~/.ssh, ~/.aws, browser data     -> BLOCKED if ~/.aws
-Layer 2 (Project deny): .env, server.config.json, *.pem   -> BLOCKED if config file
-Layer 3 (Project ask):  git push, pnpm install             -> PROMPTED
-Layer 4 (Global ask):   docker, curl, ssh                  -> PROMPTED
-Layer 5 (Allow):        Read, Edit, git status              -> AUTO-APPROVED
-```
+Claude tries to install lodash
+  → Ask: "Bash(pnpm add:*)" → Prompts you → You approve or deny
 
-### Common Scenarios
+Claude tries to force push
+  → Global deny: "Bash(git push --force:*)" → BLOCKED (even with --dangerously-skip-permissions)
 
-**Scenario: Claude tries to install a package**
-```
-pnpm add lodash
--> Matches ask rule: "Bash(pnpm add:*)"
--> Claude pauses and asks for confirmation
--> You approve or deny
+Claude tries to read a component file
+  → Allow: "Read" → AUTO-APPROVED
 ```
 
-**Scenario: Claude tries to read .env**
-```
-Read .env.local
--> Matches project deny: "Read(.env.*)"
--> BLOCKED. Cannot be overridden.
-```
+### Quick Reference
 
-**Scenario: Claude tries to force push**
-```
-git push --force origin main
--> Matches global deny: "Bash(git push --force:*)"
--> BLOCKED. Even with --dangerously-skip-permissions.
-```
+| File | Shared? | Purpose |
+|------|---------|---------|
+| `~/.claude/settings.json` | No | Global security (OS-level deny list) |
+| `~/.claude/CLAUDE.md` | No | Personal workflow preferences |
+| `~/.claude/skills/*/SKILL.md` | No | Reusable slash commands |
+| `.claude/settings.json` | Yes | Team project permissions |
+| `CLAUDE.md` | Yes | Team coding standards |
+| `CLAUDE.local.md` | No | Personal project preferences |
 
 ---
 
-## Quick Reference: File Locations
-
-| File | Location | Shared? | Purpose |
-|------|----------|---------|---------|
-| `~/.claude/settings.json` | Home | No | Global permissions (OS security) |
-| `~/.claude/CLAUDE.md` | Home | No | Personal workflow preferences |
-| `~/.claude/skills/*/SKILL.md` | Home | No | Reusable slash commands |
-| `.claude/settings.json` | Project | Yes | Team permissions |
-| `.claude/settings.local.json` | Project | No | Personal overrides |
-| `CLAUDE.md` | Project | Yes | Team coding standards |
-| `CLAUDE.local.md` | Project | No | Personal preferences |
-| `~/.claude/projects/*/memory/` | Home | No | Cross-session memory |
-
----
-
-## Summary
+## The Takeaway
 
 The best Claude Code setup follows one principle: **layer your configuration by scope and shareability.**
 
-- **Global settings** protect your system everywhere (secrets, credentials, destructive commands)
-- **Project settings** protect project-specific resources (config files, build artifacts)
-- **CLAUDE.md** encodes team standards that every Claude session follows
-- **Skills** encode reusable workflows you trigger when needed
-- **Memory** captures lessons learned across sessions
-- **Hooks** automate quality gates at lifecycle events
+- **Global settings** protect your system everywhere — secrets, credentials, destructive commands
+- **Project settings** protect project-specific resources — config files, build artifacts
+- **CLAUDE.md** encodes team standards that every session follows
+- **Skills** encode reusable workflows — from spec writing to PR creation
+- **Memory** captures lessons so Claude gets smarter across sessions
+- **Hooks** automate quality gates you'd otherwise forget
+
+The spec-to-ship workflow isn't about adding bureaucracy. It's about front-loading the thinking so implementation is mostly mechanical. A grilled spec catches the bug that would have taken a day to debug. A phased plan prevents the "I changed 47 files and nothing type-checks" disaster.
 
 Configure once. Benefit on every session, every project, every team member.
+
+---
+
+**End:**
+- [Website](https://encryptioner.github.io)
+- [LinkedIn](https://www.linkedin.com/in/mir-mursalin-ankur)
+- [GitHub](https://github.com/Encryptioner)
+- [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/author/ankur/)
