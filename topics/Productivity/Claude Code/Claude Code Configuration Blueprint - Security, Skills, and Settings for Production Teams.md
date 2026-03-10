@@ -1,6 +1,6 @@
 # Claude Code Configuration Blueprint: Security, Skills, and Settings for Production Teams
 
-> Configure Claude Code once — get security, reusable workflows, and cross-session intelligence across every project. A practical blueprint covering layered permissions, custom slash-command skills, CLAUDE.md architecture, and the spec-to-ship workflow.
+> Configure Claude Code once — get security, reusable workflows, and cross-session intelligence across every project.
 
 ---
 
@@ -8,54 +8,60 @@
 
 You've used Claude Code on a project or two. You know the basics. Now you want to:
 
-- Lock down secrets and credentials so Claude can never touch them
+- Stop Claude from touching secrets, credentials, or system files
 - Share team standards via git without leaking personal preferences
-- Build a spec-to-ship workflow that adapts to features, fixes, and hotfixes
+- Create reusable workflows (spec, plan, implement, review, ship)
 - Make Claude remember lessons across sessions
-- Configure once, benefit everywhere
 
-This guide gives you the blueprint and explains the **why** behind each decision.
+This guide gives you copy-paste configs and explains the **why** behind each decision.
 
 ---
 
-## The Configuration Architecture
+## The Configuration Layers
 
-Claude Code loads configuration from multiple layers:
+Claude Code loads configuration from multiple layers, each with a specific scope:
 
 ```
 Personal (not in any repo):
-  ~/.claude/settings.json          → OS-level security (deny list for all projects)
-  ~/.claude/CLAUDE.md              → Personal workflow preferences
-  ~/.claude/skills/*/SKILL.md      → Reusable slash commands (/spec, /plan, /ship)
+  ~/.claude/settings.json        → Security (deny list for all projects)
+  ~/.claude/CLAUDE.md            → Personal workflow preferences
+  ~/.claude/skills/*/SKILL.md    → Reusable slash commands
 
 Team-shared (committed to git):
-  .claude/settings.json            → Project permissions (copy from settings.example.json)
-  CLAUDE.md                        → Coding standards, architecture, PR review rules
+  .claude/settings.json          → Project permissions
+  CLAUDE.md                      → Coding standards, architecture
 
 Personal overrides (gitignored):
-  .claude/settings.local.json      → Your personal project overrides
-  CLAUDE.local.md                  → Your personal project preferences
+  .claude/settings.local.json    → Your project overrides
+  CLAUDE.local.md                → Your project preferences
 ```
 
-**Design principle:** Global config handles security. Project config handles standards. Personal overrides handle preferences. Nothing leaks between layers.
-
-**Critical rule:** Project CLAUDE.md must be self-contained. Teammates don't have your global skills or CLAUDE.md, so project files can't depend on them.
+**Key rule:** Your project CLAUDE.md must be self-contained. Teammates don't have your global skills or personal CLAUDE.md, so project files can't depend on them. Think of it this way: global files are your personal toolkit, project files are the team playbook.
 
 ---
 
 ## Part 1: Security — The Permission System
 
-### Three Tiers, Strict Order
+Permissions follow a strict hierarchy: **Deny** (always blocks, even with `--dangerously-skip-permissions`) → **Ask** (prompts you) → **Allow** (auto-approved). Deny always wins — this is what makes the system trustworthy.
 
-1. **Deny** — Always blocks. Cannot be overridden. Not even by `--dangerously-skip-permissions`.
-2. **Ask** — Always prompts for confirmation.
-3. **Allow** — Auto-approved. No prompts.
+### Pattern Syntax
 
-**Deny always wins.** If a command matches both `allow` and `deny`, it's blocked.
+Before diving into the config, understand how patterns match:
 
-### Global Settings: Your Security Perimeter
+```
+Bash(exact command)       → matches only that exact command
+Bash(command *)           → matches command with any arguments (space before *)
+Bash(command:*)           → matches command variations (colon prefix)
+Read(path/to/file)        → matches exact file
+Read(path/**/*.json)      → matches glob pattern
+Read(~/.ssh/**)           → ~ expands to home directory on any OS
+```
 
-This goes in `~/.claude/settings.json` — protects you across ALL projects:
+**Space matters:** `Bash(ls *)` matches `ls -la` but NOT `lsof`. `Bash(ls*)` matches both.
+
+### Global Settings (`~/.claude/settings.json`)
+
+This protects you across ALL projects:
 
 ```json
 {
@@ -68,86 +74,94 @@ This goes in `~/.claude/settings.json` — protects you across ALL projects:
     ],
     "ask": [
       "Bash(git push:*)", "Bash(git commit:*)", "Bash(git merge:*)",
-      "Bash(pnpm install:*)", "Bash(pnpm add:*)", "Bash(npm install:*)",
+      "Bash(pnpm install:*)", "Bash(pnpm add:*)",
       "Bash(docker:*)", "Bash(curl:*)", "Bash(ssh:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)", "Bash(sudo:*)", "Bash(chmod:*)",
       "Bash(git push --force:*)", "Bash(git reset --hard:*)",
-
       "Read(.env)", "Read(.env.*)", "Write(.env)", "Write(.env.*)",
       "Edit(.env)", "Edit(.env.*)",
-
       "Read(~/.ssh/**)", "Read(~/.aws/**)", "Read(~/.gnupg/**)",
       "Read(~/.npmrc)", "Read(~/.docker/config.json)",
-      "Read(~/.kube/config)", "Read(~/.config/gh/hosts.yml)",
-
       "Read(~/Library/Keychains/**)",
       "Read(~/Library/Application Support/Google/Chrome/Default/Login Data*)",
       "Read(~/.local/share/keyrings/**)",
-      "Read(~/.config/google-chrome/Default/Login Data*)",
       "Read(/mnt/c/Users/*/AppData/Local/Google/Chrome/User Data/Default/Login Data*)",
-
       "Bash(kill -9:*)", "Bash(shutdown:*)", "Bash(reboot:*)"
     ]
   }
 }
 ```
 
-#### Why These Specific Categories?
+#### Why These Specific Rules?
 
-| Category | Tier | Rationale |
-|----------|------|-----------|
-| Read/Edit/Write/Glob/Grep | Allow | Core tools Claude needs to function |
-| Read-only git (`status`, `diff`, `log`) | Allow | Safe — no mutations |
-| `git push/commit/merge` | Ask | Affects remote state and history |
-| `pnpm/npm install` | Ask | Modifies dependencies |
-| `docker`, `curl`, `ssh` | Ask | Infrastructure and network access |
-| `rm -rf`, `sudo`, `chmod` | Deny | Destructive system commands |
-| `git push --force`, `reset --hard` | Deny | Irreversible git operations |
-| `.env*` files | Deny | Secrets and API keys |
-| `~/.ssh`, `~/.aws`, keychains | Deny | Credential stores |
-| Browser login data | Deny | Passwords and cookies |
+| Tier | Category | Rationale |
+|------|----------|-----------|
+| **Allow** | Read/Edit/Write/Glob/Grep | Core tools Claude needs constantly — would be annoying to approve every time |
+| **Allow** | Read-only git (`status`, `diff`, `log`) | Safe — no mutations, just information |
+| **Allow** | `nvm`, `node`, `ls` | Basic operations that never cause harm |
+| **Ask** | `git push/commit/merge` | Affects remote state — you want to know before this happens |
+| **Ask** | `pnpm install/add` | Modifies dependencies — a new package deserves a glance |
+| **Ask** | `docker`, `curl`, `ssh` | Infrastructure and network access |
+| **Deny** | `rm -rf`, `sudo`, `chmod` | Destructive system commands |
+| **Deny** | `git push --force`, `reset --hard` | Irreversible git operations |
+| **Deny** | `.env*` files | Secrets and API keys |
+| **Deny** | `~/.ssh`, `~/.aws`, `~/.gnupg` | Credential stores |
+| **Deny** | Browser data (Chrome, Firefox) | Login data, cookies, passwords |
 
-**Cross-OS coverage:** The deny list covers macOS (`~/Library/`), Linux (`~/.local/share/`, `~/.config/`), and Windows WSL (`/mnt/c/Users/*/AppData/`). One config, all platforms.
+**Cross-OS coverage:** The deny list covers macOS (`~/Library/Keychains`), Linux (`~/.local/share/keyrings`, `~/.mozilla`), and Windows WSL (`/mnt/c/Users/*/AppData`). One global config works on any machine.
 
-### Project Settings: Team-Shared Safety
+### Project Settings (`.claude/settings.example.json`)
 
-Create `.claude/settings.example.json` in your repo. Team members copy it to `.claude/settings.json`.
-
-```gitignore
-# .gitignore
-.claude/*
-!.claude/*.example*
-```
-
-Project deny lists should only contain **project-specific** rules — not OS-level security (that's in global settings):
+Team members copy this to `.claude/settings.json`. Only project-specific rules — OS security is handled globally:
 
 ```json
 {
   "permissions": {
     "allow": [
       "Read", "Edit", "Write", "Glob", "Grep",
-      "Bash(pnpm build:*)", "Bash(pnpm lint:*)", "Bash(pnpm test:*)",
-      "Bash(npx tsc:*)", "Bash(npx vue-tsc:*)"
+      "Bash(pnpm build:*)", "Bash(pnpm lint:*)", "Bash(pnpm test:*)"
     ],
     "deny": [
       "Read(.env)", "Read(.env.*)", "Write(.env)", "Write(.env.*)",
       "Read(src/configs/server.config.json)",
-      "Read(src/configs/aws.config.json)",
       "Read(node_modules/**)", "Read(dist/**)"
     ]
   }
 }
 ```
 
+Add to `.gitignore`: `.claude/*` and `!.claude/*.example*` — this shares the example but keeps each developer's actual settings private.
+
+If your project has config files with secrets (AWS keys, database URLs), add them to the project deny list:
+
+```json
+"Read(src/configs/aws.config.json)",
+"Read(src/certs/*.pem)"
+```
+
 ---
 
-## Part 2: CLAUDE.md — The Team Playbook
+## Part 2: CLAUDE.md — Teaching Claude Your Codebase
 
-This is the most impactful file in your repo. A well-written CLAUDE.md turns Claude from a generic assistant into a team member who knows your codebase.
+This is the most impactful file in your repo. A well-written CLAUDE.md turns Claude from a generic assistant into a team member who knows your conventions, your pain points, and your architecture.
 
-### What to Include
+### The Instruction Budget Problem
+
+Here's something most people don't realize: frontier LLMs reliably follow roughly **150–200 instructions** total. Claude Code's own system prompt already consumes about 50 of those slots — a third of your budget — before your CLAUDE.md even loads.
+
+Worse, instruction degradation is **uniform**. As instruction count rises, quality drops across ALL instructions, not just the newer ones. This means every low-value rule you add actively makes your high-value rules less likely to be followed.
+
+Claude Code even injects this system reminder alongside your CLAUDE.md:
+
+> *"IMPORTANT: this context may or may not be relevant to your tasks."*
+
+The more irrelevant content you include, the more likely Claude downgrades everything. So brevity isn't just nice — it directly affects instruction compliance.
+
+### The Template
+
+Write it for Claude, not for humans. Don't duplicate your README. Focus on what Claude needs to produce code that passes your PR review on the first try.
 
 ```markdown
 # CLAUDE.md
@@ -158,7 +172,7 @@ This is the most impactful file in your repo. A well-written CLAUDE.md turns Cla
 - `pnpm lint-fix` — Lint and fix all packages
 
 ## Project Context
-[One paragraph: what this project does, who uses it, key business features]
+[One paragraph: what this does, who uses it, key business features]
 
 ## Architecture Overview
 - `packages/client` — Vue 3 frontend
@@ -171,397 +185,184 @@ This is the most impactful file in your repo. A well-written CLAUDE.md turns Cla
 - API payloads: declare as typed constants before passing
 
 ## Common PR Review Issues (MUST follow)
-1. **Type Safety** — Never use `any`. Declare API payloads as typed constants.
+1. **Type Safety** — Never use `any`. Typed constants for API payloads.
 2. **Dead Code** — Remove unused imports, variables, i18n keys.
 3. **Naming** — Getters: `get` prefix. Event handlers: `on` prefix.
 4. **Error Handling** — Wrap all API calls in try/catch with loading states.
 
-## Workflow
-- Commit at logical milestones — don't accumulate huge changes
-- Use screenshots for debugging UI issues
+## Critical Gotchas (things Claude consistently gets wrong)
+- Never use relative imports — always absolute paths
+- Always update BOTH language files for i18n changes
+- Always use projection in DB queries — never fetch entire documents
+- Server error messages MUST come from constant files
 ```
 
-### What Makes a Great CLAUDE.md
+The "Critical Gotchas" section is especially valuable. Every team has patterns that Claude gets wrong repeatedly. Document them explicitly and Claude stops making those mistakes.
+
+### Progressive Disclosure: Keep CLAUDE.md Lean
+
+For larger projects, don't stuff everything into CLAUDE.md. Use a **progressive disclosure** pattern — put detailed docs in a separate directory and tell Claude where to find them:
+
+```markdown
+## Detailed Documentation
+When working on specific areas, read the relevant doc first:
+- `docs/Agent/database_schema.md` — Data model and relationships
+- `docs/Agent/payment_flow.md` — Payment gateway integration details
+- `docs/Agent/testing.md` — Test patterns and conventions
+```
+
+Claude reads these on-demand when the task is relevant, instead of loading everything upfront. This keeps your instruction count low while still having depth available.
+
+**Prefer pointers to copies.** Don't paste code snippets into documentation files — they go stale. Reference `file:line` instead.
+
+### What Works vs. What Doesn't
 
 | Do | Don't |
 |----|-------|
-| Include commands Claude needs to run | Include formatting rules (use a linter) |
-| Document non-obvious architecture patterns | Document obvious language features |
+| Include commands Claude needs to run | Include formatting rules (use a linter + hooks) |
+| Document non-obvious patterns | Document obvious language features |
 | List real PR review pain points | Write a textbook on your stack |
 | Keep it under 200 lines | Duplicate your README |
-| Extract rules from the last 50-100 PR reviews | Add aspirational rules nobody follows |
+| Include critical gotchas from real sessions | Include aspirational rules nobody follows |
 
-### Subdirectory CLAUDE.md
+### Never Auto-Generate CLAUDE.md
 
-For large projects, place additional CLAUDE.md files in subdirectories. They're loaded lazily when Claude works in that directory:
+Don't use `/init` or let an LLM write your CLAUDE.md. This file is the highest-leverage point of Claude Code — a bad line cascades into bad plans, bad code, and bad artifacts across every session. LLMs already learn style from existing code in context (in-context learning). What they can't learn on their own is your team's non-obvious patterns, PR review preferences, and architectural boundaries. Those need human judgment.
 
-```
-project/
-  CLAUDE.md              # Project-wide rules
-  packages/
-    server/CLAUDE.md     # Server-specific patterns
-    client/CLAUDE.md     # Frontend conventions
-```
-
-### Global CLAUDE.md — Personal Workflow
-
-`~/.claude/CLAUDE.md` applies to all your projects. Keep it for personal workflow preferences that supplement (never override) project CLAUDE.md:
-
-```markdown
-# Personal Workflow Preferences
-
-## Workflow Orchestration
-
-### Ticket-Based Workflow
-All non-trivial work follows the skill chain:
-/spec → /grill → /plan-work → /grill → /implement → /verify → /pre-review → /ship
-
-Scale-adaptive:
-- Features: full chain
-- Bug fixes: skip spec, lightweight plan
-- Hotfixes: inline plan, direct fix
-
-### Spec-First Principle
-- Start every ticket with /spec unless it's a trivial fix
-- The spec is the single source of truth
-- Never assume requirements — ask if unclear
-
-### Self-Improvement Loop
-- After ANY correction: update auto memory with the pattern
-- If corrected on something from memory, update the incorrect entry immediately
-
-## Context Management
-- Commit frequently at logical milestones
-- When context is ~50% consumed, summarize key decisions before compaction
-- Use subagents for heavy research to keep main context clean
-- Re-read spec and plan files after context compaction
-```
+For large projects, place CLAUDE.md files in subdirectories — they're loaded lazily when Claude works in that directory, so you get package-specific rules without bloating the root file.
 
 ---
 
 ## Part 3: Plugins — Instant Capabilities
 
-Plugins are the fastest way to level up Claude Code. One install command gives you pre-built agents, MCP servers, and skills from the official registry.
-
-### The Official Plugin Registry
+Plugins are pre-built packages from the community. One install command gives you agents, MCP servers, and skills — no configuration needed.
 
 ```bash
-claude plugins:browse anthropics/claude-plugins-official
+claude plugins:install context7 superpowers code-review commit-commands
 ```
 
-The `anthropics/claude-plugins-official` registry currently has **56 plugins** covering code review, frontend design, browser automation, ML workflows, and more.
+### Recommended Stack
 
-### Installing Plugins
-
-```bash
-# Browse available plugins
-claude plugins:browse
-
-# Install a specific plugin
-claude plugins:install context7
-
-# List what you have
-claude plugins:list
-```
-
-Each plugin can contribute one or more of:
-- **Skills** — Slash commands (e.g., `/review-pr`, `/frontend-design`)
-- **Agents** — Specialized subagents for parallel work (e.g., code-reviewer, code-simplifier)
-- **MCP Servers** — External tool integrations (e.g., Playwright for browser testing, Context7 for live documentation)
-
-### Recommended Plugin Stack
-
-Here's a practical plugin set organized by workflow stage:
-
-| Stage | Plugin | What It Adds |
+| Stage | Plugin | What It Does |
 |-------|--------|-------------|
-| **Research** | `context7` | Live documentation lookup — pulls version-specific docs into context |
-| **Development** | `feature-dev` | Agents for codebase exploration, architecture design, and quality review |
-| **Development** | `superpowers` | Core skill library — TDD, debugging, collaboration patterns |
+| **Research** | `context7` | Live, version-specific documentation lookup |
+| **Development** | `feature-dev` | Codebase exploration + architecture design agents |
+| **Development** | `superpowers` | TDD, debugging, brainstorming, parallel agent dispatch |
 | **Quality** | `code-review` | Multi-agent PR review with confidence-based scoring |
-| **Quality** | `pr-review-toolkit` | Specialized review agents for comments, tests, error handling, type design |
-| **Quality** | `code-simplifier` | Simplifies code for clarity while preserving functionality |
-| **Testing** | `playwright` | Browser automation and E2E testing via Microsoft's MCP server |
+| **Quality** | `code-simplifier` | Refine code for clarity while preserving functionality |
+| **Testing** | `playwright` | Browser automation and E2E testing |
 | **Shipping** | `commit-commands` | Streamlined git commit, push, and PR creation |
-| **Automation** | `ralph-loop` | Autonomous iteration loops — Claude refines work across multiple cycles until done |
-| **Maintenance** | `claude-md-management` | Audit and improve CLAUDE.md files across repos |
+| **Automation** | `ralph-loop` | Autonomous iteration — Claude keeps refining until done |
+| **Maintenance** | `claude-md-management` | Audit and improve CLAUDE.md files |
 
-### Plugin Usage Examples
+### Plugin Usage Example
 
-**context7** — Pull live, version-specific docs into context instead of relying on training data:
-```
-> How do I set up middleware in Express 5?
-# Claude automatically fetches current Express 5 docs via Context7 MCP server
-# instead of hallucinating outdated API signatures
-```
+With `context7` installed, instead of asking Claude a question and getting an answer based on its training data (which may be outdated), you can ask:
 
-**feature-dev** — Three specialized agents for different development phases:
 ```
-> /feature-dev                              # Guided feature development with architecture focus
-# Internally dispatches:
-#   code-explorer agent  → traces execution paths, maps dependencies
-#   code-architect agent → designs implementation blueprint with specific files
-#   code-reviewer agent  → reviews for bugs, security, and code quality
+"How do I set up middleware in Express 5? Use context7 for the latest docs."
 ```
 
-**superpowers** — Core process skills that override default Claude behavior:
-```
-> /superpowers:brainstorming                # MUST run before any creative/feature work
-> /superpowers:systematic-debugging         # Run before proposing any fix
-> /superpowers:test-driven-development      # Write tests before implementation code
-> /superpowers:dispatching-parallel-agents  # Run 2+ independent tasks concurrently
-```
+Claude fetches the current, version-specific documentation and answers based on that — not its training cutoff. Similarly, `code-review` doesn't just read your diff — it spawns multiple review agents that each focus on different aspects (security, performance, correctness) and merge their findings with confidence scores.
 
-**code-review** — Multi-agent PR review with confidence-based filtering:
-```
-> /code-review 142                          # Review PR #142
-# Dispatches specialized agents in parallel, each reviewing for different concerns
-# Only surfaces high-confidence findings — no noise
-```
+### Plugins vs. Custom Skills
 
-**pr-review-toolkit** — Specialized review agents you can invoke individually:
-```
-> /pr-review-toolkit:review-pr             # Full review using all specialized agents
-# Includes: code-reviewer, comment-analyzer, code-simplifier,
-#           type-design-analyzer, pr-test-analyzer, silent-failure-hunter
-```
+Both are invoked the same way (slash commands or auto-invocation), but they serve different purposes:
 
-**code-simplifier** — Refine recently modified code for clarity:
-```
-> /simplify                                # Reviews changed code for reuse, quality, efficiency
-# Focuses on recently modified files — doesn't touch stable code
-# Preserves all functionality while improving readability
-```
+| | Plugins | Custom Skills |
+|---|---------|---------------|
+| **Source** | Community marketplace | Your `~/.claude/skills/` directory |
+| **Scope** | General capabilities (docs lookup, code review) | Your team's specific workflows (spec-to-ship) |
+| **Install** | `claude plugins:install <name>` | Create a `SKILL.md` file |
+| **Shared** | Per-user installation | Per-user (global) or per-project |
+| **Complexity** | Can include MCP servers, agents, multiple skills | Single `SKILL.md` + optional reference files |
 
-**playwright** — Browser automation and E2E testing via MCP server:
-```
-> Navigate to localhost:3000 and test the login flow
-# Claude controls a real browser: clicks, fills forms, takes screenshots
-# Useful for visual debugging and automated E2E test creation
-```
-
-**commit-commands** — Streamlined git workflow:
-```
-> /commit                                  # Stage + commit with conventional message
-> /commit-push-pr                          # Commit, push, and open PR in one command
-> /clean_gone                              # Remove local branches deleted on remote
-```
-
-**ralph-loop** — Autonomous iteration where Claude keeps refining until a task is complete:
-```
-> /ralph-loop "Build a REST API with full CRUD for users. Tests must pass. DONE when all endpoints work."
-# Claude works iteratively — fixes test failures, refines code, re-runs checks
-# Each cycle sees all previous work, creating a feedback loop
-# Stops automatically when completion criteria are met
-> /cancel-ralph                            # Stop the loop early if needed
-```
-
-**claude-md-management** — Keep your CLAUDE.md files healthy:
-```
-> /claude-md-improver                      # Audit all CLAUDE.md files, rate quality, fix issues
-> /revise-claude-md                        # Update CLAUDE.md with learnings from this session
-```
+Think of plugins as off-the-shelf tools and custom skills as your team's playbook encoded for Claude.
 
 ---
 
-## Part 4: Custom Skills — The Spec-to-Ship Workflow
+## Part 4: Custom Skills — Building a Spec-to-Ship Workflow
 
-Plugins give you general capabilities. **Custom skills** encode your team's specific workflows. They're slash commands that live at `~/.claude/skills/<name>/SKILL.md`.
+Custom skills encode your team's specific workflows. They live at `~/.claude/skills/<name>/SKILL.md` and are available across all your projects.
 
-Here's the workflow chain I use for every ticket:
+### The Workflow Chain
 
-### The Full Chain
+The real power of skills comes from chaining them into a complete development workflow:
 
 ```
-/spec → /grill (auto) → /plan-work → /grill (auto) → /implement → /verify → /pre-review → /ship
+/scope (optional) → /spec → /grill (auto) → /plan-work → /grill (auto) → /implement → /verify → /pre-review → /ship
 ```
 
-Not every task needs the full chain. The workflow adapts to scale:
+Not every task needs the full chain. The workflow adapts to what you're building:
 
 | Task Type | Workflow |
 |-----------|----------|
-| **New feature** | Full chain — spec → grill → plan → grill → implement → verify → pre-review → ship |
-| **Major enhancement** | Full chain |
-| **Minor enhancement** | Light spec → plan (single file) → implement → verify → pre-review → ship |
+| **New product** | `/scope` → full chain |
+| **Feature** | Full chain |
+| **Minor enhancement** | Light spec → plan → implement → verify → ship |
 | **Bug fix** | Bug spec or skip → plan → implement → verify → ship |
 | **Hotfix** | Inline plan → implement → verify → ship |
 
+This is a key insight: **the ceremony scales with the risk**. A new product needs scoping and a full spec. A hotfix just needs a quick plan and verification.
+
+### The Skills in Detail
+
+**`/scope`** — Rapid product scoping, designed for the moment before a spec. Asks one forcing question: *"If this app could only do ONE thing, what would it be?"* That answer is v1 — everything else is v2. Maps the user journey in 4 steps max, identifies cost drivers (real-time features, third-party integrations, custom AI — the three things that make apps expensive), and produces a one-page scope document. Use for new products or when evaluating client projects.
+
+**`/spec`** — The starting point for most tickets. Claude reviews the codebase, asks clarification questions, and writes a structured spec with functional requirements and acceptance criteria. The spec includes a **Change Log** — a section that tracks what changed and why during implementation. This is critical because requirements always shift mid-build. Instead of letting the spec become stale, the Change Log keeps it as the single source of truth throughout the ticket's lifecycle.
+
+**`/grill`** — The hard critic, and arguably the most valuable skill in the chain. It reviews every spec and plan through 7 lenses: completeness, security, architecture, data integrity, project impact, testing gaps, and assumptions. Each finding gets a severity level:
+
+- **BLOCKER** — Must fix before proceeding. Will cause production issues.
+- **CRITICAL** — Significant risk. Should fix before implementation.
+- **WARNING** — Potential issue. Address during implementation.
+- **NOTE** — Observation or improvement suggestion.
+
+The whole review gets a verdict: **PASS**, **NEEDS REWORK**, or **REJECT**. This is auto-invoked by `/spec` and `/plan-work` at their checkpoints — you don't have to remember to run it. The idea is simple: catch the bug in the spec, not in production.
+
+**`/plan-work`** — Transforms the approved spec into a phase-by-phase implementation plan. Each phase traces back to specific spec requirements — no orphan work, no "why did we build this?" confusion. Creates an overview file plus detailed phase files (e.g., `phase-1-data-model.md`, `phase-2-api-endpoints.md`). Auto-grills the plan before presenting it.
+
+**`/implement`** — Executes the plan phase by phase with incremental type checking after each logical group of changes. The most important feature is **mid-implementation discovery handling**. During development, you always discover things the spec didn't anticipate. Instead of ignoring them or stopping everything, the skill handles discoveries at three tiers:
+
+- **Minor** — Note and continue. Example: a utility function needs a small refactor.
+- **Moderate** — Update the plan, inform the user, continue. Example: an API endpoint needs a different response shape than originally planned.
+- **Significant** — STOP. Update the spec's Change Log, re-grill, get approval. Example: a core assumption was wrong and the data model needs restructuring.
+
+It also runs a **spec alignment review at ~50% completion** — a proactive check that what you're building still matches what was specified, before you're too deep to course-correct cheaply.
+
+**`/verify`** → **`/pre-review`** → **`/ship`** — The finishing chain. Verify runs type check + lint. Pre-review walks through every spec requirement, confirming each acceptance criterion is met — this catches the gaps that "it compiles" doesn't reveal. Ship handles branch management, staged commits, PR creation, and captures learnings to auto-memory for future sessions.
+
+**`/ui-design-brain`** — A specialized skill with a 60+ component reference file covering real design-system patterns (Accordion, Breadcrumb, Data Table, Modal, Toast — the full set from component.gallery). Instead of generic AI aesthetics, Claude consults documented patterns with best practices and common layouts. This shows that skills can include supporting reference files alongside SKILL.md, making them as rich as needed.
+
 ### Ticket Directory Structure
 
-Every ticket gets its own `ai/<ticket-no>/` directory:
+Every ticket gets its own `ai/<ticket-no>/` directory, keeping all AI-generated artifacts organized and version-controlled:
 
 ```
 ai/TICKET-146/
 ├── requirements/
-│   ├── original-requirement.md    # User's raw requirement (verbatim)
+│   ├── original-requirement.md    # Raw requirement (verbatim)
 │   ├── spec.md                    # Clarified technical spec
-│   └── grill-log.md              # Spec review findings
+│   └── grill-log.md              # Review findings
 ├── plans/
-│   ├── overview.md               # High-level implementation plan
+│   ├── overview.md               # High-level plan
 │   ├── phase-1-data-model.md     # Detailed phase plan
-│   ├── phase-2-api.md
 │   └── grill-log.md              # Plan review findings
 └── tests/
     └── manual-test-cases.csv
 ```
 
-### `/spec` — Requirements to Technical Spec
-
-The entry point for all ticket work. Claude reviews the codebase, asks clarification questions, writes a structured spec, then auto-grills it.
-
-```markdown
-# Spec: TICKET-146 — Bulk Enrollment System
-
-**Status:** Grilled | Approved
-**Original Requirement:** See `original-requirement.md`
-
-## Overview
-Allow admins to enroll multiple students into a course batch at once,
-with fee calculation and payment tracking per student.
-
-## Clarifications
-1. **Q:** Does this include partial payment support?
-   **A:** Yes, students can pay in installments.
-
-## Functional Requirements
-
-### FR-1: Bulk student selection
-- **Description:** Admin selects multiple students from a searchable list
-- **Acceptance criteria:**
-  - [ ] Search by name, email, or phone
-  - [ ] Select/deselect individual students
-  - [ ] Select all matching search results
-- **Affected modules:** server/enrollment, client/admin/enrollment
-
-## Change Log
-| Date | Section Changed | What Changed | Why |
-|------|----------------|--------------|-----|
-```
-
-The Change Log is key — specs evolve during planning and implementation as new insights surface. Track changes instead of pretending the spec was perfect from day one.
-
-### `/grill` — The Hard Critic
-
-A skeptical staff engineer reviews every spec and plan through 7 lenses:
-
-1. **Completeness** — Are requirements testable? What happens on error?
-2. **Security** — Auth gaps? Input validation? Data exposure?
-3. **Architecture** — Does this follow existing patterns? Scalability?
-4. **Data Integrity** — Migration safety? Rollback plan?
-5. **Project Impact** — Which packages are affected? Breaking changes?
-6. **Testing Gaps** — Missing negative tests? Race conditions?
-7. **Assumptions** — What if they're wrong?
-
-Each finding gets a severity:
-
-| Severity | Action |
-|----------|--------|
-| **BLOCKER** | Must fix before proceeding |
-| **CRITICAL** | Should fix before proceeding |
-| **MAJOR** | Strongly recommend fixing |
-| **MINOR** | Consider fixing |
-| **NOTE** | Informational |
-
-Verdict: **PASS** / **PASS WITH CONDITIONS** / **NEEDS REWORK** / **REJECT**
-
-### `/plan-work` — Phase-by-Phase Planning
-
-Reads the approved spec, creates an overview plan plus detailed phase files, then auto-grills the plan. Each phase traces back to specific spec requirements — no orphan work.
-
-```markdown
-# Phase 1: Data Model & Types
-
-**Spec Requirements Covered:** FR-1, FR-2
-
-## Changes
-
-### File: packages/types/src/enrollment/IBulkEnrollment.ts
-- **Action:** Create
-- **What:** Interface for bulk enrollment request/response
-- **Why:** FR-1 needs typed student selection data
-
-### File: packages/dto/src/enrollment/BulkEnrollmentDto.ts
-- **Action:** Create
-- **What:** Validation schema for bulk enrollment API
-- **Why:** FR-2 requires validated fee calculations
-
-## Verification Steps
-- [ ] Type check passes after creating types
-- [ ] DTO validates correctly with test data
-```
-
-### `/implement` — Build with Guardrails
-
-Follows the plan phase by phase. The key addition: **mid-implementation discovery handling**.
-
-During implementation, you discover things the spec didn't anticipate. Instead of stopping or ignoring it:
-
-- **Minor** (doesn't change scope): Note it, continue, mention in checkpoint summary
-- **Moderate** (changes approach, same scope): Inform user, update phase plan, continue
-- **Significant** (changes scope): STOP, update spec's Change Log, optionally re-grill
-
-Plus a mandatory spec alignment review at ~50% completion — catching drift early is 10x cheaper than catching it at the end.
-
-### `/verify` → `/pre-review` → `/ship`
-
-The finishing workflow:
-
-- **`/verify`** — Auto-detect project type, run type check + lint, rebuild shared packages if needed
-- **`/pre-review`** — Check every change against CLAUDE.md standards AND the original spec. Walk through each FR and confirm its acceptance criteria are met. No spec gap goes unnoticed.
-- **`/ship`** — Branch management, staged commits (never `git add -A`), and PR creation with summary + test plan
-
-### Skill Usage Examples
-
-Here's what the skill chain looks like in practice:
-
-**`/spec`** — Start a new ticket:
-```
-> /spec
-# Claude asks: "What's the requirement? Paste the ticket or describe the feature."
-> Allow admins to bulk-enroll students into a course batch
-# Claude asks clarification questions, then writes spec to ai/TICKET-146/requirements/spec.md
-# Auto-grills the spec and presents findings
-```
-
-**`/plan-work`** — Plan implementation after spec approval:
-```
-> /plan-work
-# Claude reads the approved spec, creates phased plan files
-# Each phase maps back to specific spec requirements (FR-1, FR-2, etc.)
-# Auto-grills the plan — catches missing error handling, auth gaps, etc.
-```
-
-**`/implement`** — Execute the plan:
-```
-> /implement
-# Claude follows plan phase by phase
-# After each phase: runs type check, reports progress
-# At ~50%: does a spec alignment review — catches drift early
-# Discoveries are handled by severity (minor → note, major → update plan, significant → STOP)
-```
-
-**`/verify` → `/pre-review` → `/ship`** — Finish and ship:
-```
-> /verify
-# Runs type check + lint, rebuilds shared packages if needed
-
-> /pre-review
-# Walks through every spec FR and confirms acceptance criteria are met
-# Checks all changes against CLAUDE.md coding standards
-
-> /ship
-# Creates branch, stages specific files (never git add -A), opens PR
-```
+This structure makes work **resumable across sessions**. If Claude loses context (after compaction) or you start a new session, it reads the spec and plan files to pick up exactly where you left off. The grill logs capture the reasoning behind decisions, so future sessions don't re-debate settled questions.
 
 ### Building Your Own Skills
 
-A skill is just a `SKILL.md` file with optional YAML frontmatter:
+A skill is a `SKILL.md` file with optional YAML frontmatter:
 
 ```markdown
 ---
 name: my-skill
-description: Short description for trigger matching. Include trigger phrases
-  like "when the user says X" to help Claude know when to invoke this skill.
+description: Short description with trigger phrases like "when the user
+  says X" so Claude knows when to auto-invoke this skill.
 ---
 
 # Skill Title
@@ -573,67 +374,50 @@ description: Short description for trigger matching. Include trigger phrases
 ### Step 1: [Name]
 [Instructions Claude follows]
 
-### Step 2: [Name]
-[More instructions]
-
 ## Rules
 - [Hard constraints]
 ```
 
-**Tips for effective skills:**
-- Write them as instructions TO Claude, not documentation ABOUT a process
-- Include trigger phrases in the description for better auto-detection
-- Add cross-references: "Next skill: `/implement`"
-- Keep each skill focused — one workflow, one skill
+Three tips for effective skills:
 
-### Plugins vs. Custom Skills
-
-| | Custom Skills | Plugins |
-|-|---------------|---------|
-| **Location** | `~/.claude/skills/` | Managed by Claude Code CLI |
-| **Scope** | Your personal workflows | Shared community workflows |
-| **Updates** | Manual edits | `plugins:update` |
-| **Best for** | Team-specific processes (spec-to-ship chain) | General-purpose tooling (code review, testing) |
-
-**Use both.** Plugins handle general capabilities. Custom skills handle your specific workflow orchestration. The spec-to-ship chain works alongside plugins — `/implement` can leverage the `feature-dev` plugin's agents, and `/pre-review` benefits from `code-review` and `pr-review-toolkit`.
+1. **Write instructions TO Claude**, not documentation ABOUT a process. "Review the spec for missing edge cases" works better than "The developer should review for edge cases."
+2. **Include trigger phrases in the description.** "Use when the user says 'plan this', 'how should we approach', or presents a multi-file task" helps Claude activate the skill at the right moment.
+3. **Keep each skill focused** — one workflow, one skill. Cross-reference between skills (`After this skill completes, suggest /grill`) to build chains.
 
 ---
 
 ## Part 5: Auto-Invocation — Skills & Plugins That Trigger Themselves
 
-Both custom skills and plugin-provided skills are **auto-invocable by default**. Claude reads each skill's `description` field and automatically invokes it when your request matches — no slash command needed.
+Both plugins and custom skills support **auto-invocation** — Claude reads the skill's description and triggers it automatically when your request matches. You don't need to remember slash commands.
 
-Say *"this test is failing, fix it"* and Claude auto-invokes the `systematic-debugging` skill. Say *"let's build a new dashboard"* and `brainstorming` triggers first. Say *"review PR #142"* and the `code-review` plugin kicks in.
+How it works: when you type a message, Claude scans all available skill descriptions for matching trigger phrases. If your message matches, the skill activates without you typing `/skill-name`.
 
-For skills with side effects (deploying, committing), disable auto-invocation in the frontmatter:
+For example, with the `/grill` skill configured with this description:
 
 ```yaml
----
-name: deploy
-description: Deploy to production
-disable-model-invocation: true
----
+description: Hard-critic review. Trigger when the user says "grill this",
+  "review this plan", "what could go wrong", "poke holes", or "stress test this".
 ```
 
-**Tip:** Write specific descriptions with trigger phrases — *"Use when encountering any bug or test failure"* works far better than *"Helps with code"*.
+Simply saying *"poke holes in this spec"* auto-triggers the grill workflow. Similarly, plugin skills like `context7` activate when you mention looking up documentation.
+
+To make auto-invocation reliable:
+
+- **Be specific with trigger phrases** — vague descriptions lead to false activations
+- **Include negative triggers** — "Do NOT use for TDD projects — use /plan-tdd instead" prevents wrong-skill activation
+- **Test with natural language** — try asking for the workflow in different ways to verify the description catches them
+
+You can always invoke explicitly with `/skill-name` when auto-invocation doesn't trigger, or when you want a specific skill that wouldn't normally match your phrasing.
 
 ---
 
-## Part 6: Auto Memory — Cross-Session Intelligence
+## Part 6: Hooks — Automated Quality Gates
 
-Claude Code automatically maintains a persistent memory directory per project (`MEMORY.md`). The first 200 lines are loaded into every conversation — no setup required.
+Hooks run automatically at lifecycle events. They're the safety nets you'd otherwise forget.
 
-Claude uses this to store stable patterns, user preferences, and project context it discovers across sessions. When you correct Claude, it updates memory automatically so the same mistake doesn't repeat.
-
-**You don't need to configure anything.** Just be aware it exists — if Claude remembers something wrong, tell it to forget or correct it, and it will update the memory file.
-
----
-
-## Part 7: Hooks — Automated Quality Gates
-
-Hooks run automatically at lifecycle events. Configure in settings.json:
-
-### Pre-Commit Lint Guard
+Two hook types are available:
+- **`prompt`** — Claude evaluates a condition and acts on it (block, remind, warn). The condition check is contextual — Claude decides whether the hook applies.
+- **`command`** — Runs a shell command directly (notifications, logging, custom scripts). Always executes.
 
 ```json
 {
@@ -641,99 +425,122 @@ Hooks run automatically at lifecycle events. Configure in settings.json:
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "If this is a git commit command, verify that lint and type-check have been run. If not, block with: 'Run lint and type-check before committing.'"
-          }
-        ]
+        "hooks": [{
+          "type": "prompt",
+          "prompt": "If this is a git commit, verify lint and type-check have been run. If not, block with: 'Run lint and type-check before committing.'"
+        }]
       }
-    ]
-  }
-}
-```
-
-### Notification When Claude Needs Input
-
-```json
-{
-  "hooks": {
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{
+          "type": "prompt",
+          "prompt": "If the file is TypeScript (.ts, .tsx, .vue) and more than 3 TS files have been edited since the last type-check, remind: 'Consider running type-check before continuing.'"
+        }]
+      }
+    ],
     "Notification": [
       {
         "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify-send 'Claude Code' 'Awaiting your input'"
-          }
-        ]
+        "hooks": [{
+          "type": "command",
+          "command": "notify-send 'Claude Code' 'Awaiting your input'"
+        }]
       }
     ]
   }
 }
 ```
 
+**Why these specific hooks?** The PreToolUse hook prevents commits without lint/type-check — saving a wasted CI cycle. The PostToolUse hook catches the "I changed 47 TypeScript files and nothing type-checks" disaster by nudging you to verify incrementally. Note the matcher uses `Write|Edit` but the prompt checks for TypeScript file extensions — this way it doesn't nag when you're editing markdown or JSON. The Notification hook is simple but practical: a desktop alert when Claude needs input, so you can context-switch away while it works.
+
+**Use hooks instead of CLAUDE.md for linting rules.** LLMs are expensive and slow compared to linters. Instead of writing "always format with Prettier" in CLAUDE.md (wasting an instruction slot), add a hook that runs the formatter automatically after edits. This frees up your instruction budget for things only CLAUDE.md can teach — like your team's architectural patterns.
+
 ---
 
-## Part 8: Putting It All Together
+## Part 6: Auto Memory — Cross-Session Intelligence
+
+Claude Code maintains a persistent memory directory per project at `~/.claude/projects/<project-path>/memory/`. The `MEMORY.md` file (first 200 lines) loads into every conversation automatically — no manual setup needed.
+
+Claude updates this file on its own as it learns your project: architectural patterns, common mistakes, file paths that matter. You can also instruct Claude to remember something explicitly (*"always use bun instead of npm"*) and it writes to memory. The `/ship` skill captures learnings at the end of each ticket automatically, so memory grows organically across sessions.
+
+---
+
+## Part 7: Putting It All Together
 
 ### New Project Setup (5 Minutes)
 
-1. **Create CLAUDE.md** — Commands, architecture, coding standards, PR review rules
-2. **Create `.claude/settings.example.json`** — Project-specific deny list (config files, .env, node_modules)
-3. **Add to `.gitignore`**: `.claude/*` and `!.claude/*.example*`
-4. **Ensure `~/.claude/settings.json`** has the global security deny list
-5. **Install plugins** — `claude plugins:install context7 superpowers code-review commit-commands`
+1. Create `CLAUDE.md` — commands, architecture, coding standards, PR review rules, critical gotchas
+2. Create `.claude/settings.example.json` — project-specific deny list
+3. Add to `.gitignore`: `.claude/*` and `!.claude/*.example*`
+4. Ensure `~/.claude/settings.json` has the global security deny list
+5. Install plugins: `claude plugins:install context7 superpowers code-review`
 
 ### How the Layers Work in Practice
 
 ```
-Claude tries to read .env.local
-  → Project deny: "Read(.env.*)" → BLOCKED
-
-Claude tries to install lodash
-  → Ask: "Bash(pnpm add:*)" → Prompts you → You approve or deny
-
-Claude tries to force push
-  → Global deny: "Bash(git push --force:*)" → BLOCKED (even with --dangerously-skip-permissions)
-
-Claude tries to read a component file
-  → Allow: "Read" → AUTO-APPROVED
-
-You say "this test is failing"
-  → Auto-invocation: systematic-debugging skill triggers automatically
+"Read .env.local"             → Project deny  → BLOCKED
+"pnpm add lodash"             → Ask rule      → Prompts you
+"git push --force"            → Global deny   → BLOCKED (even with --dangerously-skip-permissions)
+"Read src/components/App.vue" → Allow         → AUTO-APPROVED
+"This test is failing"        → Auto-invoke   → debugging skill triggers
 ```
 
 ### Quick Reference
 
 | File | Shared? | Purpose |
 |------|---------|---------|
-| `~/.claude/settings.json` | No | Global security (OS-level deny list) |
+| `~/.claude/settings.json` | No | Global security (deny list) |
 | `~/.claude/CLAUDE.md` | No | Personal workflow preferences |
-| Plugins (via CLI) | No | Pre-built agents, MCP servers, and skills |
-| `~/.claude/skills/*/SKILL.md` | No | Reusable slash commands |
+| `~/.claude/skills/*/SKILL.md` | No | Custom slash commands |
+| Plugins (via CLI) | No | Pre-built agents + skills |
 | `.claude/settings.json` | Yes | Team project permissions |
 | `CLAUDE.md` | Yes | Team coding standards |
-| `CLAUDE.local.md` | No | Personal project preferences |
+| `~/.claude/projects/*/memory/` | No | Cross-session memory |
 
 ---
 
 ## The Takeaway
 
-The best Claude Code setup follows one principle: **layer your configuration by scope and shareability.**
+Layer your configuration by scope and shareability:
 
-- **Global settings** protect your system everywhere — secrets, credentials, destructive commands
-- **Project settings** protect project-specific resources — config files, build artifacts
-- **CLAUDE.md** encodes team standards that every session follows
-- **Plugins** add instant capabilities — code review, browser testing, documentation lookup
-- **Custom skills** encode your team's specific workflows — from spec writing to PR creation
-- **Auto-invocation** makes both plugins and skills trigger automatically when relevant
-- **Memory** captures lessons so Claude gets smarter across sessions
-- **Hooks** automate quality gates you'd otherwise forget
+- **Global settings** protect your system — secrets, credentials, destructive commands
+- **Project settings** protect project resources — config files, build artifacts
+- **CLAUDE.md** encodes team standards every session follows (keep it under 200 lines — every low-value instruction degrades high-value ones)
+- **Plugins** add instant capabilities — code review, testing, documentation
+- **Custom skills** encode your specific workflows — scope to ship
+- **Hooks** automate quality gates (and free up CLAUDE.md instruction slots)
+- **Memory** captures lessons learned so you don't teach Claude the same thing twice
 
-The spec-to-ship workflow isn't about adding bureaucracy. It's about front-loading the thinking so implementation is mostly mechanical. A grilled spec catches the bug that would have taken a day to debug. A phased plan prevents the "I changed 47 files and nothing type-checks" disaster.
+The spec-to-ship workflow isn't bureaucracy. It's front-loading the thinking so implementation is mechanical. A grilled spec catches the bug that would have taken a day to debug. A phased plan prevents the "I changed 47 files and nothing type-checks" disaster. Mid-implementation discovery handling means your spec stays a living document instead of becoming stale the moment development starts.
 
 Configure once. Benefit on every session, every project, every team member.
+
+---
+
+## References
+
+**Official Documentation:**
+- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code) — Permissions, hooks, settings, CLAUDE.md, and skills reference
+- [Claude Code Best Practices](https://code.claude.com/docs/en/best-practices) — Official workflow recommendations
+- [Permissions Reference](https://code.claude.com/docs/en/permissions) — Permission system deep dive
+- [Hooks Reference](https://code.claude.com/docs/en/hooks) — Hook types, matchers, and lifecycle events
+- [Skills Reference](https://code.claude.com/docs/en/skills) — Building and configuring custom skills
+- [Plugins README](https://github.com/anthropics/claude-code/blob/main/plugins/README.md) — Plugin marketplace and installation
+- [Sandbox Configuration](https://code.claude.com/docs/en/sandboxing) — Container-based sandboxing options
+
+**Community Guides:**
+- [Writing a Good CLAUDE.md — HumanLayer](https://www.humanlayer.dev/blog/writing-a-good-claude-md) — Instruction-following budgets and progressive disclosure research
+- [How to Write a Good CLAUDE.md — Builder.io](https://www.builder.io/blog/claude-md-guide) — Practical CLAUDE.md writing guide
+- [Claude Code Customization — alexop.dev](https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/) — Skills, subagents, and customization walkthrough
+- [Claude Code Hooks: Complete Guide — aiorg.dev](https://aiorg.dev/blog/claude-code-hooks) — 20+ hook examples with explanations
+- [Claude Code Permissions Guide — eesel.ai](https://www.eesel.ai/blog/claude-code-permissions) — Permission patterns and security setup
+- [Claude Code Settings Reference — claudefa.st](https://claudefa.st/blog/guide/settings-reference) — Comprehensive settings documentation
+
+**Referenced Tools:**
+- [UI Design Brain Skill](https://github.com/carmahhawwari/ui-design-brain) — 60+ component reference skill for UI generation
+- [Component Gallery](https://component.gallery/) — Design system component patterns
 
 ---
 
