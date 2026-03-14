@@ -231,6 +231,40 @@ Don't use `/init` or let an LLM write your CLAUDE.md. This file is the highest-l
 
 For large projects, place CLAUDE.md files in subdirectories — they're loaded lazily when Claude works in that directory, so you get package-specific rules without bloating the root file.
 
+### Rules: Enforced Patterns with Glob Matching
+
+For patterns that must apply across specific file types, use **rules** with glob matching. Place them in `~/.claude/rules/`:
+
+```markdown
+---
+description: Common coding mistakes Claude makes — enforced across all projects
+globs: "*.ts,*.tsx,*.vue,*.js,*.jsx"
+---
+
+# Coding Gotchas
+
+- Never use relative imports (`../../`) — always absolute paths
+- Never introduce `any` types — find or create the proper type
+```
+
+When Claude edits files matching the glob, these rules apply automatically. This is perfect for:
+
+- **Language-specific patterns** — Python conventions, TypeScript strictness
+- **Framework rules** — Vue composition API patterns, React hooks rules
+- **Team standards** — Import patterns, naming conventions, error handling
+- **Gotchas** — Patterns Claude consistently gets wrong
+
+**Rules complement CLAUDE.md:**
+
+| | CLAUDE.md | Rules (`~/.claude/rules/`) |
+|---|-----------|---------------------------|
+| **Scope** | Per-project | Global (all projects) |
+| **Content** | Architecture, commands, standards | File-specific patterns |
+| **Trigger** | Loads when working in the directory | Loads when file matches glob |
+| **Best for** | Teaching your codebase | Enforcing patterns across projects |
+
+For teams: commit project-specific rules to `.claude/rules/` in your repo. They work like CLAUDE.md — global rules handle universal patterns, project rules handle local conventions.
+
 ---
 
 ## Part 3: Plugins — Instant Capabilities
@@ -279,11 +313,106 @@ Both are invoked the same way (slash commands or auto-invocation), but they serv
 
 Think of plugins as off-the-shelf tools and custom skills as your team's playbook encoded for Claude.
 
+### MCP Servers: Extending Claude's Capabilities
+
+Many plugins include **MCP (Model Context Protocol) servers** — these give Claude access to external tools and data sources. For example:
+
+- A **database plugin** might include an MCP server that lets Claude query your schema directly
+- A **documentation plugin** might include an MCP server that fetches live docs from APIs
+- A **productivity plugin** might include an MCP server that integrates with your task tracker
+
+MCP servers bridge Claude Code with external systems. When you install a plugin, its MCP servers are automatically available — no additional configuration needed.
+
+### Custom Marketplaces
+
+Beyond the official plugin marketplace, you can add **custom marketplaces** — useful for team-specific plugins or community plugins:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "my-team": {
+      "source": {
+        "source": "github",
+        "repo": "my-team/claude-plugins"
+      }
+    }
+  }
+}
+```
+
+This is particularly valuable for:
+- **Teams** — Share internal plugins without publishing publicly
+- **Organizations** — Curate approved plugins for compliance
+- **Communities** — Distribute plugins to specific audiences
+
+---
+
+## Part 3.5: Agents — Specialized Help on Demand
+
+Agents are pre-configured specialists you can call for specific tasks. Unlike plugins (which add tools), agents add expertise — each has deep knowledge in their domain, specialized tools, and a focused approach.
+
+When you ask Claude to "use the backend-architect agent for this API design," you get an agent with expertise in API design, database architecture, security implementation, and performance optimization — no need to explain these constraints in your prompt.
+
+**How Agents Work**
+
+Agents are invoked via the Agent tool or automatically by skills during complex workflows. Each agent has:
+
+- **Domain expertise** — Specialized knowledge and best practices
+- **Tool access** — Curated tools relevant to their domain
+- **Focused instructions** — Specific patterns and approaches for their specialty
+
+**Common Agent Categories**
+
+| Category | Example Agents | When to Use |
+|----------|---------------|-------------|
+| **Engineering** | `backend-architect`, `frontend-developer`, `ai-engineer`, `devops-automator` | Domain-specific architecture and implementation |
+| **Testing** | `test-writer-fixer`, code-review agents | Test strategy, bug fixing, quality assurance |
+| **Operations** | `analytics-reporter`, `finance-tracker`, `support-responder` | Data analysis, reporting, business operations |
+| **Development** | `code-explorer`, `code-architect`, `rapid-prototyper` | Codebase understanding, feature design, MVPs |
+
+**Agents vs. Plugins**
+
+| | Plugins | Agents |
+|---|---------|--------|
+| **What they add** | Tools, MCP servers, skills | Domain expertise and focus |
+| **Invocation** | Skill-based or tool-based | Agent tool or skill-triggered |
+| **Best for** | Adding capabilities (docs lookup, testing) | Complex tasks requiring depth (API design, UX) |
+| **Example** | Install `playwright` to get browser tools | Use `ai-engineer` for ML feature implementation |
+
+**Practical Example**
+
+Instead of explaining React Server Components patterns and gotchas in your prompt:
+
+```
+"Use the frontend-developer agent to build this React component with Server Components."
+```
+
+The agent already knows Server Component patterns, has access to React-specific tools, and follows frontend best practices automatically.
+
 ---
 
 ## Part 4: Custom Skills — Building a Spec-to-Ship Workflow
 
 Custom skills encode your team's specific workflows. They live at `~/.claude/skills/<name>/SKILL.md` and are available across all your projects.
+
+**Skills vs. Commands**
+
+Both live in your `~/.claude/` directory and use slash commands, but serve different purposes:
+
+| | **Commands** (`~/.claude/commands/`) | **Skills** (`~/.claude/skills/`) |
+|---|---------|---------------|
+| **Purpose** | Convenience shortcuts | Workflow orchestration |
+| **Examples** | `/commit`, `/loop`, `/rewind` | `/spec`, `/implement`, `/grill` |
+| **Scope** | Single operations | Multi-step processes |
+| **Trigger** | User invokes directly | Auto-invokes or user invokes |
+| **Use Case** | Quick actions (git, loops) | Structured workflows (feature development) |
+
+**How to choose:**
+
+- Use a **command** when you want a quick shortcut for a single action (commit, loop, clear context)
+- Use a **skill** when you need a multi-step workflow with decision points (spec → plan → implement → ship)
+
+In practice, skills often invoke commands. For example, the `/ship` skill ends by calling the `/commit` command to handle git operations.
 
 ### The Workflow Chain
 
@@ -354,6 +483,26 @@ ai/TICKET-146/
 
 This structure makes work **resumable across sessions**. If Claude loses context (after compaction) or you start a new session, it reads the spec and plan files to pick up exactly where you left off. The grill logs capture the reasoning behind decisions, so future sessions don't re-debate settled questions.
 
+### Subagent Strategy: Keeping Context Clean
+
+For complex tasks, spawn subagents to handle research, exploration, or parallel work. This keeps your main conversation focused on implementation.
+
+**When to use subagents:**
+
+| Scenario | Example |
+|----------|---------|
+| **Research** | Investigating a library or framework before using it |
+| **Exploration** | Understanding a large codebase section or module |
+| **Parallel work** | Running independent analyses simultaneously |
+| **Heavy debugging** | Deep investigation that needs dedicated attention |
+| **Code review** | Multiple reviewers checking different aspects |
+
+**How it works:**
+
+Subagents run in separate contexts and return distilled findings. Instead of thousands of tokens of exploration logs in your main conversation, you get targeted results. This is especially valuable during implementation — your main context stays clean for the actual work, while subagents handle background research.
+
+Many skills use subagents automatically. The `/grill` skill spawns review agents for different aspects (security, architecture, testing). The `/implement` skill may spawn research agents for unfamiliar libraries.
+
 ### Building Your Own Skills
 
 A skill is a `SKILL.md` file with optional YAML frontmatter:
@@ -383,6 +532,29 @@ Three tips for effective skills:
 1. **Write instructions TO Claude**, not documentation ABOUT a process. "Review the spec for missing edge cases" works better than "The developer should review for edge cases."
 2. **Include trigger phrases in the description.** "Use when the user says 'plan this', 'how should we approach', or presents a multi-file task" helps Claude activate the skill at the right moment.
 3. **Keep each skill focused** — one workflow, one skill. Cross-reference between skills (`After this skill completes, suggest /grill`) to build chains.
+
+### Worktrees: Isolated Development
+
+For feature work that needs isolation from your current workspace, use **git worktrees**. Claude can create and manage worktrees, giving you a clean environment for each branch without switching contexts.
+
+**When worktrees help:**
+
+| Scenario | Benefit |
+|----------|---------|
+| **Multiple features** | Work on several branches simultaneously without stashing |
+| **Parallel testing** | Test different approaches in isolated environments |
+| **Code review** | Review PR branches while keeping your main workspace stable |
+| **Hotfixes** | Fix production issues without interrupting feature work |
+
+**How it works:**
+
+Worktrees create a separate directory linked to the same git repository. Each worktree has its own working files but shares the git history. Claude can:
+
+- Create a worktree for a new branch
+- Work in the isolated environment
+- Clean up the worktree after merging
+
+This is especially valuable for teams — you can keep your main workspace stable while experimenting in isolated worktrees.
 
 ---
 
@@ -459,7 +631,7 @@ Two hook types are available:
 
 ---
 
-## Part 6: Auto Memory — Cross-Session Intelligence
+## Part 7: Auto Memory — Cross-Session Intelligence
 
 Claude Code maintains a persistent memory directory per project at `~/.claude/projects/<project-path>/memory/`. The `MEMORY.md` file (first 200 lines) loads into every conversation automatically — no manual setup needed.
 
@@ -467,15 +639,16 @@ Claude updates this file on its own as it learns your project: architectural pat
 
 ---
 
-## Part 7: Putting It All Together
+## Part 8: Putting It All Together
 
 ### New Project Setup (5 Minutes)
 
 1. Create `CLAUDE.md` — commands, architecture, coding standards, PR review rules, critical gotchas
 2. Create `.claude/settings.example.json` — project-specific deny list
-3. Add to `.gitignore`: `.claude/*` and `!.claude/*.example*`
-4. Ensure `~/.claude/settings.json` has the global security deny list
-5. Install plugins: `claude plugins:install context7 superpowers code-review`
+3. Optionally create `.claude/rules/*.md` — project-specific patterns with glob matching
+4. Add to `.gitignore`: `.claude/*` and `!.claude/*.example*`
+5. Ensure `~/.claude/settings.json` has the global security deny list
+6. Install plugins: `claude plugins:install context7 superpowers code-review feature-dev`
 
 ### How the Layers Work in Practice
 
@@ -493,9 +666,13 @@ Claude updates this file on its own as it learns your project: architectural pat
 |------|---------|---------|
 | `~/.claude/settings.json` | No | Global security (deny list) |
 | `~/.claude/CLAUDE.md` | No | Personal workflow preferences |
-| `~/.claude/skills/*/SKILL.md` | No | Custom slash commands |
-| Plugins (via CLI) | No | Pre-built agents + skills |
+| `~/.claude/skills/*/SKILL.md` | No | Custom slash commands (workflows) |
+| `~/.claude/commands/*/SKILL.md` | No | Convenience shortcuts (single actions) |
+| `~/.claude/rules/*.md` | No | File-specific patterns with glob matching |
+| `~/.claude/agents/*.md` | No | Domain specialists (backend, frontend, AI, etc.) |
+| Plugins (via CLI) | No | Pre-built agents + MCP servers + skills |
 | `.claude/settings.json` | Yes | Team project permissions |
+| `.claude/rules/*.md` | Yes | Team-specific patterns |
 | `CLAUDE.md` | Yes | Team coding standards |
 | `~/.claude/projects/*/memory/` | No | Cross-session memory |
 
@@ -508,10 +685,15 @@ Layer your configuration by scope and shareability:
 - **Global settings** protect your system — secrets, credentials, destructive commands
 - **Project settings** protect project resources — config files, build artifacts
 - **CLAUDE.md** encodes team standards every session follows (keep it under 200 lines — every low-value instruction degrades high-value ones)
-- **Plugins** add instant capabilities — code review, testing, documentation
-- **Custom skills** encode your specific workflows — scope to ship
+- **Rules** enforce file-specific patterns with glob matching — language conventions, framework rules, gotchas
+- **Agents** provide domain expertise — backend, frontend, AI, testing, operations
+- **Plugins** add instant capabilities — code review, testing, documentation, MCP servers
+- **Skills** encode workflows (multi-step) — **Commands** handle shortcuts (single actions)
 - **Hooks** automate quality gates (and free up CLAUDE.md instruction slots)
+- **Subagents** keep context clean — offload research, exploration, parallel analysis
+- **Worktrees** enable isolated development — multiple branches without switching
 - **Memory** captures lessons learned so you don't teach Claude the same thing twice
+- **Custom marketplaces** extend beyond official plugins — team-specific, community plugins
 
 The spec-to-ship workflow isn't bureaucracy. It's front-loading the thinking so implementation is mechanical. A grilled spec catches the bug that would have taken a day to debug. A phased plan prevents the "I changed 47 files and nothing type-checks" disaster. Mid-implementation discovery handling means your spec stays a living document instead of becoming stale the moment development starts.
 
