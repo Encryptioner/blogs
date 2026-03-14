@@ -15,7 +15,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Apps Script - List all the newsletters filling up your Gmail. Selective unsubscribing got easy](./topics/Productivity/Apps%20Script%20-%20List%20all%20the%20newsletters%20filling%20up%20your%20Gmail.%20Selective%20unsubscribing%20got%20easy.md)
 - [Give Google Sheet Access Only to Form Submitters — With Apps Script](./topics/Productivity/Give%20Google%20Sheet%20Access%20Only%20to%20Form%20Submitters%20—%20With%20Apps%20Script.md)
 - [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
-- [Claude Code Configuration Blueprint - Security, Skills, and Settings for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20Security,%20Skills,%20and%20Settings%20for%20Production%20Teams.md)
+- [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20Security,%20Skills,%20and%20Settings%20for%20Production%20Teams.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
