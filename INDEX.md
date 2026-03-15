@@ -13,6 +13,8 @@
 10. Navigating Bangladesh's Software Industry - Guide for Developers: [Navigating Bangladesh's Software Industry - A Practical Guide for Developers in 2026](./topics/Career/Navigating%20Bangladesh's%20Software%20Industry%20-%20A%20Practical%20Guide%20for%20Developers%20in%202026.md)
 
 
+11. Productivity: [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
+
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
