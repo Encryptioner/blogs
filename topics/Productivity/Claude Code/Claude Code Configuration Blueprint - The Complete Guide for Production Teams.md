@@ -5,6 +5,10 @@
 
 ---
 
+<div align="center">
+  <img src="../../../assets/B-11/Claude-Code-Configuration-Blueprint-The Complete-Guide-for-Production-Teams.png"/>
+</div>
+
 ## Who This Is For
 
 You've used Claude Code on a project or two. You know the basics. Now you want to:
