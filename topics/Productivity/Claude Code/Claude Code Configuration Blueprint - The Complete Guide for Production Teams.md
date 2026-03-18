@@ -485,9 +485,12 @@ Configure once. Benefit on every session, every project, every team member.
 
 ---
 
-**End:**
-- [Website](https://encryptioner.github.io)
-- [LinkedIn](https://www.linkedin.com/in/mir-mursalin-ankur)
-- [GitHub](https://github.com/Encryptioner)
-- [X (Twitter)](https://twitter.com/AnkurMursalin)
-- [Nerddevs](https://nerddevs.com/author/ankur/)
+## Let's Connect
+
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your NPM publishing journey:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
