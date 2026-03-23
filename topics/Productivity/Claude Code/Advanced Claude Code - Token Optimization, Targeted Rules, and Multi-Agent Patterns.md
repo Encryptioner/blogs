@@ -417,6 +417,30 @@ Claude Code is no longer terminal-only. Anthropic shipped four remote access met
 - **Dispatch** — Coordinate parallel sessions from a single control point
 - **Channels** — Integrate with Telegram, Discord, and other messaging platforms for live code sessions
 
+### Setting Up Telegram (5 Minutes)
+
+```bash
+# 1. Create a bot via @BotFather in Telegram, copy the token
+
+# 2. Install the plugin
+/plugin install telegram@claude-plugins-official
+/reload-plugins
+
+# 3. Configure with your BotFather token
+/telegram:configure <your-bot-token>
+
+# 4. Restart Claude Code with channels enabled
+claude --channels plugin:telegram@claude-plugins-official
+
+# 5. DM your bot, get the pairing code, then:
+/telegram:access pair <code>
+/telegram:access policy allowlist    # Lock to your account only
+```
+
+Now you can DM your bot from your phone and Claude works on your local machine — reading files, running tests, making commits. The session stays open as long as your terminal runs. Requires [Bun](https://bun.sh) runtime and Claude Code v2.1.80+.
+
+> **Security note**: Messages pass through Telegram's servers. Never send passwords, API keys, or secrets through the bot.
+
 ### The Real Insight
 
 The interface doesn't matter. What matters is where your knowledge lives.
@@ -491,6 +515,7 @@ The teams that configure Claude Code like infrastructure today will have a struc
 
 **Tools:**
 - [code-review-graph](https://github.com/tirth8205/code-review-graph) — AST-based knowledge graph for token-efficient code reviews via MCP
+- [Diffity](https://github.com/kamranahmedse/diffity) — GitHub-style diff viewer with AI review (`/diffity-review` for severity-tagged feedback, `/diffity-resolve` to auto-fix)
 - [everything-claude-code](https://github.com/affaan-m/everything-claude-code) — Production-ready config ecosystem: 28 subagents, 120+ skills, multi-agent orchestration
 - [Paperclip](https://github.com/paperclipai/paperclip) — Multi-agent management with org charts, budgets, and audit trails
 
