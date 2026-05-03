@@ -17,6 +17,7 @@
 12. Productivity: [Why I Built a Local-First Diff Tool - The story behind branchdiff](./topics/Productivity/Claude%20Code/Why%20I%20Built%20a%20Local-First%20Diff%20Tool%20-%20The%20story%20behind%20branchdiff.md)
 13. Productivity: [AI Code Review Without Leaving Your Terminal - Practical branchdiff workflows](./topics/Productivity/Claude%20Code/AI%20Code%20Review%20Without%20Leaving%20Your%20Terminal%20-%20Practical%20branchdiff%20workflows.md)
 14. Productivity: [Collaborative Code Review: Team Workflows with branchdiff & GitHub](./topics/Productivity/Claude%20Code/Collaborative%20Code%20Review:%20Team%20Workflows%20with%20branchdiff%20&%20GitHub.md)
+15. Productivity: [How branchdiff Became My Team's Code Review Operating System](./topics/Productivity/Claude%20Code/How%20branchdiff%20Became%20My%20Team's%20Code%20Review%20Operating%20System.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
