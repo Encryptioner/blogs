@@ -11,20 +11,23 @@ Two open-source tools solve this in different but complementary ways:
 
 This guide walks through installing both tools, connecting them to Claude Code, wiring auto-updates for code edited by humans, git commits, or Claude itself — and pairing everything with an Obsidian vault as a persistent memory layer.
 
-All commands in this guide were tested on Ubuntu with a real pnpm monorepo (Vue 3 + Express.js + MongoDB LMS).
+All commands in this guide were tested on Ubuntu and macOS across multiple real pnpm monorepos of varying sizes.
 
 ---
 
-## Real Numbers from the Test Project
+## Real Numbers from Two Test Projects
 
-Before diving in, here's what both tools produced on `ft-education-admin` — a real production monorepo with 5 packages, 56 backend modules, and full-stack TypeScript:
+Before diving in, here's what both tools produced across two real codebases — one a full-stack TypeScript monorepo with 5 packages, the other a lighter frontend-only repo:
 
 | Metric | Graphify (AST-only) | code-review-graph |
 |--------|--------------------|--------------------|
-| Files indexed | 1020 | 1052 |
-| Nodes | 3,815 | 5,780 |
-| Edges | 4,830 | 30,611 |
-| Communities | 750 | 28 wiki pages |
+| Files indexed (large) | 1,020 | 1,052 |
+| Nodes (large) | 3,815 | 5,780 |
+| Edges (large) | 4,830 | 30,611 |
+| Files indexed (small) | 702 | 711 |
+| Nodes (small) | 2,035 | 2,773 |
+| Edges (small) | 2,357 | 15,037 |
+| Communities | 750 / 499 | 28 wiki pages each |
 | Incremental update | ~10s (8 workers) | **0.425s** |
 | LLM tokens used | 0 | 0 |
 | Storage | `graphify-out/` (JSON) | `.code-review-graph/` (SQLite) |
@@ -63,7 +66,7 @@ Each edge has a confidence tag:
 | `INFERRED` | Reasonable deduction | 0.7–0.9 |
 | `AMBIGUOUS` | Needs review | <0.7 |
 
-On the test project: **87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS**
+On the large monorepo: **87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS**
 
 ### code-review-graph — Blast-Radius Graph with MCP
 
@@ -138,8 +141,6 @@ yarn.lock
 *.lock
 *.log
 .env*
-aws.config.json
-certs/
 graphify-out/
 .code-review-graph/
 *.example.*
@@ -161,8 +162,6 @@ yarn.lock
 *.lock
 *.log
 .env*
-aws.config.json
-certs/
 graphify-out/
 .code-review-graph/
 *.example.*
@@ -180,8 +179,11 @@ cd /path/to/your-project
 # Full build (first time) — parses all files
 code-review-graph build
 
-# Output:
+# Output (large monorepo):
 # Full build: 1052 files, 5780 nodes, 30611 edges (postprocess=full)
+
+# Output (smaller frontend repo):
+# Full build: 711 files, 2773 nodes, 15037 edges (postprocess=full)
 ```
 
 ### Graphify (AST-only, no LLM cost)
@@ -192,9 +194,12 @@ cd /path/to/your-project
 # AST-only update (no API key required)
 graphify update .
 
-# Output:
+# Output (large monorepo):
 # Rebuilt: 3815 nodes, 4830 edges, 750 communities
 # graph.json, graph.html and GRAPH_REPORT.md updated in graphify-out
+
+# Output (smaller repo):
+# Rebuilt: 2035 nodes, 2357 edges, 499 communities
 ```
 
 For the richer semantic graph (PDFs, images, markdown — uses LLM):
@@ -202,14 +207,6 @@ For the richer semantic graph (PDFs, images, markdown — uses LLM):
 ```bash
 # Full extraction with Claude subagents (requires ANTHROPIC_API_KEY)
 graphify extract .
-```
-
-For ft-education-web (the student portal), results are smaller but proportional:
-
-```bash
-# ft-education-web:
-# code-review-graph: 711 files, 2773 nodes, 15037 edges
-# graphify: 702 files, 2035 nodes, 2357 edges, 499 communities
 ```
 
 ---
@@ -224,17 +221,38 @@ code-review-graph install
 
 This single command:
 - Writes `.mcp.json` (Claude Code MCP server config)
-- Writes `.cursor/mcp.json`, `.opencode.json`, Zed settings
-- Appends instructions to `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`
+- Writes `.cursor/mcp.json`, `.opencode.json`, Zed settings, `.cursorrules`, `GEMINI.md`, `AGENTS.md`
 - Creates `.claude/skills/` for Claude Code tool integration
-- Installs hooks in `.claude/settings.json`:
-  - **PostToolUse** (Edit|Write|Bash → `code-review-graph update --skip-flows`)
-  - **SessionStart** (shows graph status on every session open)
-  - **PreToolUse** (intercepts grep/find → nudges to use graph instead)
+- Installs hooks in `.claude/settings.json` (move these to `settings.local.json` — see below)
 - Installs a **git pre-commit hook**
 - Updates `.gitignore` to exclude `.code-review-graph/`
 
-The `.mcp.json` it creates:
+**Post-install housekeeping:** `code-review-graph install` is aggressive — it writes configs for every AI IDE it knows about. Most teams only use one. Add the noise to `.gitignore`:
+
+```
+# .gitignore additions
+AGENTS.md
+GEMINI.md
+.mcp.json          # keep only .mcp.example.json
+.cursorrules
+.windsurfrules
+.opencode.json
+.kiro/
+```
+
+**Move hooks out of `settings.json`:** The hooks `code-review-graph install` writes into `.claude/settings.json` are personal setup — not everyone on the team will have the CLI installed. Move them to `.claude/settings.local.json` (already gitignored) instead:
+
+```bash
+# Remove hooks from .claude/settings.json, then add to settings.local.json:
+{
+  "hooks": {
+    "PostToolUse": [{"matcher": "Edit|Write|Bash", "hooks": [{"type": "command", "command": "code-review-graph update --skip-flows", "timeout": 30}]}],
+    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "code-review-graph status", "timeout": 10}]}]
+  }
+}
+```
+
+The `.mcp.json` it creates (keep as `.mcp.example.json` only):
 
 ```json
 {
@@ -260,9 +278,113 @@ graphify hook install
 
 Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and reminds Claude to use `graphify query` instead — turning search interception into graph navigation.
 
+### CLAUDE.md: brief mention pattern
+
+Rather than pasting the full tool docs into `CLAUDE.md` (which bloats every session's context), create a dedicated `docs/agent/knowledge-graph.md` and add only a pointer in `CLAUDE.md`:
+
+```markdown
+## Knowledge Graph
+This project has knowledge graph tools (graphify, code-review-graph, Obsidian vault) configured.
+Read `docs/agent/knowledge-graph.md` before exploring unfamiliar code or answering architecture questions.
+```
+
+This pattern keeps `CLAUDE.md` lean while the full reference — tool commands, MCP tool table, Obsidian vault path, update pipeline — lives in `docs/agent/knowledge-graph.md` and is only loaded when actually needed.
+
 ---
 
-## Step 4: Query the Graphs
+## Step 4: Verify Your Setup
+
+Run these checks after setup to confirm everything is wired correctly.
+
+### Check CLI installation
+
+```bash
+graphify --help | head -3
+code-review-graph --version
+# code-review-graph 2.3.2
+```
+
+### Check graph outputs exist
+
+```bash
+ls graphify-out/
+# cache  graph.html  graph.json  GRAPH_REPORT.md  manifest.json
+
+code-review-graph status
+# Nodes: 5780  Edges: 30611  Files: 1052
+# Languages: bash, javascript, vue, typescript
+# Last updated: 2026-05-05T18:29:51
+```
+
+### Check GRAPH_REPORT.md freshness
+
+```bash
+head -15 graphify-out/GRAPH_REPORT.md
+# ## Corpus Check
+# - 1020 files · ~1,587,186 words
+# - Verdict: corpus is large enough that graph structure adds value.
+#
+# ## Summary
+# - 3815 nodes · 4830 edges · 750 communities (533 shown, 217 thin omitted)
+# - Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS
+#
+# ## Graph Freshness
+# - Built from commit: `4968d67a`
+# - Run `git rev-parse HEAD` and compare to check if the graph is stale.
+```
+
+### Check hooks are in settings.local.json
+
+```bash
+python3 -m json.tool .claude/settings.local.json | grep -A5 '"PostToolUse"'
+# Should show: "matcher": "Edit|Write|Bash"
+# (hooks live in settings.local.json, not settings.json — they're personal/gitignored)
+```
+
+### Check MCP server config
+
+```bash
+cat .mcp.example.json
+# Should show: code-review-graph serve entry
+# Copy to .mcp.json locally if it doesn't exist yet:
+cp .mcp.example.json .mcp.json
+```
+
+### Check git hooks
+
+```bash
+# Husky projects
+grep -c "graphify" .husky/_/post-commit
+# 1 (or more)
+
+# Plain git projects
+head -5 .git/hooks/pre-commit
+```
+
+### Test incremental update speed
+
+```bash
+time code-review-graph update --skip-flows
+# real  0m0.425s  ← confirms PostToolUse hook is fast enough
+
+time graphify update .
+# SHA256 cache skips unchanged files — subsequent runs are near-instant
+```
+
+### Test vault sync (if vault is configured)
+
+```bash
+bash ~/ai-vault/sync-graphs.sh
+# [vault-sync] project-alpha: synced
+# [vault-sync] project-beta: synced
+
+ls ~/ai-vault/graphify/
+# project-alpha/  project-beta/
+```
+
+---
+
+## Step 5: Query the Graphs
 
 ### Graphify CLI
 
@@ -275,25 +397,25 @@ graphify query "what connects payment to enrollment" \
 graphify query "auth flow" --dfs --graph graphify-out/graph.json
 
 # Shortest path between two nodes
-graphify path "EnrollmentRequestList.vue" "PaymentService" \
+graphify path "UserDashboard.vue" "PaymentService" \
   --graph graphify-out/graph.json
 
 # Plain-language explanation of a node
-graphify explain "EnrollmentRequestList.vue" --graph graphify-out/graph.json
+graphify explain "UserDashboard.vue" --graph graphify-out/graph.json
 ```
 
-Real output from `graphify explain "EnrollmentRequestList.vue"`:
+Example output from `graphify explain`:
 
 ```
-Node: EnrollmentRequestList.vue
-  Source:    packages/client/src/views/Admin/PaymentManagement/L1
+Node: UserDashboard.vue
+  Source:    packages/client/src/views/Dashboard
   Community: 239
   Degree:    3
 
 Connections (3):
-  --> EnrollmentRequestList() [imports_from] [EXTRACTED]
-  --> handleAxiosError()      [contains]     [EXTRACTED]
-  --> if()                    [contains]     [EXTRACTED]
+  --> UserDashboard()  [imports_from] [EXTRACTED]
+  --> handleApiError() [contains]     [EXTRACTED]
+  --> AuthService      [calls]        [INFERRED]
 ```
 
 ### Inside Claude Code
@@ -309,7 +431,7 @@ Last updated: 2026-05-05T18:29:51
 
 ---
 
-## Step 5: Auto-Update Strategies
+## Step 6: Auto-Update Strategies
 
 The graph is only valuable if it reflects current code. Here are the four strategies, from manual to fully automatic.
 
@@ -352,7 +474,7 @@ Both tools install git hooks automatically:
 # code-review-graph: pre-commit hook in .git/hooks/pre-commit
 code-review-graph install
 
-# graphify: post-commit + post-checkout in .husky/_/
+# graphify: post-commit + post-checkout in .husky/_/ (or .git/hooks/)
 graphify hook install
 ```
 
@@ -360,7 +482,7 @@ The graphify post-commit hook runs the rebuild **in the background** (detached p
 
 ### Strategy D: Claude Code Hooks (AI-Driven Updates)
 
-When Claude Code edits files, the `PostToolUse` hook triggers an incremental graph update. This is installed automatically by `code-review-graph install` in `.claude/settings.json`:
+When Claude Code edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially, but they should live in `.claude/settings.local.json` (gitignored) so teammates without the CLI aren't affected:
 
 ```json
 "PostToolUse": [
@@ -398,7 +520,7 @@ For the global `~/.claude/settings.example.json`, add a fallback-safe version:
 
 ---
 
-## Step 6: Generate Additional Outputs
+## Step 7: Generate Additional Outputs
 
 ### Wiki (Markdown pages per community)
 
@@ -426,15 +548,15 @@ code-review-graph visualize
 code-review-graph detect-changes --base HEAD~1 --brief
 
 # Risk-scored output:
-# Analyzed 1 changed file(s)
-# - 0 changed function(s)/class(es)
-# - 0 affected flow(s)
-# - Overall risk score: 0.00
+# Analyzed 3 changed file(s)
+# - 2 changed function(s)/class(es)
+# - 1 affected flow(s)
+# - Overall risk score: 0.42
 ```
 
 ---
 
-## Step 7: Obsidian Vault (Persistent Memory Layer)
+## Step 8: Obsidian Vault (Persistent Memory Layer)
 
 The Obsidian layer adds a **human-readable, cross-session memory vault** on top of the graph. Instead of graph queries being ephemeral, you build up a Zettelkasten of architecture decisions, session logs, and imported conversations — all connected to the graph reports.
 
@@ -445,9 +567,9 @@ The Obsidian layer adds a **human-readable, cross-session memory vault** on top 
 ├── .obsidian/           ← Obsidian config
 ├── CLAUDE.md            ← Global Claude instructions for the vault
 ├── graphify/
-│   ├── ft-education-admin/
+│   ├── project-alpha/
 │   │   └── GRAPH_REPORT.md   ← synced from project
-│   └── ft-education-web/
+│   └── project-beta/
 │       └── GRAPH_REPORT.md   ← synced from project
 ├── permanent/           ← Architecture decisions (atomic notes)
 ├── logs/                ← Session records (/save command)
@@ -459,13 +581,13 @@ The Obsidian layer adds a **human-readable, cross-session memory vault** on top 
 
 ```bash
 # Create vault
-mkdir -p ~/ai-vault/{graphify/ft-education-admin,graphify/ft-education-web,permanent,logs,chats}
+mkdir -p ~/ai-vault/{graphify/project-alpha,graphify/project-beta,permanent,logs,chats}
 
 # Initial sync
-cp /path/to/ft-education-admin/graphify-out/GRAPH_REPORT.md \
-   ~/ai-vault/graphify/ft-education-admin/
-cp /path/to/ft-education-web/graphify-out/GRAPH_REPORT.md \
-   ~/ai-vault/graphify/ft-education-web/
+cp /path/to/project-alpha/graphify-out/GRAPH_REPORT.md \
+   ~/ai-vault/graphify/project-alpha/
+cp /path/to/project-beta/graphify-out/GRAPH_REPORT.md \
+   ~/ai-vault/graphify/project-beta/
 ```
 
 **`~/ai-vault/sync-graphs.sh`** (auto-sync on commit):
@@ -483,13 +605,17 @@ sync_project() {
     echo "[vault-sync] $name: synced"
 }
 
-sync_project "ft-education-admin" "/path/to/ft-education-admin"
-sync_project "ft-education-web"   "/path/to/ft-education-web"
+sync_project "project-alpha" "/path/to/project-alpha"
+sync_project "project-beta"  "/path/to/project-beta"
+```
+
+```bash
+chmod +x ~/ai-vault/sync-graphs.sh
 ```
 
 ### Add vault sync to post-commit hooks
 
-Append to each project's `.husky/_/post-commit`:
+Append to each project's `.husky/_/post-commit` (or `.git/hooks/post-commit`):
 
 ```bash
 # Sync graph reports to Obsidian vault (background, non-blocking)
@@ -507,8 +633,8 @@ VAULT_SYNC="$HOME/ai-vault/sync-graphs.sh"
 - `/save` — Write a timestamped session summary to `logs/YYYY-MM-DD-HH-MM.md`
 
 ## Navigation
-- `graphify/ft-education-admin/` — Admin LMS graph report (1052 files, 5780 nodes)
-- `graphify/ft-education-web/` — Student portal graph report (711 files, 2773 nodes)
+- `graphify/project-alpha/` — Large monorepo graph report (1052 files, 5780 nodes)
+- `graphify/project-beta/`  — Frontend repo graph report (711 files, 2773 nodes)
 - `permanent/` — Architecture decisions and atomic notes
 - `logs/` — Session records
 
@@ -532,6 +658,16 @@ File → Open vault → Select ~/ai-vault/
 | `path:logs` | Session records |
 | `-path:graphify` | Human notes only |
 
+**Install Obsidian:**
+
+```bash
+# Ubuntu
+snap install obsidian
+
+# macOS
+brew install --cask obsidian
+```
+
 ---
 
 ## Complete Auto-Update Flow
@@ -544,10 +680,10 @@ Code edited by human
     → Obsidian vault shows updated community structure
 
 Code committed
-    → post-commit hook: graphify update . (background)
-    → post-commit hook: code-review-graph (via pre-commit)
-    → post-commit hook: sync-graphs.sh → vault updated
-    → post-checkout hook (branch switch): graphify update --force
+    → post-commit: graphify update . (background, non-blocking)
+    → pre-commit: code-review-graph update
+    → post-commit: sync-graphs.sh → vault updated
+    → post-checkout (branch switch): graphify update --force
 
 Claude Code edits files
     → PostToolUse hook fires after Edit/Write/Bash
@@ -557,7 +693,7 @@ Claude Code edits files
 Session starts
     → SessionStart hook: code-review-graph status
     → Claude sees: 5780 nodes, 30611 edges, last updated timestamp
-    → Claude reads GRAPH_REPORT.md instead of scanning 1052 files
+    → Claude reads GRAPH_REPORT.md instead of scanning 1000+ files
 ```
 
 ---
@@ -584,6 +720,16 @@ graphify update .           # JSON graph, AST-only (no tokens)
 code-review-graph install
 graphify claude install
 graphify hook install
+```
+
+### Verify (run after setup)
+
+```bash
+code-review-graph status            # shows node/edge counts
+head -15 graphify-out/GRAPH_REPORT.md
+time code-review-graph update --skip-flows   # should be <1s
+python3 -m json.tool .claude/settings.local.json | grep -A3 PostToolUse
+cat .mcp.example.json
 ```
 
 ### Daily Commands
@@ -637,27 +783,44 @@ Knowledge graphs excel at **"how does X relate to Y"** questions. For exact symb
 
 ## Files Created / Modified
 
-After completing this setup, here's what changed across both projects:
+After completing this setup, here's what changes in each project:
 
+**Committed to repo:**
 ```
-ft-education-admin/
+your-project/
 ├── .graphifyignore                    ← new
 ├── .code-review-graphignore           ← new
-├── .mcp.json                          ← new (code-review-graph MCP)
-├── .mcp.example.json                  ← new (example copy)
-├── CLAUDE.md                          ← appended (graphify + crg sections)
-├── AGENTS.md                          ← new (code-review-graph)
+├── .mcp.example.json                  ← new (reference config for teammates)
+├── CLAUDE.md                          ← 2-line pointer to docs/agent/knowledge-graph.md
 ├── .claude/
-│   ├── settings.json                  ← updated (PostToolUse, SessionStart, PreToolUse hooks)
-│   ├── settings.example.json          ← new (example copy)
-│   └── skills/                        ← new (code-review-graph skills)
-├── graphify-out/                      ← new (graph.json, GRAPH_REPORT.md, graph.html)
-├── .code-review-graph/                ← new (SQLite db, wiki, visualization)
-└── .husky/_/post-commit               ← appended (graphify rebuild + vault sync)
+│   ├── settings.json                  ← permissions only, no hooks
+│   ├── settings.example.json          ← new (shows hook structure for local setup)
+│   └── skills/                        ← new (code-review-graph query skills)
+└── docs/agent/knowledge-graph.md      ← new (full tool reference)
+```
 
-ft-education-web/                      ← same structure
-ai-vault/                              ← new (Obsidian vault for all projects)
-~/.claude/settings.example.json        ← updated (PostToolUse hook added)
+**Gitignored (local only, not committed):**
+```
+your-project/
+├── .mcp.json                          ← personal MCP config (copy from .mcp.example.json)
+├── .claude/settings.local.json        ← personal hooks (PostToolUse, SessionStart, PreToolUse)
+├── graphify-out/                      ← generated (graph.json, GRAPH_REPORT.md, graph.html)
+├── .code-review-graph/                ← generated (SQLite db, wiki, visualization)
+├── AGENTS.md / GEMINI.md              ← tool-generated, IDE-specific
+├── .cursorrules / .windsurfrules      ← IDE-specific
+└── .kiro/ / .opencode.json            ← IDE-specific
+```
+
+**Outside repos:**
+```
+~/ai-vault/                            ← new (Obsidian vault for all projects)
+~/.claude/settings.example.json        ← updated (PostToolUse hook reference)
+```
+
+**New teammate setup** (copy `.mcp.example.json` and configure local hooks):
+```bash
+cp .mcp.example.json .mcp.json
+# Add hooks from .claude/settings.example.json into .claude/settings.local.json
 ```
 
 ---
