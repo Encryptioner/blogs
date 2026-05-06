@@ -967,22 +967,44 @@ python3 ~/.graphify/gen-obsidian-vault.py \
 
 ### Add vault regen to git hooks
 
-**Husky projects:** create `.husky/post-commit` (this is git-tracked; `.husky/_/` is gitignored and dead code — the `h` wrapper always exits before any appended code runs):
+**Husky projects:** create `.husky/post-commit` (git-tracked; note `.husky/_/` is gitignored and dead code — the `h` wrapper always exits before any appended code there runs).
+
+**Plain git projects:** use `.git/hooks/post-commit` instead.
+
+The hook is structured in two independent sections so teammates without these tools see zero overhead — each section guards itself and silently no-ops if the tool isn't present:
 
 ```sh
 #!/bin/sh
-# Sync graph report to local Obsidian vault (background, non-blocking)
-[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify && \
-  cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md &
+# Knowledge graph tools are optional — each section silently skips if tools are absent.
 
-# Regenerate Obsidian nodes/communities after graphify finishes rebuilding.
-# graphify runs in background above (~20s on large repos) so we delay before reading graph.json.
-# Skips silently if gen script or global vault are absent.
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+[ -d "$GIT_DIR/rebase-merge" ] && exit 0
+[ -d "$GIT_DIR/rebase-apply" ] && exit 0
+[ -f "$GIT_DIR/MERGE_HEAD" ] && exit 0
+[ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] && exit 0
+
+# ── graphify: rebuild graph after commit ─────────────────────────────────────
+# Entire block skips if graphify is not installed.
+if command -v graphify > /dev/null 2>&1; then
+  CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD 2>/dev/null)
+  if [ -n "$CHANGED" ]; then
+    # (Python interpreter detection + nohup rebuild — see full hook on GitHub)
+    echo "[graphify hook] launching background rebuild"
+    graphify update . > ~/.cache/graphify-rebuild.log 2>&1 &
+    disown 2>/dev/null || true
+  fi
+fi
+
+# ── Obsidian vault: sync report + regen nodes ────────────────────────────────
+# Skips if graphify has never been run or gen script is not installed.
+[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify \
+  && cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md 2>/dev/null &
+
 _GEN="$HOME/.graphify/gen-obsidian-vault.py"
-_GLOBAL="$HOME/obsidian-vault"
-_ROOT=$(pwd)
-_NAME=$(basename "$_ROOT")
-if [ -f "$_GEN" ]; then
+if [ -f "$_GEN" ] && [ -f graphify-out/graph.json ]; then
+  _GLOBAL="$HOME/obsidian-vault"
+  _ROOT=$(pwd)
+  _NAME=$(basename "$_ROOT")
   ( sleep 25 \
     && python3 "$_GEN" --project-root "$_ROOT" \
     && { [ -d "$_GLOBAL" ] \
@@ -993,11 +1015,9 @@ if [ -f "$_GEN" ]; then
 fi
 ```
 
-Create the same file at `.husky/post-checkout` (change `sleep 25` to `sleep 20` — branch-switch rebuilds run with `--force` and tend to finish slightly faster). Mark both executable: `chmod +x .husky/post-commit .husky/post-checkout`.
+Create the same file at `.husky/post-checkout` with two changes: wrap the graphify block with `if command -v graphify > /dev/null 2>&1 && [ -d "graphify-out" ]` (force-rebuild only makes sense if the graph has been built before), and change `sleep 25` to `sleep 20`. Mark both executable: `chmod +x .husky/post-commit .husky/post-checkout`.
 
-**Plain git projects (no Husky):** put the same content in `.git/hooks/post-commit` and `.git/hooks/post-checkout`.
-
-**Graceful degradation:** All blocks check `[ -f "$_GEN" ]` before running, so the hooks are safe to commit — they silently no-op on machines without the gen script installed.
+**What "safe to commit" means here:** a developer with none of these tools runs exactly the 4 rebase guards and exits 0 — no Python spawned, no directories created, no errors.
 
 ---
 
