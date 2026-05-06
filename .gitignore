@@ -24,3 +24,14 @@ tmp/
 
 # Misc
 *.tgz
+
+# Knowledge graph tools (generated output + platform-specific configs)
+graphify-out/
+ai-vault/
+.code-review-graph/
+.kiro/
+.opencode.json
+.cursorrules
+.windsurfrules
+.mcp.json
+

@@ -1193,6 +1193,22 @@ cp .mcp.example.json .mcp.json
 
 ---
 
-*Published: 2026-05-05*
-*Category: Productivity / Claude Code*
-*Tags: graphify, code-review-graph, claude-code, knowledge-graph, obsidian, ai-tooling, developer-productivity*
+## References
+
+- **[Graphify](https://github.com/safishamsi/graphify)** — AI coding assistant skill (Claude Code, Codex, OpenCode, Cursor, Gemini CLI, and more). Turn any folder of code, SQL schemas, R scripts, shell scripts, docs, papers, images, or videos into a queryable knowledge graph. App code + database schema + infrastructure in one graph.
+
+- **[code-review-graph](https://github.com/tirth8205/code-review-graph)** — Local knowledge graph for Claude Code. Builds a persistent map of your codebase so Claude reads only what matters — 6.8× fewer tokens on reviews and up to 49× on daily coding tasks.
+
+- **[From Karpathy's LLM Wiki to Graphify: AI Memory Layers are Here](https://www.analyticsvidhya.com/blog/2026/04/graphify-guide/)** — Analytics Vidhya article on the evolution and implementation of knowledge graphs for AI systems.
+
+---
+
+## Let's Connect
+
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your ai setup strategy:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
