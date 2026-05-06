@@ -353,8 +353,8 @@ cp .mcp.example.json .mcp.json
 ### Check git hooks
 
 ```bash
-# Husky projects
-grep -c "graphify" .husky/_/post-commit
+# Husky projects (hooks live in .husky/, not .husky/_/)
+grep -c "graphify" .husky/post-commit
 # 1 (or more)
 
 # Plain git projects
@@ -502,7 +502,7 @@ Both tools install git hooks automatically:
 # code-review-graph: pre-commit hook in .git/hooks/pre-commit
 code-review-graph install
 
-# graphify: post-commit + post-checkout in .husky/_/ (or .git/hooks/)
+# graphify: installs wrappers in .husky/_/ — add your logic to .husky/post-commit
 graphify hook install
 ```
 
@@ -584,45 +584,342 @@ code-review-graph detect-changes --base HEAD~1 --brief
 
 ---
 
-## Step 8: Obsidian Vault (Persistent Memory Layer)
+## Step 8: Obsidian Vault (Visual Graph + Persistent Memory)
 
-The Obsidian layer adds a **human-readable, cross-session memory vault** on top of the graph. Each project gets its own vault at `./ai-vault/` inside the project root — gitignored, so it stays local to the developer.
+The Obsidian layer adds a **human-readable, visual knowledge graph** on top of your codebase. You've probably seen screenshots shared in the Claude Code / graphify community — a force-directed graph of hundreds of connected nodes. That's Obsidian's Graph View rendering one `.md` file per symbol, linked by imports.
 
-### Vault Structure
-
-```
-your-project/
-└── ai-vault/                    ← gitignored
-    ├── .obsidian/               ← Obsidian config (auto-created)
-    ├── CLAUDE.md                ← vault-level agent instructions
-    ├── graphify/
-    │   └── GRAPH_REPORT.md      ← synced from graphify-out/ on commit
-    ├── permanent/               ← Architecture decisions (atomic notes)
-    ├── logs/                    ← Session records (/save command)
-    └── chats/                   ← Imported Claude conversations
-```
-
-### Setup
+**Install Obsidian:**
 
 ```bash
-# Create vault inside the project
-mkdir -p ai-vault/{graphify,permanent,logs,chats}
+# Ubuntu
+snap install obsidian
 
-# Initial sync
+# macOS
+brew install --cask obsidian
+```
+
+---
+
+### Three Vault Modes
+
+| Mode | Where | Best for |
+|------|--------|----------|
+| **Browser only** | `graphify-out/graph.html` | One-off exploration, no Obsidian needed |
+| **Project vault** | `<project>/ai-vault/` | Single project, clean wikilinks |
+| **Global vault** | `~/obsidian-vault/` | Multiple projects + cross-repo merged view |
+
+---
+
+### Mode 1: Browser Only (Zero Setup)
+
+The `graph.html` file graphify generates is a self-contained interactive D3 force graph — drag nodes, zoom, click to inspect. No Obsidian required.
+
+```bash
+xdg-open graphify-out/graph.html   # Linux
+open graphify-out/graph.html        # macOS
+```
+
+---
+
+### Mode 2: Project Vault
+
+The project vault lives at `./ai-vault/` inside the project (gitignored). It has two layers:
+
+**Layer 1 — Basic (GRAPH_REPORT.md only):**
+
+```bash
+mkdir -p ai-vault/{graphify,permanent,logs,chats}
 cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/
 ```
 
-### Add vault sync to post-commit hook
+This gives you the community report with wikilinks — useful for navigating clusters.
 
-Append to `.husky/_/post-commit` (or `.git/hooks/post-commit`):
+**Layer 2 — Rich vault (one .md per symbol):**
 
-```bash
-# Sync graph report to local Obsidian vault (background, non-blocking)
-[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify && \
-  cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md &
+The GRAPH_REPORT.md uses wikilinks like `[[_COMMUNITY_Community 0]]`, but those target files don't exist yet. To make Obsidian's Graph View actually light up with a full network, generate individual note files for every node and community:
+
+Save this script to `~/.graphify/gen-obsidian-vault.py`:
+
+```python
+#!/usr/bin/env python3
+"""
+gen-obsidian-vault.py — Generate Obsidian notes from graphify graph.json.
+
+Usage:
+  # Project vault
+  python3 ~/.graphify/gen-obsidian-vault.py --project-root /path/to/project
+
+  # Global vault (multiple projects)
+  python3 ~/.graphify/gen-obsidian-vault.py \
+    --project-root /path/to/project \
+    --vault ~/obsidian-vault \
+    --project-name my-project
+
+  # Merged cross-repo graph
+  python3 ~/.graphify/gen-obsidian-vault.py \
+    --merged-graph ~/obsidian-vault/merged-graph.json \
+    --vault ~/obsidian-vault \
+    --project-name merged
+"""
+
+import argparse, json, os, re, sys
+from collections import defaultdict
+from pathlib import Path
+
+MAX_LINKS = 30
+
+def _build_adjacency(nodes, links):
+    out, inc = defaultdict(list), defaultdict(list)
+    for link in links:
+        src, tgt, rel = link["source"], link["target"], link["relation"]
+        if src in nodes and tgt in nodes:
+            out[src].append((tgt, rel))
+            inc[tgt].append((src, rel))
+    return out, inc
+
+def _node_files(nodes, out, inc, nodes_dir, node_pfx, comm_pfx):
+    nodes_dir.mkdir(parents=True, exist_ok=True)
+    for nid, node in nodes.items():
+        lines = [f"# {node['label']}", ""]
+        if node.get("source_file"): lines.append(f"**File:** `{node['source_file']}`  ")
+        if node.get("source_location"): lines.append(f"**Location:** {node['source_location']}  ")
+        if node.get("file_type"): lines.append(f"**Type:** {node['file_type']}  ")
+        lines.append(f"**Community:** [[{comm_pfx}/Community {node.get('community','?')}|Community {node.get('community','?')}]]")
+        lines.append("")
+        if out[nid]:
+            lines.append("## Imports / Depends On")
+            for tgt_id, rel in out[nid][:MAX_LINKS]:
+                if nodes.get(tgt_id): lines.append(f"- [[{node_pfx}/{tgt_id}|{nodes[tgt_id]['label']}]] `{rel}`")
+            lines.append("")
+        if inc[nid]:
+            lines.append("## Used By")
+            for src_id, rel in inc[nid][:MAX_LINKS]:
+                if nodes.get(src_id): lines.append(f"- [[{node_pfx}/{src_id}|{nodes[src_id]['label']}]] `{rel}`")
+            lines.append("")
+        (nodes_dir / f"{nid}.md").write_text("\n".join(lines))
+
+def _community_files(nodes, out, inc, comm_dir, node_pfx, comm_pfx):
+    comm_dir.mkdir(parents=True, exist_ok=True)
+    groups = defaultdict(list)
+    for nid, node in nodes.items(): groups[node.get("community", "?")].append(nid)
+    for cid, mids in sorted(groups.items()):
+        lines = [f"# Community {cid}", "", f"**Members:** {len(mids)}", "", "## Members"]
+        for mid in mids:
+            if nodes.get(mid): lines.append(f"- [[{node_pfx}/{mid}|{nodes[mid]['label']}]]")
+        cross = {nodes[t].get("community") for m in mids for t, _ in out[m] if nodes.get(t) and nodes[t].get("community") != cid}
+        cross |= {nodes[s].get("community") for m in mids for s, _ in inc[m] if nodes.get(s) and nodes[s].get("community") != cid}
+        if cross:
+            lines += ["", "## Connected Communities"] + [f"- [[{comm_pfx}/Community {c}|Community {c}]]" for c in sorted(cross) if c]
+        lines.append("")
+        (comm_dir / f"Community {cid}.md").write_text("\n".join(lines))
+    return len(groups)
+
+def generate(project_root=None, vault_root=None, project_name=None, graph_json_path=None):
+    graph_json = Path(graph_json_path) if graph_json_path else Path(project_root) / "graphify-out" / "graph.json"
+    if not graph_json.exists():
+        print(f"ERROR: {graph_json} not found. Run 'graphify update .' first."); sys.exit(1)
+    g = json.loads(graph_json.read_text())
+    nodes = {n["id"]: n for n in g["nodes"]}
+    links = g.get("links", [])
+    out, inc = _build_adjacency(nodes, links)
+    vault = Path(vault_root).expanduser() if vault_root else Path(project_root) / "ai-vault"
+    base = vault / project_name if project_name else vault
+    pfx = f"{project_name}/" if project_name else ""
+    _node_files(nodes, out, inc, base / "nodes", f"{pfx}nodes", f"{pfx}communities")
+    n_comm = _community_files(nodes, out, inc, base / "communities", f"{pfx}nodes", f"{pfx}communities")
+    if project_root:
+        report = Path(project_root) / "graphify-out" / "GRAPH_REPORT.md"
+        if report.exists():
+            gdir = base / "graphify"; gdir.mkdir(parents=True, exist_ok=True)
+            content = re.sub(r"\[\[_COMMUNITY_Community (\d+)\|Community \1\]\]",
+                lambda m: f"[[{pfx}communities/Community {m.group(1)}|Community {m.group(1)}]]",
+                report.read_text())
+            (gdir / "GRAPH_REPORT.md").write_text(content)
+    print(f"  ✓ {len(nodes)} nodes · {len(links)} links · {n_comm} communities → {base}")
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--project-root"); p.add_argument("--vault"); p.add_argument("--project-name")
+    p.add_argument("--merged-graph")
+    a = p.parse_args()
+    generate(a.project_root, a.vault, a.project_name, a.merged_graph)
+
+if __name__ == "__main__": main()
 ```
 
-No external script needed — the vault lives in the project, so the copy is a single relative-path command.
+Run it:
+
+```bash
+mkdir -p ~/.graphify
+# save the script above to ~/.graphify/gen-obsidian-vault.py, then:
+
+python3 ~/.graphify/gen-obsidian-vault.py --project-root .
+# ✓ 3815 nodes · 4830 links · 749 communities → ./ai-vault
+```
+
+This generates `ai-vault/nodes/` (one `.md` per symbol) and `ai-vault/communities/` (one `.md` per cluster). Each file contains wikilinks to its neighbors — Obsidian's Graph View draws the edges automatically.
+
+```
+ai-vault/
+├── .obsidian/               ← Obsidian config (auto-created)
+├── nodes/                   ← one .md per function / class / file  ← NEW
+├── communities/             ← one .md per module cluster           ← NEW
+├── graphify/
+│   └── GRAPH_REPORT.md      ← synced from graphify-out/
+├── permanent/               ← Architecture decisions (human notes)
+├── logs/                    ← Session records
+└── CLAUDE.md                ← vault-level agent instructions
+```
+
+Open in Obsidian → press `Ctrl+G` → you get the full network.
+
+---
+
+### Mode 3: Global Vault (Multiple Projects)
+
+One Obsidian window, all projects. Each project goes into its own subfolder with namespaced wikilinks — necessary because two projects often share node IDs (shared packages like `dto`, `types`, `utilities`).
+
+```bash
+# Add each project to the global vault
+python3 ~/.graphify/gen-obsidian-vault.py \
+  --project-root /path/to/project-a \
+  --vault ~/obsidian-vault \
+  --project-name project-a
+
+python3 ~/.graphify/gen-obsidian-vault.py \
+  --project-root /path/to/project-b \
+  --vault ~/obsidian-vault \
+  --project-name project-b
+```
+
+```
+~/obsidian-vault/
+├── 00-Welcome.md           ← optional index note
+├── project-a/
+│   ├── nodes/
+│   ├── communities/
+│   └── graphify/GRAPH_REPORT.md
+├── project-b/
+│   ├── nodes/
+│   ├── communities/
+│   └── graphify/GRAPH_REPORT.md
+└── merged/                 ← optional cross-repo combined view
+```
+
+**Filter by project in Graph View:** Graph View sidebar → Filters → `path:project-a/nodes`
+
+---
+
+### Cross-Repo Merged View
+
+When projects share types or utilities, merging their graphs reveals bridge nodes — code that affects both sides.
+
+```bash
+graphify merge-graphs \
+  /path/to/project-a/graphify-out/graph.json \
+  /path/to/project-b/graphify-out/graph.json \
+  --out ~/obsidian-vault/merged-graph.json
+
+python3 ~/.graphify/gen-obsidian-vault.py \
+  --merged-graph ~/obsidian-vault/merged-graph.json \
+  --vault ~/obsidian-vault \
+  --project-name merged
+```
+
+Nodes in `merged/communities/` that link to both projects are your highest-impact change points — changing them ripples across repos.
+
+---
+
+### Switching Between Vaults
+
+This is a common pain point: clicking `X` quits Obsidian entirely and the next launch reopens the same vault.
+
+**Switch inside Obsidian (always works):**
+Click the **vault icon** at the very bottom-left of the sidebar (looks like a small building/safe). A panel lists all known vaults — click to switch.
+
+**Open two vaults simultaneously (Obsidian v1.x+):**
+Open the vault switcher → hold `Ctrl` while clicking a vault → opens in a new window. Both are live at once.
+
+**From the terminal — Linux snap install:**
+
+The `obsidian://` URI scheme and `xdg-open` do not work with snap-installed Obsidian because snap doesn't register the protocol with the system. Use a small helper script instead.
+
+Save `~/.graphify/obs.py`:
+
+```python
+#!/usr/bin/env python3
+"""Open a specific Obsidian vault from the terminal (snap-compatible)."""
+
+import hashlib, json, subprocess, sys, time
+from pathlib import Path
+
+OBSIDIAN_CONFIG = Path("~/snap/obsidian/current/.config/obsidian/obsidian.json").expanduser()
+
+def _load():
+    return json.loads(OBSIDIAN_CONFIG.read_text()) if OBSIDIAN_CONFIG.exists() else {"vaults": {}}
+
+def _save(c):
+    OBSIDIAN_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    OBSIDIAN_CONFIG.write_text(json.dumps(c, indent=2))
+
+def open_vault(vault_path):
+    path = str(Path(vault_path).expanduser().resolve())
+    config = _load()
+    vaults = config.setdefault("vaults", {})
+    vid = next((k for k, v in vaults.items() if v.get("path") == path), None)
+    if vid is None:
+        vid = hashlib.md5(path.encode()).hexdigest()[:16]
+        vaults[vid] = {"path": path, "ts": int(time.time() * 1000)}
+        print(f"Registered: {path}")
+    for k in vaults: vaults[k].pop("open", None)
+    vaults[vid]["open"] = True
+    _save(config)
+    print(f"Opening: {path}")
+    subprocess.Popen(["/snap/bin/obsidian"], start_new_session=True,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2: print("Usage: obs.py <vault-path>"); sys.exit(1)
+    open_vault(sys.argv[1])
+```
+
+This registers the vault in Obsidian's JSON config and launches Obsidian pointing to it.
+
+**Shell aliases (add to `~/.bashrc`):**
+```bash
+alias obs='python3 ~/.graphify/obs.py ~/obsidian-vault'
+alias obs-project='python3 ~/.graphify/obs.py /path/to/your-project/ai-vault'
+```
+
+Then: `source ~/.bashrc` and use `obs` / `obs-project` from any terminal.
+
+**macOS (non-snap):**
+```bash
+open "obsidian://open?vault=obsidian-vault"
+# or
+alias obs='open "obsidian://open?vault=obsidian-vault"'
+```
+
+**Practical tip — avoid switching entirely:**
+Keep the global vault as your default. Inside Graph View, use the path filter to scope to one project:
+- Graph View sidebar → Filters → `path:my-project/nodes`
+
+This shows only that project's symbols without switching vaults.
+
+---
+
+### Graph View Filters
+
+| Filter | Shows |
+|--------|-------|
+| `path:nodes` | All code symbols |
+| `path:my-project/nodes` | One project's symbols (global vault) |
+| `path:communities` | Module clusters only |
+| `path:permanent` | Architecture decisions (human notes) |
+| `path:logs` | Session records |
+| `-path:nodes` | Human notes only, no code graph |
+
+---
 
 ### `ai-vault/CLAUDE.md` (vault-level agent instructions)
 
@@ -641,30 +938,66 @@ Before answering architecture questions, read `graphify/GRAPH_REPORT.md`.
 Use `graphify query`, `graphify path`, and `graphify explain` from the project root.
 ```
 
-### Open in Obsidian
+---
 
-```
-File → Open vault → <project-root>/ai-vault/
-```
+### Keeping the Vault Fresh
 
-**Useful graph view filters in Obsidian:**
-
-| Filter | Shows |
-|--------|-------|
-| `path:graphify` | Code structure communities |
-| `path:permanent` | Architecture decisions only |
-| `path:logs` | Session records |
-| `-path:graphify` | Human notes only |
-
-**Install Obsidian:**
+The daemon and git hooks keep `graph.json` current automatically. Refresh the Obsidian notes after significant changes:
 
 ```bash
-# Ubuntu
-snap install obsidian
+# Project vault
+python3 ~/.graphify/gen-obsidian-vault.py --project-root .
 
-# macOS
-brew install --cask obsidian
+# Global vault entry
+python3 ~/.graphify/gen-obsidian-vault.py \
+  --project-root /path/to/project \
+  --vault ~/obsidian-vault \
+  --project-name my-project
+
+# Rebuild merged view
+graphify merge-graphs \
+  /path/to/a/graphify-out/graph.json \
+  /path/to/b/graphify-out/graph.json \
+  --out ~/obsidian-vault/merged-graph.json && \
+python3 ~/.graphify/gen-obsidian-vault.py \
+  --merged-graph ~/obsidian-vault/merged-graph.json \
+  --vault ~/obsidian-vault \
+  --project-name merged
 ```
+
+### Add vault regen to git hooks
+
+**Husky projects:** create `.husky/post-commit` (this is git-tracked; `.husky/_/` is gitignored and dead code — the `h` wrapper always exits before any appended code runs):
+
+```sh
+#!/bin/sh
+# Sync graph report to local Obsidian vault (background, non-blocking)
+[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify && \
+  cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md &
+
+# Regenerate Obsidian nodes/communities after graphify finishes rebuilding.
+# graphify runs in background above (~20s on large repos) so we delay before reading graph.json.
+# Skips silently if gen script or global vault are absent.
+_GEN="$HOME/.graphify/gen-obsidian-vault.py"
+_GLOBAL="$HOME/obsidian-vault"
+_ROOT=$(pwd)
+_NAME=$(basename "$_ROOT")
+if [ -f "$_GEN" ]; then
+  ( sleep 25 \
+    && python3 "$_GEN" --project-root "$_ROOT" \
+    && { [ -d "$_GLOBAL" ] \
+         && python3 "$_GEN" --project-root "$_ROOT" --vault "$_GLOBAL" --project-name "$_NAME" \
+         || true; } \
+  ) >> ~/.cache/obs-vault-regen.log 2>&1 &
+  disown 2>/dev/null || true
+fi
+```
+
+Create the same file at `.husky/post-checkout` (change `sleep 25` to `sleep 20` — branch-switch rebuilds run with `--force` and tend to finish slightly faster). Mark both executable: `chmod +x .husky/post-commit .husky/post-checkout`.
+
+**Plain git projects (no Husky):** put the same content in `.git/hooks/post-commit` and `.git/hooks/post-checkout`.
+
+**Graceful degradation:** All blocks check `[ -f "$_GEN" ]` before running, so the hooks are safe to commit — they silently no-op on machines without the gen script installed.
 
 ---
 
@@ -677,26 +1010,29 @@ Claude Code session opens
     → SessionStart: code-review-graph status
     → SessionStart: .claude/graph-daemon.sh (if not already running)
         ├── graphify watch . (background) — watches filesystem for changes
-        └── vault-sync daemon (background) — polls GRAPH_REPORT.md every 3s
+        └── vault-sync daemon (background) — polls graph.json every 10s
+               ├── on change: copies GRAPH_REPORT.md → ai-vault/graphify/
+               └── on change: reruns gen-obsidian-vault.py (debounced 15s)
+    → Staleness check: if graph.json newer than vault nodes → regen immediately
 
 Developer edits a file
-    → graphify watch detects change → rebuilds graphify-out/GRAPH_REPORT.md
-    → vault-sync daemon detects new GRAPH_REPORT.md → copies to ai-vault/graphify/
+    → graphify watch detects change → rebuilds graph.json
+    → vault-sync daemon detects new graph.json → copies GRAPH_REPORT + regens nodes
 
 Claude Code edits a file
     → PostToolUse: code-review-graph update --skip-flows (0.425s)
-    → graphify watch also detects the edit → vault syncs within 3s
+    → graphify watch also detects the edit → vault syncs within ~10s
 
 Code committed
     → pre-commit: code-review-graph update
-    → post-commit: graphify update . (background)
-    → vault-sync daemon detects updated GRAPH_REPORT.md → syncs
+    → post-commit: graphify update . (background, ~20s)
+    → post-commit hook: sleeps 25s then runs gen-obsidian-vault.py → vault updated
 
 Branch switched
     → post-checkout: graphify update --force (background)
-    → vault-sync daemon detects updated GRAPH_REPORT.md → syncs
+    → post-checkout hook: sleeps 20s then runs gen-obsidian-vault.py → vault updated
 
-Result: developer codes, everything stays current automatically.
+Result: developer codes, commits, switches branches — vault stays current automatically.
 ```
 
 ---
