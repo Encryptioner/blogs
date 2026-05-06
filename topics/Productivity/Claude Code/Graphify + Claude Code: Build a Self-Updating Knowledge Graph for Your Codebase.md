@@ -374,12 +374,9 @@ time graphify update .
 ### Test vault sync (if vault is configured)
 
 ```bash
-bash ~/ai-vault/sync-graphs.sh
-# [vault-sync] project-alpha: synced
-# [vault-sync] project-beta: synced
-
-ls ~/ai-vault/graphify/
-# project-alpha/  project-beta/
+cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md
+ls ai-vault/graphify/
+# GRAPH_REPORT.md
 ```
 
 ---
@@ -447,24 +444,55 @@ code-review-graph build
 graphify update . --force
 ```
 
-### Strategy B: `--watch` (Active Dev Sessions)
+### Strategy B: Auto-start on Session Open (Daemon)
+
+Rather than manually starting `graphify watch`, a daemon script in `.claude/graph-daemon.sh` is called by the `SessionStart` hook every time Claude Code opens. It starts two background processes and skips if they're already running:
 
 ```bash
-# In a separate terminal — monitors filesystem, auto-rebuilds
-graphify watch .
+#!/usr/bin/env bash
+# .claude/graph-daemon.sh — called automatically by SessionStart hook
 
-# Background (Ubuntu)
-nohup graphify watch . > ~/.cache/graphify-watch.log 2>&1 &
+command -v graphify > /dev/null 2>&1 || exit 0  # skip if not installed
 
-# macOS LaunchAgent (auto-start on login)
-# See: ~/Library/LaunchAgents/com.graphify.watch.plist
+PROJECT_HASH=$(printf '%s' "$PWD" | md5sum | cut -c1-8)
+
+# graphify watch — rebuilds graph on every code change
+WATCH_MARK="graphify-watch-$PROJECT_HASH"
+if ! pgrep -f "$WATCH_MARK" > /dev/null 2>&1; then
+  nohup bash -c "# $WATCH_MARK
+    graphify watch ." > ~/.cache/graphify-watch.log 2>&1 &
+fi
+
+# Vault sync daemon — polls GRAPH_REPORT.md, mirrors to ai-vault/ on change
+VAULT_MARK="vault-sync-$PROJECT_HASH"
+if ! pgrep -f "$VAULT_MARK" > /dev/null 2>&1; then
+  nohup bash -c "# $VAULT_MARK
+    LAST=''
+    while true; do
+      if [ -f graphify-out/GRAPH_REPORT.md ]; then
+        CURR=\$(stat -c%Y graphify-out/GRAPH_REPORT.md 2>/dev/null \
+              || stat -f%m graphify-out/GRAPH_REPORT.md 2>/dev/null)
+        if [ \"\$CURR\" != \"\$LAST\" ] && [ -n \"\$CURR\" ]; then
+          mkdir -p ai-vault/graphify
+          cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md
+          LAST=\"\$CURR\"
+        fi
+      fi
+      sleep 3
+    done" > /dev/null 2>&1 &
+fi
 ```
 
-code-review-graph equivalent:
+The `SessionStart` entry in `.claude/settings.local.json` that triggers it:
 
-```bash
-code-review-graph watch
+```json
+"SessionStart": [
+  {"matcher": "", "hooks": [{"type": "command", "command": "code-review-graph status", "timeout": 10}]},
+  {"matcher": "", "hooks": [{"type": "command", "command": "[ -f .claude/graph-daemon.sh ] && bash .claude/graph-daemon.sh", "timeout": 5}]}
+]
 ```
+
+**Vault sync trigger chain:** `graphify watch` rebuilds `graphify-out/GRAPH_REPORT.md` → vault sync daemon detects the change (within 3s) → copies to `ai-vault/graphify/`. Same chain fires after every `git commit` and branch switch rebuild — zero manual steps.
 
 ### Strategy C: Git Hooks (On Commit + Branch Switch)
 
@@ -558,95 +586,65 @@ code-review-graph detect-changes --base HEAD~1 --brief
 
 ## Step 8: Obsidian Vault (Persistent Memory Layer)
 
-The Obsidian layer adds a **human-readable, cross-session memory vault** on top of the graph. Instead of graph queries being ephemeral, you build up a Zettelkasten of architecture decisions, session logs, and imported conversations — all connected to the graph reports.
+The Obsidian layer adds a **human-readable, cross-session memory vault** on top of the graph. Each project gets its own vault at `./ai-vault/` inside the project root — gitignored, so it stays local to the developer.
 
 ### Vault Structure
 
 ```
-~/ai-vault/
-├── .obsidian/           ← Obsidian config
-├── CLAUDE.md            ← Global Claude instructions for the vault
-├── graphify/
-│   ├── project-alpha/
-│   │   └── GRAPH_REPORT.md   ← synced from project
-│   └── project-beta/
-│       └── GRAPH_REPORT.md   ← synced from project
-├── permanent/           ← Architecture decisions (atomic notes)
-├── logs/                ← Session records (/save command)
-├── chats/               ← Imported Claude conversations
-└── sync-graphs.sh       ← Vault sync script
+your-project/
+└── ai-vault/                    ← gitignored
+    ├── .obsidian/               ← Obsidian config (auto-created)
+    ├── CLAUDE.md                ← vault-level agent instructions
+    ├── graphify/
+    │   └── GRAPH_REPORT.md      ← synced from graphify-out/ on commit
+    ├── permanent/               ← Architecture decisions (atomic notes)
+    ├── logs/                    ← Session records (/save command)
+    └── chats/                   ← Imported Claude conversations
 ```
 
 ### Setup
 
 ```bash
-# Create vault
-mkdir -p ~/ai-vault/{graphify/project-alpha,graphify/project-beta,permanent,logs,chats}
+# Create vault inside the project
+mkdir -p ai-vault/{graphify,permanent,logs,chats}
 
 # Initial sync
-cp /path/to/project-alpha/graphify-out/GRAPH_REPORT.md \
-   ~/ai-vault/graphify/project-alpha/
-cp /path/to/project-beta/graphify-out/GRAPH_REPORT.md \
-   ~/ai-vault/graphify/project-beta/
+cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/
 ```
 
-**`~/ai-vault/sync-graphs.sh`** (auto-sync on commit):
+### Add vault sync to post-commit hook
+
+Append to `.husky/_/post-commit` (or `.git/hooks/post-commit`):
 
 ```bash
-#!/bin/bash
-VAULT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-sync_project() {
-  local name="$1" project_path="$2"
-  local target="$VAULT_DIR/graphify/$name"
-  mkdir -p "$target"
-  [ -f "$project_path/graphify-out/GRAPH_REPORT.md" ] && \
-    cp "$project_path/graphify-out/GRAPH_REPORT.md" "$target/GRAPH_REPORT.md" && \
-    echo "[vault-sync] $name: synced"
-}
-
-sync_project "project-alpha" "/path/to/project-alpha"
-sync_project "project-beta"  "/path/to/project-beta"
+# Sync graph report to local Obsidian vault (background, non-blocking)
+[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify && \
+  cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md &
 ```
 
-```bash
-chmod +x ~/ai-vault/sync-graphs.sh
-```
+No external script needed — the vault lives in the project, so the copy is a single relative-path command.
 
-### Add vault sync to post-commit hooks
-
-Append to each project's `.husky/_/post-commit` (or `.git/hooks/post-commit`):
-
-```bash
-# Sync graph reports to Obsidian vault (background, non-blocking)
-VAULT_SYNC="$HOME/ai-vault/sync-graphs.sh"
-[ -f "$VAULT_SYNC" ] && nohup bash "$VAULT_SYNC" > /dev/null 2>&1 &
-```
-
-### `~/ai-vault/CLAUDE.md` (vault-level Claude instructions)
+### `ai-vault/CLAUDE.md` (vault-level agent instructions)
 
 ```markdown
-## AI Vault — Global Claude Instructions
-
 ## Session Commands
 - `/resume` — Read the latest log in `logs/` to restore context
 - `/save` — Write a timestamped session summary to `logs/YYYY-MM-DD-HH-MM.md`
 
 ## Navigation
-- `graphify/project-alpha/` — Large monorepo graph report (1052 files, 5780 nodes)
-- `graphify/project-beta/`  — Frontend repo graph report (711 files, 2773 nodes)
+- `graphify/GRAPH_REPORT.md` — Codebase graph report
 - `permanent/` — Architecture decisions and atomic notes
 - `logs/` — Session records
 
 ## Graph Usage
-Before answering architecture questions, read the relevant GRAPH_REPORT.md.
-Use `graphify query`, `graphify path`, and `graphify explain` in the project directory.
+Before answering architecture questions, read `graphify/GRAPH_REPORT.md`.
+Use `graphify query`, `graphify path`, and `graphify explain` from the project root.
 ```
 
 ### Open in Obsidian
 
 ```
-File → Open vault → Select ~/ai-vault/
+File → Open vault → <project-root>/ai-vault/
 ```
 
 **Useful graph view filters in Obsidian:**
@@ -675,25 +673,30 @@ brew install --cask obsidian
 After full setup, the pipeline looks like this:
 
 ```
-Code edited by human
-    → --watch rebuilds graph (graphify/code-review-graph)
-    → Obsidian vault shows updated community structure
+Claude Code session opens
+    → SessionStart: code-review-graph status
+    → SessionStart: .claude/graph-daemon.sh (if not already running)
+        ├── graphify watch . (background) — watches filesystem for changes
+        └── vault-sync daemon (background) — polls GRAPH_REPORT.md every 3s
+
+Developer edits a file
+    → graphify watch detects change → rebuilds graphify-out/GRAPH_REPORT.md
+    → vault-sync daemon detects new GRAPH_REPORT.md → copies to ai-vault/graphify/
+
+Claude Code edits a file
+    → PostToolUse: code-review-graph update --skip-flows (0.425s)
+    → graphify watch also detects the edit → vault syncs within 3s
 
 Code committed
-    → post-commit: graphify update . (background, non-blocking)
     → pre-commit: code-review-graph update
-    → post-commit: sync-graphs.sh → vault updated
-    → post-checkout (branch switch): graphify update --force
+    → post-commit: graphify update . (background)
+    → vault-sync daemon detects updated GRAPH_REPORT.md → syncs
 
-Claude Code edits files
-    → PostToolUse hook fires after Edit/Write/Bash
-    → code-review-graph update --skip-flows (0.425s)
-    → Graph current before next Claude query
+Branch switched
+    → post-checkout: graphify update --force (background)
+    → vault-sync daemon detects updated GRAPH_REPORT.md → syncs
 
-Session starts
-    → SessionStart hook: code-review-graph status
-    → Claude sees: 5780 nodes, 30611 edges, last updated timestamp
-    → Claude reads GRAPH_REPORT.md instead of scanning 1000+ files
+Result: developer codes, everything stays current automatically.
 ```
 
 ---
@@ -793,6 +796,7 @@ your-project/
 ├── .mcp.example.json                  ← new (reference config for teammates)
 ├── CLAUDE.md                          ← 2-line pointer to docs/agent/knowledge-graph.md
 ├── .claude/
+│   ├── graph-daemon.sh                ← new (auto-starts graphify watch + vault sync)
 │   ├── settings.json                  ← permissions only, no hooks
 │   ├── settings.example.json          ← new (shows hook structure for local setup)
 │   └── skills/                        ← new (code-review-graph query skills)
@@ -806,14 +810,14 @@ your-project/
 ├── .claude/settings.local.json        ← personal hooks (PostToolUse, SessionStart, PreToolUse)
 ├── graphify-out/                      ← generated (graph.json, GRAPH_REPORT.md, graph.html)
 ├── .code-review-graph/                ← generated (SQLite db, wiki, visualization)
+├── ai-vault/                          ← Obsidian vault (personal, lives inside the project)
 ├── AGENTS.md / GEMINI.md              ← tool-generated, IDE-specific
 ├── .cursorrules / .windsurfrules      ← IDE-specific
 └── .kiro/ / .opencode.json            ← IDE-specific
 ```
 
-**Outside repos:**
+**Outside project (global Claude settings):**
 ```
-~/ai-vault/                            ← new (Obsidian vault for all projects)
 ~/.claude/settings.example.json        ← updated (PostToolUse hook reference)
 ```
 
