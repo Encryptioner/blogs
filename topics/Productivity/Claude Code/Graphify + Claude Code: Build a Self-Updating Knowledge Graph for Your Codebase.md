@@ -278,17 +278,25 @@ graphify hook install
 
 Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and reminds Claude to use `graphify query` instead — turning search interception into graph navigation.
 
-### CLAUDE.md: brief mention pattern
+> **Note:** `graphify claude install` writes the `PreToolUse` hook into `.claude/settings.json`. Move it to `.claude/settings.local.json` (gitignored) for the same reason as the code-review-graph hooks — not every teammate will have graphify installed.
 
-Rather than pasting the full tool docs into `CLAUDE.md` (which bloats every session's context), create a dedicated `docs/agent/knowledge-graph.md` and add only a pointer in `CLAUDE.md`:
+### CLAUDE.md: trigger-list pattern
+
+Rather than pasting the full tool docs into `CLAUDE.md` (which bloats every session's context), create a dedicated `docs/agent/knowledge-graph.md` and add a trigger-list pointer in `CLAUDE.md`:
 
 ```markdown
 ## Knowledge Graph
-This project has knowledge graph tools (graphify, code-review-graph, Obsidian vault) configured.
-Read `docs/agent/knowledge-graph.md` before exploring unfamiliar code or answering architecture questions.
+
+**Read `docs/agent/knowledge-graph.md` whenever you:**
+- Answer any architecture, cross-module, or "how does X work" question
+- Plan to grep, find, or glob through the codebase
+- Need to understand an unfamiliar module or trace a call chain
+- Are about to refactor or change something with unclear blast radius
+
+The doc covers graphify (community detection, path tracing, GRAPH_REPORT.md), code-review-graph (MCP tools, impact analysis), when to use each, and the full auto-update pipeline.
 ```
 
-This pattern keeps `CLAUDE.md` lean while the full reference — tool commands, MCP tool table, Obsidian vault path, update pipeline — lives in `docs/agent/knowledge-graph.md` and is only loaded when actually needed.
+A vague "read before exploring unfamiliar code" pointer is easy to skip. Explicit trigger conditions — especially "plan to grep" — activate the graph habit reliably. The full reference lives in `docs/agent/knowledge-graph.md` and is only loaded when actually needed.
 
 ---
 
