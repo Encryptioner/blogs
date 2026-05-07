@@ -72,3 +72,6 @@ Content from this repository is published to:
 - This is a content-only repository with no build process, tests, or runtime code
 - All content is in Markdown format
 - No package.json or dependencies to manage
+
+## Knowledge Graph
+This project has knowledge graph tools (graphify, code-review-graph) configured. Read `docs/agent/knowledge-graph.md` before exploring unfamiliar content or answering topic/structure questions.

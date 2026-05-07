@@ -223,7 +223,7 @@ This single command:
 - Writes `.mcp.json` (Claude Code MCP server config)
 - Writes `.cursor/mcp.json`, `.opencode.json`, Zed settings, `.cursorrules`, `GEMINI.md`, `AGENTS.md`
 - Creates `.claude/skills/` for Claude Code tool integration
-- Installs hooks in `.claude/settings.json` (move these to `settings.local.json` — see below)
+- Installs hooks in `.claude/settings.json` (move these out — see below)
 - Installs a **git pre-commit hook**
 - Updates `.gitignore` to exclude `.code-review-graph/`
 
@@ -240,16 +240,23 @@ GEMINI.md
 .kiro/
 ```
 
-**Move hooks out of `settings.json`:** The hooks `code-review-graph install` writes into `.claude/settings.json` are personal setup — not everyone on the team will have the CLI installed. Move them to `.claude/settings.local.json` (already gitignored) instead:
+**Three-file hook pattern:** `settings.json` should stay clean — permissions only, no hooks. Use two separate files for hooks:
+
+- **`.claude/settings.example.json`** (committed) — documents the hook structure for teammates. Copy from here to set up locally.
+- **`.claude/settings.local.json`** (gitignored) — your actual personal hooks that fire at runtime. Contains env vars, secrets, and the live hook config.
+
+Remove all hooks from `.claude/settings.json`, then populate the two files:
 
 ```bash
-# Remove hooks from .claude/settings.json, then add to settings.local.json:
+# .claude/settings.example.json — committed reference, shows hook structure
 {
   "hooks": {
-    "PostToolUse": [{"matcher": "Edit|Write|Bash", "hooks": [{"type": "command", "command": "code-review-graph update --skip-flows", "timeout": 30}]}],
-    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "code-review-graph status", "timeout": 10}]}]
+    "PostToolUse": [{"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph update --skip-flows 2>/dev/null || true", "timeout": 30}]}],
+    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true", "timeout": 10}]}]
   }
 }
+
+# .claude/settings.local.json — gitignored, actual runtime hooks (copy from example)
 ```
 
 The `.mcp.json` it creates (keep as `.mcp.example.json` only):
@@ -278,7 +285,7 @@ graphify hook install
 
 Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and reminds Claude to use `graphify query` instead — turning search interception into graph navigation.
 
-> **Note:** `graphify claude install` writes the `PreToolUse` hook into `.claude/settings.json`. Move it to `.claude/settings.local.json` (gitignored) for the same reason as the code-review-graph hooks — not every teammate will have graphify installed.
+> **Note:** `graphify claude install` writes the `PreToolUse` hook into `.claude/settings.json`. Move it to `.claude/settings.example.json` (committed as a reference) and copy to `.claude/settings.local.json` to activate it locally — not every teammate will have graphify installed, so it shouldn't fire automatically for everyone.
 
 ### CLAUDE.md: trigger-list pattern
 
@@ -518,26 +525,13 @@ The graphify post-commit hook runs the rebuild **in the background** (detached p
 
 ### Strategy D: Claude Code Hooks (AI-Driven Updates)
 
-When Claude Code edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially, but they should live in `.claude/settings.local.json` (gitignored) so teammates without the CLI aren't affected:
+When Claude Code edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially — move them out. The right home is `.claude/settings.example.json` (committed reference for teammates) and `.claude/settings.local.json` (your live runtime copy, gitignored).
 
-```json
-"PostToolUse": [
-  {
-    "matcher": "Edit|Write|Bash",
-    "hooks": [
-      {
-        "type": "command",
-        "command": "code-review-graph update --skip-flows",
-        "timeout": 30
-      }
-    ]
-  }
-]
-```
+Use the fallback-safe version that silently no-ops if the CLI isn't installed:
 
 At **0.425s per update**, this runs after every file edit without blocking Claude's workflow.
 
-For the global `~/.claude/settings.example.json`, add a fallback-safe version:
+For both `.claude/settings.example.json` and the global `~/.claude/settings.json`, use:
 
 ```json
 "PostToolUse": [
@@ -1162,8 +1156,8 @@ your-project/
 ├── .claude/
 │   ├── graph-daemon.sh                ← new (auto-starts graphify watch + vault sync)
 │   ├── settings.json                  ← permissions only, no hooks
-│   ├── settings.example.json          ← new (shows hook structure for local setup)
-│   └── skills/                        ← new (code-review-graph query skills)
+│   ├── settings.example.json          ← new (hook reference: PreToolUse + PostToolUse + SessionStart)
+│   └── skills/                        ← new (code-review-graph skills relevant to the repo)
 └── docs/agent/knowledge-graph.md      ← new (full tool reference)
 ```
 
@@ -1171,7 +1165,7 @@ your-project/
 ```
 your-project/
 ├── .mcp.json                          ← personal MCP config (copy from .mcp.example.json)
-├── .claude/settings.local.json        ← personal hooks (PostToolUse, SessionStart, PreToolUse)
+├── .claude/settings.local.json        ← live personal hooks (copy from settings.example.json)
 ├── graphify-out/                      ← generated (graph.json, GRAPH_REPORT.md, graph.html)
 ├── .code-review-graph/                ← generated (SQLite db, wiki, visualization)
 ├── ai-vault/                          ← Obsidian vault (personal, lives inside the project)
