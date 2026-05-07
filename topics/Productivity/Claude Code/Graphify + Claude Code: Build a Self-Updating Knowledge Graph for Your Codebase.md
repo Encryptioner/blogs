@@ -469,7 +469,7 @@ Rather than manually starting `graphify watch`, a daemon script in `.claude/grap
 
 command -v graphify > /dev/null 2>&1 || exit 0  # skip if not installed
 
-PROJECT_HASH=$(printf '%s' "$PWD" | md5sum | cut -c1-8)
+PROJECT_HASH=$(printf '%s' "$PWD" | shasum -a 256 | cut -c1-8)  # shasum works on macOS + Linux
 
 # graphify watch — rebuilds graph on every code change
 WATCH_MARK="graphify-watch-$PROJECT_HASH"
@@ -887,13 +887,13 @@ if __name__ == "__main__":
 
 This registers the vault in Obsidian's JSON config and launches Obsidian pointing to it.
 
-**Shell aliases (add to `~/.bashrc`):**
+**Shell aliases (add to `~/.zshrc` on macOS, `~/.bashrc` on Linux):**
 ```bash
 alias obs='python3 ~/.graphify/obs.py ~/obsidian-vault'
 alias obs-project='python3 ~/.graphify/obs.py /path/to/your-project/ai-vault'
 ```
 
-Then: `source ~/.bashrc` and use `obs` / `obs-project` from any terminal.
+Then: `source ~/.zshrc` (or `source ~/.bashrc` on Linux) and use `obs` / `obs-project` from any terminal.
 
 **macOS (non-snap):**
 ```bash

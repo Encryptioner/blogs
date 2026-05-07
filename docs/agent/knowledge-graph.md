@@ -1,64 +1,93 @@
-# Knowledge Graph Reference
+# Knowledge Graph Tools
 
-This repository has two knowledge graph tools configured. Use them before grepping or globbing.
+Two complementary tools are configured for this repo. **graphify is the primary tool** — this is a markdown-only content repo, so code-review-graph finds 0 code nodes (expected). Both are optional; fall back to grep/glob/read if not installed.
 
-## Tools
+## Tools at a Glance
 
-### graphify (primary for this content repo)
+| Tool | Storage | Role in this repo |
+|------|---------|-------------------|
+| **graphify** | JSON + Markdown report | **Primary** — indexes 1,178 markdown nodes across 104 topic communities |
+| **code-review-graph** | SQLite + 28 MCP tools | Secondary — 0 code files (markdown only); provides PreToolUse hint hook |
 
-Parses markdown files into a queryable graph with community detection (1155 nodes, 1129 edges, 100 communities).
+## For Agents: When to Use the Graph
 
+**Prefer graphify for:**
+- "Which blogs cover topic X?" — use `graphify query`
+- Understanding how topics/blogs cluster — read `graphify-out/GRAPH_REPORT.md`
+- Tracing relationships between content nodes — use `graphify path`
+
+**Still use grep for:**
+- Searching inside a specific blog's text
+- Finding a known filename you already have
+
+---
+
+## graphify
+
+Produces `graphify-out/GRAPH_REPORT.md` — a Markdown file with community clusters over 29 markdown files (1,178 nodes, 104 communities). Read it for a topic-map overview before diving into specific files.
+
+**Check if available and read the map:**
 ```bash
-# Query connections between topics
-graphify query "what connects Node.js to productivity" --graph graphify-out/graph.json --budget 1500
-
-# Trace paths between articles
-graphify path "ArticleA" "ArticleB" --graph graphify-out/graph.json
-
-# Explain a node
-graphify explain "SomeTopicNode" --graph graphify-out/graph.json
-
-# BFS traversal
-graphify query "Claude Code" --graph graphify-out/graph.json
-
-# Continuous watch (auto-rebuild on changes)
-graphify watch .
+[ -f graphify-out/GRAPH_REPORT.md ] && head -40 graphify-out/GRAPH_REPORT.md
 ```
 
-**Start here:** Read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure.
+**Current stats:** 1,178 nodes · 1,168 edges · 104 communities · 29 files
 
-### code-review-graph (MCP tools)
-
-28 MCP tools available for structural queries. Note: this repo is markdown-only so code graph is minimal.
-
+**Query commands:**
 ```bash
-code-review-graph status    # check current graph state
-code-review-graph update    # incremental update
+graphify query "npm publishing" --graph graphify-out/graph.json
+graphify path "Node.js" "Productivity" --graph graphify-out/graph.json
+graphify explain "INDEX.md" --graph graphify-out/graph.json
 ```
 
-## When to Use Each
+**Manual update:**
+```bash
+graphify update .          # SHA256-cached, no API cost
+graphify update . --force  # full rebuild
+```
 
-| Question | Tool |
-|----------|------|
-| "What topics are related to X?" | `graphify query` |
-| "Which articles link to which?" | `graphify path` |
-| "What community does this belong to?" | `graphify explain` |
-| "Overview of all topic clusters" | Read `graphify-out/GRAPH_REPORT.md` |
+---
+
+## code-review-graph
+
+MCP server auto-connects when `.mcp.json` is present. In this markdown-only repo it indexes 0 code files, so MCP tools like `semantic_search_nodes` and `get_impact_radius` return empty results — that is expected behavior.
+
+**Check status:**
+```bash
+code-review-graph status
+# Nodes: 0  Edges: 0  Files: 0  (markdown repo — expected)
+```
+
+---
 
 ## Auto-Update Pipeline
 
-- **File edit by Claude** → `PostToolUse` hook → `code-review-graph update --skip-flows`
-- **Session start** → daemon launches `graphify watch` in background
-- **git commit** → post-commit hook → `graphify update .` in background
-- **Branch switch** → post-checkout hook → `graphify update . --force` in background
+Everything updates automatically — no manual steps required per session.
 
-## Outputs
+| Trigger | Action |
+|---------|--------|
+| Session opens | `code-review-graph status` + starts `.claude/graph-daemon.sh` |
+| Daemon running | `graphify watch .` (continuous) + vault sync poller (every 3s) |
+| Claude edits a file (PostToolUse) | `code-review-graph update --skip-flows` |
+| `git commit` (post-commit) | `graphify update .` background → Obsidian vault syncs |
+| grep/find command (PreToolUse) | Hint to use graphify instead |
 
+Hooks and daemon config live in `.claude/settings.local.json` (gitignored — personal setup).
+Daemon script is at `.claude/graph-daemon.sh` (committed — no-op if graphify not installed).
+
+---
+
+## First-Time Setup
+
+```bash
+pip install graphifyy code-review-graph
+
+# Build graphs
+graphify update .
+code-review-graph build
+
+# Wire Claude Code + git hooks
+graphify claude install
+graphify hook install
+code-review-graph install
 ```
-graphify-out/
-├── graph.json        ← queryable graph (1155 nodes)
-├── GRAPH_REPORT.md   ← community report (100 communities)
-└── graph.html        ← interactive D3 visualization
-```
-
-Open `graphify-out/graph.html` in browser for visual exploration.
