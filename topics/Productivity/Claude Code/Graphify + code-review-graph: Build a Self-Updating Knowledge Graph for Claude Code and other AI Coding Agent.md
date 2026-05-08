@@ -1,15 +1,15 @@
-# Graphify + Claude Code: Build a Self-Updating Knowledge Graph for Your Codebase
+# Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent
 
 > Every developer working with LLMs on a large codebase eventually hits the same wall: context windows are finite, but codebases are not.
 
-You start a new Claude Code session, ask about the payment flow — and Claude starts re-reading dozens of files just to get oriented. Twenty thousand tokens evaporated before a single line of code is written. Multiply that by every session, every team member, every day.
+You start a new AI coding session, ask about the payment flow — and your agent starts re-reading dozens of files just to get oriented. Twenty thousand tokens evaporated before a single line of code is written. Multiply that by every session, every team member, every day.
 
 Two open-source tools solve this in different but complementary ways:
 
 - **Graphify** — converts your folder into a queryable knowledge graph with community detection, Obsidian-compatible reports, and cross-file traversal
 - **code-review-graph** — builds a SQLite-backed AST graph with blast-radius analysis, 28 MCP tools, and sub-second incremental updates
 
-This guide walks through installing both tools, connecting them to Claude Code, wiring auto-updates for code edited by humans, git commits, or Claude itself — and pairing everything with an Obsidian vault as a persistent memory layer.
+This guide walks through installing both tools, connecting them to any AI coding agent — Claude Code, Cursor, Gemini CLI, Windsurf, GitHub Copilot, and more — wiring auto-updates for code edited by humans, git commits, or the agent itself, and pairing everything with an Obsidian vault as a persistent memory layer.
 
 All commands in this guide were tested on Ubuntu and macOS across multiple real pnpm monorepos of varying sizes.
 
@@ -84,7 +84,7 @@ SQLite (.code-review-graph/graph.db)
     └── Full-text search index (FTS5)
     │
     ▼
-28 MCP tools exposed to Claude Code
+28 MCP tools exposed to your AI agent
 (get_minimal_context, detect_changes, semantic_search, ...)
 ```
 
@@ -211,7 +211,7 @@ graphify extract .
 
 ---
 
-## Step 3: Register with Claude Code
+## Step 3: Register with Your AI Agent
 
 ### code-review-graph (auto-configures 5 platforms)
 
@@ -273,23 +273,23 @@ The `.mcp.json` it creates (keep as `.mcp.example.json` only):
 }
 ```
 
-### Graphify (Claude Code integration)
+### Graphify (AI Agent Integration)
 
 ```bash
-# Adds graphify section to CLAUDE.md + PreToolUse hook
+# Adds graphify section to CLAUDE.md + PreToolUse hook (Claude Code)
 graphify claude install
 
 # Installs post-commit + post-checkout git hooks
 graphify hook install
 ```
 
-Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and reminds Claude to use `graphify query` instead — turning search interception into graph navigation.
+Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and redirects the agent to `graphify query` instead — turning search interception into graph navigation. For other agents: `code-review-graph install` already writes equivalent config to `GEMINI.md`, `AGENTS.md`, `.cursorrules`, and Zed settings.
 
 > **Note:** `graphify claude install` writes the `PreToolUse` hook into `.claude/settings.json`. Move it to `.claude/settings.example.json` (committed as a reference) and copy to `.claude/settings.local.json` to activate it locally — not every teammate will have graphify installed, so it shouldn't fire automatically for everyone.
 
-### CLAUDE.md: trigger-list pattern
+### Agent Config: trigger-list pattern (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`)
 
-Rather than pasting the full tool docs into `CLAUDE.md` (which bloats every session's context), create a dedicated `docs/agent/knowledge-graph.md` and add a trigger-list pointer in `CLAUDE.md`:
+Rather than pasting the full tool docs into your agent config file (which bloats every session's context), create a dedicated `docs/agent/knowledge-graph.md` and add a trigger-list pointer. This works the same way across agents — Claude Code reads `CLAUDE.md`, Gemini CLI reads `GEMINI.md`, Codex and OpenAI agents read `AGENTS.md`:
 
 ```markdown
 ## Knowledge Graph
@@ -303,7 +303,7 @@ Rather than pasting the full tool docs into `CLAUDE.md` (which bloats every sess
 The doc covers graphify (community detection, path tracing, GRAPH_REPORT.md), code-review-graph (MCP tools, impact analysis), when to use each, and the full auto-update pipeline.
 ```
 
-A vague "read before exploring unfamiliar code" pointer is easy to skip. Explicit trigger conditions — especially "plan to grep" — activate the graph habit reliably. The full reference lives in `docs/agent/knowledge-graph.md` and is only loaded when actually needed.
+Place this block in `CLAUDE.md` for Claude Code, `GEMINI.md` for Gemini CLI, or `AGENTS.md` for Codex/OpenAI-compatible agents — the trigger-list pattern works the same across all of them. A vague "read before exploring unfamiliar code" pointer is easy for any agent to skip. Explicit trigger conditions — especially "plan to grep" — activate the graph habit reliably. The full reference lives in `docs/agent/knowledge-graph.md` and is only loaded when actually needed.
 
 ---
 
@@ -430,9 +430,9 @@ Connections (3):
   --> AuthService      [calls]        [INFERRED]
 ```
 
-### Inside Claude Code
+### Inside Your AI Agent
 
-After `graphify install` and `code-review-graph install`, Claude Code gets skills and MCP tools automatically. Just start a session — the `SessionStart` hook shows the graph status.
+After `graphify install` and `code-review-graph install`, your AI agent gets graph tools automatically. For Claude Code, a `SessionStart` hook shows the graph status on every session open. Cursor, Gemini CLI, and Windsurf pick up the MCP server from `.mcp.json` instead.
 
 ```
 # code-review-graph status on session open:
@@ -498,7 +498,7 @@ if ! pgrep -f "$VAULT_MARK" > /dev/null 2>&1; then
 fi
 ```
 
-The `SessionStart` entry in `.claude/settings.local.json` that triggers it:
+The `SessionStart` entry in `.claude/settings.local.json` that triggers it (Claude Code-specific — other agents start via their own plugin/extension hooks):
 
 ```json
 "SessionStart": [
@@ -525,11 +525,11 @@ The graphify post-commit hook runs the rebuild **in the background** (detached p
 
 ### Strategy D: Claude Code Hooks (AI-Driven Updates)
 
-When Claude Code edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially — move them out. The right home is `.claude/settings.example.json` (committed reference for teammates) and `.claude/settings.local.json` (your live runtime copy, gitignored).
+When an AI agent edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially — move them out. The right home is `.claude/settings.example.json` (committed reference for teammates) and `.claude/settings.local.json` (your live runtime copy, gitignored).
 
 Use the fallback-safe version that silently no-ops if the CLI isn't installed:
 
-At **0.425s per update**, this runs after every file edit without blocking Claude's workflow.
+At **0.425s per update**, this runs after every file edit without blocking the agent's workflow.
 
 For both `.claude/settings.example.json` and the global `~/.claude/settings.json`, use:
 
@@ -923,7 +923,7 @@ This shows only that project's symbols without switching vaults.
 
 ---
 
-### `ai-vault/CLAUDE.md` (vault-level agent instructions)
+### `ai-vault/CLAUDE.md` (vault-level agent instructions — Claude Code example; use `AGENTS.md` or `GEMINI.md` for other agents)
 
 ```markdown
 ## Session Commands
@@ -1028,7 +1028,7 @@ Create the same file at `.husky/post-checkout` with two changes: wrap the graphi
 After full setup, the pipeline looks like this:
 
 ```
-Claude Code session opens
+AI agent session opens (Claude Code shown — other agents use equivalent plugin hooks)
     → SessionStart: code-review-graph status
     → SessionStart: .claude/graph-daemon.sh (if not already running)
         ├── graphify watch . (background) — watches filesystem for changes
@@ -1041,7 +1041,7 @@ Developer edits a file
     → graphify watch detects change → rebuilds graph.json
     → vault-sync daemon detects new graph.json → copies GRAPH_REPORT + regens nodes
 
-Claude Code edits a file
+AI agent edits a file
     → PostToolUse: code-review-graph update --skip-flows (0.425s)
     → graphify watch also detects the edit → vault syncs within ~10s
 
@@ -1138,7 +1138,7 @@ Code navigation is fundamentally relational — `UserController` calls `AuthServ
 | Incremental update | 0.4s (SQLite diff) | Re-embed changed chunks |
 | Exact symbol lookup | Use grep/LSP (still best) | Often worse |
 
-Knowledge graphs excel at **"how does X relate to Y"** questions. For exact symbol lookup, grep and LSP still win — and both tools' `PreToolUse` hooks redirect Claude toward the graph for structural questions while leaving grep for exact matches.
+Knowledge graphs excel at **"how does X relate to Y"** questions. For exact symbol lookup, grep and LSP still win — and both tools' `PreToolUse` hooks (or equivalent agent config) redirect the agent toward the graph for structural questions while leaving grep for exact matches.
 
 ---
 
@@ -1174,10 +1174,11 @@ your-project/
 └── .kiro/ / .opencode.json            ← IDE-specific
 ```
 
-**Outside project (global Claude settings):**
+**Outside project (global AI agent settings — Claude Code example):**
 ```
 ~/.claude/settings.example.json        ← updated (PostToolUse hook reference)
 ```
+Other agents: equivalent global config in `~/.cursor/`, `~/.config/gemini/`, etc.
 
 **New teammate setup** (copy `.mcp.example.json` and configure local hooks):
 ```bash
