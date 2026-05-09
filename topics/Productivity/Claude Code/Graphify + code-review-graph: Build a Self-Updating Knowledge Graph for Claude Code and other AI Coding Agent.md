@@ -278,14 +278,70 @@ The `.mcp.json` it creates (keep as `.mcp.example.json` only):
 ```bash
 # Adds graphify section to CLAUDE.md + PreToolUse hook (Claude Code)
 graphify claude install
-
-# Installs post-commit + post-checkout git hooks
-graphify hook install
 ```
 
 Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg`, `find` commands and redirects the agent to `graphify query` instead — turning search interception into graph navigation. For other agents: `code-review-graph install` already writes equivalent config to `GEMINI.md`, `AGENTS.md`, `.cursorrules`, and Zed settings.
 
 > **Note:** `graphify claude install` writes the `PreToolUse` hook into `.claude/settings.json`. Move it to `.claude/settings.example.json` (committed as a reference) and copy to `.claude/settings.local.json` to activate it locally — not every teammate will have graphify installed, so it shouldn't fire automatically for everyone.
+
+### Auto-Update on Commit (the full picture)
+
+Three independent triggers keep the graph fresh — install all of them so no edit path leaves it stale:
+
+| Trigger | Hook location | Covers |
+|---|---|---|
+| **Claude edits a file** | `.claude/settings.local.json` PostToolUse | agent-driven changes (already configured above) |
+| **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | graphify rebuild on `git checkout <other-branch>` |
+| **Any commit** | `.git/hooks/post-commit` (or `.husky/post-commit`) | terminal commits, IDE commits, other AI tools |
+
+Graphify ships its own installer for the git side:
+
+```bash
+graphify hook install   # writes post-commit + post-checkout
+```
+
+**Code-review-graph does not.** Its `install` command writes a `pre-commit` hook that runs `detect-changes --brief` (a status warning before the commit lands) but no `post-commit` hook to update the SQLite graph after. Without one, `.code-review-graph/graph.db` only refreshes when Claude touches a file — every terminal/IDE/other-tool commit drifts.
+
+Add the post-commit update yourself. Both forms are detached so `git commit` returns immediately:
+
+**Plain git project — append to `.git/hooks/post-commit`:**
+
+```sh
+# code-review-graph-hook-start
+# Auto-rebuild code-review-graph SQLite DB after each commit (detached, non-blocking).
+if command -v code-review-graph >/dev/null 2>&1 && [ -d .code-review-graph ]; then
+    _CRG_LOG="${HOME}/.cache/code-review-graph-update.log"
+    mkdir -p "$(dirname "$_CRG_LOG")"
+    echo "[code-review-graph hook] launching background update (log: $_CRG_LOG)"
+    nohup code-review-graph update --skip-flows > "$_CRG_LOG" 2>&1 < /dev/null &
+    disown 2>/dev/null || true
+fi
+# code-review-graph-hook-end
+```
+
+**Husky project — add the same block to `.husky/post-commit`** (Husky v9+ runs `.husky/<hookname>` directly; no `.husky/_/` shim editing needed). Always prefer `update --skip-flows` (incremental, sub-second) over `build` (full rebuild — minutes on large repos):
+
+```sh
+# .husky/post-commit
+if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ]; then
+  _LOG="${HOME}/.cache/code-review-graph-update.log"
+  mkdir -p "$(dirname "$_LOG")"
+  echo "[code-review-graph] Commit detected - launching background update (log: $_LOG)"
+  nohup code-review-graph update --skip-flows > "$_LOG" 2>&1 < /dev/null &
+  disown 2>/dev/null || true
+fi
+```
+
+Verify both graphs caught up to the latest commit:
+
+```sh
+git log -1 --format=%ci                          # last commit timestamp
+stat -f %Sm graphify-out/graph.json              # macOS
+stat -f %Sm .code-review-graph/graph.db          # macOS
+# stat -c %y graphify-out/graph.json             # Linux equivalent
+```
+
+Both file mtimes should be at or after the commit timestamp. If `graph.db` lags, the post-commit hook isn't firing — check `chmod +x` on the hook file and that `pnpm install` ran (so Husky's `prepare` script wired up `.husky/`).
 
 ### Agent Config: trigger-list pattern (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`)
 

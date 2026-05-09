@@ -19,12 +19,9 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent](./topics/Productivity/Claude%20Code/Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
 
 ##### branchdiff
-- [branchdiff: Code Review Tool for Modern Teams - Introduction and Facilities](./topics/Productivity/branchdiff/branchdiff:%20Code%20Review%20Tool%20for%20Modern%20Teams%20-%20Introduction%20and%20Facilities.md)
-- [AI Code Review Without Leaving Your Terminal - Practical branchdiff workflows](./topics/Productivity/branchdiff/AI%20Code%20Review%20Without%20Leaving%20Your%20Terminal%20-%20Practical%20branchdiff%20workflows.md)
-- [Why I Built a Local-First Diff Tool - The story behind branchdiff](./topics/Productivity/branchdiff/Why%20I%20Built%20a%20Local-First%20Diff%20Tool%20-%20The%20story%20behind%20branchdiff.md)
-- [Collaborative Code Review: Team Workflows with branchdiff & GitHub](./topics/Productivity/branchdiff/Collaborative%20Code%20Review:%20Team%20Workflows%20with%20branchdiff%20%26%20GitHub.md)
-- [How branchdiff Became My Team's Code Review Operating System](./topics/Productivity/branchdiff/How%20branchdiff%20Became%20My%20Team's%20Code%20Review%20Operating%20System.md)
-- [Deep Dive: branchdiff Workflows and Team Integration - Advanced Patterns and Real-World Examples](./topics/Productivity/branchdiff/Deep%20Dive:%20branchdiff%20Workflows%20and%20Team%20Integration%20-%20Advanced%20Patterns%20and%20Real-World%20Examples.md)
+- [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
+- [Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff](./topics/Productivity/branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
+- [Reviewing Teammates PRs Faster - branchdiff Sessions, AI Passes, and Sync Back](./topics/Productivity/branchdiff/Reviewing%20Teammates%20PRs%20Faster%20-%20branchdiff%20Sessions%2C%20AI%20Passes%2C%20and%20Sync%20Back.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
