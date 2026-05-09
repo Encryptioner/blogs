@@ -15,6 +15,12 @@
 
 11. Productivity: [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
 12. Productivity: [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent](./topics/Productivity/Claude%20Code/Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
+13. Productivity: [branchdiff: Code Review Tool for Modern Teams - Introduction and Facilities](./topics/Productivity/branchdiff/branchdiff:%20Code%20Review%20Tool%20for%20Modern%20Teams%20-%20Introduction%20and%20Facilities.md)
+14. Productivity: [AI Code Review Without Leaving Your Terminal - Practical branchdiff workflows](./topics/Productivity/branchdiff/AI%20Code%20Review%20Without%20Leaving%20Your%20Terminal%20-%20Practical%20branchdiff%20workflows.md)
+15. Productivity: [Why I Built a Local-First Diff Tool - The story behind branchdiff](./topics/Productivity/branchdiff/Why%20I%20Built%20a%20Local-First%20Diff%20Tool%20-%20The%20story%20behind%20branchdiff.md)
+16. Productivity: [Collaborative Code Review: Team Workflows with branchdiff & GitHub](./topics/Productivity/branchdiff/Collaborative%20Code%20Review:%20Team%20Workflows%20with%20branchdiff%20%26%20GitHub.md)
+17. Productivity: [How branchdiff Became My Team's Code Review Operating System](./topics/Productivity/branchdiff/How%20branchdiff%20Became%20My%20Team's%20Code%20Review%20Operating%20System.md)
+18. Productivity: [Deep Dive: branchdiff Workflows and Team Integration - Advanced Patterns and Real-World Examples](./topics/Productivity/branchdiff/Deep%20Dive:%20branchdiff%20Workflows%20and%20Team%20Integration%20-%20Advanced%20Patterns%20and%20Real-World%20Examples.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
