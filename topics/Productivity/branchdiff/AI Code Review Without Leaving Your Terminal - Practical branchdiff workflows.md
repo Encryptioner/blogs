@@ -521,12 +521,13 @@ See the [complete guideline](https://encryptioner.github.io/branchdiff-releases/
 
 ---
 
-## Questions?
+## Let's Connect
 
-- **In-app guide:** `branchdiff guide`
-- **GitHub repo:** https://github.com/Encryptioner/branchdiff-releases
-- **Twitter:** [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review strategy:
 
-If branchdiff saves you time, consider supporting its development:
-
-[![SupportKori](https://img.shields.io/badge/SupportKori-☕-FFDD00?style=flat-square)](https://www.supportkori.com/mirmursalinankur)
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)

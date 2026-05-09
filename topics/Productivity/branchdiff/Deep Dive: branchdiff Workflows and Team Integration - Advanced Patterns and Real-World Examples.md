@@ -512,39 +512,13 @@ Reviews happen offline. GitHub/Bitbucket sync requires internet. Local LLM suppo
 
 ---
 
-## Next Steps
+## Let's Connect
 
-Try one workflow at a time:
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review strategy:
 
-1. **This week:** Try security audit (Workflow 1)
-2. **Next week:** Try breaking change detection (Workflow 3)
-3. **Week 3:** Try code tours for a new hire (Workflow 5)
-
-Each one saves 15-50 minutes. Compound them over a month, you're back 10+ hours.
-
----
-
-## Support the Project
-
-If these workflows save your team time:
-
-[![SupportKori](https://img.shields.io/badge/SupportKori-☕-FFDD00?style=flat-square)](https://www.supportkori.com/mirmursalinankur)
-
-Development is ongoing. Support helps prioritize features and fixes.
-
----
-
-## Links
-
-- **Install:** `npm install -g @encryptioner/branchdiff`
-- **GitHub:** https://github.com/Encryptioner/branchdiff-releases
-- **Guide:** `branchdiff guide` (in-app)
-- **Twitter:** [@AnkurMursalin](https://twitter.com/AnkurMursalin)
-
----
-
-## Go Deeper
-
-Read the first guide: "branchdiff: Code Review Tool for Modern Teams — Introduction and Facilities" for core concepts and setup.
-
-For philosophy and design, check out "Why I Built a Local-First Diff Tool" (coming soon).
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)

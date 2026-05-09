@@ -249,18 +249,13 @@ If it feels faster, read the next guide for advanced workflows.
 
 ---
 
-## Support
+## Let's Connect
 
-If branchdiff saves your team time:
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review strategy:
 
-[![SupportKori](https://img.shields.io/badge/SupportKori-☕-FFDD00?style=flat-square)](https://www.supportkori.com/mirmursalinankur)
-
-Development takes time. Support helps keep the project going.
-
----
-
-## Links
-
-- **GitHub repo:** https://github.com/Encryptioner/branchdiff-releases
-- **Full guide:** Run `branchdiff guide` after install
-- **Twitter:** [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)

@@ -251,26 +251,13 @@ That's worth building for.
 
 ---
 
-## Support
+## Let's Connect
 
-If branchdiff makes your review process better, the project needs support:
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review strategy:
 
-[![SupportKori](https://img.shields.io/badge/SupportKori-☕-FFDD00?style=flat-square)](https://www.supportkori.com/mirmursalinankur)
-
-Development takes time. Code review tools are boring until you use them. Then they're essential.
-
-Help keep the project going.
-
----
-
-## More
-
-- **Full guideline:** Run `branchdiff guide` after install
-- **GitHub repo:** https://github.com/Encryptioner/branchdiff-releases
-- **Issues, feedback, ideas:** GitHub issues are monitored
-
-If you're curious about how branchdiff works under the hood, check out the previous blog: "Why I Built a Local-First Diff Tool."
-
-If you want practical workflows, check out: "AI Code Review Without Leaving Your Terminal."
-
-This one's about why it matters. The why behind the how.
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)

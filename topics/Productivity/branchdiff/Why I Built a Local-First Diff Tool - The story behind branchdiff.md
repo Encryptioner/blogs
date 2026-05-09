@@ -272,12 +272,13 @@ Open an issue, share feedback, or star the [GitHub repo](https://github.com/Encr
 
 ---
 
-## Support
+## Let's Connect
 
-If branchdiff saves you time, consider supporting its development:
+I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review strategy:
 
-[![SupportKori](https://img.shields.io/badge/SupportKori-☕-FFDD00?style=flat-square)](https://www.supportkori.com/mirmursalinankur)
-
----
-
-**Questions?** Read the [complete guideline](https://encryptioner.github.io/branchdiff-releases/guideline.html) or run `branchdiff guide` after install. The CLI includes full AI review workflows, code tour creation, security audits, and dependency review.
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
