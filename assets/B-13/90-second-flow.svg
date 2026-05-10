@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="800" height="240">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr-end" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="240" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">90-SECOND PR REVIEW  ·  TEAMMATE LINK → REVIEW LIVE</text>
+
+  <!-- Track line -->
+  <line x1="80" y1="120" x2="720" y2="120" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <!-- Station 1: 0s -->
+  <circle cx="80" cy="120" r="28" fill="#94a3b8"/>
+  <text x="80" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="white">0s</text>
+  <text x="80" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">PR link</text>
+  <text x="80" y="92" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">posted in Slack</text>
+
+  <!-- Station 2: ~3s -->
+  <circle cx="208" cy="120" r="28" fill="#3b82f6"/>
+  <text x="208" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="white">~3s</text>
+  <text x="208" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Diff loads</text>
+  <text x="208" y="186" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">from disk · localhost</text>
+
+  <!-- Station 3: ~30s -->
+  <circle cx="336" cy="120" r="28" fill="#8b5cf6"/>
+  <text x="336" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="white">~30s</text>
+  <text x="336" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Read &amp; mark</text>
+  <text x="336" y="92" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">3 viewed · drop 3 comments</text>
+
+  <!-- Station 4: ~60s -->
+  <circle cx="464" cy="120" r="28" fill="#f59e0b"/>
+  <text x="464" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#1e293b">~60s</text>
+  <text x="464" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Push to PR</text>
+  <text x="464" y="186" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">✓ pushed 3 comments</text>
+
+  <!-- Station 5: ~75s -->
+  <circle cx="592" cy="120" r="28" fill="#10b981"/>
+  <text x="592" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="white">~75s</text>
+  <text x="592" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Approve</text>
+  <text x="592" y="92" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">from toolbar dropdown</text>
+
+  <!-- Station 6: 90s done -->
+  <circle cx="720" cy="120" r="32" fill="#059669"/>
+  <text x="720" y="118" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="800" fill="white">90s</text>
+  <text x="720" y="132" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="white">✓</text>
+  <text x="720" y="174" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#059669">Done</text>
+  <text x="720" y="190" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">review live on platform</text>
+
+  <!-- Bottom callout -->
+  <rect x="16" y="208" width="768" height="24" fill="white" rx="6" filter="url(#card-shadow)"/>
+  <text x="400" y="224" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" fill="#475569"><tspan font-weight="700" fill="#1e293b">The work of reading the diff is unchanged.</tspan> Everything around it shrunk.</text>
+</svg>

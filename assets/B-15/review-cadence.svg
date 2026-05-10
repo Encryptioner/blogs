@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" width="800" height="540">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="540" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">REVIEW CADENCE FOR A 30-FILE PR  ·  6-STEP RHYTHM</text>
+
+  <!-- Step rows: width 540 left, with vertical chain on the right -->
+  <!-- Step 1 -->
+  <rect x="40" y="56" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="56" width="64" height="60" fill="#3b82f6" rx="8"/>
+  <rect x="96" y="56" width="8" height="60" fill="#3b82f6"/>
+  <text x="72" y="92" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="white">1</text>
+  <text x="120" y="80" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Open locally</text>
+  <text x="120" y="98" font-family="ui-monospace,monospace" font-size="11" fill="#1e40af">branchdiff &lt;PR-url&gt;</text>
+  <text x="120" y="111" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Pull existing comments if others reviewed first</text>
+
+  <line x1="340" y1="116" x2="340" y2="136" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 2 -->
+  <rect x="40" y="140" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="140" width="64" height="60" fill="#6366f1" rx="8"/>
+  <rect x="96" y="140" width="8" height="60" fill="#6366f1"/>
+  <text x="72" y="176" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="white">2</text>
+  <text x="120" y="164" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">First pass</text>
+  <text x="120" y="180" font-family="system-ui,sans-serif" font-size="11" fill="#475569">Collapse all  ·  expand 5–6 key files  ·  read &amp; mark viewed</text>
+  <text x="120" y="194" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Counter at top:  12 / 30 viewed</text>
+
+  <line x1="340" y1="200" x2="340" y2="220" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 3 -->
+  <rect x="40" y="224" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="224" width="64" height="60" fill="#8b5cf6" rx="8"/>
+  <rect x="96" y="224" width="8" height="60" fill="#8b5cf6"/>
+  <text x="72" y="260" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="white">3</text>
+  <text x="120" y="248" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">AI sweep  🤖</text>
+  <text x="120" y="264" font-family="system-ui,sans-serif" font-size="11" fill="#475569">Security audit  +  test coverage gaps</text>
+  <text x="120" y="278" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Runs in parallel while you read</text>
+
+  <line x1="340" y1="284" x2="340" y2="304" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 4 -->
+  <rect x="40" y="308" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="308" width="64" height="60" fill="#f59e0b" rx="8"/>
+  <rect x="96" y="308" width="8" height="60" fill="#f59e0b"/>
+  <text x="72" y="344" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="#1e293b">4</text>
+  <text x="120" y="332" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Triage</text>
+  <text x="120" y="348" font-family="system-ui,sans-serif" font-size="11" fill="#475569">Keep <tspan font-weight="700" fill="#dc2626">[must-fix]</tspan> threads  ·  dismiss the rest with reasons</text>
+  <text x="120" y="362" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Reasons land in the PR description as side-effect context</text>
+
+  <line x1="340" y1="368" x2="340" y2="388" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 5 -->
+  <rect x="40" y="392" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="392" width="64" height="60" fill="#f97316" rx="8"/>
+  <rect x="96" y="392" width="8" height="60" fill="#f97316"/>
+  <text x="72" y="428" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="white">5</text>
+  <text x="120" y="416" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Re-review stale</text>
+  <text x="120" y="432" font-family="system-ui,sans-serif" font-size="11" fill="#475569">Filter → Stale  ·  re-read changed files  ·  update threads</text>
+  <text x="120" y="446" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Hash-based — only files that actually changed</text>
+
+  <line x1="340" y1="452" x2="340" y2="472" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 6 -->
+  <rect x="40" y="476" width="600" height="60" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="476" width="64" height="60" fill="#10b981" rx="8"/>
+  <rect x="96" y="476" width="8" height="60" fill="#10b981"/>
+  <text x="72" y="512" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="white">6</text>
+  <text x="120" y="500" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Close the loop  ✓</text>
+  <text x="120" y="516" font-family="system-ui,sans-serif" font-size="11" fill="#475569">Push comments  ·  approve / request changes  ·  merge with strategy</text>
+  <text x="120" y="530" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Single dropdown — branch protection still on the platform</text>
+
+  <!-- Force-push loopback arrow from Step 5 → Step 2 -->
+  <path d="M 640 422 C 720 422, 720 170, 640 170" stroke="#dc2626" stroke-width="2" fill="none" stroke-dasharray="5 4" marker-end="url(#arr-loop)"/>
+  <rect x="660" y="262" width="120" height="62" fill="#fef2f2" rx="6"/>
+  <text x="720" y="280" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#dc2626">Author</text>
+  <text x="720" y="294" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#dc2626">force-pushed?</text>
+  <text x="720" y="312" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#dc2626" font-style="italic">repeat from</text>
+  <text x="720" y="324" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#dc2626">Step 2</text>
+</svg>

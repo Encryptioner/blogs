@@ -30,22 +30,7 @@ If the PR already has comments from other reviewers, click `#123` → **Pull fro
 
 Big PRs are intimidating because progress is invisible. branchdiff borrows GitHub's "viewed" idea and makes it meaningfully smarter:
 
-```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> Unviewed : File appears in diff
-    Unviewed --> Viewed : User marks viewed\n(eye icon / right-click)
-    Viewed --> Stale : Author pushes commit\nthat changes this file\n(FNV-1a hash mismatch)
-    Stale --> Viewed : User re-reads +\nmarks viewed again
-    Viewed --> Viewed : Author pushes commit,\nfile content unchanged\n✓ Marker preserved
-
-    note right of Viewed
-        Persists via:
-        localStorage (fast UI)
-        SQLite (stable, cross-machine)
-        Keyed by repo fingerprint
-    end note
-```
+![Viewed / Stale State Machine](../../../assets/B-15/viewed-stale-state.png)
 
 - **Mark a file viewed** with the eye icon in the file header, right-click → *Mark viewed*, or from the keyboard. The sidebar shows a checkmark.
 - **A counter** — `12 / 38 viewed` — shows how far you are. On a forty-file PR, that counter is the difference between confident progress and the "I think I covered everything" feeling that produces "LGTM" comments written out of exhaustion.
@@ -75,7 +60,7 @@ The sidebar has nine filter chips that stack with the search box. Each one answe
 | **Staged**     | Which working-tree files have staged changes?                       |
 | **Unstaged**   | Which working-tree files have unstaged changes?                     |
 
-![9 Sidebar Filters](../../../assets/B-15/sidebar-filters-grid.svg)
+![9 Sidebar Filters](../../../assets/B-15/sidebar-filters-grid.png)
 
 Filters auto-hide when inapplicable — no `Staged` chip on a branch comparison, no `Commented` chip when nothing is commented yet. They stack with the search box, so *Filter → Stale + search "auth"* gives you exactly the auth files that changed since you last looked.
 
@@ -112,35 +97,7 @@ branchdiff review context | claude -p "security audit"
 branchdiff review run --exec "claude -p 'test coverage gaps'" --mode review
 ```
 
-```mermaid
-flowchart TD
-    START["What does the diff touch?"] --> P0
-
-    START --> Q1
-    Q1{"Auth / input handling\n/ web-facing code?"}
-    Q1 -- Yes --> P1["🔒 Security Audit\nInjection · Secret leaks\nWeak crypto · Broken authz\nSSRF · Deserialization"]
-
-    Q1 -- No --> Q2
-    Q2{"New functions,\nbranches, error paths?"}
-    Q2 -- Yes --> P2["🧪 Test Coverage Gaps\nFlags uncovered paths\nGenerates it(...) stubs\nErrors → API → edges"]
-
-    Q2 -- No --> Q3
-    Q3{"Public API or\nlibrary changes?"}
-    Q3 -- Yes --> P3["⚠️ Breaking-Change Review\nClassifies each change\nDrafts UPGRADE.md\nFlags no-rollback migrations"]
-
-    Q3 -- No --> Q4
-    Q4{"New or bumped\ndependencies?"}
-    Q4 -- Yes --> P4["📦 Dependency Review\nMaintenance · License\nBundle size · CVEs"]
-
-    P0["🔍 General Review\n/branchdiff-review\nmust-fix · suggestion · nit · question"]
-
-    style P1 fill:#ef4444,color:#fff
-    style P2 fill:#3b82f6,color:#fff
-    style P3 fill:#f59e0b,color:#1e293b
-    style P4 fill:#8b5cf6,color:#fff
-    style P0 fill:#475569,color:#fff
-    style START fill:#1e293b,color:#fff
-```
+![AI Passes Decision Tree](../../../assets/B-15/ai-passes-decision.png)
 
 For somebody else's PR I usually run two passes:
 
@@ -167,24 +124,7 @@ The same dropdown carries every lifecycle action — Approve / Request Changes /
 
 ## A reasonable cadence for a 30-file PR
 
-```mermaid
-flowchart TD
-    S1["1️⃣ Open locally\nbranchdiff PR-url\nPull existing comments\nif others reviewed first"] --> S2
-    S2["2️⃣ First pass\nCollapse all\nExpand 5-6 key files\nRead + mark viewed"] --> S3
-    S3["3️⃣ AI sweep\nSecurity audit +\ntest coverage gaps\nRuns while you read"] --> S4
-    S4["4️⃣ Triage\nKeep must-fix items\nDismiss others with reasons"] --> S5
-    S5["5️⃣ Re-review stale\nFilter → Stale\nRe-read changed files\nUpdate threads"] --> S6
-    S6["6️⃣ Close the loop\nPush comments\nApprove / Request changes\nMerge with right strategy"]
-
-    S5 -. "Author force-pushed?\nRepeat from Step 2" .-> S2
-
-    style S1 fill:#3b82f6,color:#fff
-    style S2 fill:#6366f1,color:#fff
-    style S3 fill:#8b5cf6,color:#fff
-    style S4 fill:#f59e0b,color:#1e293b
-    style S5 fill:#f97316,color:#fff
-    style S6 fill:#10b981,color:#fff
-```
+![Review Cadence in 6 Steps](../../../assets/B-15/review-cadence.png)
 
 The total wall-clock time on a careful review goes down enough that you can afford to be more thorough on the parts that matter — flow control, contracts, edge cases, the "is this the right abstraction?" question — instead of burning attention on mechanics.
 

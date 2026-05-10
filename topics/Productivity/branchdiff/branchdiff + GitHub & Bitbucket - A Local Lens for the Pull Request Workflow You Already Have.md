@@ -18,24 +18,7 @@ Think of the PR on GitHub or Bitbucket as the **source of truth**. The review hi
 
 branchdiff is the **working surface** for the part of review that is fundamentally local — reading the diff, marking files as you go, drafting comments, navigating between files, and running an AI pass. When you are ready, you sync the comments to the PR with one click and the platform takes over again.
 
-```mermaid
-graph LR
-    subgraph platform ["☁️ GitHub / Bitbucket — Source of Truth"]
-        P1["🔒 Merge Gating\n& Branch Protection"]
-        P2["✅ CI / Status Checks"]
-        P3["👥 Approvals &\nRequired Reviewers"]
-        P4["📋 Audit Trail\n& History"]
-    end
-    subgraph local ["💻 branchdiff — Working Surface (localhost)"]
-        L1["📄 Read Full-Context\nDiff"]
-        L2["👁 Viewed / Stale\nFile Tracking"]
-        L3["💬 Draft & Triage\nComments"]
-        L4["🤖 AI Review\nPasses"]
-    end
-    L3 -- "Push to PR (opt-in)" --> P4
-    P4 -- "Pull from PR (opt-in)" --> L3
-    local -. "Lifecycle actions\nvia gh / REST API" .-> platform
-```
+![Source of Truth vs. Working Surface](../../../assets/B-13/platform-vs-local-split.png)
 
 The split in practice:
 
@@ -75,7 +58,7 @@ Multiple sessions are the default, not a workaround. Each unique ref pair opens 
 
 The toolbar shows a dropdown for the open PR with the actions you would otherwise click on the platform. It is **not** a separate database of PR state. It is a remote control. Each action calls `gh` for GitHub or the Bitbucket REST API for Bitbucket, and the canonical PR records the action with the same timestamp it would have had if you had clicked on the website.
 
-![PR Lifecycle Action Groups](../../../assets/B-13/pr-lifecycle-groups.svg)
+![PR Lifecycle Action Groups](../../../assets/B-13/pr-lifecycle-groups.png)
 
 The dropdown groups four kinds of action:
 
@@ -107,22 +90,7 @@ This is the only cloud round-trip in the whole tool. No telemetry, no remote dif
 
 ## A concrete 90-second flow
 
-```mermaid
-flowchart LR
-    T0(["0s\nPR link posted\nin Slack"]) --> T1
-    T1(["~3s\nDiff loads\nfrom disk"]) --> T2
-    T2(["~30s\nMark 3 files viewed\nDrop 3 comments"]) --> T3
-    T3(["~60s\nPush to PR\n✓ Pushed 3 comments"]) --> T4
-    T4(["~75s\nApprove from\ntoolbar"]) --> T5
-    T5(["~90s\nDone ✓\nReview live on platform"])
-
-    style T0 fill:#94a3b8,color:#fff
-    style T1 fill:#3b82f6,color:#fff
-    style T2 fill:#8b5cf6,color:#fff
-    style T3 fill:#f59e0b,color:#1e293b
-    style T4 fill:#10b981,color:#fff
-    style T5 fill:#059669,color:#fff
-```
+![90-Second PR Review Flow](../../../assets/B-13/90-second-flow.png)
 
 ```bash
 # Teammate posts: "PR is up — https://github.com/acme/api/pull/482"

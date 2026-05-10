@@ -12,7 +12,7 @@ The tool is **branchdiff**: a local browser app that runs your diff on `localhos
 
 ## Why "before the PR" is the right moment
 
-![Self-Review: Before vs. After Opening the PR](../../../assets/B-14/self-review-before-after.svg)
+![Self-Review: Before vs. After Opening the PR](../../../assets/B-14/self-review-before-after.png)
 
 If you review *after* opening the PR, every AI fix becomes noise: a force-push, a re-read for your reviewer, another commit in the audit trail. If a teammate is already mid-review when you discover the bug, you look careless. The patch that should have been in the original push becomes a distraction for everyone downstream.
 
@@ -26,24 +26,7 @@ There is a subtler benefit too: **you learn from the dismissals**. Every time yo
 
 Assume you have a `feature/payments` branch off `main` — twelve files changed, about three hundred lines added. You want to clean it up before requesting review.
 
-```mermaid
-flowchart TD
-    S1["🖥️ Step 1\nOpen diff locally\nbranchdiff main feature/branch\nPersistent session in browser"] --> S2
-    S2["🤖 Step 2\nAI review pass\n/branchdiff-review\nPosts tagged inline comments"] --> S3
-    S3["⚡ Step 3\nTriage each thread\nFix · Auto-fix\nDismiss with reason · Reply"] --> D
-    D{"Zero open\n[must-fix]\nthreads?"}
-    D -- "No — commit fixes,\nrun again" --> S2
-    D -- "Yes" --> S4
-    S4["🎯 Step 4\nFocused passes\nSecurity · Test gaps\nBreaking change · Deps"] --> DONE
-    DONE["✅ Squash fixup! commits\nPush branch → Open PR"]
-
-    style S1 fill:#3b82f6,color:#fff
-    style S2 fill:#8b5cf6,color:#fff
-    style S3 fill:#f59e0b,color:#1e293b
-    style S4 fill:#10b981,color:#fff
-    style DONE fill:#059669,color:#fff
-    style D fill:#1e293b,color:#fff
-```
+![Self-Review Workflow in 4 Steps](../../../assets/B-14/self-review-4-steps.png)
 
 ### Step 1 — open your own diff locally
 
@@ -71,7 +54,7 @@ Then in your Claude Code session:
 
 The skill calls `branchdiff agent diff` to read the full diff, then posts inline comments via `branchdiff agent comment --file <path> --line <n> --body "[tag] ..."`. Each comment carries a severity tag:
 
-![Comment Tag Taxonomy](../../../assets/B-14/comment-tag-taxonomy.svg)
+![Comment Tag Taxonomy](../../../assets/B-14/comment-tag-taxonomy.png)
 
 | Tag | Meaning | Typical action |
 | --- | ------- | -------------- |
@@ -150,7 +133,7 @@ Here is what `branchdiff agent list --status open` might look like after the gen
 [question]   src/api/webhooks.ts:55        Should we 200 on duplicate webhook IDs or 409?
 ```
 
-![Sample Self-Review Session — Comment Breakdown](../../../assets/B-14/session-stats.svg)
+![Sample Self-Review Session — Comment Breakdown](../../../assets/B-14/session-stats.png)
 
 Two `[must-fix]` items, three improvements, one nit to dismiss, one question to answer. Twenty minutes of cleanup. The PR you push is materially better than the one you would have pushed before lunch.
 

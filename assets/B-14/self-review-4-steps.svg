@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" width="800" height="460">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="460" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">SELF-REVIEW WORKFLOW  ·  4 STEPS BEFORE YOU OPEN THE PR</text>
+
+  <!-- Step 1 -->
+  <rect x="40" y="56" width="720" height="62" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="56" width="80" height="62" fill="#3b82f6" rx="8"/>
+  <rect x="112" y="56" width="8" height="62" fill="#3b82f6"/>
+  <text x="80" y="84" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="white">1</text>
+  <text x="80" y="106" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18">🖥️</text>
+  <text x="140" y="78" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Open diff locally</text>
+  <text x="140" y="96" font-family="ui-monospace,monospace" font-size="11" fill="#1e40af">branchdiff main feature/branch</text>
+  <text x="140" y="111" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Persistent session in browser · localhost</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="400" y1="118" x2="400" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 2 -->
+  <rect x="40" y="142" width="720" height="62" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="142" width="80" height="62" fill="#8b5cf6" rx="8"/>
+  <rect x="112" y="142" width="8" height="62" fill="#8b5cf6"/>
+  <text x="80" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="white">2</text>
+  <text x="80" y="192" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18">🤖</text>
+  <text x="140" y="164" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">AI review pass</text>
+  <text x="140" y="182" font-family="ui-monospace,monospace" font-size="11" fill="#1e40af">/branchdiff-review</text>
+  <text x="140" y="197" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Posts tagged inline comments · must-fix · suggestion · nit · question</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="400" y1="204" x2="400" y2="224" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Step 3 -->
+  <rect x="40" y="228" width="720" height="62" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="228" width="80" height="62" fill="#f59e0b" rx="8"/>
+  <rect x="112" y="228" width="8" height="62" fill="#f59e0b"/>
+  <text x="80" y="256" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="#1e293b">3</text>
+  <text x="80" y="278" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18">⚡</text>
+  <text x="140" y="250" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">Triage each thread</text>
+  <text x="140" y="268" font-family="system-ui,sans-serif" font-size="11" fill="#475569"><tspan font-weight="700">Fix</tspan>  ·  <tspan font-weight="700">Auto-fix</tspan>  ·  <tspan font-weight="700">Dismiss with reason</tspan>  ·  <tspan font-weight="700">Reply</tspan></text>
+  <text x="140" y="283" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Each must-fix gets resolved or justified before moving on</text>
+
+  <!-- Arrow 3→Decision -->
+  <line x1="400" y1="290" x2="400" y2="310" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+
+  <!-- Decision diamond -->
+  <polygon points="400,310 540,355 400,400 260,355" fill="#1e293b" filter="url(#card-shadow)"/>
+  <text x="400" y="350" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="white">Zero open</text>
+  <text x="400" y="366" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#fbbf24">[must-fix]</text>
+  <text x="400" y="380" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="white">threads?</text>
+
+  <!-- Loop back arrow (No) -->
+  <path d="M 260 355 C 130 355, 130 173, 40 173" stroke="#dc2626" stroke-width="2" fill="none" stroke-dasharray="5 4" marker-end="url(#arr-loop)"/>
+  <rect x="56" y="306" width="120" height="36" fill="#fef2f2" rx="6"/>
+  <text x="116" y="322" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#dc2626">No — commit fixes</text>
+  <text x="116" y="335" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#dc2626">run pass again</text>
+
+  <!-- Yes label -->
+  <rect x="544" y="338" width="40" height="22" fill="#dcfce7" rx="4"/>
+  <text x="564" y="354" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="800" fill="#16a34a">Yes</text>
+
+  <!-- Step 4 -->
+  <rect x="40" y="392" width="720" height="22" fill="transparent"/>
+  <line x1="540" y1="355" x2="600" y2="355" stroke="#475569" stroke-width="2"/>
+  <line x1="600" y1="355" x2="600" y2="405" stroke="#475569" stroke-width="2"/>
+
+  <!-- Step 4 card -->
+  <rect x="40" y="402" width="720" height="44" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="40" y="402" width="80" height="44" fill="#10b981" rx="8"/>
+  <rect x="112" y="402" width="8" height="44" fill="#10b981"/>
+  <text x="80" y="430" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="800" fill="white">4</text>
+  <text x="140" y="421" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1e293b">🎯 Focused passes  →  ✅ Squash <tspan font-family="ui-monospace,monospace" font-size="11">fixup!</tspan> commits  ·  Push  ·  Open PR</text>
+  <text x="140" y="437" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Security · Test gaps · Breaking change · Deps  →  PR opens clean and reviewer-ready</text>
+
+  <!-- Connector from 600,405 to step 4 box top -->
+  <line x1="600" y1="405" x2="600" y2="402" stroke="#475569" stroke-width="2" marker-end="url(#arr-d)"/>
+</svg>
