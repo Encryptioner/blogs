@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr-slate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <linearGradient id="gfy-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="crg-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="520" fill="#f8fafc" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="2.5">HOW EACH TOOL BUILDS YOUR GRAPH</text>
+
+  <!-- ═══ LEFT: Graphify ═══ -->
+  <rect x="20" y="50" width="420" height="440" fill="white" rx="12" filter="url(#shadow)"/>
+
+  <!-- Header -->
+  <rect x="20" y="50" width="420" height="44" fill="url(#gfy-grad)" rx="12"/>
+  <rect x="20" y="80" width="420" height="14" fill="url(#gfy-grad)"/>
+  <text x="230" y="78" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="800" fill="white">Graphify — Two-Pass Pipeline</text>
+
+  <!-- Input -->
+  <rect x="50" y="110" width="360" height="36" fill="#fff7ed" rx="8" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="230" y="133" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#9a3412">Your Code (folder on disk)</text>
+
+  <!-- Arrow -->
+  <line x1="230" y1="146" x2="230" y2="166" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- Pass 1 -->
+  <rect x="50" y="170" width="360" height="60" fill="#fff7ed" rx="8" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="72" y="192" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#ea580c">PASS 1</text>
+  <text x="130" y="192" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#1e293b">Tree-sitter AST</text>
+  <text x="72" y="210" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Classes, functions, imports, call graphs</text>
+  <text x="72" y="224" font-family="system-ui,sans-serif" font-size="10" fill="#16a34a" font-weight="600">0 tokens · 25 languages · 100% local</text>
+
+  <!-- Arrow -->
+  <line x1="230" y1="230" x2="230" y2="250" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- Pass 2 -->
+  <rect x="50" y="254" width="360" height="60" fill="#f5f3ff" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="72" y="276" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#7c3aed">PASS 2</text>
+  <text x="130" y="276" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#1e293b">AI Extraction (optional)</text>
+  <text x="72" y="294" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">PDFs, images, markdown semantic relationships</text>
+  <text x="72" y="308" font-family="system-ui,sans-serif" font-size="10" fill="#b45309" font-weight="600">Uses Claude subagents · requires API key</text>
+
+  <!-- Arrow -->
+  <line x1="230" y1="314" x2="230" y2="334" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- Processing -->
+  <rect x="50" y="338" width="360" height="36" fill="#fff7ed" rx="8" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="230" y="361" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#9a3412">NetworkX Graph + Leiden Clustering</text>
+
+  <!-- Arrow to outputs -->
+  <line x1="140" y1="374" x2="140" y2="394" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-slate)"/>
+  <line x1="230" y1="374" x2="230" y2="394" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-slate)"/>
+  <line x1="320" y1="374" x2="320" y2="394" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-slate)"/>
+
+  <!-- Outputs -->
+  <rect x="46" y="398" width="180" height="36" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="136" y="414" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#065f46">graph.json</text>
+  <text x="136" y="428" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">queryable graph data</text>
+
+  <rect x="136" y="440" width="180" height="36" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="226" y="456" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#065f46">GRAPH_REPORT.md</text>
+  <text x="226" y="470" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">750 communities, Obsidian</text>
+
+  <rect x="228" y="398" width="180" height="36" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="318" y="414" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#065f46">graph.html</text>
+  <text x="318" y="428" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">interactive visual</text>
+
+  <!-- ═══ RIGHT: CRG ═══ -->
+  <rect x="460" y="50" width="420" height="440" fill="white" rx="12" filter="url(#shadow)"/>
+
+  <!-- Header -->
+  <rect x="460" y="50" width="420" height="44" fill="url(#crg-grad)" rx="12"/>
+  <rect x="460" y="80" width="420" height="14" fill="url(#crg-grad)"/>
+  <text x="670" y="78" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="800" fill="white">code-review-graph — AST + MCP</text>
+
+  <!-- Input -->
+  <rect x="490" y="110" width="360" height="36" fill="#f5f3ff" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="670" y="133" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#5b21b6">Your Code (git-tracked files)</text>
+
+  <!-- Arrow -->
+  <line x1="670" y1="146" x2="670" y2="166" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- Tree-sitter -->
+  <rect x="490" y="170" width="360" height="48" fill="#f5f3ff" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="670" y="192" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#1e293b">Tree-sitter AST</text>
+  <text x="670" y="208" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#16a34a" font-weight="600">23 languages · 0 tokens · incremental</text>
+
+  <!-- Arrow -->
+  <line x1="670" y1="218" x2="670" y2="238" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- SQLite -->
+  <rect x="490" y="242" width="360" height="80" fill="#f5f3ff" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="670" y="264" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="800" fill="#7c3aed">.code-review-graph/graph.db</text>
+  <line x1="510" y1="274" x2="830" y2="274" stroke="#e9d5ff" stroke-width="1"/>
+  <text x="510" y="292" font-family="system-ui,sans-serif" font-size="10.5" fill="#1e293b" font-weight="600">Nodes:</text>
+  <text x="560" y="292" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">functions, classes, files</text>
+  <text x="510" y="308" font-family="system-ui,sans-serif" font-size="10.5" fill="#1e293b" font-weight="600">Edges:</text>
+  <text x="558" y="308" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">imports, calls, inheritance</text>
+  <text x="510" y="318" font-family="system-ui,sans-serif" font-size="9.5" fill="#16a34a" font-weight="600">Full-text search (FTS5) · embeddings · sub-ms</text>
+
+  <!-- Arrow -->
+  <line x1="670" y1="322" x2="670" y2="342" stroke="#475569" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+  <!-- MCP Tools -->
+  <rect x="490" y="346" width="360" height="50" fill="#f5f3ff" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="670" y="366" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#1e293b">~25 MCP Tools</text>
+  <text x="670" y="384" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">allow-list to 8 via CRG_TOOLS env — 70% schema cut</text>
+
+  <!-- Tool chips -->
+  <rect x="490" y="406" width="105" height="28" fill="#ede9fe" rx="14"/>
+  <text x="542" y="424" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">semantic_search</text>
+
+  <rect x="601" y="406" width="85" height="28" fill="#ede9fe" rx="14"/>
+  <text x="643" y="424" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">query_graph</text>
+
+  <rect x="692" y="406" width="80" height="28" fill="#ede9fe" rx="14"/>
+  <text x="732" y="424" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">impact_radius</text>
+
+  <rect x="779" y="406" width="70" height="28" fill="#ede9fe" rx="14"/>
+  <text x="814" y="424" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">communities</text>
+
+  <rect x="490" y="440" width="80" height="28" fill="#ede9fe" rx="14"/>
+  <text x="530" y="458" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">review_ctx</text>
+
+  <rect x="576" y="440" width="90" height="28" fill="#ede9fe" rx="14"/>
+  <text x="621" y="458" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">traverse_graph</text>
+
+  <rect x="672" y="440" width="65" height="28" fill="#ede9fe" rx="14"/>
+  <text x="704" y="458" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">get_comm</text>
+
+  <rect x="743" y="440" width="50" height="28" fill="#ede9fe" rx="14"/>
+  <text x="768" y="458" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8.5" font-weight="600" fill="#6d28d9">stats</text>
+</svg>

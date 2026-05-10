@@ -38,6 +38,8 @@ Before diving in, here's what both tools produced across two real codebases — 
 
 ## How Each Tool Works
 
+![Pipeline Architecture: Graphify vs code-review-graph](../../../assets/B-12/pipeline-architecture.png)
+
 ### Graphify — Two-Pass Graph with Communities
 
 ```
@@ -290,6 +292,8 @@ Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg
 
 ### Auto-Update on Commit (the full picture)
 
+![Auto-Update Triggers: PostToolUse, git commit, branch switch](../../../assets/B-12/auto-update-triggers.png)
+
 Three independent triggers keep the graph fresh — install all of them so no edit path leaves it stale:
 
 | Trigger | Hook location | Covers |
@@ -371,6 +375,8 @@ Place this block in `CLAUDE.md` for Claude Code, `GEMINI.md` for Gemini CLI, or 
 The trigger-list in `CLAUDE.md` is a soft nudge — in practice, agents still reach for grep by default even with both knowledge graphs initialized and the pointer in place. Soft warnings alone do not reliably change behaviour.
 
 The fix is a smarter `PreToolUse` hook that doesn't just warn — it **answers the question inside the rejection**, and handles every scenario gracefully: no graph, cross-repo grep, multi-repo registries.
+
+![Smart Grep Hook Decision Ladder](../../../assets/B-12/smart-grep-flow.png)
 
 **Decision ladder (first match wins, zero false positives):**
 
@@ -683,6 +689,8 @@ The allowance resets hourly. The `bypass.log` is an audit trail — recurring pa
 ---
 
 ### Real Token Cost Comparison
+
+![Token Cost Per Lookup: grep vs graphify vs CRG](../../../assets/B-12/token-cost-chart.png)
 
 All numbers measured live on a 1336-node TypeScript monorepo, embeddings enabled (`code-review-graph embed` run once, then incremental after each edit).
 

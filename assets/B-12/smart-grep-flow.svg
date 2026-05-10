@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 580" width="860" height="580">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="860" height="580" fill="#f8fafc" rx="12"/>
+
+  <!-- Title -->
+  <text x="430" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="2.5">SMART GREP HOOK — DECISION LADDER</text>
+
+  <!-- Start -->
+  <rect x="340" y="48" width="180" height="34" fill="#1e293b" rx="17"/>
+  <text x="430" y="70" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="white">Agent calls grep / find</text>
+
+  <!-- Arrow down -->
+  <line x1="430" y1="82" x2="430" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Decision 1: Search command? -->
+  <polygon points="430,104 540,136 430,168 320,136" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="430" y="133" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1e40af">Is search cmd?</text>
+  <text x="430" y="146" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#64748b">grep / rg / find / fd</text>
+
+  <!-- No → Pass -->
+  <line x1="540" y1="136" x2="640" y2="136" stroke="#475569" stroke-width="1.5"/>
+  <rect x="644" y="122" width="100" height="28" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="694" y="140" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#065f46">Pass silent</text>
+
+  <!-- Yes → down -->
+  <line x1="430" y1="168" x2="430" y2="186" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Decision 2: Non-code target? -->
+  <polygon points="430,190 540,222 430,254 320,222" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="430" y="219" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1e40af">Non-code target?</text>
+  <text x="430" y="232" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#64748b">.md .json .log .yml</text>
+
+  <!-- Yes → Pass -->
+  <line x1="540" y1="222" x2="640" y2="222" stroke="#475569" stroke-width="1.5"/>
+  <rect x="644" y="208" width="100" height="28" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="694" y="226" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#065f46">Pass silent</text>
+
+  <!-- No → down -->
+  <line x1="430" y1="254" x2="430" y2="272" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Decision 3: graph-tried flag? -->
+  <polygon points="430,276 540,308 430,340 320,308" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="430" y="305" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#1e40af">--graph-tried?</text>
+  <text x="430" y="318" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#64748b">explicit override</text>
+
+  <!-- Yes → Pass -->
+  <line x1="540" y1="308" x2="640" y2="308" stroke="#475569" stroke-width="1.5"/>
+  <rect x="644" y="294" width="100" height="28" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="694" y="312" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#065f46">Pass silent</text>
+
+  <!-- No → down -->
+  <line x1="430" y1="340" x2="430" y2="358" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Decision 4: No local graph? -->
+  <polygon points="430,362 550,398 430,434 310,398" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="430" y="394" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#92400e">No local graph?</text>
+
+  <!-- Yes → registry check -->
+  <line x1="550" y1="398" x2="650" y2="398" stroke="#475569" stroke-width="1.5"/>
+  <rect x="654" y="380" width="180" height="36" fill="#fff7ed" rx="6" stroke="#fb923c" stroke-width="1"/>
+  <text x="744" y="395" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#9a3412">Check CRG registry +</text>
+  <text x="744" y="409" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#9a3412">global graphify</text>
+
+  <!-- Has result → show context -->
+  <line x1="744" y1="416" x2="744" y2="440" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <rect x="654" y="444" width="180" height="28" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="744" y="462" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="700" fill="#065f46">Show context + allow</text>
+
+  <!-- No → down -->
+  <line x1="430" y1="434" x2="430" y2="452" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Decision 5: First grep? -->
+  <polygon points="430,456 540,488 430,520 320,488" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="430" y="485" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#6d28d9">First grep?</text>
+  <text x="430" y="498" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#64748b">this session / hour</text>
+
+  <!-- Yes → one-shot -->
+  <line x1="540" y1="488" x2="640" y2="488" stroke="#16a34a" stroke-width="1.5"/>
+  <rect x="644" y="472" width="190" height="32" fill="#ecfdf5" rx="6" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="739" y="485" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="700" fill="#065f46">Graph hit? Show answer</text>
+  <text x="739" y="498" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#16a34a" font-weight="600">+ allow grep (one-shot)</text>
+
+  <!-- No: deny with answer -->
+  <line x1="430" y1="520" x2="430" y2="538" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
+
+  <!-- Final deny with answer -->
+  <rect x="310" y="542" width="240" height="30" fill="#fef2f2" rx="6" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="430" y="556" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#991b1b">Graph hit → DENY with answer</text>
+  <text x="430" y="568" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#dc2626">zero retry loop — answer IS the deny</text>
+
+  <!-- Side annotation -->
+  <rect x="30" y="542" width="260" height="30" fill="#f8fafc" rx="6" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="160" y="556" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Graph miss → pass silently</text>
+  <text x="160" y="568" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Override: append --graph-tried</text>
+
+  <!-- Legend -->
+  <rect x="30" y="48" width="12" height="12" fill="#ecfdf5" rx="2" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="48" y="58" font-family="system-ui,sans-serif" font-size="9" fill="#065f46" font-weight="600">Pass</text>
+  <rect x="80" y="48" width="12" height="12" fill="#fef2f2" rx="2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="98" y="58" font-family="system-ui,sans-serif" font-size="9" fill="#991b1b" font-weight="600">Deny (answer inline)</text>
+  <rect x="200" y="48" width="12" height="12" fill="#fff7ed" rx="2" stroke="#fb923c" stroke-width="1"/>
+  <text x="218" y="58" font-family="system-ui,sans-serif" font-size="9" fill="#9a3412" font-weight="600">Show context</text>
+</svg>

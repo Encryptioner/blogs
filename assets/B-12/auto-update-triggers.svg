@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 420" width="860" height="420">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="860" height="420" fill="#f8fafc" rx="12"/>
+
+  <!-- Title -->
+  <text x="430" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="2.5">AUTO-UPDATE TRIGGERS — KEEPING THE GRAPH FRESH</text>
+
+  <!-- ──── Trigger 1: PostToolUse ──── -->
+  <rect x="20" y="52" width="260" height="350" fill="white" rx="12" filter="url(#shadow)"/>
+
+  <rect x="20" y="52" width="260" height="38" fill="#1e40af" rx="12"/>
+  <rect x="20" y="78" width="260" height="12" fill="#1e40af"/>
+  <text x="150" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="white">TRIGGER 1</text>
+
+  <rect x="36" y="100" width="228" height="30" fill="#eff6ff" rx="6"/>
+  <text x="150" y="120" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Agent edits a file</text>
+
+  <text x="150" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Claude / Cursor / Gemini CLI</text>
+
+  <line x1="150" y1="158" x2="150" y2="178" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="40" y="182" width="220" height="30" fill="#fef3c7" rx="6" stroke="#fbbf24" stroke-width="1"/>
+  <text x="150" y="202" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#92400e">PostToolUse hook fires</text>
+
+  <line x1="150" y1="212" x2="150" y2="232" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- CRG box -->
+  <rect x="40" y="236" width="220" height="44" fill="#f5f3ff" rx="6" stroke="#a78bfa" stroke-width="1"/>
+  <text x="150" y="254" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#7c3aed">code-review-graph update</text>
+  <text x="150" y="272" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#16a34a" font-weight="600">0.425s incremental</text>
+
+  <line x1="150" y1="280" x2="150" y2="296" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Graphify box -->
+  <rect x="40" y="300" width="220" height="44" fill="#fff7ed" rx="6" stroke="#fb923c" stroke-width="1"/>
+  <text x="150" y="318" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#ea580c">graphify update .</text>
+  <text x="150" y="336" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">SHA256 cache, AST-only</text>
+
+  <rect x="56" y="356" width="188" height="26" fill="#ecfdf5" rx="13" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="150" y="373" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#065f46">Graph stays current</text>
+
+  <!-- ──── Trigger 2: Git Commit ──── -->
+  <rect x="300" y="52" width="260" height="350" fill="white" rx="12" filter="url(#shadow)"/>
+
+  <rect x="300" y="52" width="260" height="38" fill="#b45309" rx="12"/>
+  <rect x="300" y="78" width="260" height="12" fill="#b45309"/>
+  <text x="430" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="white">TRIGGER 2</text>
+
+  <rect x="316" y="100" width="228" height="30" fill="#fef3c7" rx="6"/>
+  <text x="430" y="120" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">git commit</text>
+
+  <text x="430" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Terminal, IDE, or any AI tool</text>
+
+  <line x1="430" y1="158" x2="430" y2="178" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="320" y="182" width="220" height="30" fill="#fef3c7" rx="6" stroke="#fbbf24" stroke-width="1"/>
+  <text x="430" y="202" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#92400e">post-commit hook fires</text>
+
+  <line x1="430" y1="212" x2="430" y2="232" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="320" y="236" width="220" height="44" fill="#f5f3ff" rx="6" stroke="#a78bfa" stroke-width="1"/>
+  <text x="430" y="254" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#7c3aed">CRG update + embed</text>
+  <text x="430" y="272" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">background, non-blocking</text>
+
+  <line x1="430" y1="280" x2="430" y2="296" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="320" y="300" width="220" height="44" fill="#fff7ed" rx="6" stroke="#fb923c" stroke-width="1"/>
+  <text x="430" y="318" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#ea580c">graphify update .</text>
+  <text x="430" y="336" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">background, non-blocking</text>
+
+  <rect x="336" y="356" width="188" height="26" fill="#ecfdf5" rx="13" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="430" y="373" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#065f46">Graph stays current</text>
+
+  <!-- ──── Trigger 3: Branch Switch ──── -->
+  <rect x="580" y="52" width="260" height="350" fill="white" rx="12" filter="url(#shadow)"/>
+
+  <rect x="580" y="52" width="260" height="38" fill="#6d28d9" rx="12"/>
+  <rect x="580" y="78" width="260" height="12" fill="#6d28d9"/>
+  <text x="710" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="white">TRIGGER 3</text>
+
+  <rect x="596" y="100" width="228" height="30" fill="#f5f3ff" rx="6"/>
+  <text x="710" y="120" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">git checkout &lt;branch&gt;</text>
+
+  <text x="710" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">Switching context</text>
+
+  <line x1="710" y1="158" x2="710" y2="178" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="600" y="182" width="220" height="30" fill="#fef3c7" rx="6" stroke="#fbbf24" stroke-width="1"/>
+  <text x="710" y="202" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="700" fill="#92400e">post-checkout hook fires</text>
+
+  <line x1="710" y1="212" x2="710" y2="232" stroke="#475569" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="600" y="236" width="220" height="44" fill="#fff7ed" rx="6" stroke="#fb923c" stroke-width="1"/>
+  <text x="710" y="254" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#ea580c">graphify rebuild</text>
+  <text x="710" y="272" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">full rebuild on branch switch</text>
+
+  <line x1="710" y1="280" x2="710" y2="296" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="600" y="300" width="220" height="44" fill="#f5f3ff" rx="6" stroke="#a78bfa" stroke-width="1"/>
+  <text x="710" y="318" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9.5" font-weight="600" fill="#7c3aed">CRG update --skip-flows</text>
+  <text x="710" y="336" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">incremental diff, sub-second</text>
+
+  <rect x="616" y="356" width="188" height="26" fill="#ecfdf5" rx="13" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="710" y="373" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600" fill="#065f46">Graph stays current</text>
+
+  <!-- Bottom note -->
+  <rect x="20" y="408" width="820" height="2" fill="#e2e8f0" rx="1"/>
+  <text x="430" y="416" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#94a3b8">All hooks are silent no-ops when tools aren't installed. No graph = no overhead.</text>
+</svg>

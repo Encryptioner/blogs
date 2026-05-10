@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" width="860" height="520">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="grep-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#f87171"/>
+    </linearGradient>
+    <linearGradient id="gfy-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="crg-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="860" height="520" fill="#f8fafc" rx="12"/>
+
+  <!-- Title -->
+  <text x="430" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="2.5">TOKEN COST PER LOOKUP — MEASURED ON 1336-NODE MONOREPO</text>
+
+  <!-- Legend -->
+  <rect x="260" y="40" width="14" height="14" fill="url(#grep-grad)" rx="3"/>
+  <text x="280" y="52" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">grep + Read</text>
+  <rect x="380" y="40" width="14" height="14" fill="url(#gfy-grad)" rx="3"/>
+  <text x="400" y="52" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">graphify CLI</text>
+  <rect x="500" y="40" width="14" height="14" fill="url(#crg-grad)" rx="3"/>
+  <text x="520" y="52" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#64748b">CRG semantic</text>
+
+  <!-- Chart area -->
+  <rect x="20" y="64" width="820" height="370" fill="white" rx="10" filter="url(#shadow)"/>
+
+  <!-- Scale markers -->
+  <text x="230" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94a3b8">0</text>
+  <text x="350" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94a3b8">500</text>
+  <text x="470" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94a3b8">1,000</text>
+  <text x="590" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94a3b8">1,500</text>
+  <text x="710" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="8.5" fill="#94a3b8">2,000</text>
+
+  <!-- Grid lines -->
+  <line x1="230" y1="84" x2="230" y2="424" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="350" y1="84" x2="350" y2="424" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="470" y1="84" x2="470" y2="424" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="590" y1="84" x2="590" y2="424" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="710" y1="84" x2="710" y2="424" stroke="#f1f5f9" stroke-width="1"/>
+
+  <!-- ── Query 1: "Where is createThread?" ── -->
+  <text x="220" y="106" text-anchor="end" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">"Where is createThread?"</text>
+
+  <rect x="230" y="94" width="566" height="16" fill="url(#grep-grad)" rx="4" opacity="0.85"/>
+  <text x="802" y="106" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ef4444">594 tok</text>
+
+  <rect x="230" y="113" width="294" height="16" fill="url(#gfy-grad)" rx="4" opacity="0.85"/>
+  <text x="530" y="125" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ea580c">1,532 tok</text>
+
+  <rect x="230" y="132" width="22" height="16" fill="url(#crg-grad)" rx="4"/>
+  <text x="258" y="144" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#7c3aed">115 tok</text>
+
+  <!-- ── Query 2: "uiState persistence" ── -->
+  <text x="220" y="170" text-anchor="end" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">"uiState persistence"</text>
+
+  <rect x="230" y="158" width="800" height="16" fill="url(#grep-grad)" rx="4" opacity="0.85"/>
+  <text x="800" y="170" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="white">1,069 tok</text>
+
+  <rect x="230" y="177" width="298" height="16" fill="url(#gfy-grad)" rx="4" opacity="0.85"/>
+  <text x="534" y="189" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ea580c">1,552 tok</text>
+
+  <rect x="230" y="196" width="19" height="16" fill="url(#crg-grad)" rx="4"/>
+  <text x="255" y="208" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#7c3aed">100 tok</text>
+
+  <!-- ── Query 3: "who calls createThread?" ── -->
+  <text x="220" y="232" text-anchor="end" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">"Who calls createThread?"</text>
+
+  <rect x="230" y="220" width="600" height="16" fill="url(#grep-grad)" rx="4" opacity="0.85"/>
+  <text x="836" y="232" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ef4444">~1,109 tok</text>
+
+  <rect x="230" y="239" width="294" height="16" fill="url(#gfy-grad)" rx="4" opacity="0.85"/>
+  <text x="530" y="251" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ea580c">1,532 tok</text>
+
+  <rect x="230" y="258" width="15" height="16" fill="url(#crg-grad)" rx="4"/>
+  <text x="251" y="270" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#7c3aed">80 tok</text>
+
+  <!-- ── Query 4: "What breaks if I change server.ts?" ── -->
+  <text x="220" y="294" text-anchor="end" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">"Impact of server.ts change"</text>
+
+  <rect x="230" y="282" width="780" height="16" fill="url(#grep-grad)" rx="4" opacity="0.85"/>
+  <text x="780" y="294" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="white">~1,852 tok (incomplete)</text>
+
+  <rect x="230" y="301" width="52" height="16" fill="url(#crg-grad)" rx="4"/>
+  <text x="288" y="313" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#7c3aed">274 tok — complete 2-hop</text>
+
+  <!-- ── Query 5: Code review ── -->
+  <text x="220" y="340" text-anchor="end" font-family="system-ui,sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">"Code review for PR"</text>
+
+  <rect x="230" y="328" width="800" height="16" fill="url(#grep-grad)" rx="4" opacity="0.85"/>
+  <text x="800" y="340" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="white">~2,943 tok (incomplete)</text>
+
+  <rect x="230" y="347" width="21" height="16" fill="url(#crg-grad)" rx="4"/>
+  <text x="257" y="359" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="#7c3aed">111 tok avg — risk + test gaps</text>
+
+  <!-- ── Full session ── -->
+  <line x1="40" y1="380" x2="800" y2="380" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="220" y="404" text-anchor="end" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#1e293b">FULL SESSION (37 calls)</text>
+
+  <rect x="230" y="390" width="600" height="22" fill="url(#grep-grad)" rx="5" opacity="0.9"/>
+  <text x="800" y="405" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="white">~110,335 tok</text>
+
+  <rect x="230" y="416" width="109" height="22" fill="url(#crg-grad)" rx="5"/>
+  <text x="345" y="431" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#7c3aed">~20,167 tok</text>
+
+  <!-- Savings badge -->
+  <rect x="530" y="414" width="180" height="26" fill="#ecfdf5" rx="13" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="620" y="432" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#065f46">5.5× cheaper</text>
+
+  <!-- Bottom note -->
+  <rect x="20" y="450" width="820" height="60" fill="white" rx="10" filter="url(#shadow)"/>
+  <text x="40" y="470" font-family="system-ui,sans-serif" font-size="10.5" fill="#1e293b" font-weight="700">Key takeaway:</text>
+  <text x="130" y="470" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">grep costs 1,000–3,000 tok per question (includes follow-up Read). CRG costs 80–350 tok — no follow-up needed.</text>
+  <text x="40" y="488" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Graphify BFS is for</text>
+  <text x="186" y="488" font-family="system-ui,sans-serif" font-size="10.5" fill="#ea580c" font-weight="700">neighborhood exploration</text>
+  <text x="350" y="488" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">(~1,500 tok) — use for unfamiliar codebase orientation, not targeted lookup.</text>
+  <text x="40" y="504" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8">CRG's 6K schema overhead pays back after ~2 calls. Blocked get_architecture_overview_tool alone saved 33K tokens.</text>
+</svg>
