@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" width="800" height="340">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="340" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">SELF-REVIEW: TIMING MAKES ALL THE DIFFERENCE</text>
+
+  <!-- ── LEFT: AFTER opening PR ── -->
+  <rect x="16" y="44" width="368" height="278" fill="white" rx="10" filter="url(#card-shadow)"/>
+  <!-- Header -->
+  <rect x="16" y="44" width="368" height="44" fill="#fef2f2" rx="10"/>
+  <rect x="16" y="72" width="368" height="16" fill="#fef2f2"/>
+  <text x="200" y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="#dc2626">✗  Review AFTER opening PR</text>
+  <!-- Items -->
+  <text x="44" y="112" font-family="system-ui,sans-serif" font-size="18" fill="#ef4444">❌</text>
+  <text x="72" y="109" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">AI flags bug → force push</text>
+  <text x="72" y="124" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Reviewer must re-read the whole diff</text>
+
+  <text x="44" y="152" font-family="system-ui,sans-serif" font-size="18" fill="#ef4444">❌</text>
+  <text x="72" y="149" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Teammate mid-review when you fix</text>
+  <text x="72" y="164" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">"Looks careless" — erodes reviewer trust</text>
+
+  <text x="44" y="192" font-family="system-ui,sans-serif" font-size="18" fill="#ef4444">❌</text>
+  <text x="72" y="189" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Every fix is a PR commit</text>
+  <text x="72" y="204" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Audit trail filled with churn</text>
+
+  <text x="44" y="232" font-family="system-ui,sans-serif" font-size="18" fill="#ef4444">❌</text>
+  <text x="72" y="229" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">PR description under time pressure</text>
+  <text x="72" y="244" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Rushed, incomplete context for reviewer</text>
+
+  <!-- Bottom callout -->
+  <rect x="32" y="262" width="336" height="44" fill="#fef2f2" rx="6"/>
+  <text x="200" y="281" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#dc2626" font-weight="600">Result: noisy PR, frustrated reviewer,</text>
+  <text x="200" y="297" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#dc2626" font-weight="600">loss of review quality over time</text>
+
+  <!-- VS divider -->
+  <circle cx="400" cy="183" r="22" fill="#1e293b"/>
+  <text x="400" y="189" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="white">VS</text>
+
+  <!-- ── RIGHT: BEFORE opening PR ── -->
+  <rect x="416" y="44" width="368" height="278" fill="white" rx="10" filter="url(#card-shadow)"/>
+  <!-- Header -->
+  <rect x="416" y="44" width="368" height="44" fill="#f0fdf4" rx="10"/>
+  <rect x="416" y="72" width="368" height="16" fill="#f0fdf4"/>
+  <text x="600" y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="#16a34a">✓  Review BEFORE opening PR</text>
+  <!-- Items -->
+  <text x="444" y="112" font-family="system-ui,sans-serif" font-size="18" fill="#22c55e">✅</text>
+  <text x="472" y="109" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">AI flags bug → fix as fixup! commit</text>
+  <text x="472" y="124" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Squash before push — PR opens clean</text>
+
+  <text x="444" y="152" font-family="system-ui,sans-serif" font-size="18" fill="#22c55e">✅</text>
+  <text x="472" y="149" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Private workspace — your call, your pace</text>
+  <text x="472" y="164" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Nothing leaves machine until you push</text>
+
+  <text x="444" y="192" font-family="system-ui,sans-serif" font-size="18" fill="#22c55e">✅</text>
+  <text x="472" y="189" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Reviewer sees only your real work</text>
+  <text x="472" y="204" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Clean diff, clear intent from first push</text>
+
+  <text x="444" y="232" font-family="system-ui,sans-serif" font-size="18" fill="#22c55e">✅</text>
+  <text x="472" y="229" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Dismissal reasons → PR description</text>
+  <text x="472" y="244" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Self-review generates context as a side effect</text>
+
+  <!-- Bottom callout -->
+  <rect x="432" y="262" width="336" height="44" fill="#f0fdf4" rx="6"/>
+  <text x="600" y="281" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#16a34a" font-weight="600">Result: tighter diff, faster review,</text>
+  <text x="600" y="297" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#16a34a" font-weight="600">reviewer attention on what matters</text>
+</svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">9 SIDEBAR FILTERS — WHAT EACH ONE ANSWERS</text>
+
+  <!-- ── ROW 1 ── -->
+
+  <!-- Commented -->
+  <rect x="16" y="44" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="16" y="44" width="7" height="95" fill="#8b5cf6" rx="4"/>
+  <text x="38" y="72" font-family="system-ui,sans-serif" font-size="22">💬</text>
+  <text x="70" y="72" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Commented</text>
+  <text x="38" y="94" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which files already have</text>
+  <text x="38" y="110" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">review threads on them?</text>
+  <text x="38" y="126" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Use to spot active discussion</text>
+
+  <!-- Uncommented -->
+  <rect x="278" y="44" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="278" y="44" width="7" height="95" fill="#6366f1" rx="4"/>
+  <text x="300" y="72" font-family="system-ui,sans-serif" font-size="22">🔇</text>
+  <text x="332" y="72" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Uncommented</text>
+  <text x="300" y="94" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which files have I not</text>
+  <text x="300" y="110" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">commented on yet?</text>
+  <text x="300" y="126" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Find gaps in your review</text>
+
+  <!-- Viewed -->
+  <rect x="540" y="44" width="244" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="540" y="44" width="7" height="95" fill="#10b981" rx="4"/>
+  <text x="562" y="72" font-family="system-ui,sans-serif" font-size="22">✅</text>
+  <text x="594" y="72" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Viewed</text>
+  <text x="562" y="94" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which files have I already</text>
+  <text x="562" y="110" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">marked as reviewed?</text>
+  <text x="562" y="126" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Track your progress</text>
+
+  <!-- ── ROW 2 ── -->
+
+  <!-- Unviewed -->
+  <rect x="16" y="157" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="16" y="157" width="7" height="95" fill="#3b82f6" rx="4"/>
+  <text x="38" y="185" font-family="system-ui,sans-serif" font-size="22">👁</text>
+  <text x="70" y="185" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Unviewed</text>
+  <text x="38" y="207" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">What's left to read?</text>
+  <text x="38" y="223" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">What haven't I seen yet?</text>
+  <text x="38" y="239" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Start your next session here</text>
+
+  <!-- Stale -->
+  <rect x="278" y="157" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="278" y="157" width="7" height="95" fill="#f59e0b" rx="4"/>
+  <text x="300" y="185" font-family="system-ui,sans-serif" font-size="22">🟡</text>
+  <text x="332" y="185" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Stale</text>
+  <text x="300" y="207" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which viewed files changed</text>
+  <text x="300" y="223" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">since I marked them?</text>
+  <text x="300" y="239" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">After a force-push: re-read these</text>
+
+  <!-- Collapsed -->
+  <rect x="540" y="157" width="244" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="540" y="157" width="7" height="95" fill="#94a3b8" rx="4"/>
+  <text x="562" y="185" font-family="system-ui,sans-serif" font-size="22">➖</text>
+  <text x="594" y="185" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Collapsed</text>
+  <text x="562" y="207" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which diffs am I</text>
+  <text x="562" y="223" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">currently hiding?</text>
+  <text x="562" y="239" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">High-level pass view</text>
+
+  <!-- ── ROW 3 ── -->
+
+  <!-- Expanded -->
+  <rect x="16" y="270" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="16" y="270" width="7" height="95" fill="#475569" rx="4"/>
+  <text x="38" y="298" font-family="system-ui,sans-serif" font-size="22">➕</text>
+  <text x="70" y="298" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Expanded</text>
+  <text x="38" y="320" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Which diffs am I</text>
+  <text x="38" y="336" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">actively reading?</text>
+  <text x="38" y="352" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Deep-read focus list</text>
+
+  <!-- Staged -->
+  <rect x="278" y="270" width="243" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="278" y="270" width="7" height="95" fill="#059669" rx="4"/>
+  <text x="308" y="300" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="white">
+    <rect x="298" y="281" width="22" height="22" fill="#059669" rx="4"/>
+  </text>
+  <rect x="298" y="281" width="22" height="22" fill="#059669" rx="4"/>
+  <text x="309" y="297" text-anchor="middle" font-family="'Courier New',monospace" font-size="12" font-weight="700" fill="white">S</text>
+  <text x="332" y="298" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Staged</text>
+  <text x="300" y="320" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Working-tree: which files</text>
+  <text x="300" y="336" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">have staged changes?</text>
+  <text x="300" y="352" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Working tree only</text>
+
+  <!-- Unstaged -->
+  <rect x="540" y="270" width="244" height="95" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="540" y="270" width="7" height="95" fill="#f97316" rx="4"/>
+  <rect x="560" y="281" width="22" height="22" fill="#f97316" rx="4"/>
+  <text x="571" y="297" text-anchor="middle" font-family="'Courier New',monospace" font-size="12" font-weight="700" fill="white">U</text>
+  <text x="594" y="298" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#1e293b">Unstaged</text>
+  <text x="562" y="320" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Working-tree: which files</text>
+  <text x="562" y="336" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">have unstaged changes?</text>
+  <text x="562" y="352" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" font-style="italic">Working tree only</text>
+
+  <!-- Tip bar -->
+  <rect x="16" y="378" width="768" height="16" fill="#e2e8f0" rx="4"/>
+  <text x="400" y="390" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#64748b">💡 Filters stack — "Stale + search auth" shows only auth files that changed since you last reviewed them</text>
+</svg>

@@ -1,28 +1,49 @@
 # Self-Review With AI Before You Open the PR — A Practical Workflow with branchdiff
 
-The honest truth about most pull requests is that the first reviewer should have been the author. Half of the comments a reviewer writes — missing null check, untested error branch, accidental log of a token, that one TODO that shipped, the import that is now unused, the function that grew to 80 lines and could not see its own size — are things you would have caught yourself if you had read your own diff carefully one more time.
+You know the moment. You push the branch, open the PR, and immediately see it — the undefined return on the refund path, the token logged to the console, the TODO that was supposed to be temporary six weeks ago. The reviewer catches it four hours later and you reply "good catch, fixing now" as if someone else wrote that line.
 
-Reading your own diff carefully is hard. You have been staring at the code for a day. Your brain pattern-matches what you *meant* to write, not what is actually on the page. The cognitive cost of going through every changed file again, line by line, is exactly the cost the next reviewer will have to pay, and you usually skip it because you already know what you wrote. That is the bug.
+The first reviewer on most pull requests should have been the author. Half the comments you will receive — the missing null check, the untested error branch, the duplicate logic that could be extracted, the import that now goes nowhere — are things you would have caught with one more careful read-through. You skip that read because you have been in the code for two days and your brain completes the sentences for you. You see what you meant to write, not what is on the page.
 
-This post is about closing that gap with an AI-assisted self-review pass on your own branch, run locally with **branchdiff**, *before* the PR ever goes up. The goal is not to skip the human reviewer. It is to walk into the PR with the embarrassing stuff already fixed, the obvious questions already answered, and the test gaps already filled — so the reviewer's attention can land on the parts of the change that genuinely need a second pair of eyes.
+This post is about closing that gap with a structured AI-assisted self-review *before* the PR opens. Not to skip the human reviewer — to walk into the review with the obvious problems already gone, the test gaps already filled, and the PR description already written. So the reviewer's attention can land on what actually needs a second pair of eyes.
 
----
-
-## Why "before the PR" matters more than you think
-
-If you push first and review later, every AI comment becomes noise on the PR. Every dismissal becomes another notification. Every fix becomes a force-push that your reviewer has to re-read. The audit trail fills up with churn that has nothing to do with the actual change. Worse, by the time you start the AI pass, a teammate may already be reading the diff — they catch the obvious bug, you fix it, the AI flags the same bug five minutes later, and now you look careless.
-
-If you self-review *before* opening the PR, the AI's output is a private workspace. You decide what to act on, you commit the fixes into your own history (often as `fixup!` commits that you squash before pushing), and the PR you eventually open is cleaner from the first push. Reviewers see your real work, not your stream-of-consciousness fixes.
-
-There is a second, subtler benefit: you learn from the dismissals. Every time you push back on an AI comment with a real reason ("the wrapper handles null upstream", "this is intentionally synchronous because of contention"), you are teaching yourself the rationale you would otherwise leave implicit. That reason, written down, is exactly what your next reviewer needs in the PR description.
-
-branchdiff is built around this idea: the review session is local, comments live in `~/.branchdiff/`, nothing leaves your machine until you click *Push to PR*, and the AI surface is a small, explicit set of `branchdiff agent` commands that the AI is forced to use. That last constraint is what makes systematic self-review possible — the AI cannot wander off, edit files behind your back, or post directly to the PR. It posts comments, you read them, you decide.
+The tool is **branchdiff**: a local browser app that runs your diff on `localhost`, stores everything in `~/.branchdiff/`, and keeps the AI surface controlled through an explicit `branchdiff agent` command API. Nothing leaves your machine until you decide to push it.
 
 ---
 
-## The 4-step workflow
+## Why "before the PR" is the right moment
 
-Assume you have been working on a `feature/payments` branch off `main`. The change is non-trivial — say twelve files, three hundred lines added — and you want to clean it up before requesting review.
+![Self-Review: Before vs. After Opening the PR](../../../assets/B-14/self-review-before-after.svg)
+
+If you review *after* opening the PR, every AI fix becomes noise: a force-push, a re-read for your reviewer, another commit in the audit trail. If a teammate is already mid-review when you discover the bug, you look careless. The patch that should have been in the original push becomes a distraction for everyone downstream.
+
+If you review *before* opening the PR, the AI's output is a private workspace. You act on what matters, commit the fixes into your own history (often as `fixup!` commits you squash before pushing), and the PR that goes up is cleaner from the first push. Reviewers see your real work, not your stream-of-consciousness corrections.
+
+There is a subtler benefit too: **you learn from the dismissals**. Every time you push back on an AI comment with a real reason — "the wrapper handles null upstream", "this is intentionally synchronous because of write contention" — you are writing down the rationale you would otherwise leave implicit. That reason is exactly what the next reviewer needs in the PR description. The self-review session generates your PR description as a side effect.
+
+---
+
+## The workflow in 4 steps
+
+Assume you have a `feature/payments` branch off `main` — twelve files changed, about three hundred lines added. You want to clean it up before requesting review.
+
+```mermaid
+flowchart TD
+    S1["🖥️ Step 1\nOpen diff locally\nbranchdiff main feature/branch\nPersistent session in browser"] --> S2
+    S2["🤖 Step 2\nAI review pass\n/branchdiff-review\nPosts tagged inline comments"] --> S3
+    S3["⚡ Step 3\nTriage each thread\nFix · Auto-fix\nDismiss with reason · Reply"] --> D
+    D{"Zero open\n[must-fix]\nthreads?"}
+    D -- "No — commit fixes,\nrun again" --> S2
+    D -- "Yes" --> S4
+    S4["🎯 Step 4\nFocused passes\nSecurity · Test gaps\nBreaking change · Deps"] --> DONE
+    DONE["✅ Squash fixup! commits\nPush branch → Open PR"]
+
+    style S1 fill:#3b82f6,color:#fff
+    style S2 fill:#8b5cf6,color:#fff
+    style S3 fill:#f59e0b,color:#1e293b
+    style S4 fill:#10b981,color:#fff
+    style DONE fill:#059669,color:#fff
+    style D fill:#1e293b,color:#fff
+```
 
 ### Step 1 — open your own diff locally
 
@@ -30,9 +51,9 @@ Assume you have been working on a `feature/payments` branch off `main`. The chan
 branchdiff main feature/payments
 ```
 
-A browser tab opens at `http://localhost:5391` with the diff. Because you are comparing two named refs, this is a **persistent session** — the comments you (or the AI) post here will survive new commits to either branch, so you can iterate on fixes across multiple commits without losing the review trail. If you later run `branchdiff main feature/payments --new`, the current session is archived (still queryable via `branchdiff review threads --session <id>`) and a fresh one starts.
+A browser tab opens at `http://localhost:5391`. Because you are comparing two named refs, this is a **persistent session** — comments you (or the AI) post here survive new commits to either branch. You can iterate across multiple rounds of fixes without losing the review trail. If you want a fresh start, `--new` archives the current session and creates a clean one; archived sessions stay queryable via `branchdiff review threads --session <id>`.
 
-The diff renders with split or unified view, syntax highlighting for 150+ languages, a sidebar of changed files, and the usual `j`/`k` next/previous-file keyboard shortcuts. You will use those a lot.
+The diff renders with split or unified view, syntax highlighting for 150+ languages, a sidebar of changed files, and keyboard shortcuts (`j`/`k` for next/previous file, `n`/`p` for next/previous hunk).
 
 ### Step 2 — run an AI review pass
 
@@ -48,63 +69,76 @@ Then in your Claude Code session:
 /branchdiff-review main feature/payments
 ```
 
-The skill knows to call `branchdiff agent diff` to read the full diff, `branchdiff agent comment --file <p> --line <n> --body "[tag] ..."` to post inline comments, and `branchdiff agent general-comment` for diff-wide notes. Each comment carries a severity tag — `[must-fix]`, `[suggestion]`, `[nit]`, or `[question]` — so you can triage at a glance without reading every comment in detail.
+The skill calls `branchdiff agent diff` to read the full diff, then posts inline comments via `branchdiff agent comment --file <path> --line <n> --body "[tag] ..."`. Each comment carries a severity tag:
 
-If you use a different AI, the README ships a copy-paste prompt that drives the same `branchdiff agent` commands. Or pipe the context out for a one-shot review with no session needed:
+![Comment Tag Taxonomy](../../../assets/B-14/comment-tag-taxonomy.svg)
+
+| Tag | Meaning | Typical action |
+| --- | ------- | -------------- |
+| `[must-fix]` | Bug, security issue, broken contract | Fix before pushing |
+| `[suggestion]` | Better pattern, missing test, refactor opportunity | Fix or dismiss with reason |
+| `[nit]` | Style, naming, minor inconsistency | Dismiss if low priority |
+| `[question]` | AI is uncertain, needs context | Reply with explanation |
+
+If you use a different AI, the README ships a copy-paste prompt that drives the same `branchdiff agent` command surface. Or pipe the context directly:
 
 ```bash
 branchdiff review context | claude -p "review for security and breaking changes"
 branchdiff review run --exec "claude" --mode review
 ```
 
-The point is that the AI talks to branchdiff through a small, explicit command surface — `diff`, `comment`, `general-comment`, `resolve`, `dismiss`, `reply`, plus the tour commands. It cannot wander off and edit files behind your back. The boundary is the API.
+Two improvements in v1.5.0 make this pass noticeably better:
 
-Two recent improvements (v1.5.0) make this pass noticeably better:
+- **Constructive tone.** The skill leads with the problem, not a judgment — "This returns `undefined` when `amount === 0`" rather than "This is wrong." Collaborative language. When AI comments read as observations rather than accusations, engineers actually fix the bug.
+- **Nth-time review awareness.** Before commenting, the skill reads resolved and dismissed threads. Resolved threads are not re-raised; dismissed ones are only re-flagged if there is new evidence. You can run `/branchdiff-review` after every meaningful commit without re-litigating the same feedback.
 
-- **Constructive tone.** The skill now leads with the problem rather than a judgment, uses collaborative language ("Consider using X" instead of "You should"), and acknowledges good code. Comments read like a careful peer, not a lint rule shouting at you. The change matters more than it sounds — when AI comments read as accusations, engineers ignore them or argue with them; when they read as observations, engineers actually fix the bug.
-- **Nth-time review awareness.** Before re-reviewing, the skill reads `branchdiff agent list --status resolved` and `--status dismissed`. Resolved threads are not re-raised, dismissed ones are only re-flagged if there is new evidence. This is the difference between an AI that reviews and one that nags. It also means you can run `/branchdiff-review` after every meaningful commit without paying the cost of re-litigating earlier feedback.
+### Step 3 — read, triage, decide
 
-### Step 3 — read, triage, resolve
+Open the browser. Each AI comment is anchored to a line in the diff, tag visible in the gutter, body inline. Four options per thread:
 
-Open the browser. Each AI comment is anchored to a line, with the tag visible in the gutter and the body inline. You have four options per thread:
+**Fix it** — make the change in your editor, then resolve the thread (`branchdiff agent resolve <id> --summary "added null guard"` or click *Resolve* in the UI). The summary is optional but worth writing — future review passes and future reviewers can see what was done and why.
 
-- **Fix it** — make the change in your editor, then resolve the thread (`branchdiff agent resolve <id> --summary "..."` or click *Resolve* in the UI). The summary is optional but worth writing — a future you (or `/branchdiff-review` on the next pass) gets to see what was done.
-- **Auto-fix it** — if you are using Claude Code, `/branchdiff-resolve` reads open comments, applies the fixes, and resolves threads with a summary of what changed. Useful for batches of mechanical fixes (rename, extract function, add null check). Read the diff before committing — the AI occasionally takes a `[suggestion]` more literally than you intended.
-- **Dismiss it** — the AI was wrong, out of scope, or already handled elsewhere. `branchdiff agent dismiss <id> --reason "..."` records why, and the reason is what nth-time review awareness keys off so future passes do not re-raise the same point.
-- **Ask back** — for `[question]` tags, `branchdiff agent reply <id> --body "..."` lets you answer in-thread. Useful when the AI flagged unclear behaviour and you want the rationale on record.
+**Auto-fix it** — if you are using Claude Code, `/branchdiff-resolve` reads open comments, applies mechanical fixes (rename, extract function, null check, missing test stub), and resolves threads with a summary. **Read the diff before committing** — the AI occasionally takes a suggestion more literally than you intended.
 
-The dismissal reason is the single most important habit to build. It is the part of the workflow that keeps the AI honest across multiple passes, and it leaves a paper trail you can point a teammate to if they ask "why is this line like that?" — which is often exactly the question they would have asked anyway.
+**Dismiss it** — the comment was wrong, out of scope, or already handled upstream. `branchdiff agent dismiss <id> --reason "..."` records why. That reason is what nth-time awareness uses so the same point is not re-raised next pass.
 
-### Step 3.5 — use the review-management features the same way you would on someone else's PR
+**Reply to it** — for `[question]` tags, `branchdiff agent reply <id> --body "..."` lets you answer in-thread. Useful when the AI flagged unclear behaviour and you want the rationale on record for the next reviewer.
 
-The features that make somebody else's 40-file PR readable also pay off on your own branch when the diff is non-trivial:
+The dismissal reason is the single most important habit to build. It keeps the AI honest across passes, and it leaves a paper trail you can point to when a reviewer asks "why is this line like that?"
 
-- **Mark viewed** as you walk through your own files — eye icon or right-click → *Mark viewed*. The sidebar shows a `12 / 24 viewed` counter so you actually know how far you are. On a 30-file branch this is the difference between confident progress and the foggy "I think I covered everything" feeling.
-- **Stale detection.** Any file you marked viewed but later changed gets flipped to *stale* with an amber dot in the sidebar — useful when a self-review pass spans across a few commits of fixes. Detection uses an FNV-1a hash on the file's diff signature, so it is content-based, not timestamp-based: a rebase that does not change the file does not invalidate your viewed marker.
-- **Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box so you can narrow a long branch to the bits that need attention. *Filter → Stale* on the second pass is the killer combination.
-- **Collapse all / Expand all** in the toolbar for a quick high-level pass before you dive in. Files with open comments are force-expanded automatically so the threads are never hidden behind a collapsed diff.
-- **Staged / unstaged toggle** when you are reviewing your working tree before the first commit — flip between `git diff --staged` and `git diff` from the toolbar without re-running the command. File rows show inline status badges: **S** (staged), **U** (unstaged), so you can tell which lane each change is on at a glance.
-- **Full-file view** with a **minimap on the right** marking added, removed, and modified regions, so you can scan a 1,000-line file at a glance and click straight to a change. Inline review comments stay anchored when you switch from hunk view to full-file view. Markdown files get a **Preview** toggle in v1.5.0 so docs render side-by-side instead of showing as raw markdown — useful when half your PR is a `README.md` rewrite.
-- **Commit detail page** (also v1.5.0). Clicking any commit in the history sidebar opens a dedicated `/commit/:hash` page with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button preserves your position so you can audit a single commit and come back to the branch comparison without losing where you were.
+### Step 3.5 — use the review tools that make long diffs tractable
 
-None of these need configuration — they are just there in the toolbar and sidebar. They turn self-review from "scroll through the whole diff again" into a structured pass with visible progress and a clear endpoint.
+The features that make a teammate's 40-file PR manageable pay equal dividends on your own branch:
 
-### Step 4 — focused passes for risky changes
+**Viewed counter + stale detection.** Mark files viewed (eye icon or right-click) as you walk through. The sidebar shows `12 / 24 viewed`. Any file you marked viewed but later changed gets flipped to *stale* with an amber dot — staleness is detected via an FNV-1a hash on the diff signature, so a rebase that does not change the content does not invalidate your markers.
 
-The README documents eight pre-built workflows. They are short, scoped prompts that catch a different class of issue than a generalist pass. The four that matter most for self-review:
+**Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box. On the second pass after a set of fixes: *Filter → Stale* shows exactly which files need re-reading.
 
-- **Security audit** — the AI looks only for injection (SQL, command, XSS, template, NoSQL, prompt), secret leaks, weak crypto (MD5/SHA1 for passwords, hand-rolled crypto, weak RNG), broken authz, deserialisation traps, path traversal, SSRF, and dependency risk. It deliberately skips style and naming, so a 200-line auth diff produces five precise comments instead of fifty.
-- **Test coverage gaps** — for every new function, branch, or error path, the AI checks `**/*.test.ts` (or your equivalent test directory) and flags uncovered paths with a stub `it(...)` suggestion. Priority is error branches → new public API → edge cases → happy path. Private helpers exercised transitively are skipped.
-- **Breaking-change review** — classifies every change as breaking or non-breaking and drafts an UPGRADE.md snippet for the breaking ones. Schema migrations without a rollback path are flagged as `[must-fix]`. Runs against any base ref pair, so it works on internal libraries the same way it works on public APIs.
-- **Dependency review** — flags added or major-bumped packages with maintenance status (last publish, owner reputation), license compatibility, bundle-size delta, first-party alternatives, and known CVEs. `[must-fix]` for abandoned packages or critical CVEs; `[suggestion]` for large bundle additions or first-party alternatives that already exist in the repo.
+**Collapse all / Expand all.** A quick high-level pass before diving in. Files with open comments are force-expanded so threads are never hidden behind a collapsed diff.
 
-Run one or more of these on top of the general review depending on what the diff touches. They are short prompts, scoped tightly, and the comment density is much lower than a generalist pass — exactly what you want when you only have ten minutes to do a focused sweep.
+**Staged / unstaged toggle.** When reviewing your working tree before the first commit, flip between `git diff --staged` and `git diff` from the toolbar. File rows show inline status badges: **S** (staged) and **U** (unstaged).
+
+**Full-file view + minimap.** The toolbar's *Full-file view* opens a VS Code-style rendering of the entire file with all hunks in place. A **minimap on the right** marks added, removed, and modified regions — scan a 1,000-line file at a glance and click straight to the change. Inline comments stay anchored when you switch from hunk view to full-file view. Markdown files get a **Preview** toggle (v1.5.0) that renders both sides as formatted markdown.
+
+**Commit detail page.** Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button preserves your position.
+
+### Step 4 — focused passes for the risky parts
+
+The generalist review catches a wide range. These four pre-built workflows catch a narrower, deeper class of issue:
+
+**Security audit** — looks only for injection (SQL, command, XSS, template, NoSQL, prompt), secret leaks, weak crypto, broken authorisation, deserialisation traps, path traversal, SSRF, and dependency risk. Skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.
+
+**Test coverage gaps** — for every new function, branch, or error path, checks the test directory and flags uncovered paths with a stub `it(...)` suggestion. Priority: error branches → new public API → edge cases → happy path.
+
+**Breaking-change review** — classifies every change as breaking or non-breaking, drafts an UPGRADE.md snippet for breaking ones, flags schema migrations without a rollback path as `[must-fix]`.
+
+**Dependency review** — flags added or major-bumped packages with maintenance status, license compatibility, bundle-size delta, first-party alternatives, and known CVEs.
 
 ---
 
-## A small, real example
+## A realistic session on a 12-file payments branch
 
-A typical self-review session on a 12-file payments branch might produce something like this in `branchdiff agent list --status open`:
+Here is what `branchdiff agent list --status open` might look like after the general review pass:
 
 ```
 [must-fix]   src/billing/charge.ts:84      Refund path returns undefined when amount === 0
@@ -116,52 +150,62 @@ A typical self-review session on a 12-file payments branch might produce somethi
 [question]   src/api/webhooks.ts:55        Should we 200 on duplicate webhook IDs or 409?
 ```
 
-Two `[must-fix]`es, three improvements, one nit, one question. Twenty minutes of cleanup, and the PR you push is materially better than the one you would have pushed before lunch. The PR description can also pull from the AI's general comment, which often summarises the change set in two or three sentences ready to paste — that alone saves five minutes of "what's the right way to describe this PR?" agonising.
+![Sample Self-Review Session — Comment Breakdown](../../../assets/B-14/session-stats.svg)
 
-The dismissal trail matters too. If you dismiss the `[nit]` with reason "team style is mixed casing for legacy enums — see ADR-014", that reason is on record. The next person who reads `src/types.ts` and wonders why the casing is inconsistent has an answer one git-blame and one branchdiff session away.
+Two `[must-fix]` items, three improvements, one nit to dismiss, one question to answer. Twenty minutes of cleanup. The PR you push is materially better than the one you would have pushed before lunch.
 
----
+The AI's general comment often summarises the change set in two or three sentences ready to paste into the PR description — that alone saves five minutes of staring at the PR form wondering how to explain what you did.
 
-## Where to be skeptical
-
-A few honest caveats so the workflow does not get oversold:
-
-- **AI is fallible.** It will sometimes flag a non-issue or miss a real bug. Treat tags as suggestions; the merge button is still yours. The single most common failure mode is confident-sounding wrong advice on async code — read those comments twice.
-- **Local context only.** The AI sees the diff and the files in your repo. It does not see runtime behaviour, production logs, or an upstream service contract. For those, you still need a human reviewer or an integration test.
-- **Token budget.** Larger diffs cost more, both in money and in attention. For a 200-file refactor, point the AI at the riskiest 10 files first rather than the whole thing — you can always run a second pass with a different focus.
-- **Don't auto-resolve everything.** `/branchdiff-resolve` is convenient, but read the patches before committing. The AI will occasionally take a `[suggestion]` more literally than you intended, or "fix" something by deleting code instead of correcting it.
-- **The AI is not a substitute for understanding your own change.** If you do not understand a chunk of code well enough to review it, the AI does not magically fill in that gap. It can flag bugs you would have caught; it cannot fix the deeper problem of shipping code you do not understand.
+And the dismissal trail matters beyond this session. When you dismiss the `[nit]` with reason "team style is mixed casing for legacy enums — see ADR-014", that reason is on record. The next engineer who reads `src/types.ts` and wonders about the inconsistency has an answer one `branchdiff` session away.
 
 ---
 
-## Then ship the PR
+## Where to stay skeptical
 
-When the local session is clean — open count at zero, the threads you cared about resolved, the dismissed ones with reasons attached — commit your fixes (squash them if you used `fixup!` commits), push the branch, and either open the PR on the platform or create it from the branchdiff toolbar (the *Open a Pull Request* button shows up automatically when no PR exists for the branch). The local comment history stays in `~/.branchdiff/` for your own reference; nothing of the AI pass needs to leak onto the PR unless you explicitly push it with the *Push to PR* button.
+**AI is fallible.** It will flag non-issues and miss real bugs. The most common failure mode is confident-sounding wrong advice on async code — read those comments twice.
 
-The reviewer who picks up the PR a few minutes later sees a tighter diff, fewer obvious bugs, a clearer description, and — if you wrote the PR body from the AI's general comment — a summary that already groups the change into reasonable chunks. Most of the comments they would have written, you have already written and resolved. Their attention can land on the parts that need a real second pair of eyes: the architectural decision, the unclear contract, the edge case that matters in production but not in tests.
+**Local context only.** The AI sees the diff and the files in your repo. It does not see runtime behaviour, production logs, or upstream service contracts. Those still need a human reviewer or an integration test.
+
+**Token budget.** For a 200-file refactor, point the AI at the riskiest ten files first — you can always run a second pass with a different focus.
+
+**Do not auto-resolve everything.** `/branchdiff-resolve` is convenient, but read the patches before committing. The AI will occasionally "fix" something by deleting code instead of correcting it.
+
+**The AI does not replace understanding your own change.** If you do not understand a chunk of code well enough to review it, no AI pass magically fills that gap.
+
+---
+
+## Ship the PR
+
+When the session is clean — open count at zero, threads resolved or dismissed with reasons attached — commit your fixes, squash any `fixup!` commits, and push. Either open the PR on the platform or use the *Open a Pull Request* button in the branchdiff toolbar (it appears automatically when no PR exists for the branch). The local session stays in `~/.branchdiff/` for your own reference; nothing from the AI pass needs to land on the PR unless you explicitly push it.
+
+The reviewer who picks it up sees a tighter diff, fewer obvious bugs, a clearer description. Their attention can land on the parts that need real judgement: the architectural decision, the unclear contract, the edge case that matters in production but not in tests.
 
 ---
 
 ## Quick start
 
+Full install guide, changelog, and uninstall steps on the [branchdiff releases page](https://encryptioner.github.io/branchdiff-releases/).
+
 ```bash
 npm install -g @encryptioner/branchdiff
-# or:  pip install branchdiff
-# or:  brew tap encryptioner/branchdiff https://github.com/encryptioner/branchdiff-releases && brew install branchdiff
-branchdiff skill add                                # one-time, for Claude Code
-branchdiff main feature/your-branch                 # opens local UI
+# or: pip install branchdiff
+# or: brew tap encryptioner/branchdiff https://github.com/encryptioner/branchdiff-releases \
+#          && brew install branchdiff
+
+branchdiff skill add                         # one-time, for Claude Code
+branchdiff main feature/your-branch          # opens local UI
 # in Claude Code:  /branchdiff-review
-# read, fix, resolve
-# then push the branch and open the PR as usual
+# triage threads → fix → resolve → dismiss with reasons
+# squash fixup! commits → push branch → open PR
 ```
 
-Self-review is the part of the workflow you can change without changing your team's process. Try it on the next branch you were about to push.
+Self-review is the part of the workflow you can improve without changing your team's process. Try it on the next branch you were about to push without looking at it again.
 
 ---
 
 ## Let's Connect
 
-I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review and AI workflow setup:
+I am always excited to hear what you are building. If this guide helped, or if you have questions about building self-review habits into your workflow:
 
 - **Website**: [encryptioner.github.io](https://encryptioner.github.io)
 - **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
@@ -170,4 +214,4 @@ I'm always excited to hear about what you're building! If you found this guide h
 - **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
 - **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
 
-*branchdiff source and releases: [github.com/Encryptioner/branchdiff-releases](https://github.com/Encryptioner/branchdiff-releases).*
+*branchdiff releases, install guide, and changelog: [encryptioner.github.io/branchdiff-releases](https://encryptioner.github.io/branchdiff-releases/)*

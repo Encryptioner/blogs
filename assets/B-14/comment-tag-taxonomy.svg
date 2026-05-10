@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 210" width="800" height="210">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="210" fill="#f1f5f9" rx="10"/>
+
+  <!-- Section label -->
+  <text x="400" y="26" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">AI COMMENT TAGS — WHAT EACH MEANS</text>
+
+  <!-- ── Card 1: [must-fix] ── -->
+  <rect x="18" y="40" width="183" height="154" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="18" y="40" width="7" height="154" fill="#ef4444" rx="4"/>
+  <text x="35" y="68" font-family="'Courier New',monospace" font-size="13" font-weight="700" fill="#ef4444">[must-fix]</text>
+  <line x1="35" y1="75" x2="193" y2="75" stroke="#f1f5f9" stroke-width="1.5"/>
+  <text x="35" y="96" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Blocks the PR</text>
+  <text x="35" y="115" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Bugs, security holes,</text>
+  <text x="35" y="130" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">broken contracts</text>
+  <rect x="35" y="147" width="158" height="22" fill="#fef2f2" rx="4"/>
+  <text x="114" y="162" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#ef4444">→ Fix before pushing</text>
+
+  <!-- ── Card 2: [suggestion] ── -->
+  <rect x="217" y="40" width="183" height="154" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="217" y="40" width="7" height="154" fill="#f59e0b" rx="4"/>
+  <text x="234" y="68" font-family="'Courier New',monospace" font-size="13" font-weight="700" fill="#f59e0b">[suggestion]</text>
+  <line x1="234" y1="75" x2="392" y2="75" stroke="#f1f5f9" stroke-width="1.5"/>
+  <text x="234" y="96" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Not blocking</text>
+  <text x="234" y="115" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Better patterns, missing</text>
+  <text x="234" y="130" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">tests, refactor opps</text>
+  <rect x="234" y="147" width="158" height="22" fill="#fffbeb" rx="4"/>
+  <text x="313" y="162" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#b45309">→ Fix or dismiss + reason</text>
+
+  <!-- ── Card 3: [nit] ── -->
+  <rect x="416" y="40" width="183" height="154" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="416" y="40" width="7" height="154" fill="#3b82f6" rx="4"/>
+  <text x="433" y="68" font-family="'Courier New',monospace" font-size="13" font-weight="700" fill="#3b82f6">[nit]</text>
+  <line x1="433" y1="75" x2="591" y2="75" stroke="#f1f5f9" stroke-width="1.5"/>
+  <text x="433" y="96" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">Minor style / naming</text>
+  <text x="433" y="115" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Inconsistencies, small</text>
+  <text x="433" y="130" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">formatting preferences</text>
+  <rect x="433" y="147" width="158" height="22" fill="#eff6ff" rx="4"/>
+  <text x="512" y="162" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#1d4ed8">→ Dismiss with reason</text>
+
+  <!-- ── Card 4: [question] ── -->
+  <rect x="615" y="40" width="168" height="154" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="615" y="40" width="7" height="154" fill="#94a3b8" rx="4"/>
+  <text x="632" y="68" font-family="'Courier New',monospace" font-size="13" font-weight="700" fill="#64748b">[question]</text>
+  <line x1="632" y1="75" x2="775" y2="75" stroke="#f1f5f9" stroke-width="1.5"/>
+  <text x="632" y="96" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#1e293b">AI is uncertain</text>
+  <text x="632" y="115" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">Needs your judgement</text>
+  <text x="632" y="130" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">or context reply</text>
+  <rect x="632" y="147" width="143" height="22" fill="#f8fafc" rx="4"/>
+  <text x="703" y="162" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600" fill="#475569">→ Reply in-thread</text>
+</svg>

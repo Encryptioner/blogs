@@ -1,8 +1,10 @@
 # Reviewing Teammates' PRs Faster — branchdiff Sessions, AI Passes, and Sync Back
 
-Reviewing your own code is one workflow. Reviewing somebody else's pull request is another, and it is the one most engineers spend the most time on. A good review is slow on purpose — *understanding* somebody else's intent takes real attention, and there is no AI shortcut for that. But the **mechanics** around the read (re-reading files after a force-push, losing your place between sessions, copy-pasting AI suggestions into the PR comment box, scrolling past the same fifty unchanged lines for the third time) are not work, they are friction. Friction is what burns out reviewers and makes engineers procrastinate on the review queue until Friday afternoon.
+You open the PR. Thirty-eight files changed. You have already reviewed this one twice this week — the author addressed most of the comments but force-pushed twice and now the diff is showing things you definitely already looked at. You scroll past the same unchanged files for the third time, trying to remember where you left off. Three tabs open: the PR, your editor, an AI assistant window you used to check that one regex. The PR description does not explain why this approach was chosen over the obvious alternative. You leave a comment asking. You tab-switch back to your editor to do something else while you wait.
 
-This post walks through how I review teammates' PRs with **branchdiff** sitting next to my editor: pull the PR locally, mark what I have already read, run AI passes for the things I am bad at catching, and push the comments back to GitHub or Bitbucket when I am done. The PR itself stays on the platform — that is where the review history is recorded, where merges are gated, where CI runs. branchdiff is just the cockpit I sit in for the parts of review that do not benefit from being a round-trip to the cloud.
+This is code review for most engineers, most of the time. Not because the code is bad. Because the **mechanics around reading code** are poorly designed. Re-reading unchanged files, losing place after a force-push, copy-pasting between a diff view and an AI — none of that is the actual work of understanding intent. It is friction that accumulates until you give the PR an "LGTM" you do not mean, because you are tired and you have a meeting in ten minutes.
+
+This post is about a workflow that keeps the mechanics out of your way so you can put your attention on the part that actually requires attention. The tool is **branchdiff**: a local browser app that opens beside your editor, reads the diff from disk, and talks to GitHub or Bitbucket through the same `gh` CLI or REST API you would use anyway. The canonical PR stays on the platform. branchdiff is just the cockpit.
 
 ---
 
@@ -14,161 +16,212 @@ branchdiff https://github.com/owner/repo/pull/123
 branchdiff https://bitbucket.org/workspace/repo/pull-requests/45
 ```
 
-branchdiff fetches the PR head (running `git fetch` if needed), opens a browser tab on `localhost:5391`, and shows the diff with split or unified view, syntax highlighting, and a sidebar of changed files. The toolbar carries a `#123` badge with a state dot — green for open, purple for merged, red for closed/declined — so at a glance you know what kind of review you are about to do (a fresh review, a re-review of a closed PR, a post-merge audit).
+branchdiff fetches the PR head, opens a tab at `localhost:5391`, and shows the diff with split or unified view, syntax highlighting for 150+ languages, and a sidebar of changed files. The toolbar carries a `#123` badge with a state dot — green for open, purple for merged, red for closed/declined — so at a glance you know what kind of review you are about to do: fresh read, re-review, or post-merge audit.
 
-Because this is a comparison between two named refs, the session is **persistent**. Comments survive new commits to either branch — the same idea as a GitHub PR thread, but stored locally in SQLite under `~/.branchdiff/`. If the author force-pushes mid-review, your view markers and any draft comments are still there when you reopen. That single property is what makes branchdiff usable for the kind of review that takes more than one sitting.
+Because this compares two named refs, the session is **persistent**. Comments survive new commits to either branch — stored locally in SQLite under `~/.branchdiff/`. If the author force-pushes mid-review, your view markers and draft comments are still there when you reopen. That single property is what makes branchdiff usable for reviews that take more than one sitting.
 
-You can run multiple PRs at once. Each ref pair gets its own port — the second comparison opens on `5392`, the third on `5393`, and so on — so reviewing your colleague's PR while diffing your own branch in another tab is the default behaviour, not a workaround. `branchdiff list` enumerates every running session if you lose track. Same ref pair re-running in the same repo? branchdiff reuses the existing session and just reopens the browser, so you do not accidentally fragment the review across two ports.
+Multiple PRs at once is the default. Each ref pair opens on its own port — second session on `5392`, third on `5393` — so reviewing your colleague's PR while iterating on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running. Same ref pair revisited? branchdiff reuses the existing session so you do not fragment the review across ports.
 
-If a PR already has comments on the platform, click the `#123` button and choose **Pull from PR**. Existing review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review at the same time, in the same place. That is the moment branchdiff stops feeling like a "diff viewer" and starts feeling like the actual review surface.
+If the PR already has comments from other reviewers, click `#123` → **Pull from PR**. Existing inline review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review in the same place, at the same time. That is the moment branchdiff stops feeling like a "diff viewer" and starts feeling like the actual review surface.
 
 ---
 
-## Step 2 — pace the read with viewed / stale tracking
+## Step 2 — track progress with viewed / stale markers
 
-Big PRs are intimidating because you cannot see your progress. branchdiff borrows GitHub's "viewed" idea and pushes it further:
+Big PRs are intimidating because progress is invisible. branchdiff borrows GitHub's "viewed" idea and makes it meaningfully smarter:
 
-- Mark a file as **viewed** with the eye icon in the file header (or right-click → *Mark viewed*, or via the keyboard from the file row). The sidebar shows a checkmark next to it.
-- A **counter** in the sidebar tells you `12 / 38 viewed` so you know how far you are. On a forty-file PR, that counter is the difference between confident progress and the foggy "I think I covered everything" feeling that makes engineers dismiss a PR as "looks good to me" when they really mean "I am tired."
-- If the author later pushes a commit that changes a file you already marked viewed, branchdiff flips it to **stale** and shows an amber dot. You only need to re-read the parts that actually changed — the other 26 files stay marked.
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Unviewed : File appears in diff
+    Unviewed --> Viewed : User marks viewed\n(eye icon / right-click)
+    Viewed --> Stale : Author pushes commit\nthat changes this file\n(FNV-1a hash mismatch)
+    Stale --> Viewed : User re-reads +\nmarks viewed again
+    Viewed --> Viewed : Author pushes commit,\nfile content unchanged\n✓ Marker preserved
 
-Staleness is detected via an **FNV-1a hash of the file's diff signature**, so the flag is content-based, not timestamp-based. A rebase that does not change the file's content will not invalidate your work. A force-push that retouches one line in a file you already reviewed flips exactly that file to stale, leaving the rest of your viewed set intact. This is the GitHub "viewed" feature done properly: aware of what actually changed, not just whether the commit hash moved.
+    note right of Viewed
+        Persists via:
+        localStorage (fast UI)
+        SQLite (stable, cross-machine)
+        Keyed by repo fingerprint
+    end note
+```
 
-The status carries across sessions and machines too, because the underlying state is stored both in localStorage (for fast UI) and in a server-backed SQLite table keyed by a stable **repo fingerprint** (which scans your remotes — upstream, then origin, then any other — to converge on a canonical ID across forks and machines). Switch ports, export the bundle on one machine and import on another, or revisit the same PR a week later — your "viewed" markers come with you. The `branchdiff info` command prints the fingerprint and the state-table size so you can audit what is being tracked.
+- **Mark a file viewed** with the eye icon in the file header, right-click → *Mark viewed*, or from the keyboard. The sidebar shows a checkmark.
+- **A counter** — `12 / 38 viewed` — shows how far you are. On a forty-file PR, that counter is the difference between confident progress and the "I think I covered everything" feeling that produces "LGTM" comments written out of exhaustion.
+- **Stale detection.** If the author pushes a commit that changes a file you already marked viewed, branchdiff flips it to *stale* with an amber dot. You only re-read the parts that actually changed.
 
-There is also a **commit detail page** (added in v1.5.0). Clicking any commit in the history sidebar opens `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. Useful when you want to understand a single commit in isolation — for example, the one that reverted the previous reviewer's feedback. The back button preserves your position so you can dive into a commit and come back to the branch comparison without losing where you were.
+Staleness uses an **FNV-1a hash of the file's diff signature** — content-based, not timestamp-based. A rebase that does not touch the file will not invalidate your work. A force-push that changes one line flips exactly that file to stale.
+
+The state persists across sessions and machines via a stable **repo fingerprint** — branchdiff scans your remotes (upstream, then origin, then any other) to converge on a canonical ID across forks. `branchdiff info` prints the fingerprint and state-table size so you can audit what is being tracked.
+
+There is also a **commit detail page** (v1.5.0). Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button returns you to the branch comparison without losing your position.
 
 ---
 
 ## Step 3 — narrow the file list with sidebar filters
 
-The sidebar has nine filter chips that stack with the search box. Each filter answers a specific question reviewers ask out loud:
+The sidebar has nine filter chips that stack with the search box. Each one answers a specific question reviewers ask out loud:
 
-| Filter         | Question it answers                                                  |
+| Filter         | The question it answers                                              |
 | -------------- | -------------------------------------------------------------------- |
-| **Commented**  | "Which files already have review threads on them?"                  |
-| **Uncommented**| "Which files have I not commented on yet?"                          |
-| **Viewed**     | "Which files have I marked as reviewed?"                            |
-| **Unviewed**   | "What's left for me to look at?"                                    |
-| **Stale**      | "Which of my viewed files changed since I marked them?"             |
-| **Collapsed**  | "Which diffs am I currently hiding?"                                |
-| **Expanded**   | "Which diffs am I focusing on?"                                     |
-| **Staged**     | "Which working-tree files have staged changes?" (working-tree only) |
-| **Unstaged**   | "Which working-tree files have unstaged changes?" (working-tree)    |
+| **Commented**  | Which files already have review threads on them?                    |
+| **Uncommented**| Which files have I not commented on yet?                            |
+| **Viewed**     | Which files have I already marked as reviewed?                      |
+| **Unviewed**   | What's left to read?                                                |
+| **Stale**      | Which of my viewed files changed since I marked them?               |
+| **Collapsed**  | Which diffs am I currently hiding?                                  |
+| **Expanded**   | Which diffs am I actively reading?                                  |
+| **Staged**     | Which working-tree files have staged changes?                       |
+| **Unstaged**   | Which working-tree files have unstaged changes?                     |
 
-Two collapse-helpers in the toolbar matter alongside the filters: **Collapse all** to fold every file at once when you want a high-level pass, and **Expand all** to open everything when you are doing a deep read. Files with open comments are force-expanded automatically so the threads are never hidden behind a collapsed diff.
+![9 Sidebar Filters](../../../assets/B-15/sidebar-filters-grid.svg)
 
-The filters auto-hide when they are not applicable (no `Staged` chip when you are reviewing a branch comparison, no `Commented` chip when nothing is commented yet) so the chip strip is never cluttered with options that would not do anything. Filters stack with the search box — narrow by text *and* state simultaneously, e.g. *Filter → Stale + search "auth"* gives you exactly the auth files that changed since you last looked. That is the kind of query you would otherwise do mentally, badly, and slowly.
+Filters auto-hide when inapplicable — no `Staged` chip on a branch comparison, no `Commented` chip when nothing is commented yet. They stack with the search box, so *Filter → Stale + search "auth"* gives you exactly the auth files that changed since you last looked.
 
-For working-tree reviews you also get a **staged / unstaged toggle** in the toolbar so you can flip between `git diff --staged` and `git diff` without re-running the command. File rows show inline status badges: **S** (accent-colored, staged), **U** (amber, unstaged), amber dot (stale), checkmark (viewed and current) — each one a single visual that would otherwise need a click to discover.
+Two toolbar helpers work alongside the filters: **Collapse all** folds every file for a high-level pass; **Expand all** opens everything for a deep read. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.
 
-A typical second-pass workflow becomes: *Filter → Stale*, re-read those files, mark viewed; *Filter → Unviewed*, finish those; *Filter → Commented*, sanity-check the threads. The PR shrinks from "38 files" to a list of seven that need attention right now. That filter sequence is what turns a multi-session review into a closeable task.
+For working-tree reviews, the **staged / unstaged toggle** flips between `git diff --staged` and `git diff` without re-running the command. File rows show inline status badges — **S** (staged), **U** (unstaged), amber dot (stale), checkmark (viewed and current).
+
+A typical second-pass workflow: *Filter → Stale*, re-read those files, mark viewed; *Filter → Unviewed*, finish those; *Filter → Commented*, sanity-check the threads. The PR shrinks from "38 files" to a list of seven that need attention right now.
 
 ---
 
 ## Step 4 — full-file view with the change minimap
 
-Inline diffs are great for small changes. They are bad for changes that depend on context far above or below the hunk — and most non-trivial changes are exactly that kind. The toolbar's **Full-file view** opens a VS Code-style side-by-side rendering of the entire file with:
+Inline diffs fall apart when the change depends on context far above or below the hunk — which describes most non-trivial changes. The toolbar's **Full-file view** opens a VS Code-style side-by-side rendering of the entire file:
 
-- All hunks expanded in place inside the full file. You see the whole function, not three lines of it ripped out of context.
-- A **minimap on the right** marking added, removed, and modified regions so you can scan a 1,000-line file in a glance and click straight to a change. The minimap is the part most reviewers do not realise they were missing until they have it for a week — it makes the question "is there anywhere else this pattern appears?" answerable in two seconds.
-- Inline review threads anchored to the same lines they live on in the diff view — comments do not disappear when you switch modes. The `endLine` of the thread is what the anchor uses (a fix landed in v1.5.0 to keep the diff view and the full-file view consistent, so a thread no longer shows in two places at once).
+- All hunks expanded in place inside the full file. You see the whole function, not three lines ripped out of context.
+- A **minimap on the right** marking added, removed, and modified regions. Scan a 1,000-line file in a glance and click straight to a change. The question "is there anywhere else this pattern appears?" becomes answerable in two seconds.
+- Inline review threads anchored to the same lines they live on in hunk view — comments do not disappear when you switch modes. (The `endLine` anchor was fixed in v1.5.0 to keep the two views consistent.)
 
-For markdown files, v1.5.0 added a **Preview** toggle in full-file view that renders both old and new sides as formatted markdown side-by-side. Documentation PRs become readable instead of being a maze of `**` and backtick noise. Comments are hidden in preview mode because line numbers do not align to rendered output — that is the right trade-off, but worth knowing if you are looking for a missing thread.
+For markdown files, v1.5.0 added a **Preview** toggle that renders both old and new sides as formatted markdown side-by-side. Documentation PRs become readable instead of a maze of `**`, `>`, and backtick noise.
 
-Together, full-file view and the minimap turn a "scrolling through hunks" review into a "reading the file with annotations" review. For complex changes that is a different activity entirely, and it is what makes branchdiff usable for refactor PRs that GitHub's UI cannot really render well.
+Full-file view + minimap together transform a "scrolling through hunks" review into a "reading the file with annotations" review. For refactor PRs — the kind where GitHub's hunk view gives you fifty disconnected three-line windows — it is a genuinely different activity.
 
 ---
 
 ## Step 5 — let an AI take the first pass
 
-Reading a 40-file PR by hand is necessary work. Running an AI pass *on top of* that read is the part that is genuinely additive — the AI is bad at understanding intent but good at the mechanical sweep that humans skim past. branchdiff exposes a small `branchdiff agent` command surface (`diff`, `comment`, `general-comment`, `resolve`, `dismiss`, `reply`, plus tour commands) that any AI can drive — Claude Code via the `/branchdiff-review` skill, or any other model via the copy-paste prompt in the README, or a one-shot pipe:
+Reading a 40-file PR by hand is necessary work. Running an AI pass *on top of* that read is additive: the AI is bad at understanding intent but good at the mechanical sweep that human readers skim past under cognitive load.
+
+branchdiff exposes a small `branchdiff agent` command surface that any AI can drive — Claude Code via the `/branchdiff-review` skill, or any other model via the copy-paste prompt in the README, or a one-shot pipe:
 
 ```bash
-branchdiff review context | claude -p "review for security and breaking changes"
-branchdiff review run --exec "claude -p 'security audit'" --mode review
+branchdiff review context | claude -p "security audit"
+branchdiff review run --exec "claude -p 'test coverage gaps'" --mode review
 ```
 
-The README documents eight scoped workflows: general review, resolve, code tour, summary, security audit, test coverage gaps, breaking-change review, and dependency review. For somebody else's PR I usually run two:
+```mermaid
+flowchart TD
+    START["What does the diff touch?"] --> P0
 
-- **Security audit** when the diff touches auth, input handling, or anything web-facing. The AI looks only for security issues — injection, secret leaks, weak crypto, broken authz, deserialisation traps, path traversal, SSRF, dependency risk — and skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.
-- **Test coverage gaps** for new logic. The AI walks every new function and branch, checks the test directory for coverage, and flags uncovered paths with a stub `it(...)` suggestion. Priority is error branches → new public API → edge cases → happy path. Private helpers exercised transitively are skipped, so the comment density is low and the signal is high.
+    START --> Q1
+    Q1{"Auth / input handling\n/ web-facing code?"}
+    Q1 -- Yes --> P1["🔒 Security Audit\nInjection · Secret leaks\nWeak crypto · Broken authz\nSSRF · Deserialization"]
 
-For larger or riskier PRs I add **breaking-change review** (which classifies every change and drafts an UPGRADE.md snippet) or **dependency review** (which flags added or major-bumped packages with maintenance, license, bundle-size, and CVE notes).
+    Q1 -- No --> Q2
+    Q2{"New functions,\nbranches, error paths?"}
+    Q2 -- Yes --> P2["🧪 Test Coverage Gaps\nFlags uncovered paths\nGenerates it(...) stubs\nErrors → API → edges"]
 
-Two recent improvements (v1.5.0) make these passes feel less like noise:
+    Q2 -- No --> Q3
+    Q3{"Public API or\nlibrary changes?"}
+    Q3 -- Yes --> P3["⚠️ Breaking-Change Review\nClassifies each change\nDrafts UPGRADE.md\nFlags no-rollback migrations"]
 
-- **Constructive tone.** Comments lead with the problem ("This returns undefined when X is empty"), not a judgment ("This is wrong"). Collaborative language ("Consider using X" instead of "You should"). Acknowledge good code briefly when it deserves it.
-- **Nth-time review awareness.** The skill reads `branchdiff agent list --status resolved` and `--status dismissed` before commenting. Resolved threads are not re-raised, dismissed ones are only re-flagged if there is new evidence. This is what makes follow-up reviews (2nd, 3rd, nth pass) practical — you can re-run the skill after every meaningful commit without paying the cost of re-litigating earlier feedback.
+    Q3 -- No --> Q4
+    Q4{"New or bumped\ndependencies?"}
+    Q4 -- Yes --> P4["📦 Dependency Review\nMaintenance · License\nBundle size · CVEs"]
 
-You read the AI's comments first, decide which are real, and either dismiss them with a reason (`branchdiff agent dismiss <id> --reason "..."`) or keep them. The dismissal reason is the part of the workflow that keeps the AI honest across passes.
+    P0["🔍 General Review\n/branchdiff-review\nmust-fix · suggestion · nit · question"]
+
+    style P1 fill:#ef4444,color:#fff
+    style P2 fill:#3b82f6,color:#fff
+    style P3 fill:#f59e0b,color:#1e293b
+    style P4 fill:#8b5cf6,color:#fff
+    style P0 fill:#475569,color:#fff
+    style START fill:#1e293b,color:#fff
+```
+
+For somebody else's PR I usually run two passes:
+
+- **Security audit** when the diff touches auth, input handling, or anything web-facing. Looks only for security issues — injection, secret leaks, weak crypto, broken authorisation, deserialisation traps, path traversal, SSRF, dependency risk — skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.
+- **Test coverage gaps** for new logic. Walks every new function and branch, checks the test directory for coverage, flags uncovered paths with a stub `it(...)` suggestion. Priority is error branches → new public API → edge cases → happy path.
+
+For larger or riskier PRs I add **breaking-change review** or **dependency review**.
+
+Two v1.5.0 improvements make these passes less noisy: **constructive tone** (comments lead with the problem, not a judgment) and **nth-time review awareness** (resolved and dismissed threads are not re-raised unless there is new evidence).
+
+You read the AI's comments, decide which are real, dismiss the rest with reasons (`branchdiff agent dismiss <id> --reason "..."`), and keep the ones worth escalating. The AI is a first-pass filter — it lets you put your real attention on the parts that require understanding intent.
 
 ---
 
-## Step 6 — push comments back to the canonical PR
+## Step 6 — push comments and act on the review
 
-When you are happy with the threads, click the PR badge in the toolbar (it shows the PR number and a state dot — green open, purple merged, red closed) and choose **Push to PR**. Each single-comment thread is posted as an inline review comment on GitHub or Bitbucket. Duplicates are skipped (same file, line, body). Threads with replies stay local because the platform review-comment APIs do not map cleanly to multi-reply threads — those conversations belong on the PR itself.
+When you are happy with the threads, click the PR badge in the toolbar and choose **Push to PR**. Each single-comment thread is posted as an inline review comment on GitHub or Bitbucket. Duplicates (same file, line, body) are skipped. Threads with replies stay local — those conversations belong on the PR.
 
-The same dropdown carries the PR lifecycle actions, so you do not have to switch tabs to act on the review:
+The toast tells you what happened: `Pushed 4, skipped 1 duplicate, skipped 2 multi-reply threads`. Failures keep the local thread intact so you can fix the anchor and retry.
 
-- **Approve**, **Request Changes**, **Comment** (Comment uses `gh pr comment` so it posts a regular PR comment, not a review object — fixed in v1.5.1; the previous version mistakenly created a review).
-- **Merge** (with strategy picker — squash / merge / rebase on GitHub, squash / merge / fast-forward on Bitbucket since v1.5.1; previously Bitbucket merges always used the repository default).
-- **Close**, **Reopen** (only when valid; `SUPERSEDED` Bitbucket PRs do not show Reopen because the API does not support that operation).
-- **Mark as Draft / Ready for Review**, **Edit title and description**.
-
-Each action is proxied to `gh` or the Bitbucket REST API, so the audit trail on the PR looks identical to clicking on the website. **Reviewer pills** in the dropdown header show every reviewer's latest state — approved, changes requested, commented, pending, or dismissed (the last one was added in v1.5.1; earlier versions fell back to "pending" and you would lose track of who had been dismissed by an admin) — at a glance.
-
-Sync requires your local HEAD to match the PR head and your working tree to be clean — the same constraints any review tool would impose to keep line numbers honest. Errors stay inline in the confirm dialog (v1.5.1) so a typed comment is not lost when the network blips, which removed about 80% of the "the dialog vanished and ate my carefully-typed merge message" frustration earlier versions had.
+The same dropdown carries every lifecycle action — Approve / Request Changes / Comment, Merge with strategy picker, Close / Reopen / Mark Draft / Mark Ready, Edit title and description. **Reviewer pills** in the dropdown header show every reviewer's latest state — approved, changes requested, commented, pending, or dismissed — at a glance. Errors stay inline in the confirm dialog so a typed comment is not lost when the network blips.
 
 ---
 
-## A reasonable cadence
+## A reasonable cadence for a 30-file PR
 
-For a typical 30-file PR my flow looks like this:
+```mermaid
+flowchart TD
+    S1["1️⃣ Open locally\nbranchdiff PR-url\nPull existing comments\nif others reviewed first"] --> S2
+    S2["2️⃣ First pass\nCollapse all\nExpand 5-6 key files\nRead + mark viewed"] --> S3
+    S3["3️⃣ AI sweep\nSecurity audit +\ntest coverage gaps\nRuns while you read"] --> S4
+    S4["4️⃣ Triage\nKeep must-fix items\nDismiss others with reasons"] --> S5
+    S5["5️⃣ Re-review stale\nFilter → Stale\nRe-read changed files\nUpdate threads"] --> S6
+    S6["6️⃣ Close the loop\nPush comments\nApprove / Request changes\nMerge with right strategy"]
 
-1. `branchdiff <pr-url>` — open locally, take a quick scroll through. Pull existing comments if other reviewers have been here first.
-2. *Collapse all* → expand the 5–6 files I care about most → read and mark viewed as I go. Use the search box to find the entry point of the change and start there.
-3. Run security audit and test coverage gap workflows in Claude Code on the side. They post comments while I keep reading.
-4. Triage AI comments — fix-suggest some by leaving the AI's comment as-is, dismiss some with reasons, escalate a few to `[must-fix]` if I agree.
-5. *Filter → Stale* on the next sit-down if the author force-pushed. Re-read those few files. Update threads.
-6. Push surviving comments back to the PR, approve or request changes from the toolbar, optionally merge with the right strategy.
+    S5 -. "Author force-pushed?\nRepeat from Step 2" .-> S2
 
-The total wall-clock time on a careful review goes down enough that I can afford to be more thorough on the parts that matter — flow control, contracts, edge cases, the "is this the right abstraction?" question — instead of burning attention on plumbing.
+    style S1 fill:#3b82f6,color:#fff
+    style S2 fill:#6366f1,color:#fff
+    style S3 fill:#8b5cf6,color:#fff
+    style S4 fill:#f59e0b,color:#1e293b
+    style S5 fill:#f97316,color:#fff
+    style S6 fill:#10b981,color:#fff
+```
+
+The total wall-clock time on a careful review goes down enough that you can afford to be more thorough on the parts that matter — flow control, contracts, edge cases, the "is this the right abstraction?" question — instead of burning attention on mechanics.
 
 ---
 
 ## Where it stops
 
-A few things branchdiff deliberately does not do, so the picture is not over-claimed:
-
-- It does not run your CI. The platform's checks are still the gate — branchdiff just shows you the PR state, not the green/red of every check.
-- It does not push multi-reply threads. If a back-and-forth needs to happen before merge, that conversation belongs on the PR.
-- It does not store comments in the cloud. Wipe `~/.branchdiff/` and you lose local drafts that have not been pushed.
-- It does not bypass branch protection. Merge actions still respect required reviews, status checks, and protected branches on the platform.
-- It does not replace the PR page. The PR description, the CI status block, the linked issues — all of that still lives on the platform, with a one-click *Open in browser* in the dropdown to get you there when you need it.
-
-The tool is intentionally small. It does the part that benefits from being local, and gets out of the way of the part that benefits from being on the platform.
+- **No CI.** The platform's checks are still the gate.
+- **No multi-reply thread push.** Back-and-forth conversations belong on the PR.
+- **No cloud storage.** Wipe `~/.branchdiff/` and local drafts that have not been pushed are gone.
+- **No branch protection bypass.** Merge actions still respect required reviews, status checks, and protected branches on the platform.
+- **No full PR page replacement.** The PR description, linked issues, and CI block still live on the platform. *Open in browser* in the toolbar is one click away.
 
 ---
 
 ## Quick start
 
+Full install guide, changelog, and uninstall steps on the [branchdiff releases page](https://encryptioner.github.io/branchdiff-releases/).
+
 ```bash
 npm install -g @encryptioner/branchdiff
-# or:  pip install branchdiff
-# or:  brew tap encryptioner/branchdiff https://github.com/encryptioner/branchdiff-releases && brew install branchdiff
+# or: pip install branchdiff
+# or: brew tap encryptioner/branchdiff https://github.com/encryptioner/branchdiff-releases \
+#          && brew install branchdiff
+
 branchdiff https://github.com/your-org/your-repo/pull/123
 ```
 
-That is the whole setup. Add `branchdiff skill add` if you want the Claude Code slash commands. Everything else is in the toolbar.
+Add `branchdiff skill add` if you want the Claude Code slash commands. Everything else is in the toolbar.
 
-The next time a teammate posts a 40-file PR in your team chat, try opening it locally instead of on the website. Mark a few files viewed. Run a security audit pass. Push the comments back. See whether the review felt different.
+The next time a teammate posts a 40-file PR in Slack, try opening it locally. Mark a few files viewed. Run a security audit pass. Push the comments back. See whether the review felt different — and whether you have more attention left for the parts that need it.
 
 ---
 
 ## Let's Connect
 
-I'm always excited to hear about what you're building! If you found this guide helpful, have questions, or just want to share your code review and AI workflow setup:
+I am always excited to hear what you are building. If this guide helped, or if you want to talk through AI-augmented code review strategies:
 
 - **Website**: [encryptioner.github.io](https://encryptioner.github.io)
 - **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
@@ -177,4 +230,4 @@ I'm always excited to hear about what you're building! If you found this guide h
 - **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
 - **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
 
-*branchdiff source, changelog, and releases: [github.com/Encryptioner/branchdiff-releases](https://github.com/Encryptioner/branchdiff-releases).*
+*branchdiff releases, install guide, and changelog: [encryptioner.github.io/branchdiff-releases](https://encryptioner.github.io/branchdiff-releases/)*

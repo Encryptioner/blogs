@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 310" width="800" height="310">
+  <defs>
+    <filter id="card-shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="310" fill="#f1f5f9" rx="10"/>
+
+  <!-- Title -->
+  <text x="400" y="28" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="2">PR LIFECYCLE ACTIONS — TOOLBAR DROPDOWN</text>
+
+  <!-- Status bar (header preview) -->
+  <rect x="16" y="40" width="768" height="34" fill="#1e293b" rx="6"/>
+  <circle cx="40" cy="57" r="7" fill="#10b981"/>
+  <text x="54" y="61" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="white">#482  main ← feature/payments</text>
+  <!-- reviewer pills -->
+  <rect x="530" y="47" width="70" height="20" fill="#166534" rx="10"/>
+  <text x="565" y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="white">✓ alice</text>
+  <rect x="608" y="47" width="70" height="20" fill="#92400e" rx="10"/>
+  <text x="643" y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="white">✗ bob</text>
+  <rect x="686" y="47" width="70" height="20" fill="#374151" rx="10"/>
+  <text x="721" y="61" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9.5" fill="#d1d5db">· carol</text>
+
+  <!-- ── Group 1: Review ── -->
+  <rect x="16" y="88" width="180" height="206" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="16" y="88" width="180" height="32" fill="#1e40af" rx="8"/>
+  <rect x="16" y="104" width="180" height="16" fill="#1e40af"/>
+  <text x="106" y="109" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="white">① Review</text>
+  <text x="36" y="140" font-family="system-ui,sans-serif" font-size="12">✅</text>
+  <text x="58" y="141" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Approve</text>
+  <text x="36" y="168" font-family="system-ui,sans-serif" font-size="12">🔄</text>
+  <text x="58" y="169" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Request Changes</text>
+  <text x="36" y="196" font-family="system-ui,sans-serif" font-size="12">💬</text>
+  <text x="58" y="197" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Comment</text>
+  <text x="36" y="220" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8">via gh / Bitbucket API</text>
+  <text x="36" y="237" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8">audit trail on platform ✓</text>
+  <text x="36" y="280" font-family="system-ui,sans-serif" font-size="10" fill="#475569" font-weight="600">Confirms or blocks merge</text>
+
+  <!-- ── Group 2: Merge ── -->
+  <rect x="210" y="88" width="180" height="206" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="210" y="88" width="180" height="32" fill="#7c3aed" rx="8"/>
+  <rect x="210" y="104" width="180" height="16" fill="#7c3aed"/>
+  <text x="300" y="109" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="white">② Merge</text>
+  <text x="230" y="140" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#475569">GitHub</text>
+  <text x="230" y="158" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">· Merge commit</text>
+  <text x="230" y="173" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">· Squash and merge</text>
+  <text x="230" y="188" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">· Rebase and merge</text>
+  <text x="230" y="210" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#475569">Bitbucket</text>
+  <text x="230" y="228" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">· Merge commit</text>
+  <text x="230" y="243" font-family="system-ui,sans-serif" font-size="10.5" fill="#64748b">· Squash · Fast-forward</text>
+  <text x="230" y="272" font-family="system-ui,sans-serif" font-size="10" fill="#475569" font-weight="600">Branch protection still applies</text>
+
+  <!-- ── Group 3: State ── -->
+  <rect x="404" y="88" width="180" height="206" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="404" y="88" width="180" height="32" fill="#0f766e" rx="8"/>
+  <rect x="404" y="104" width="180" height="16" fill="#0f766e"/>
+  <text x="494" y="109" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="white">③ State</text>
+  <text x="424" y="140" font-family="system-ui,sans-serif" font-size="12">🔴</text>
+  <text x="446" y="141" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Close</text>
+  <text x="424" y="169" font-family="system-ui,sans-serif" font-size="12">🔵</text>
+  <text x="446" y="170" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Reopen</text>
+  <text x="446" y="184" font-family="system-ui,sans-serif" font-size="9.5" fill="#94a3b8">(when valid)</text>
+  <text x="424" y="205" font-family="system-ui,sans-serif" font-size="12">📝</text>
+  <text x="446" y="206" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Mark Draft</text>
+  <text x="424" y="228" font-family="system-ui,sans-serif" font-size="12">🟢</text>
+  <text x="446" y="229" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Mark Ready</text>
+  <text x="424" y="272" font-family="system-ui,sans-serif" font-size="10" fill="#475569" font-weight="600">Confirmation dialog for destructive</text>
+
+  <!-- ── Group 4: Metadata ── -->
+  <rect x="598" y="88" width="186" height="206" fill="white" rx="8" filter="url(#card-shadow)"/>
+  <rect x="598" y="88" width="186" height="32" fill="#475569" rx="8"/>
+  <rect x="598" y="104" width="186" height="16" fill="#475569"/>
+  <text x="691" y="109" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="white">④ Metadata</text>
+  <text x="618" y="140" font-family="system-ui,sans-serif" font-size="12">✏️</text>
+  <text x="642" y="141" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Edit title &amp; description</text>
+  <text x="618" y="169" font-family="system-ui,sans-serif" font-size="12">🔄</text>
+  <text x="642" y="170" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Sync comments</text>
+  <text x="642" y="184" font-family="system-ui,sans-serif" font-size="9.5" fill="#94a3b8">Push local → PR / Pull PR → local</text>
+  <text x="618" y="208" font-family="system-ui,sans-serif" font-size="12">🌐</text>
+  <text x="642" y="209" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#1e293b">Open in browser</text>
+  <text x="642" y="223" font-family="system-ui,sans-serif" font-size="9.5" fill="#94a3b8">Jump to platform any time</text>
+  <text x="618" y="272" font-family="system-ui,sans-serif" font-size="10" fill="#475569" font-weight="600">Platform stays source of truth</text>
+</svg>
