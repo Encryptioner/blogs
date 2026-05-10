@@ -7,9 +7,11 @@ You start a new AI coding session, ask about the payment flow — and your agent
 Two open-source tools solve this in different but complementary ways:
 
 - **Graphify** — converts your folder into a queryable knowledge graph with community detection, Obsidian-compatible reports, and cross-file traversal
-- **code-review-graph** — builds a SQLite-backed AST graph with blast-radius analysis, 28 MCP tools, and sub-second incremental updates
+- **code-review-graph (CRG)** — builds a SQLite-backed AST graph with blast-radius analysis, embedding-based semantic search, ~25 MCP tools (allow-listable to a working set of 8), and sub-second incremental updates
 
 This guide walks through installing both tools, connecting them to any AI coding agent — Claude Code, Cursor, Gemini CLI, Windsurf, GitHub Copilot, and more — wiring auto-updates for code edited by humans, git commits, or the agent itself, and pairing everything with an Obsidian vault as a persistent memory layer.
+
+> **Pick one, both, or none — every section degrades gracefully.** Each tool works standalone; the smart-grep-hook, session-start cheatsheet, and CLAUDE.md routing rules all detect what is present and adapt. Use just graphify if you want a pure CLI / zero-MCP setup. Use just CRG if you want embedding-aware semantic search and PR-grade impact tools. Use both for the full stack (CRG primary, graphify on miss). If neither is installed, the agent silently falls back to grep — no broken hooks, no errors.
 
 All commands in this guide were tested on Ubuntu and macOS across multiple real pnpm monorepos of varying sizes.
 
@@ -84,22 +86,24 @@ SQLite (.code-review-graph/graph.db)
     └── Full-text search index (FTS5)
     │
     ▼
-28 MCP tools exposed to your AI agent
-(get_minimal_context, detect_changes, semantic_search, ...)
+~25 MCP tools available (allow-list to ~8 via CRG_TOOLS env — see "Strip Unused CRG Tools")
+(semantic_search_nodes, query_graph, get_impact_radius, list_communities, ...)
 ```
 
 ---
 
 ## Installation
 
+Install one or both — the rest of the guide shows where each section applies.
+
 ### Ubuntu
 
 ```bash
-# Install both tools
-pip install graphifyy         # Note: two y's on PyPI
-pip install code-review-graph
+# Pick what you need:
+pip install graphifyy         # graphify CLI (note: two y's on PyPI)
+pip install code-review-graph # CRG (CLI + MCP server, includes embeddings extra)
 
-# Verify
+# Verify (only the lines for installed tools):
 graphify --help | head -5
 code-review-graph --version
 ```
@@ -107,11 +111,11 @@ code-review-graph --version
 ### macOS
 
 ```bash
-# Via uv (fastest)
-uv tool install graphifyy
-uv tool install code-review-graph
+# Via uv (fastest):
+uv tool install graphifyy           # graphify only
+uv tool install code-review-graph   # CRG only — or run both lines for both
 
-# Or via pipx
+# Or via pipx:
 brew install pipx
 pipx install graphifyy
 pipx install code-review-graph
@@ -251,7 +255,7 @@ Remove all hooks from `.claude/settings.json`, then populate the two files:
 # .claude/settings.example.json — committed reference, shows hook structure
 {
   "hooks": {
-    "PostToolUse": [{"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph update --skip-flows 2>/dev/null || true", "timeout": 30}]}],
+    "PostToolUse": [{"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && { code-review-graph update --skip-flows 2>/dev/null && nohup code-review-graph embed >/dev/null 2>&1 & } || true", "timeout": 30}]}],
     "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true", "timeout": 10}]}]
   }
 }
@@ -308,12 +312,13 @@ Add the post-commit update yourself. Both forms are detached so `git commit` ret
 
 ```sh
 # code-review-graph-hook-start
-# Auto-rebuild code-review-graph SQLite DB after each commit (detached, non-blocking).
+# Auto-rebuild CRG graph + embeddings after each commit (detached, non-blocking).
+# embed only runs if update succeeds (&&) — keeps semantic search current for new nodes.
 if command -v code-review-graph >/dev/null 2>&1 && [ -d .code-review-graph ]; then
     _CRG_LOG="${HOME}/.cache/code-review-graph-update.log"
     mkdir -p "$(dirname "$_CRG_LOG")"
-    echo "[code-review-graph hook] launching background update (log: $_CRG_LOG)"
-    nohup code-review-graph update --skip-flows > "$_CRG_LOG" 2>&1 < /dev/null &
+    echo "[code-review-graph hook] launching background update+embed (log: $_CRG_LOG)"
+    nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_CRG_LOG" 2>&1 < /dev/null &
     disown 2>/dev/null || true
 fi
 # code-review-graph-hook-end
@@ -326,8 +331,8 @@ fi
 if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ]; then
   _LOG="${HOME}/.cache/code-review-graph-update.log"
   mkdir -p "$(dirname "$_LOG")"
-  echo "[code-review-graph] Commit detected - launching background update (log: $_LOG)"
-  nohup code-review-graph update --skip-flows > "$_LOG" 2>&1 < /dev/null &
+  echo "[code-review-graph] Commit detected - launching background update+embed (log: $_LOG)"
+  nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_LOG" 2>&1 < /dev/null &
   disown 2>/dev/null || true
 fi
 ```
@@ -650,7 +655,7 @@ Wire it in `~/.claude/settings.json` (global — fires for every project; handle
   {
     "hooks": [{
       "type": "command",
-      "command": "if [ -f .code-review-graph/graph.db ] || [ -f graphify-out/graph.json ]; then STATS=''; TOOL_LINES=''; if [ -f .code-review-graph/graph.db ]; then STATS=$(python3 -c \"import sqlite3; c=sqlite3.connect('.code-review-graph/graph.db'); n=c.execute('SELECT COUNT(*) FROM nodes').fetchone()[0]; e=c.execute('SELECT COUNT(*) FROM edges').fetchone()[0]; print(f'{n} nodes, {e} edges'); c.close()\" 2>/dev/null || echo ''); TOOL_LINES=\"  where is X defined    → semantic_search_nodes_tool(query=X)\\n  who calls X           → get_impact_radius_tool(node_id=X)\\n  X to Y call chain     → traverse_graph_tool(from=X, to=Y)\\n  module overview       → get_architecture_overview_tool()\\n  community/cluster     → list_communities_tool()\"; fi; if [ -f graphify-out/graph.json ]; then GFY_STATS=$(python3 -c \"import json; g=json.load(open('graphify-out/graph.json')); nodes=g.get('nodes',[]); comms=len(set(n.get('community','') for n in nodes if n.get('community',''))); print(f'{len(nodes)} nodes, {comms} communities')\" 2>/dev/null || echo ''); [ -n \"$GFY_STATS\" ] && STATS=\"${STATS:+$STATS | }graphify: $GFY_STATS\"; TOOL_LINES=\"${TOOL_LINES:+$TOOL_LINES\\n}  graphify query        → graphify query '<term>' --graph graphify-out/graph.json\\n  graphify path A→B     → graphify path '<from>' '<to>' --graph graphify-out/graph.json\\n  blast radius check    → read graphify-out/GRAPH_REPORT.md before refactoring\"; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"GRAPH QUERY CHEATSHEET (%s) — use BEFORE Read/Grep/Bash-find on code:\\n%s\\nSkip graph for: .md .json .yml .log .jsonl configs cross-repo paths.\\nOverride grep gate: append --graph-tried to any Bash command.\"}}' \"$STATS\" \"$TOOL_LINES\"; fi",
+      "command": "if [ -f .code-review-graph/graph.db ] || [ -f graphify-out/graph.json ]; then STATS=''; TOOL_LINES=''; if [ -f .code-review-graph/graph.db ]; then STATS=$(python3 -c \"import sqlite3; c=sqlite3.connect('.code-review-graph/graph.db'); n=c.execute('SELECT COUNT(*) FROM nodes').fetchone()[0]; e=c.execute('SELECT COUNT(*) FROM edges').fetchone()[0]; print(f'{n} nodes, {e} edges'); c.close()\" 2>/dev/null || echo ''); TOOL_LINES=\"  where is X defined    → semantic_search_nodes_tool(query=X)\\n  who calls X           → query_graph_tool(pattern=callers_of, target=X)\\n  pre-refactor blast    → get_impact_radius_tool(changed_files=[...])\\n  community/cluster     → list_communities_tool()\\n  code review context   → get_review_context_tool(changed_files=[...])\"; fi; if [ -f graphify-out/graph.json ]; then GFY_STATS=$(python3 -c \"import json; g=json.load(open('graphify-out/graph.json')); nodes=g.get('nodes',[]); comms=len(set(n.get('community','') for n in nodes if n.get('community',''))); print(f'{len(nodes)} nodes, {comms} communities')\" 2>/dev/null || echo ''); [ -n \"$GFY_STATS\" ] && STATS=\"${STATS:+$STATS | }graphify: $GFY_STATS\"; TOOL_LINES=\"${TOOL_LINES:+$TOOL_LINES\\n}  CRG miss / explore    → graphify query '<term>' --graph graphify-out/graph.json\\n  path A→B              → graphify path '<from>' '<to>' --graph graphify-out/graph.json\"; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"GRAPH QUERY CHEATSHEET (%s) — use BEFORE Read/Grep/Bash-find on code:\\n%s\\nSkip graph for: .md .json .yml .log .jsonl configs cross-repo paths.\\nOverride grep gate: append --graph-tried to any Bash command.\"}}' \"$STATS\" \"$TOOL_LINES\"; fi",
       "timeout": 5
     }]
   }
@@ -677,24 +682,303 @@ The allowance resets hourly. The `bypass.log` is an audit trail — recurring pa
 
 ---
 
+### Real Token Cost Comparison
+
+All numbers measured live on a 1336-node TypeScript monorepo, embeddings enabled (`code-review-graph embed` run once, then incremental after each edit).
+
+#### Symbol and concept lookups
+
+| Query | grep | graphify query | CRG keyword | CRG semantic |
+|---|---|---|---|---|
+| "Where is `createThread`?" | **594 tokens** (2374 chars, 24 lines) | **1532 tokens** (165 nodes, BFS depth=2) | 115 tokens | **115 tokens** |
+| "uiState persistence layer" | **1069 tokens** (4274 chars, 43 lines) | **1552 tokens** (87 nodes) | miss | **100 tokens** |
+| "comment submit handler" | 114 tokens (narrow query) | **1538 tokens** | miss | **100 tokens** |
+| "what imports api.ts?" | 437 tokens (filenames only) | **1563 tokens** (378 nodes) | 125 tokens (41 results) | **125 tokens** |
+| "who calls `createThread`?" | ~1109 tokens + manual filter | **1532 tokens** | 80 tokens | **80 tokens** |
+| "error handling in server" | **2220 chars** (noise: auto-generated .react-router types) | **1538 tokens** | 477 chars (source only) | **477 chars** |
+
+**Hidden grep cost:** after a grep hit the model usually reads the matched file. `comment-form.tsx` = 909 tokens. `comment-thread.tsx` = 1397 tokens. A typical grep + follow-up read costs **1300–2500 tokens per question**. CRG returns `file:line` — no follow-up read needed.
+
+**Signal quality gap:** grep returns every file containing the pattern — including `dist/`, generated `.react-router/types/`, auto-compiled `.d.ts`, and `node_modules` leakage. CRG indexes only what Tree-sitter parses as source. For the "error handling" query: grep returned 20 lines from auto-generated type files before any real source. CRG returned 5 precise hits: `sendError` and `withJsonBody` in `http-utils.ts`, `ErrorBoundary` in `root.tsx` and `diff.tsx`. Zero noise.
+
+**graphify query — right tool, wrong use case:** BFS depth=2 returns 87–378 nodes (~1500 tokens) regardless of query specificity. For *symbol lookup* ("where is createThread?"), this is 15× more expensive than CRG semantic. For *neighborhood exploration* ("what connects to this module when I don't know the codebase?"), the BFS output is exactly what you want — a visual map of relationships. The smart-grep hook intercepts it for symbol queries and routes through CRG; if CRG misses, graphify query proceeds. Use `graphify query` deliberately for exploration, not as a default lookup tool.
+
+**Why graphify appears less in session logs than you'd expect:** In a measured multi-hour session on a 1336-node monorepo, graphify had 2 actual code lookups vs CRG's 36 graph tool calls. This is correct behaviour, not underuse. CRG with embeddings covers 90%+ of targeted symbol and concept queries at 100–350 tokens — graphify BFS for the same query returns 1,500 tokens. The session was targeted feature work on a *known* codebase; both tools appropriately routed to CRG. Graphify's value surface is: unfamiliar codebase onboarding, cross-community architecture tracing, and path exploration between distant modules — none of which were needed. If the session had started with "I've never seen this codebase, orient me", graphify would have dominated.
+
+**The CRG-miss → grep fallback gap:** When `semantic_search_nodes_tool` returns 0 results (happened 3× for exact symbol names like `validateRef`, `parseUnifiedDiff`), the current cheatsheet doesn't tell the agent to try `graphify query` next. The agent falls back to grep, which returned 6–29 chars of near-nothing. The correct fallback chain is: `CRG semantic (miss) → graphify query '<term>' → grep`. Add this line to your CLAUDE.md trigger list or SessionStart cheatsheet to close the gap:
+
+```
+CRG 0 results → graphify query '<term>' --graph graphify-out/graph.json
+```
+
+#### What grep cannot do at all
+
+Some questions require multi-hop graph traversal. Grep answers the *text search* question; it cannot answer the *dependency* question.
+
+**Scenario: "What breaks if I change `server.ts`?"**
+
+With grep you would need to:
+1. Read `server.ts` header to find what it exports (~828 chars)
+2. `grep -rn "startServer" packages/` to find 1-hop callers (~715 chars)
+3. For each caller found, grep again for their importers (~309+ chars)
+4. Aggregate manually — still missing transitive re-exports and inferred dependencies
+
+Total: **3 separate operations, 1852+ chars, still incomplete.**
+
+With `get_impact_radius_tool`:
+
+```
+{"summary": "Blast radius for server.ts:
+  - 21 nodes directly changed
+  - 500 nodes impacted (within 2 hops)
+  - 135 additional files affected",
+ "risk": "high",
+ "key_entities": ["completer","promptBranch","fetchDefaultReviewers"]}
+```
+
+**1 call, 274 chars, complete 2-hop picture, risk rating included.**
+
+Grep reaches one level of importers in one pass. To get two levels, you need to loop. To get re-exports of re-exports, you need to understand the module graph. `get_impact_radius_tool` does all of this from the pre-built AST graph — sub-second.
+
+This matters most before refactoring: touching a widely-imported file without an impact check risks breaking 135 files silently.
+
+#### `get_review_context_tool` — best single call for code review
+
+Before any code review, this one call returns: risk level, impacted node count, impacted file count, and test gaps — all in ~111 tokens (session-measured average; range 80–270 depending on depth). No follow-up reads needed.
+
+```
+get_review_context_tool(changed_files=["packages/git/src/threads.ts"], depth="minimal", include_source=false)
+
+→ Risk: high
+→ 359 impacted nodes in 126 files
+→ test_gaps: 15
+```
+
+Compare with manually: read file (828 tokens) + grep importers (715 tokens) + read callers to assess risk (1400+ tokens) = **2943 tokens, incomplete**.
+
+Add it to your review workflow via the SessionStart cheatsheet — it fires once per session at ~150 tokens total, pointing the agent at this tool first for any PR or diff review.
+
+#### The winner by query type
+
+```
+┌────────────────────────────────┬────────────────────────────────┬──────────────────────────────┐
+│ Query type                     │ Best tool                      │ Est. tokens                  │
+├────────────────────────────────┼────────────────────────────────┼──────────────────────────────┤
+│ Find function/class X          │ semantic_search_nodes_tool     │ ~100                         │
+│ Who calls X?                   │ query_graph_tool(callers_of)   │ ~80                          │
+│ What imports file X?           │ query_graph_tool(importers)    │ ~125 (41 results)            │
+│ Concept graph traversal        │ traverse_graph_tool(query=X)   │ ~1000 (measured avg, depth=3) │
+│ Pre-refactor impact check      │ get_impact_radius_tool         │ ~70, complete 2-hop          │
+│ Code review / PR impact        │ get_review_context_tool        │ ~111 (measured avg), risk + test gaps │
+│ Module/behavioral clusters     │ list_communities_tool          │ ~170 (12 communities)        │
+│ CRG miss / neighborhood explore│ graphify query '<term>'        │ ~1500 (BFS — use sparingly)  │
+│ Exact path A→B hop-by-hop      │ graphify path '<A>' '<B>'      │ ~200                         │
+│ String/regex in code body      │ grep (# --graph-tried)         │ varies                       │
+│ Config/JSON/log values         │ grep — graph can't index these │ varies                       │
+└────────────────────────────────┴────────────────────────────────┴──────────────────────────────┘
+```
+
+#### Real session measurement: complete token accounting
+
+The per-query numbers above cover tool result sizes. A complete picture must also include the hidden context costs each approach carries: MCP schema overhead, required setup reads, and cache dynamics. These numbers were measured from a live multi-hour coding session on the same 1336-node monorepo (578 total API calls).
+
+**Hidden context overhead per approach:**
+
+| Approach | Schema/setup overhead | Per-call result | How it's paid |
+|---|---|---|---|
+| grep | **0 tokens** (none) | ~550 tok/call | per call, direct |
+| graphify CLI | **0 tokens** (it's a Bash call) | ~292 tok/call | per call, direct |
+| + GRAPH_REPORT.md | +458 tok (partial read, measured) | one-time | Read into context once |
+| CRG MCP tools | **~6,000 tok always** (~25 tool schemas, default) — drops to ~1,800 tok with `CRG_TOOLS` allow-list (8 tools) | ~69–1,359/call | written to cache on cold start, then served from cache at 10× lower cost |
+
+**Honest full-session accounting (37 graph tool calls):**
+
+| What | With CRG | With grep+Read |
+|---|---|---|
+| Schema/setup overhead | ~6,000 tok (cached) | 0 |
+| Tool result tokens | 14,167 tok (measured) | 110,335 tok (estimated) |
+| **Total** | **~20,167 tok** | **~110,335 tok** |
+| **Net saving** | **~90,168 tokens — 5.5× cheaper after schema overhead** | — |
+
+CRG schema tokens are written to the prompt cache on the first API call of a session (cold start: 59,310 tokens including system prompt + all tool schemas). After that they're served from `cache_read` at $0.30/MTok — one-tenth the cost of new input ($3.00/MTok). The `get_architecture_overview_tool` block saved 33,000 tokens from a single denied call; that alone exceeds the CRG schema overhead.
+
+**Cache economics for the full session:**
+
+| Metric | Value |
+|---|---|
+| Cold-start cache_write (call 1) | 59,310 tokens — full context incl. all schemas |
+| Total cache_write across session | 3,056,502 tokens |
+| Cold-start share of writes | 1.9% |
+| Total cache_read | 50,942,267 tokens |
+| New input tokens | 7,694 tokens |
+| Est. session cost (Sonnet 4.x) | ~$36 (cache_write $11.46 + cache_read $15.28 + output $9.49) |
+
+Estimated cost without CRG (same session, grep+Read instead): the additional 90K tool result tokens would each need to be cache-written then read — adding roughly $0.34 in cache_write + $2.70 in cache_read per 100K tokens. More importantly, a larger context window means cache blocks expire and must be re-created more often, compounding costs across 578 calls.
+
+**Three-way comparison including all hidden costs (37 lookup calls, measured session):**
+
+```
+                      grep          graphify CLI      CRG MCP
+─────────────────────────────────────────────────────────────
+Schema overhead       0 tok         0 tok             ~6,000 tok
+                      (none)        (Bash call,       (~25 tool schemas,
+                                     no MCP schema)    always in context)
+Setup read            0 tok         +458 tok          0 tok
+                                    (GRAPH_REPORT.md,
+                                     one partial read,
+                                     measured)
+Per-call result       ~550 tok      ~292 tok          ~69–1,359 tok
+Follow-up Read?       +~1,842 tok   not needed        not needed
+                      (usually yes)
+
+37 calls — total cost:
+  Tool results        ~20,350 tok   ~10,804 tok       14,167 tok (measured)
+  + overhead          0             +458 tok          +6,000 tok
+  ─────────────────────────────────────────────────────────────
+  TOTAL               ~20,350 tok   ~11,262 tok       ~20,167 tok
+
+vs grep+Read equiv:   110,335 tok   110,335 tok       110,335 tok
+Net saving            ~5.4×         ~9.8×             ~5.5×
+```
+
+**graphify CLI is the most token-efficient per lookup** when full overhead is counted — zero MCP schema tax, no follow-up Read needed, compact output. Its limitation is output size at BFS scale (87–378 nodes, ~1,500 tokens) and needing GRAPH_REPORT.md for orientation. For targeted symbol lookup CRG wins; for schema-free cost-conscious exploration graphify wins.
+
+**CRG's 6K schema overhead pays back fast**: the blocked `get_architecture_overview_tool` call alone saved 33,000 tokens — 5× the entire schema overhead — from a single hook denial in this session. After cold-start, schemas cost $0.30/MTok (cache_read) not $3.00/MTok (new input).
+
+**Graphify vs CRG split:** graphify had 2 actual code lookups; CRG had 36 tool calls. This is the right ratio for targeted feature work on a known codebase — CRG semantic search (100–350 tok) dominated because the work was precise. Graphify BFS (~1,500 tok) is for orientation on unfamiliar ground. Same session on an unknown codebase would flip the ratio.
+
+### Strip Unused CRG Tools (Cuts Schema Overhead 70%)
+
+CRG registers **25 MCP tools by default** but a typical session uses ~8. Every unused tool still costs always-loaded schema tokens. CRG ships with a built-in allow-list filter — `_apply_tool_filter` removes tools at server boot via `mcp.local_provider.remove_tool(name)`. Filtered tools cannot be invoked at all, so the explicit PreToolUse block on `get_architecture_overview_tool` becomes redundant.
+
+**Set `CRG_TOOLS` in `~/.claude.json` mcpServers env (or pass `serve --tools ...`):**
+
+```json
+"mcpServers": {
+  "code-review-graph": {
+    "type": "stdio",
+    "command": "uvx",
+    "args": ["--with", "code-review-graph[embeddings]", "code-review-graph", "serve"],
+    "env": {
+      "CRG_TOOLS": "semantic_search_nodes_tool,query_graph_tool,get_impact_radius_tool,traverse_graph_tool,list_communities_tool,get_community_tool,get_review_context_tool,list_graph_stats_tool"
+    }
+  }
+}
+```
+
+**The 8-tool working set covers 95% of session usage:**
+
+| Tool | When |
+|------|------|
+| `semantic_search_nodes_tool` | "where is X defined" — embedding match, ~100–350 tok |
+| `query_graph_tool` | callers/callees/relations — `pattern=callers_of`, ~80 tok |
+| `get_impact_radius_tool` | pre-refactor blast radius |
+| `traverse_graph_tool` | dependency walk (keep depth ≤ 3) |
+| `list_communities_tool` | architecture overview, ~170 tok for 12 clusters |
+| `get_community_tool` | cluster drill-down |
+| `get_review_context_tool` | code review with risk + test gaps, ~111 tok avg |
+| `list_graph_stats_tool` | sanity check / status |
+
+**Dropped (17 tools):** `get_architecture_overview_tool` (33k tok output — never useful), `refactor_tool` / `apply_refactor_tool` (use git), `get_minimal_context_tool`, `get_docs_section_tool`, `get_wiki_page_tool`, `find_large_functions_tool`, `list_flows_tool` / `get_flow_tool` / `get_affected_flows_tool` (flow analysis is rare), `get_hub_nodes_tool` / `get_bridge_nodes_tool` (covered by communities), `get_knowledge_gaps_tool`, `get_surprising_connections_tool`, `get_suggested_questions_tool`, `list_repos_tool` / `cross_repo_search_tool` (single-repo work).
+
+**Token math:**
+- Before: ~6,000 tok schema overhead (25 tools, full descriptions + params, always loaded after cold-start)
+- After: ~1,800 tok (8 tools)
+- Savings: **~4,200 tok per session, ~70% schema reduction**
+- Bonus: Claude Code's deferred-tool layer further lazy-loads param schemas via `ToolSearch` — only the description metadata stays always-loaded, so real overhead is even lower
+
+**Lazy loading reality check:** MCP protocol itself does not support lazy-loading tool schemas — all are listed at startup. Claude Code adds a deferred-tool layer on top: tool *descriptions* are exposed for matching, but full param schemas only load when `ToolSearch` resolves a tool by name. So stripping at the CRG layer cuts the always-loaded description set; the Claude Code layer cuts the params. They compound.
+
+**By case:**
+
+| Workflow | Strategy |
+|----------|----------|
+| Targeted symbol lookup on known codebase | `semantic_search_nodes_tool` → fallback to `query_graph_tool` → fallback to `graphify query` → grep |
+| Pre-refactor blast | `get_impact_radius_tool` + `traverse_graph_tool(depth=2)` |
+| Architecture orientation | `list_communities_tool` → `get_community_tool` (NEVER `get_architecture_overview_tool`) |
+| Code review on a PR | `get_review_context_tool(changed_files=[...])` only |
+| Cross-repo work | re-add `cross_repo_search_tool`, `list_repos_tool` to allow-list |
+| Flow / DAG analysis | re-add `list_flows_tool`, `get_flow_tool`, `get_affected_flows_tool` |
+
+**The concurrent session had zero graph tools:** a parallel session on the same codebase used only grep+Read (15 grep calls, 22 reads). Cold start: 60,610 tokens (same MCP schemas loaded — schemas are always present regardless of whether graph tools are used). Tool result tokens were proportionally higher per lookup, with no structured relationship data returned.
+
+> **Bypassing the smart-grep hook:** append `# --graph-tried` as a shell *comment* (not a flag) to pass silently: `grep -rn "TODO" src/ # --graph-tried`. On macOS, ugrep rejects `--graph-tried` as an unknown flag — always use it as a comment.
+
+### Expensive Calls to Avoid
+
+Some graph tool calls look useful but are token-budget traps.
+
+**`get_architecture_overview_tool`** — returns 131,000 chars (~33,000 tokens), exceeds any usable context budget. **Best fix: strip it via `CRG_TOOLS` allow-list** (see "Strip Unused CRG Tools" above) so it cannot be called at all. If you can't strip it, block via PreToolUse hook. Alternative: `list_communities_tool` first (~170 tokens for 12 clusters), then `get_community_tool` for any cluster you want to drill into.
+
+**`graphify query '<term>'`** — BFS depth=2 returns 87–378 nodes (~1500 tokens) regardless of specificity. The smart-grep hook intercepts it: if CRG has a matching symbol it blocks with the CRG result inline (~100 tokens); if CRG misses it allows graphify to proceed but warns about cost. This is the right split — CRG for symbol lookup, graphify for neighborhood exploration when you genuinely want to see what's connected.
+
+**`traverse_graph_tool` on hub nodes without budget** — takes a `query` string (not source/target nodes), does concept-based traversal, and at depth=5+ on hub nodes (`server.ts`, `api.ts`) returns thousands of nodes. Keep `depth ≤ 3` and `token_budget ≤ 1500`. For a specific A→B path, use `graphify path '<A>' '<B>'` instead — it returns the shortest hop chain in ~200 tokens. For "who calls X", use `query_graph_tool(pattern=callers_of, target=X)` (~80 tokens).
+
+**Tool stripping > hook blocking.** The cleanest enforcement is the `CRG_TOOLS` allow-list shown earlier — stripped tools are removed from the MCP server entirely, so they cannot be invoked and their schemas never enter context. The PreToolUse hook block is only useful if you cannot edit the MCP server env (e.g., shared config). If you keep the hook, it lives in `~/.claude/settings.json` under `hooks.PreToolUse`.
+
+The `graphify query` interception lives inside `smart-grep-hook.sh` and requires no extra config — it fires via the existing Bash PreToolUse hook.
+
+### Making This Work for Any Project
+
+Everything in this guide wires into the **global** `~/.claude/settings.json` — it fires for every Claude Code session regardless of which project you open. No per-project config needed for the graph hooks.
+
+**What the global layer does automatically (each row is a no-op when the relevant tool/file is missing):**
+
+| Hook | What fires | When |
+|---|---|---|
+| PostToolUse | CRG `update + embed`, graphify `update` (background, guarded — silent if not installed/initialized) | After every file edit |
+| PreToolUse | `smart-grep-hook.sh` (graph-first routing — adaptive: CRG only, graphify only, both, or silent fallback) | Before every grep/find/graphify query |
+| PreToolUse | Linter config guard | Before writing ESLint/Prettier/Biome |
+| SessionStart | Graph cheatsheet (adaptive: shows CRG tools, graphify CLI, both, or nothing) | Session open, only if graph exists |
+| SessionStart | Setup nudge (only when CLI installed but graph not initialized) | Session open |
+
+**Why no `get_architecture_overview_tool` block hook?** The recommended setup uses the `CRG_TOOLS` allow-list to strip that tool entirely (see "Strip Unused CRG Tools"). A stripped tool cannot be invoked, so the explicit block hook becomes redundant. If you cannot or do not want to strip, add the PreToolUse block as a fallback.
+
+**Project `.claude/settings.json`** is only for project-specific *permissions* — which package-manager commands to allow, which config files to protect. The graph hooks don't need to be repeated there.
+
+**One-time setup per project — pick what you have installed:**
+
+```bash
+# CRG only (embedding-aware, MCP integration)
+code-review-graph install
+code-review-graph embed
+
+# Graphify only (pure CLI, zero MCP overhead)
+graphify init .
+graphify update .
+
+# Both — run all four; the smart-grep-hook routes CRG-first, graphify on miss
+
+# Git hooks (optional — PostToolUse already auto-updates after agent edits)
+code-review-graph hook install   # post-commit: CRG update + embed
+graphify hook install            # post-commit: graphify update
+```
+
+After setup: every agent file edit triggers PostToolUse → whichever graphs are initialized update in background. Every commit triggers the matching git hook. If only one tool is installed, only that one updates. If neither is installed, hooks are silent no-ops.
+
+---
+
 ## Step 4: Verify Your Setup
 
-Run these checks after setup to confirm everything is wired correctly.
+Run the checks for whichever tools you installed. Skip the rows for tools you did not install — there is no requirement to have both.
 
 ### Check CLI installation
 
 ```bash
-graphify --help | head -3
-code-review-graph --version
+# Either or both:
+graphify --help | head -3            # graphify only
+code-review-graph --version          # CRG only
 # code-review-graph 2.3.2
 ```
 
 ### Check graph outputs exist
 
 ```bash
+# Graphify (skip if not installed):
 ls graphify-out/
 # cache  graph.html  graph.json  GRAPH_REPORT.md  manifest.json
 
+# CRG (skip if not installed):
 code-review-graph status
 # Nodes: 5780  Edges: 30611  Files: 1052
 # Languages: bash, javascript, vue, typescript
@@ -1443,57 +1727,62 @@ Result: developer codes, commits, switches branches — vault stays current auto
 
 ## Quick Reference
 
+> Each block below is independent — install only the tools you want. Pure CLI setup → graphify only. Embedding + MCP setup → CRG only. Full stack → both.
+
 ### Installation
 
 ```bash
-pip install graphifyy code-review-graph
+# Either, both, or pick one:
+pip install graphify              # graphify (CLI only)
+pip install code-review-graph     # CRG (CLI + MCP server)
+# Or via uvx / pipx — see the Installation section earlier in this guide
 ```
 
-### Project Setup (run once per project)
+### Project Setup (run once per project, for each tool you installed)
 
 ```bash
-# Create ignore files
-touch .graphifyignore .code-review-graphignore  # then add exclusions
+# Create ignore files (only the ones you need)
+touch .graphifyignore                 # graphify only
+touch .code-review-graphignore        # CRG only
 
 # Build graphs manually
-code-review-graph build     # SQLite graph (fast, no tokens)
-graphify update .           # JSON graph, AST-only (no tokens)
+graphify update .           # graphify: JSON graph, AST-only (no tokens)
+code-review-graph build     # CRG: SQLite graph (fast, no tokens)
 
-# Register with Claude Code (auto-installs hooks, MCP, skills)
-code-review-graph install
-graphify claude install
-graphify hook install
+# Register with your AI agent (run only the lines for installed tools)
+graphify claude install     # graphify hooks + CLAUDE.md trigger
+graphify hook install       # graphify post-commit hook
+code-review-graph install   # CRG MCP server + skills + hooks
 ```
 
-### Verify (run after setup)
+### Verify (run only the rows for tools you installed)
 
 ```bash
-code-review-graph status            # shows node/edge counts
-head -15 graphify-out/GRAPH_REPORT.md
-time code-review-graph update --skip-flows   # should be <1s
+code-review-graph status            # CRG: node/edge counts
+head -15 graphify-out/GRAPH_REPORT.md  # graphify: corpus + freshness
+time code-review-graph update --skip-flows   # CRG: should be <1s
 python3 -m json.tool .claude/settings.local.json | grep -A3 PostToolUse
-cat .mcp.example.json
 ```
 
-### Daily Commands
+### Daily Commands (each line targets one tool — use what is relevant)
 
 ```bash
 # Manual incremental update
-code-review-graph update    # 0.4s
-graphify update .           # SHA256 incremental
+graphify update .           # graphify: SHA256 incremental
+code-review-graph update    # CRG: 0.4s
 
-# Query
+# Query (graphify CLI)
 graphify query "auth flow" --graph graphify-out/graph.json
 graphify path "ComponentA" "ServiceB" --graph graphify-out/graph.json
 graphify explain "MyService" --graph graphify-out/graph.json
 
-# Blast-radius review
+# Blast-radius review (CRG)
 code-review-graph detect-changes --base HEAD~1 --brief
 
-# Status
+# Status (CRG)
 code-review-graph status
 
-# Wiki / visualization
+# Wiki / visualization (CRG)
 code-review-graph wiki
 code-review-graph visualize
 ```
