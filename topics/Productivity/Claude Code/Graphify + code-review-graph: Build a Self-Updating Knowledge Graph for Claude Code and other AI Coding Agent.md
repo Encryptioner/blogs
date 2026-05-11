@@ -253,15 +253,29 @@ GEMINI.md
 
 Remove all hooks from `.claude/settings.json`, then populate the two files:
 
-```bash
-# .claude/settings.example.json — committed reference, shows hook structure
+```json
+// .claude/settings.example.json — committed reference, shows hook structure
 {
   "hooks": {
-    "PostToolUse": [{"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && { code-review-graph update --skip-flows 2>/dev/null && nohup code-review-graph embed >/dev/null 2>&1 & } || true", "timeout": 30}]}],
-    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true", "timeout": 10}]}]
+    "PostToolUse": [],
+    "Stop": [
+      {
+        "_comment": "CRG auto-update after AI finishes turn — once per turn, PID-guarded.",
+        "hooks": [{
+          "type": "command",
+          "command": "command -v code-review-graph >/dev/null 2>&1 && [ -d .code-review-graph ] && { PF=/tmp/crg-claude.pid; if [ -f \"$PF\" ] && kill -0 \"$(cat \"$PF\")\" 2>/dev/null; then true; else { code-review-graph update --skip-flows 2>/dev/null && nohup code-review-graph embed >/dev/null 2>&1 & } & echo $! > \"$PF\"; fi; } || true",
+          "timeout": 5
+        }]
+      }
+    ],
+    "SessionStart": [{"hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true", "timeout": 10}]}]
   }
 }
+```
 
+> **Why Stop, not PostToolUse?** `PostToolUse` fires after *every* individual file edit — if Claude makes 10 edits in one response, it fires 10 times. The `pgrep` guard that prevents double-spawning has a race window of a few milliseconds, which is not enough to block concurrent spawns reliably. The result: multiple graphify/CRG Python processes pile up, load average hits 12+, RAM saturates, and the machine slows to a crawl. `Stop` fires **once** when the AI finishes its entire turn — all edits batched, single update triggered. The PID-file guard then prevents overlap *across* turns (skip if the previous turn's update is still running). Zero pile-up by design.
+
+```bash
 # .claude/settings.local.json — gitignored, actual runtime hooks (copy from example)
 ```
 
@@ -298,7 +312,7 @@ Three independent triggers keep the graph fresh — install all of them so no ed
 
 | Trigger | Hook location | Covers |
 |---|---|---|
-| **Claude edits a file** | `.claude/settings.local.json` PostToolUse | agent-driven changes (already configured above) |
+| **Claude finishes a turn** | `.claude/settings.json` (or `.local.json`) Stop hook | agent-driven changes — fires once after all edits in a turn, PID-guarded |
 | **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | graphify rebuild on `git checkout <other-branch>` |
 | **Any commit** | `.git/hooks/post-commit` (or `.husky/post-commit`) | terminal commits, IDE commits, other AI tools |
 
@@ -934,7 +948,7 @@ Everything in this guide wires into the **global** `~/.claude/settings.json` —
 
 | Hook | What fires | When |
 |---|---|---|
-| PostToolUse | CRG `update + embed`, graphify `update` (background, guarded — silent if not installed/initialized) | After every file edit |
+| Stop | CRG `update + embed`, graphify `update` (background, PID-guarded — silent if not installed/initialized) | Once after AI finishes each turn (all edits batched) |
 | PreToolUse | `smart-grep-hook.sh` (graph-first routing — adaptive: CRG only, graphify only, both, or silent fallback) | Before every grep/find/graphify query |
 | PreToolUse | Linter config guard | Before writing ESLint/Prettier/Biome |
 | SessionStart | Graph cheatsheet (adaptive: shows CRG tools, graphify CLI, both, or nothing) | Session open, only if graph exists |
@@ -962,7 +976,7 @@ code-review-graph hook install   # post-commit: CRG update + embed
 graphify hook install            # post-commit: graphify update
 ```
 
-After setup: every agent file edit triggers PostToolUse → whichever graphs are initialized update in background. Every commit triggers the matching git hook. If only one tool is installed, only that one updates. If neither is installed, hooks are silent no-ops.
+After setup: every time the AI finishes a turn, the Stop hook fires once — whichever graphs are initialized update in background (PID-guarded, no pile-up). Every commit triggers the matching git hook. If only one tool is installed, only that one updates. If neither is installed, hooks are silent no-ops.
 
 ---
 
@@ -1010,12 +1024,16 @@ head -15 graphify-out/GRAPH_REPORT.md
 # - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 ```
 
-### Check hooks are in settings.local.json
+### Check Stop hook is in settings.json (or settings.local.json)
 
 ```bash
-python3 -m json.tool .claude/settings.local.json | grep -A5 '"PostToolUse"'
-# Should show: "matcher": "Edit|Write|Bash"
-# (hooks live in settings.local.json, not settings.json — they're personal/gitignored)
+python3 -m json.tool .claude/settings.json | grep -A5 '"Stop"'
+# Should show the CRG PID-guard command
+# PostToolUse should be empty ([]) — graph updates moved to Stop hook
+
+# Verify PostToolUse is cleared (no graph update commands there):
+python3 -m json.tool .claude/settings.local.json | grep -A3 '"PostToolUse"'
+# Should show: "PostToolUse": []
 ```
 
 ### Check MCP server config
@@ -1042,10 +1060,12 @@ head -5 .git/hooks/pre-commit
 
 ```bash
 time code-review-graph update --skip-flows
-# real  0m0.425s  ← confirms PostToolUse hook is fast enough
+# real  0m0.425s  ← CRG incremental speed (runs in Stop hook after each AI turn)
 
 time graphify update .
 # SHA256 cache skips unchanged files — subsequent runs are near-instant
+# Note: graphify is slower (~10s on large repos) — this is why it moved to Stop
+# hook (once per turn) rather than PostToolUse (once per file edit)
 ```
 
 ### Test vault sync (if vault is configured)
