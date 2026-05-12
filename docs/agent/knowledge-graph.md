@@ -62,18 +62,17 @@ code-review-graph status
 
 ## Auto-Update Pipeline
 
-Everything updates automatically — no manual steps required per session.
-
 | Trigger | Action |
 |---------|--------|
-| Session opens | `code-review-graph status` + starts `.claude/graph-daemon.sh` |
-| Daemon running | `graphify watch .` (continuous) + vault sync poller (every 3s) |
-| Claude edits a file (PostToolUse) | `code-review-graph update --skip-flows` |
-| `git commit` (post-commit) | `graphify update .` background → Obsidian vault syncs |
-| grep/find command (PreToolUse) | Hint to use graphify instead |
+| Session opens | `code-review-graph status` |
+| Claude finishes a turn (Stop hook) | `code-review-graph update + embed` (~0.4s, PID-guarded, CRG only) |
+| `git commit` (post-commit) | `graphify update .` background nohup + CRG update |
+| Branch switch (post-checkout) | `graphify update .` background nohup |
+| grep/find command (PreToolUse) | Hint to use graphify/CRG instead |
 
-Hooks and daemon config live in `.claude/settings.local.json` (gitignored — personal setup).
-Daemon script is at `.claude/graph-daemon.sh` (committed — no-op if graphify not installed).
+> **graphify is not in Claude hooks.** `graphify update` takes ~10s+ on large repos — running it after every AI turn causes stuck background processes and CPU/memory pressure. It runs only via git hooks (post-commit, post-checkout) where the rebuild happens in the background after the developer's action.
+
+Hooks live in `.claude/settings.local.json` (gitignored — personal setup).
 
 ---
 

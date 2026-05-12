@@ -273,7 +273,9 @@ Remove all hooks from `.claude/settings.json`, then populate the two files:
 }
 ```
 
-> **Why Stop, not PostToolUse?** `PostToolUse` fires after *every* individual file edit — if Claude makes 10 edits in one response, it fires 10 times. The `pgrep` guard that prevents double-spawning has a race window of a few milliseconds, which is not enough to block concurrent spawns reliably. The result: multiple graphify/CRG Python processes pile up, load average hits 12+, RAM saturates, and the machine slows to a crawl. `Stop` fires **once** when the AI finishes its entire turn — all edits batched, single update triggered. The PID-file guard then prevents overlap *across* turns (skip if the previous turn's update is still running). Zero pile-up by design.
+> **Why Stop, not PostToolUse?** `PostToolUse` fires after *every* individual file edit — if Claude makes 10 edits in one response, it fires 10 times. The `pgrep` guard that prevents double-spawning has a race window of a few milliseconds, which is not enough to block concurrent spawns reliably. The result: multiple CRG Python processes pile up, load average hits 12+, RAM saturates, and the machine slows to a crawl. `Stop` fires **once** when the AI finishes its entire turn — all edits batched, single update triggered. The PID-file guard then prevents overlap *across* turns (skip if the previous turn's update is still running). Zero pile-up by design.
+>
+> **Why graphify update is NOT in any Claude hook:** `graphify update` takes ~10s+ on a real monorepo (even with SHA256 caching). Running it in `Stop` or `PostToolUse` would block the session or cause the process to hang in the background, accumulating across turns. It belongs only in git hooks (`post-commit`, `post-checkout`) where it runs as a fully detached `nohup` process after the commit returns — the developer has already moved on, so the latency is invisible.
 
 ```bash
 # .claude/settings.local.json — gitignored, actual runtime hooks (copy from example)
@@ -310,11 +312,13 @@ Graphify's `claude install` adds a `PreToolUse` hook that intercepts `grep`, `rg
 
 Three independent triggers keep the graph fresh — install all of them so no edit path leaves it stale:
 
-| Trigger | Hook location | Covers |
-|---|---|---|
-| **Claude finishes a turn** | `.claude/settings.json` (or `.local.json`) Stop hook | agent-driven changes — fires once after all edits in a turn, PID-guarded |
-| **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | graphify rebuild on `git checkout <other-branch>` |
-| **Any commit** | `.git/hooks/post-commit` (or `.husky/post-commit`) | terminal commits, IDE commits, other AI tools |
+| Trigger | Hook location | Tool | Notes |
+|---|---|---|---|
+| **Claude finishes a turn** | `.claude/settings.json` Stop hook | **CRG only** | ~0.425s — fast enough to run after every AI turn; PID-guarded |
+| **Any commit** | `.git/hooks/post-commit` (or `.husky/post-commit`) | **graphify + CRG** | terminal commits, IDE commits, other AI tools; graphify runs as background `nohup` |
+| **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | **graphify** | full rebuild after `git checkout`; background `nohup`, non-blocking |
+
+> **graphify is NOT in the Claude Stop hook.** `graphify update` takes ~10s+ on large monorepos — too slow for an AI turn hook. It would pile up, hang in the background, and saturate CPU/RAM (observed: 3 stuck processes at 65–73% CPU each). Use git hooks instead — the developer has already moved on by the time graphify finishes.
 
 Graphify ships its own installer for the git side:
 
@@ -948,11 +952,13 @@ Everything in this guide wires into the **global** `~/.claude/settings.json` —
 
 | Hook | What fires | When |
 |---|---|---|
-| Stop | CRG `update + embed`, graphify `update` (background, PID-guarded — silent if not installed/initialized) | Once after AI finishes each turn (all edits batched) |
+| Stop | CRG `update + embed` (background, PID-guarded — silent if not installed/initialized) | Once after AI finishes each turn (all edits batched) |
 | PreToolUse | `smart-grep-hook.sh` (graph-first routing — adaptive: CRG only, graphify only, both, or silent fallback) | Before every grep/find/graphify query |
 | PreToolUse | Linter config guard | Before writing ESLint/Prettier/Biome |
 | SessionStart | Graph cheatsheet (adaptive: shows CRG tools, graphify CLI, both, or nothing) | Session open, only if graph exists |
 | SessionStart | Setup nudge (only when CLI installed but graph not initialized) | Session open |
+
+> **graphify is not in the Stop hook.** Running `graphify update` after every AI turn causes long-running background processes that accumulate, spike CPU, and exhaust swap. graphify update fires only via git hooks (`post-commit`, `post-checkout`) where it runs detached after the developer's action — invisible latency.
 
 **Why no `get_architecture_overview_tool` block hook?** The recommended setup uses the `CRG_TOOLS` allow-list to strip that tool entirely (see "Strip Unused CRG Tools"). A stripped tool cannot be invoked, so the explicit block hook becomes redundant. If you cannot or do not want to strip, add the PreToolUse block as a fallback.
 
@@ -971,12 +977,12 @@ graphify update .
 
 # Both — run all four; the smart-grep-hook routes CRG-first, graphify on miss
 
-# Git hooks (optional — PostToolUse already auto-updates after agent edits)
-code-review-graph hook install   # post-commit: CRG update + embed
-graphify hook install            # post-commit: graphify update
+# Git hooks — graphify ONLY updates via git hooks (too slow for Claude hooks)
+code-review-graph hook install   # post-commit: CRG update + embed (also runs in Stop hook)
+graphify hook install            # post-commit + post-checkout: graphify update (background nohup)
 ```
 
-After setup: every time the AI finishes a turn, the Stop hook fires once — whichever graphs are initialized update in background (PID-guarded, no pile-up). Every commit triggers the matching git hook. If only one tool is installed, only that one updates. If neither is installed, hooks are silent no-ops.
+After setup: every time the AI finishes a turn, the Stop hook fires once — **CRG only** updates in background (PID-guarded, ~0.425s, no pile-up). Every commit triggers both git hooks. graphify never runs from a Claude hook — only from git hooks. If only one tool is installed, only that one updates. If neither is installed, hooks are silent no-ops.
 
 ---
 
@@ -1141,55 +1147,46 @@ code-review-graph build
 graphify update . --force
 ```
 
-### Strategy B: Auto-start on Session Open (Daemon)
+### Strategy B: Auto-Update via Git Hooks (Recommended for graphify)
 
-Rather than manually starting `graphify watch`, a daemon script in `.claude/graph-daemon.sh` is called by the `SessionStart` hook every time Claude Code opens. It starts two background processes and skips if they're already running:
+graphify update belongs in git hooks, not in Claude Code hooks. The incremental rebuild takes ~10s+ on a real monorepo — too slow for a per-turn trigger. Git hooks fire at the right moment: after a commit or branch switch, when the developer has already moved on.
 
 ```bash
-#!/usr/bin/env bash
-# .claude/graph-daemon.sh — called automatically by SessionStart hook
-
-command -v graphify > /dev/null 2>&1 || exit 0  # skip if not installed
-
-PROJECT_HASH=$(printf '%s' "$PWD" | shasum -a 256 | cut -c1-8)  # shasum works on macOS + Linux
-
-# graphify watch — rebuilds graph on every code change
-WATCH_MARK="graphify-watch-$PROJECT_HASH"
-if ! pgrep -f "$WATCH_MARK" > /dev/null 2>&1; then
-  nohup bash -c "# $WATCH_MARK
-    graphify watch ." > ~/.cache/graphify-watch.log 2>&1 &
-fi
-
-# Vault sync daemon — polls GRAPH_REPORT.md, mirrors to ai-vault/ on change
-VAULT_MARK="vault-sync-$PROJECT_HASH"
-if ! pgrep -f "$VAULT_MARK" > /dev/null 2>&1; then
-  nohup bash -c "# $VAULT_MARK
-    LAST=''
-    while true; do
-      if [ -f graphify-out/GRAPH_REPORT.md ]; then
-        CURR=\$(stat -c%Y graphify-out/GRAPH_REPORT.md 2>/dev/null \
-              || stat -f%m graphify-out/GRAPH_REPORT.md 2>/dev/null)
-        if [ \"\$CURR\" != \"\$LAST\" ] && [ -n \"\$CURR\" ]; then
-          mkdir -p ai-vault/graphify
-          cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md
-          LAST=\"\$CURR\"
-        fi
-      fi
-      sleep 3
-    done" > /dev/null 2>&1 &
-fi
+graphify hook install   # installs post-commit + post-checkout
 ```
 
-The `SessionStart` entry in `.claude/settings.local.json` that triggers it (Claude Code-specific — other agents start via their own plugin/extension hooks):
+The post-commit hook runs the rebuild **in the background** (detached `nohup` process) so `git commit` returns immediately. Rebuild logs go to `~/.cache/graphify-rebuild.log`. The post-checkout hook fires on every `git checkout <branch>` and rebuilds for the new branch state.
 
-```json
-"SessionStart": [
-  {"matcher": "", "hooks": [{"type": "command", "command": "code-review-graph status", "timeout": 10}]},
-  {"matcher": "", "hooks": [{"type": "command", "command": "[ -f .claude/graph-daemon.sh ] && bash .claude/graph-daemon.sh", "timeout": 5}]}
-]
+This is the **only** recommended automatic trigger for `graphify update` — do not add it to `Stop`, `PostToolUse`, or `SessionStart` hooks.
+
+The hooks installed by `graphify hook install` — both run as detached `nohup` so the git operation returns immediately:
+
+**`.git/hooks/post-commit`** (excerpt):
+```bash
+# graphify-hook-start
+# Installed by: graphify hook install
+if [ -n "$GRAPHIFY_BIN" ]; then
+  export GRAPHIFY_CHANGED="$CHANGED"
+  nohup $GRAPHIFY_PYTHON -c "
+from graphify.watch import _rebuild_code
+_rebuild_code(Path('.'))
+" > ~/.cache/graphify-rebuild.log 2>&1 < /dev/null &
+fi
+# graphify-hook-end
 ```
 
-**Vault sync trigger chain:** `graphify watch` rebuilds `graphify-out/GRAPH_REPORT.md` → vault sync daemon detects the change (within 3s) → copies to `ai-vault/graphify/`. Same chain fires after every `git commit` and branch switch rebuild — zero manual steps.
+**`.git/hooks/post-checkout`** (excerpt):
+```bash
+# graphify-checkout-hook-start
+# Only run if graphify-out/ exists (graph has been built before)
+if [ -d "graphify-out" ]; then
+  nohup $GRAPHIFY_PYTHON -c "
+from graphify.watch import _rebuild_code
+_rebuild_code(Path('.'), force=True)
+" > ~/.cache/graphify-rebuild.log 2>&1 < /dev/null &
+fi
+# graphify-checkout-hook-end
+```
 
 ### Strategy C: Git Hooks (On Commit + Branch Switch)
 
@@ -1207,11 +1204,18 @@ The graphify post-commit hook runs the rebuild **in the background** (detached p
 
 ### Strategy D: Claude Code Hooks (AI-Driven Updates)
 
-When an AI agent edits files, the `PostToolUse` hook triggers an incremental graph update. `code-review-graph install` writes these into `.claude/settings.json` initially — move them out. The right home is `.claude/settings.example.json` (committed reference for teammates) and `.claude/settings.local.json` (your live runtime copy, gitignored).
+**Only CRG belongs in Claude hooks. graphify does not.**
+
+| Tool | Claude hook? | Why |
+|---|---|---|
+| **code-review-graph** | ✅ Stop hook | ~0.425s incremental — safe after every AI turn |
+| **graphify** | ❌ No Claude hook | ~10s+ on large monorepos — causes hanging background processes, CPU spike, swap exhaustion |
+
+When an AI agent edits files, the `Stop` hook triggers a CRG incremental update. `code-review-graph install` writes hooks into `.claude/settings.json` initially — move them out. The right home is `.claude/settings.example.json` (committed reference for teammates) and `.claude/settings.local.json` (your live runtime copy, gitignored).
 
 Use the fallback-safe version that silently no-ops if the CLI isn't installed:
 
-At **0.425s per update**, this runs after every file edit without blocking the agent's workflow.
+At **0.425s per update**, CRG runs after every AI turn without blocking the agent's workflow.
 
 For both `.claude/settings.example.json` and the global `~/.claude/settings.json`, use:
 
@@ -1626,7 +1630,7 @@ Use `graphify query`, `graphify path`, and `graphify explain` from the project r
 
 ### Keeping the Vault Fresh
 
-The daemon and git hooks keep `graph.json` current automatically. Refresh the Obsidian notes after significant changes:
+Git hooks keep `graph.json` current automatically. Refresh the Obsidian notes after significant changes:
 
 ```bash
 # Project vault
@@ -1713,12 +1717,6 @@ After full setup, the pipeline looks like this:
 AI agent session opens (Claude Code shown — other agents use equivalent plugin hooks)
     → SessionStart: code-review-graph status
     → SessionStart: graph cheatsheet injected (query→tool map, ~150 tokens, once per session)
-    → SessionStart: .claude/graph-daemon.sh (if not already running)
-        ├── graphify watch . (background) — watches filesystem for changes
-        └── vault-sync daemon (background) — polls graph.json every 10s
-               ├── on change: copies GRAPH_REPORT.md → ai-vault/graphify/
-               └── on change: reruns gen-obsidian-vault.py (debounced 15s)
-    → Staleness check: if graph.json newer than vault nodes → regen immediately
 
 AI agent searches the codebase (grep / rg / find)
     → PreToolUse: smart-grep-hook.sh intercepts
@@ -1730,25 +1728,20 @@ AI agent searches the codebase (grep / rg / find)
               ├── graph has answer → deny with answer inline (zero retry, saves 2000+ tokens)
               └── graph has no answer → pass silently
 
-Developer edits a file
-    → graphify watch detects change → rebuilds graph.json
-    → vault-sync daemon detects new graph.json → copies GRAPH_REPORT + regens nodes
-
 AI agent edits a file
-    → PostToolUse: code-review-graph update --skip-flows (0.425s)
-    → graphify watch also detects the edit → vault syncs within ~10s
+    → Stop hook (once per full AI turn): code-review-graph update --skip-flows (0.425s)
+    [graphify does NOT update here — too slow for per-turn trigger]
 
 Code committed
-    → pre-commit: code-review-graph update
-    → post-commit: graphify update . (background, ~20s)
-    → post-commit hook: sleeps 25s then runs gen-obsidian-vault.py → vault updated
+    → post-commit: graphify update . (background nohup, non-blocking)
+    → post-commit: code-review-graph update + embed (background nohup)
 
 Branch switched
-    → post-checkout: graphify update --force (background)
-    → post-checkout hook: sleeps 20s then runs gen-obsidian-vault.py → vault updated
+    → post-checkout: graphify update . (background nohup, full rebuild for new branch)
 
-Result: developer codes, commits, switches branches — vault stays current automatically.
-        Agent searches — graph answers before grep fires.
+Result: developer commits or switches branches → both graphs update in background.
+        Agent edits files → CRG updates after each AI turn.
+        Agent searches → graph answers before grep fires.
 ```
 
 ---
@@ -1853,9 +1846,8 @@ your-project/
 ├── .mcp.example.json                  ← new (reference config for teammates)
 ├── CLAUDE.md                          ← 2-line pointer to docs/agent/knowledge-graph.md
 ├── .claude/
-│   ├── graph-daemon.sh                ← new (auto-starts graphify watch + vault sync)
 │   ├── settings.json                  ← permissions only, no hooks
-│   ├── settings.example.json          ← new (hook reference: PreToolUse + PostToolUse + SessionStart)
+│   ├── settings.example.json          ← new (hook reference: PreToolUse smart-grep + Stop CRG update + SessionStart CRG status)
 │   └── skills/                        ← new (code-review-graph skills relevant to the repo)
 └── docs/agent/knowledge-graph.md      ← new (full tool reference)
 ```
@@ -1875,7 +1867,7 @@ your-project/
 
 **Outside project (global AI agent settings — Claude Code example):**
 ```
-~/.claude/settings.example.json        ← updated (PostToolUse hook reference)
+~/.claude/settings.example.json        ← updated (PreToolUse smart-grep + Stop CRG update)
 ```
 Other agents: equivalent global config in `~/.cursor/`, `~/.config/gemini/`, etc.
 
