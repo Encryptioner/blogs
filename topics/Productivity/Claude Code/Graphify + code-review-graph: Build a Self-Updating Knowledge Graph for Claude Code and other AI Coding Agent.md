@@ -246,15 +246,14 @@ GEMINI.md
 .kiro/
 ```
 
-**Three-file hook pattern:** `settings.json` should stay clean — permissions only, no hooks. Use two separate files for hooks:
+**Three-file hook pattern:** `settings.json` stays clean — permissions only, no hooks. Hooks go into example/local:
 
-- **`.claude/settings.example.json`** (committed) — documents the hook structure for teammates. Copy from here to set up locally.
-- **`.claude/settings.local.json`** (gitignored) — your actual personal hooks that fire at runtime. Contains env vars, secrets, and the live hook config.
-
-Remove all hooks from `.claude/settings.json`, then populate the two files:
+- **`.claude/settings.example.json`** (committed) — documents the full hook structure for teammates. Contains all graph hooks (Stop, SessionStart, PreToolUse). Copy from here to activate.
+- **`.claude/settings.local.json`** (gitignored) — your actual personal hooks that fire at runtime. Copy from `settings.example.json` on first setup, then customize with env vars or secrets. You can also copy individual hooks into your **global `~/.claude/settings.json`** if you want them active across all projects.
 
 ```json
 // .claude/settings.example.json — committed reference, shows hook structure
+// Copy this file to .claude/settings.local.json and customize
 {
   "hooks": {
     "PostToolUse": [],
@@ -268,9 +267,41 @@ Remove all hooks from `.claude/settings.json`, then populate the two files:
         }]
       }
     ],
-    "SessionStart": [{"hooks": [{"type": "command", "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true", "timeout": 10}]}]
+    "SessionStart": [
+      {
+        "_comment": "CRG graph status on session open",
+        "hooks": [{
+          "type": "command",
+          "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true",
+          "timeout": 10
+        }]
+      },
+      {
+        "_comment": "Setup nudge — prompt to initialize if CLI installed but no graph built yet",
+        "hooks": [{
+          "type": "command",
+          "command": "if command -v code-review-graph >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ ! -d .code-review-graph ]; then printf '{\"systemMessage\":\"Graph tool installed but not yet initialized. Ask me to set up: code-review-graph (code-review-graph install)\"}'; fi || true",
+          "timeout": 10
+        }]
+      },
+      {
+        "_comment": "Graph query cheatsheet — injected once per session (~150 tokens)",
+        "hooks": [{
+          "type": "command",
+          "command": "if [ -f .code-review-graph/graph.db ] || [ -f graphify-out/graph.json ]; then STATS=\"\"; TOOL_LINES=\"\"; if [ -f .code-review-graph/graph.db ]; then STATS=$(python3 -c \"import sqlite3; c=sqlite3.connect('.code-review-graph/graph.db'); n=c.execute('SELECT COUNT(*) FROM nodes').fetchone()[0]; e=c.execute('SELECT COUNT(*) FROM edges').fetchone()[0]; print(f'{n} nodes, {e} edges'); c.close()\" 2>/dev/null || echo \"\"); TOOL_LINES=\"  where is X defined    → semantic_search_nodes_tool(query=X)\\n  who calls X           → query_graph_tool(pattern=callers_of, target=X)\\n  pre-refactor blast    → get_impact_radius_tool(changed_files=[...])\\n  community/cluster     → list_communities_tool()\\n  code review context   → get_review_context_tool(changed_files=[...])\"; fi; if [ -f graphify-out/graph.json ]; then GFY_STATS=$(python3 -c \"import json; g=json.load(open('graphify-out/graph.json')); nodes=g.get('nodes',[]); comms=len(set(n.get('community','') for n in nodes if n.get('community',''))); print(f'{len(nodes)} nodes, {comms} communities')\" 2>/dev/null || echo \"\"); [ -n \"$GFY_STATS\" ] && STATS=\"${STATS:+$STATS | }graphify: $GFY_STATS\"; TOOL_LINES=\"${TOOL_LINES:+$TOOL_LINES\\n}  CRG miss / explore    → graphify query '<term>' --graph graphify-out/graph.json\\n  path A→B              → graphify path '<from>' '<to>' --graph graphify-out/graph.json\"; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"GRAPH QUERY CHEATSHEET (%s) — use BEFORE Read/Grep/Bash-find on code:\\n%s\\nSkip graph for: .md .json .yml .log .jsonl configs cross-repo paths.\\nOverride grep gate: append --graph-tried to any Bash command.\"}}' \"$STATS\" \"$TOOL_LINES\"; fi",
+          "timeout": 5
+        }]
+      }
+    ]
   }
 }
+```
+
+```bash
+# .claude/settings.local.json — gitignored, actual runtime hooks
+# Copy from settings.example.json on first setup:
+cp .claude/settings.example.json .claude/settings.local.json
+# Then add any personal env vars or secrets
 ```
 
 > **Why Stop, not PostToolUse?** `PostToolUse` fires after *every* individual file edit — if Claude makes 10 edits in one response, it fires 10 times. The `pgrep` guard that prevents double-spawning has a race window of a few milliseconds, which is not enough to block concurrent spawns reliably. The result: multiple CRG Python processes pile up, load average hits 12+, RAM saturates, and the machine slows to a crawl. `Stop` fires **once** when the AI finishes its entire turn — all edits batched, single update triggered. The PID-file guard then prevents overlap *across* turns (skip if the previous turn's update is still running). Zero pile-up by design.
@@ -314,9 +345,9 @@ Three independent triggers keep the graph fresh — install all of them so no ed
 
 | Trigger | Hook location | Tool | Notes |
 |---|---|---|---|
-| **Claude finishes a turn** | `.claude/settings.json` Stop hook | **CRG only** | ~0.425s — fast enough to run after every AI turn; PID-guarded |
+| **Claude finishes a turn** | `settings.example.json` → `settings.local.json` Stop hook | **CRG only** | ~0.425s — fast enough to run after every AI turn; PID-guarded |
 | **Any commit** | `.git/hooks/post-commit` (or `.husky/post-commit`) | **graphify + CRG** | terminal commits, IDE commits, other AI tools; graphify runs as background `nohup` |
-| **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | **graphify** | full rebuild after `git checkout`; background `nohup`, non-blocking |
+| **Branch switch** | `.git/hooks/post-checkout` (or `.husky/post-checkout`) | **graphify + CRG** | smart: ≤5 files diff → incremental update; >5 files or new branch → full rebuild; background `nohup` |
 
 > **graphify is NOT in the Claude Stop hook.** `graphify update` takes ~10s+ on large monorepos — too slow for an AI turn hook. It would pile up, hang in the background, and saturate CPU/RAM (observed: 3 stuck processes at 65–73% CPU each). Use git hooks instead — the developer has already moved on by the time graphify finishes.
 
@@ -328,35 +359,154 @@ graphify hook install   # writes post-commit + post-checkout
 
 **Code-review-graph does not.** Its `install` command writes a `pre-commit` hook that runs `detect-changes --brief` (a status warning before the commit lands) but no `post-commit` hook to update the SQLite graph after. Without one, `.code-review-graph/graph.db` only refreshes when Claude touches a file — every terminal/IDE/other-tool commit drifts.
 
-Add the post-commit update yourself. Both forms are detached so `git commit` returns immediately:
+Add the post-commit update yourself. Both forms are detached so `git commit` returns immediately.
+
+> **Resource guard required.** Graph rebuilds are CPU-intensive. Without guards, multiple rebuilds can pile up (observed: 3 concurrent graphify processes at 65–73% CPU each, load average 12+, RAM saturated). Every hook below includes a `_resources_ok` check (CPU ≤ 50% of cores, memory ≥ 2 GB free) and a `pgrep` process deduplication guard. If either check fails, the rebuild silently skips — the next commit retriggers a fresh attempt.
 
 **Plain git project — append to `.git/hooks/post-commit`:**
 
 ```sh
-# code-review-graph-hook-start
-# Auto-rebuild CRG graph + embeddings after each commit (detached, non-blocking).
-# embed only runs if update succeeds (&&) — keeps semantic search current for new nodes.
-if command -v code-review-graph >/dev/null 2>&1 && [ -d .code-review-graph ]; then
-    _CRG_LOG="${HOME}/.cache/code-review-graph-update.log"
-    mkdir -p "$(dirname "$_CRG_LOG")"
-    echo "[code-review-graph hook] launching background update+embed (log: $_CRG_LOG)"
-    nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_CRG_LOG" 2>&1 < /dev/null &
-    disown 2>/dev/null || true
+#!/bin/sh
+# Knowledge graph tools are optional — each section silently skips if tools are absent.
+
+# Returns 0 (ok) when CPU load and free memory are within acceptable limits.
+# CPU: 1-min load average must be <= 50% of logical core count (Linux/macOS)
+#      or aggregate load percentage <= 50% (Windows).
+# Memory: effectively available memory must be >= 2048 MB on all platforms.
+_resources_ok() {
+  _os=$(uname -s 2>/dev/null)
+  case "$_os" in
+    Linux)
+      _nproc=$(nproc 2>/dev/null || grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo 1)
+      _cpu_ok=$(awk -v n="$_nproc" 'NR==1 { print ($1 / n <= 0.50) ? "1" : "0" }' /proc/loadavg 2>/dev/null)
+      if [ "${_cpu_ok:-1}" != "1" ]; then
+        echo "[graph hook] Skipping rebuild — CPU load above 50% threshold"
+        return 1
+      fi
+      _mem_ok=$(awk '/^MemAvailable:/ { print ($2 / 1024 >= 2048) ? "1" : "0" }' /proc/meminfo 2>/dev/null)
+      if [ "${_mem_ok:-1}" != "1" ]; then
+        echo "[graph hook] Skipping rebuild — available memory below 2 GB threshold"
+        return 1
+      fi
+      ;;
+    Darwin)
+      _nproc=$(sysctl -n hw.logicalcpu 2>/dev/null || echo 1)
+      _cpu_ok=$(sysctl -n vm.loadavg 2>/dev/null | awk -v n="$_nproc" \
+        '{ gsub(/[{}]/, ""); print ($1 / n <= 0.50) ? "1" : "0" }')
+      if [ "${_cpu_ok:-1}" != "1" ]; then
+        echo "[graph hook] Skipping rebuild — CPU load above 50% threshold"
+        return 1
+      fi
+      _page_size=$(sysctl -n hw.pagesize 2>/dev/null || echo 4096)
+      _mem_ok=$(vm_stat 2>/dev/null | awk -v ps="$_page_size" '
+        /Pages free:/        { gsub(/\./, "", $3); free = $3 + 0 }
+        /Pages inactive:/    { gsub(/\./, "", $3); inactive = $3 + 0 }
+        /Pages speculative:/ { gsub(/\./, "", $3); spec = $3 + 0 }
+        END { print ((free + inactive + spec) * ps / 1048576 >= 2048) ? "1" : "0" }
+      ')
+      if [ "${_mem_ok:-1}" != "1" ]; then
+        echo "[graph hook] Skipping rebuild — available memory below 2 GB threshold"
+        return 1
+      fi
+      ;;
+    MINGW*|MSYS*|CYGWIN*)
+      if command -v powershell.exe > /dev/null 2>&1; then
+        _cpu_pct=$(powershell.exe -NoProfile -Command \
+          "(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average" \
+          2>/dev/null | tr -d '\r\n ')
+        _cpu_over=$(echo "${_cpu_pct:-0}" | awk '{ print ($1 > 50) ? "1" : "0" }')
+        if [ "$_cpu_over" = "1" ]; then
+          echo "[graph hook] Skipping rebuild — CPU load above 50% threshold"
+          return 1
+        fi
+        _mem_mb=$(powershell.exe -NoProfile -Command \
+          "[math]::Round((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1024)" \
+          2>/dev/null | tr -d '\r\n ')
+        _mem_low=$(echo "${_mem_mb:-9999}" | awk '{ print ($1 < 2048) ? "1" : "0" }')
+        if [ "$_mem_low" = "1" ]; then
+          echo "[graph hook] Skipping rebuild — available memory below 2 GB threshold"
+          return 1
+        fi
+      fi
+      ;;
+  esac
+  return 0
+}
+
+# Skip during rebase/merge/cherry-pick
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+[ -d "$GIT_DIR/rebase-merge" ] && exit 0
+[ -d "$GIT_DIR/rebase-apply" ] && exit 0
+[ -f "$GIT_DIR/MERGE_HEAD" ] && exit 0
+[ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] && exit 0
+
+# ── graphify: rebuild graph after commit ─────────────────────────────────────
+# Entire block skips if graphify is not installed.
+if command -v graphify > /dev/null 2>&1; then
+  CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD 2>/dev/null)
+  if [ -n "$CHANGED" ]; then
+    GRAPHIFY_BIN=$(command -v graphify)
+    case "$GRAPHIFY_BIN" in
+      *.exe) _SHEBANG="" ;;
+      *)     _SHEBANG=$(head -1 "$GRAPHIFY_BIN" | sed 's/^#![[:space:]]*//') ;;
+    esac
+    case "$_SHEBANG" in
+      */env\ *) GRAPHIFY_PYTHON="${_SHEBANG#*/env }" ;;
+      *)        GRAPHIFY_PYTHON="$_SHEBANG" ;;
+    esac
+    case "$GRAPHIFY_PYTHON" in
+      *[!a-zA-Z0-9/_.@-]*) GRAPHIFY_PYTHON="" ;;
+    esac
+    if [ -z "$GRAPHIFY_PYTHON" ] || ! "$GRAPHIFY_PYTHON" -c "import graphify" 2>/dev/null; then
+      GRAPHIFY_PYTHON=""
+      command -v python3 >/dev/null 2>&1 && python3 -c "import graphify" 2>/dev/null \
+        && GRAPHIFY_PYTHON="python3"
+      [ -z "$GRAPHIFY_PYTHON" ] && command -v python >/dev/null 2>&1 \
+        && python -c "import graphify" 2>/dev/null && GRAPHIFY_PYTHON="python"
+    fi
+    if [ -n "$GRAPHIFY_PYTHON" ] && ! pgrep -qf 'graphify' 2>/dev/null && _resources_ok; then
+      export GRAPHIFY_CHANGED="$CHANGED"
+      _LOG="${HOME}/.cache/graphify-rebuild.log"
+      mkdir -p "$(dirname "$_LOG")"
+      echo "[graphify hook] launching background rebuild (log: $_LOG)"
+      nohup timeout 300 $GRAPHIFY_PYTHON -c "
+import os, sys
+from pathlib import Path
+changed_raw = os.environ.get('GRAPHIFY_CHANGED', '')
+changed = [Path(f.strip()) for f in changed_raw.strip().splitlines() if f.strip()]
+if not changed:
+    sys.exit(0)
+print(f'[graphify hook] {len(changed)} file(s) changed - rebuilding graph...')
+try:
+    from graphify.watch import _rebuild_code
+    _force = os.environ.get('GRAPHIFY_FORCE', '').lower() in ('1', 'true', 'yes')
+    _rebuild_code(Path('.'), force=_force)
+except Exception as exc:
+    print(f'[graphify hook] Rebuild failed: {exc}')
+    sys.exit(1)
+" > "$_LOG" 2>&1 < /dev/null &
+      disown 2>/dev/null || true
+    fi
+  fi
 fi
-# code-review-graph-hook-end
-```
 
-**Husky project — add the same block to `.husky/post-commit`** (Husky v9+ runs `.husky/<hookname>` directly; no `.husky/_/` shim editing needed). Always prefer `update --skip-flows` (incremental, sub-second) over `build` (full rebuild — minutes on large repos):
-
-```sh
-# .husky/post-commit
-if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ]; then
+# ── code-review-graph: incrementally update MCP graph index after commit ────
+# Uses `update --skip-flows` (incremental, sub-second) rather than `build`
+# (full rebuild — minutes on large repos).
+if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ] && ! pgrep -qf 'code-review-graph update' 2>/dev/null && _resources_ok; then
   _LOG="${HOME}/.cache/code-review-graph-update.log"
   mkdir -p "$(dirname "$_LOG")"
-  echo "[code-review-graph] Commit detected - launching background update+embed (log: $_LOG)"
+  echo "[code-review-graph] Commit detected - launching background update (log: $_LOG)"
   nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_LOG" 2>&1 < /dev/null &
   disown 2>/dev/null || true
 fi
+```
+
+**Husky project — create `.husky/post-commit`** (Husky v9+ runs `.husky/<hookname>` directly; no `.husky/_/` shim editing needed). The content is identical to the plain git version above — copy the entire script. Always prefer `update --skip-flows` (incremental, sub-second) over `build` (full rebuild — minutes on large repos):
+
+```sh
+# .husky/post-commit — same content as .git/hooks/post-commit above
+# (copy the full script from the plain git example)
 ```
 
 Verify both graphs caught up to the latest commit:
@@ -655,7 +805,7 @@ printf '[graph-hook] no result for "%s"\n' "$PATTERN" >> "${DIR}/bypass.log"
 exit 0
 ```
 
-Wire it in `~/.claude/settings.json` (global — fires for every project; handles no-graph case silently):
+Wire it in `settings.example.json` (then copy to `settings.local.json` or `~/.claude/settings.json`):
 
 ```json
 "PreToolUse": [
@@ -940,29 +1090,37 @@ Some graph tool calls look useful but are token-budget traps.
 
 **`traverse_graph_tool` on hub nodes without budget** — takes a `query` string (not source/target nodes), does concept-based traversal, and at depth=5+ on hub nodes (`server.ts`, `api.ts`) returns thousands of nodes. Keep `depth ≤ 3` and `token_budget ≤ 1500`. For a specific A→B path, use `graphify path '<A>' '<B>'` instead — it returns the shortest hop chain in ~200 tokens. For "who calls X", use `query_graph_tool(pattern=callers_of, target=X)` (~80 tokens).
 
-**Tool stripping > hook blocking.** The cleanest enforcement is the `CRG_TOOLS` allow-list shown earlier — stripped tools are removed from the MCP server entirely, so they cannot be invoked and their schemas never enter context. The PreToolUse hook block is only useful if you cannot edit the MCP server env (e.g., shared config). If you keep the hook, it lives in `~/.claude/settings.json` under `hooks.PreToolUse`.
+**Tool stripping > hook blocking.** The cleanest enforcement is the `CRG_TOOLS` allow-list shown earlier — stripped tools are removed from the MCP server entirely, so they cannot be invoked and their schemas never enter context. The PreToolUse hook block is only useful if you cannot edit the MCP server env (e.g., shared config).
 
 The `graphify query` interception lives inside `smart-grep-hook.sh` and requires no extra config — it fires via the existing Bash PreToolUse hook.
 
 ### Making This Work for Any Project
 
-Everything in this guide wires into the **global** `~/.claude/settings.json` — it fires for every Claude Code session regardless of which project you open. No per-project config needed for the graph hooks.
+The hooks in `settings.example.json` are designed to be portable — they silently no-op when the relevant tool or graph data isn't present. This means you can copy them to `settings.local.json` per-project, or into `~/.claude/settings.json` to activate across all projects.
 
-**What the global layer does automatically (each row is a no-op when the relevant tool/file is missing):**
+**What the hooks do (each row is a no-op when the relevant tool/file is missing):**
 
-| Hook | What fires | When |
-|---|---|---|
-| Stop | CRG `update + embed` (background, PID-guarded — silent if not installed/initialized) | Once after AI finishes each turn (all edits batched) |
-| PreToolUse | `smart-grep-hook.sh` (graph-first routing — adaptive: CRG only, graphify only, both, or silent fallback) | Before every grep/find/graphify query |
-| PreToolUse | Linter config guard | Before writing ESLint/Prettier/Biome |
-| SessionStart | Graph cheatsheet (adaptive: shows CRG tools, graphify CLI, both, or nothing) | Session open, only if graph exists |
-| SessionStart | Setup nudge (only when CLI installed but graph not initialized) | Session open |
+| Hook | What fires | When | Resource-safe? |
+|---|---|---|---|
+| Stop | CRG `update + embed` (background, PID-guarded — silent if not installed/initialized) | Once after AI finishes each turn (all edits batched) | PID file prevents overlap |
+| PreToolUse | `smart-grep-hook.sh` (graph-first routing — adaptive: CRG only, graphify only, both, or silent fallback) | Before every grep/find/graphify query | Read-only, no resource concern |
+| PreToolUse | Linter config guard | Before writing ESLint/Prettier/Biome | N/A |
+| SessionStart | Graph cheatsheet (adaptive: shows CRG tools, graphify CLI, both, or nothing) | Session open, only if graph exists | Read-only |
+| SessionStart | Setup nudge (only when CLI installed but graph not initialized) | Session open | Read-only |
+
+**What the git hooks do (resource-guarded, all platforms):**
+
+| Hook | What fires | When | Guards |
+|---|---|---|---|
+| post-commit | graphify rebuild + CRG update + embed (both background nohup) | Every commit | `_resources_ok` + `pgrep` + `timeout 300` |
+| post-checkout | graphify rebuild + CRG update/build (smart: ≤5 files incremental, >5 full) | Branch switch only | `_resources_ok` + `pgrep` + `timeout 300` |
+| pre-commit | Branch protection (blocks direct commits to master/development/release branches) | Every commit attempt | — |
 
 > **graphify is not in the Stop hook.** Running `graphify update` after every AI turn causes long-running background processes that accumulate, spike CPU, and exhaust swap. graphify update fires only via git hooks (`post-commit`, `post-checkout`) where it runs detached after the developer's action — invisible latency.
 
 **Why no `get_architecture_overview_tool` block hook?** The recommended setup uses the `CRG_TOOLS` allow-list to strip that tool entirely (see "Strip Unused CRG Tools"). A stripped tool cannot be invoked, so the explicit block hook becomes redundant. If you cannot or do not want to strip, add the PreToolUse block as a fallback.
 
-**Project `.claude/settings.json`** is only for project-specific *permissions* — which package-manager commands to allow, which config files to protect. The graph hooks don't need to be repeated there.
+**Project `.claude/settings.json`** is only for project-specific *permissions* — which package-manager commands to allow, which config files to protect. Graph hooks go in `settings.example.json` (committed reference) and `settings.local.json` (live copy) — or your global `~/.claude/settings.json` if you want them everywhere.
 
 **One-time setup per project — pick what you have installed:**
 
@@ -1159,34 +1317,87 @@ The post-commit hook runs the rebuild **in the background** (detached `nohup` pr
 
 This is the **only** recommended automatic trigger for `graphify update` — do not add it to `Stop`, `PostToolUse`, or `SessionStart` hooks.
 
-The hooks installed by `graphify hook install` — both run as detached `nohup` so the git operation returns immediately:
+The hooks installed by `graphify hook install` — both run as detached `nohup` so the git operation returns immediately. **Add the `_resources_ok` function** (shown in the post-commit hook above) to the top of each hook file to prevent resource exhaustion.
 
-**`.git/hooks/post-commit`** (excerpt):
-```bash
-# graphify-hook-start
-# Installed by: graphify hook install
-if [ -n "$GRAPHIFY_BIN" ]; then
-  export GRAPHIFY_CHANGED="$CHANGED"
-  nohup $GRAPHIFY_PYTHON -c "
+**`.git/hooks/post-commit`** — see the full resource-guarded version in the "Auto-Update on Commit" section above.
+
+**`.git/hooks/post-checkout`** (or `.husky/post-checkout` for Husky projects):
+
+```sh
+#!/bin/sh
+# Knowledge graph tools are optional — each section silently skips if tools are absent.
+
+# _resources_ok function — copy from the post-commit hook above
+# (CPU ≤ 50% of logical cores, memory ≥ 2 GB free — same implementation)
+
+PREV_HEAD=$1
+NEW_HEAD=$2
+BRANCH_SWITCH=$3
+
+# Only run on branch switches, not file checkouts
+[ "$BRANCH_SWITCH" != "1" ] && exit 0
+
+# Skip during rebase/merge/cherry-pick
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+[ -d "$GIT_DIR/rebase-merge" ] && exit 0
+[ -d "$GIT_DIR/rebase-apply" ] && exit 0
+[ -f "$GIT_DIR/MERGE_HEAD" ] && exit 0
+[ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] && exit 0
+
+# Smart rebuild threshold — shared by graphify and CRG sections below
+_ZERO="0000000000000000000000000000000000000000"
+_CHANGED_COUNT=$(git diff --name-only "$PREV_HEAD" "$NEW_HEAD" 2>/dev/null | wc -l | tr -d ' ')
+_FULL_REBUILD=false
+{ [ "$PREV_HEAD" = "$_ZERO" ] || [ "${_CHANGED_COUNT:-0}" -gt 5 ]; } && _FULL_REBUILD=true
+
+# ── graphify: force-rebuild graph after branch switch ────────────────────────
+# Entire block skips if graphify is not installed or graph has never been built.
+if command -v graphify > /dev/null 2>&1 && [ -d "graphify-out" ]; then
+  # (Python interpreter detection — same as post-commit hook)
+  GRAPHIFY_BIN=$(command -v graphify)
+  # ... shebang detection omitted for brevity — copy from post-commit hook ...
+  GRAPHIFY_PYTHON="python3"  # fallback
+
+  if [ -n "$GRAPHIFY_PYTHON" ] && ! pgrep -qf 'graphify' 2>/dev/null && _resources_ok; then
+    _LOG="${HOME}/.cache/graphify-rebuild.log"
+    mkdir -p "$(dirname "$_LOG")"
+    [ "$_FULL_REBUILD" = "true" ] && export GRAPHIFY_FORCE=true
+    echo "[graphify] Branch switched (${_CHANGED_COUNT:-?} files diff, full=$_FULL_REBUILD) - launching background rebuild (log: $_LOG)"
+    nohup timeout 300 $GRAPHIFY_PYTHON -c "
 from graphify.watch import _rebuild_code
-_rebuild_code(Path('.'))
-" > ~/.cache/graphify-rebuild.log 2>&1 < /dev/null &
+from pathlib import Path
+import os, sys
+try:
+    _force = os.environ.get('GRAPHIFY_FORCE', '').lower() in ('1', 'true', 'yes')
+    _rebuild_code(Path('.'), force=_force)
+except Exception as exc:
+    print(f'[graphify] Rebuild failed: {exc}')
+    sys.exit(1)
+" > "$_LOG" 2>&1 < /dev/null &
+    disown 2>/dev/null || true
+  fi
 fi
-# graphify-hook-end
+
+# ── code-review-graph: update MCP graph index after branch switch ────────────
+if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ] && ! pgrep -qf 'code-review-graph update\|code-review-graph build' 2>/dev/null && _resources_ok; then
+  _LOG="${HOME}/.cache/code-review-graph-update.log"
+  mkdir -p "$(dirname "$_LOG")"
+  if [ "$_FULL_REBUILD" = "true" ]; then
+    echo "[code-review-graph] Branch switched (full rebuild: ${_CHANGED_COUNT:-?} files diff) - launching background build (log: $_LOG)"
+    nohup sh -c 'code-review-graph build' > "$_LOG" 2>&1 < /dev/null &
+  else
+    echo "[code-review-graph] Branch switched (incremental: ${_CHANGED_COUNT:-?} files diff) - launching background update (log: $_LOG)"
+    nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_LOG" 2>&1 < /dev/null &
+  fi
+  disown 2>/dev/null || true
+fi
 ```
 
-**`.git/hooks/post-checkout`** (excerpt):
-```bash
-# graphify-checkout-hook-start
-# Only run if graphify-out/ exists (graph has been built before)
-if [ -d "graphify-out" ]; then
-  nohup $GRAPHIFY_PYTHON -c "
-from graphify.watch import _rebuild_code
-_rebuild_code(Path('.'), force=True)
-" > ~/.cache/graphify-rebuild.log 2>&1 < /dev/null &
-fi
-# graphify-checkout-hook-end
-```
+Key differences from post-commit:
+- Only runs on actual branch switches (`BRANCH_SWITCH=1` check)
+- Smart rebuild: ≤5 files diff → incremental update; >5 files or new branch → full rebuild
+- CRG uses `build` (full SQLite rebuild) for large diffs, `update --skip-flows` for small ones
+- graphify sets `GRAPHIFY_FORCE=true` for large diffs to force full AST reparse
 
 ### Strategy C: Git Hooks (On Commit + Branch Switch)
 
@@ -1196,7 +1407,7 @@ Both tools install git hooks automatically:
 # code-review-graph: pre-commit hook in .git/hooks/pre-commit
 code-review-graph install
 
-# graphify: installs wrappers in .husky/_/ — add your logic to .husky/post-commit
+# graphify: installs hooks in .git/hooks/ — for Husky projects, copy the hook logic to .husky/post-commit
 graphify hook install
 ```
 
@@ -1217,26 +1428,67 @@ Use the fallback-safe version that silently no-ops if the CLI isn't installed:
 
 At **0.425s per update**, CRG runs after every AI turn without blocking the agent's workflow.
 
-For both `.claude/settings.example.json` and the global `~/.claude/settings.json`, use:
+The **`settings.example.json` hooks** (copy to `settings.local.json` for this project, or to `~/.claude/settings.json` for all projects):
 
 ```json
-"PostToolUse": [
-  {
-    "matcher": "Edit|Write|MultiEdit",
-    "hooks": [
+{
+  "hooks": {
+    "PostToolUse": [],
+    "Stop": [
       {
-        "type": "command",
-        "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph update --skip-flows 2>/dev/null || true",
-        "timeout": 30
+        "hooks": [{
+          "type": "command",
+          "command": "command -v code-review-graph >/dev/null 2>&1 && [ -d .code-review-graph ] && { PF=/tmp/crg-claude.pid; if [ -f \"$PF\" ] && kill -0 \"$(cat \"$PF\")\" 2>/dev/null; then true; else { code-review-graph update --skip-flows 2>/dev/null && nohup code-review-graph embed >/dev/null 2>&1 & } & echo $! > \"$PF\"; fi; } || true",
+          "timeout": 5
+        }]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": "bash ~/.claude/scripts/smart-grep-hook.sh",
+          "timeout": 6
+        }]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "command -v code-review-graph >/dev/null 2>&1 && code-review-graph status 2>/dev/null || true",
+          "timeout": 10
+        }]
+      },
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "if command -v code-review-graph >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ ! -d .code-review-graph ]; then printf '{\"systemMessage\":\"Graph tool installed but not yet initialized. Ask me to set up: code-review-graph (code-review-graph install)\"}'; fi || true",
+          "timeout": 10
+        }]
+      },
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "if [ -f .code-review-graph/graph.db ] || [ -f graphify-out/graph.json ]; then STATS=\"\"; TOOL_LINES=\"\"; if [ -f .code-review-graph/graph.db ]; then STATS=$(python3 -c \"import sqlite3; c=sqlite3.connect('.code-review-graph/graph.db'); n=c.execute('SELECT COUNT(*) FROM nodes').fetchone()[0]; e=c.execute('SELECT COUNT(*) FROM edges').fetchone()[0]; print(f'{n} nodes, {e} edges'); c.close()\" 2>/dev/null || echo \"\"); TOOL_LINES=\"  where is X defined    → semantic_search_nodes_tool(query=X)\\n  who calls X           → query_graph_tool(pattern=callers_of, target=X)\\n  pre-refactor blast    → get_impact_radius_tool(changed_files=[...])\\n  community/cluster     → list_communities_tool()\\n  code review context   → get_review_context_tool(changed_files=[...])\"; fi; if [ -f graphify-out/graph.json ]; then GFY_STATS=$(python3 -c \"import json; g=json.load(open('graphify-out/graph.json')); nodes=g.get('nodes',[]); comms=len(set(n.get('community','') for n in nodes if n.get('community',''))); print(f'{len(nodes)} nodes, {comms} communities')\" 2>/dev/null || echo \"\"); [ -n \"$GFY_STATS\" ] && STATS=\"${STATS:+$STATS | }graphify: $GFY_STATS\"; TOOL_LINES=\"${TOOL_LINES:+$TOOL_LINES\\n}  CRG miss / explore    → graphify query '<term>' --graph graphify-out/graph.json\\n  path A→B              → graphify path '<from>' '<to>' --graph graphify-out/graph.json\"; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"GRAPH QUERY CHEATSHEET (%s) — use BEFORE Read/Grep/Bash-find on code:\\n%s\\nSkip graph for: .md .json .yml .log .jsonl configs cross-repo paths.\\nOverride grep gate: append --graph-tried to any Bash command.\"}}' \"$STATS\" \"$TOOL_LINES\"; fi",
+          "timeout": 5
+        }]
       }
     ]
   }
-]
+}
 ```
+
+> **Why Stop, not PostToolUse?** `PostToolUse` fires after *every* individual file edit — if Claude makes 10 edits in one response, it fires 10 times. The PID-file guard has a race window, so concurrent CRG Python processes pile up. `Stop` fires **once** when the AI finishes its entire turn — all edits batched, single update, PID-guarded. Zero pile-up by design.
+>
+> **Why `PostToolUse: []`?** Explicitly empty. Previous setups used PostToolUse for CRG updates. Clearing it prevents stale hook configs from double-triggering with the Stop hook.
 
 ---
 
 ## Step 7: Generate Additional Outputs
+
+> **Resource exhaustion prevention** — all git hooks above include a `_resources_ok()` guard that checks CPU load (≤ 50% of logical cores) and available memory (≥ 2 GB) before spawning any background rebuild. If either threshold is exceeded, the rebuild silently skips and logs why. This prevents a real problem: rapid-fire commits (amend chains, interactive rebase) spawning multiple concurrent graphify/CRG processes — observed at 3 stuck processes at 65–73% CPU each, load average 12+, RAM saturated, machine unresponsive. The `pgrep` guard adds process-level deduplication (if a previous rebuild is still running, skip). The `timeout 300` ensures no background process lives longer than 5 minutes. Together these three guards ensure graph rebuilds are always non-blocking and device-safe.
 
 ### Wiki (Markdown pages per community)
 
@@ -1665,6 +1917,9 @@ The hook is structured in two independent sections so teammates without these to
 #!/bin/sh
 # Knowledge graph tools are optional — each section silently skips if tools are absent.
 
+# _resources_ok function — copy from the post-commit hook above
+# (CPU ≤ 50% of logical cores, memory ≥ 2 GB free, all platforms)
+
 GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
 [ -d "$GIT_DIR/rebase-merge" ] && exit 0
 [ -d "$GIT_DIR/rebase-apply" ] && exit 0
@@ -1676,34 +1931,42 @@ GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
 if command -v graphify > /dev/null 2>&1; then
   CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD 2>/dev/null)
   if [ -n "$CHANGED" ]; then
-    # (Python interpreter detection + nohup rebuild — see full hook on GitHub)
-    echo "[graphify hook] launching background rebuild"
-    graphify update . > ~/.cache/graphify-rebuild.log 2>&1 &
-    disown 2>/dev/null || true
+    # (Python interpreter detection omitted for brevity — see full hook above)
+    if [ -n "$GRAPHIFY_PYTHON" ] && ! pgrep -qf 'graphify' 2>/dev/null && _resources_ok; then
+      export GRAPHIFY_CHANGED="$CHANGED"
+      _LOG="${HOME}/.cache/graphify-rebuild.log"
+      mkdir -p "$(dirname "$_LOG")"
+      echo "[graphify hook] launching background rebuild (log: $_LOG)"
+      nohup timeout 300 $GRAPHIFY_PYTHON -c "
+import os, sys
+from pathlib import Path
+changed_raw = os.environ.get('GRAPHIFY_CHANGED', '')
+changed = [Path(f.strip()) for f in changed_raw.strip().splitlines() if f.strip()]
+if not changed:
+    sys.exit(0)
+from graphify.watch import _rebuild_code
+_rebuild_code(Path('.'))
+" > "$_LOG" 2>&1 < /dev/null &
+      disown 2>/dev/null || true
+    fi
   fi
 fi
 
-# ── Obsidian vault: sync report + regen nodes ────────────────────────────────
-# Skips if graphify has never been run or gen script is not installed.
-[ -f graphify-out/GRAPH_REPORT.md ] && mkdir -p ai-vault/graphify \
-  && cp graphify-out/GRAPH_REPORT.md ai-vault/graphify/GRAPH_REPORT.md 2>/dev/null &
-
-_GEN="$HOME/.graphify/gen-obsidian-vault.py"
-if [ -f "$_GEN" ] && [ -f graphify-out/graph.json ]; then
-  _GLOBAL="$HOME/obsidian-vault"
-  _ROOT=$(pwd)
-  _NAME=$(basename "$_ROOT")
-  ( sleep 25 \
-    && python3 "$_GEN" --project-root "$_ROOT" \
-    && { [ -d "$_GLOBAL" ] \
-         && python3 "$_GEN" --project-root "$_ROOT" --vault "$_GLOBAL" --project-name "$_NAME" \
-         || true; } \
-  ) >> ~/.cache/obs-vault-regen.log 2>&1 &
+# ── code-review-graph: incrementally update MCP graph index after commit ────
+if command -v code-review-graph > /dev/null 2>&1 && [ -d .code-review-graph ] && ! pgrep -qf 'code-review-graph update' 2>/dev/null && _resources_ok; then
+  _LOG="${HOME}/.cache/code-review-graph-update.log"
+  mkdir -p "$(dirname "$_LOG")"
+  echo "[code-review-graph] Commit detected - launching background update (log: $_LOG)"
+  nohup sh -c 'code-review-graph update --skip-flows && code-review-graph embed' > "$_LOG" 2>&1 < /dev/null &
   disown 2>/dev/null || true
 fi
 ```
 
-Create the same file at `.husky/post-checkout` with two changes: wrap the graphify block with `if command -v graphify > /dev/null 2>&1 && [ -d "graphify-out" ]` (force-rebuild only makes sense if the graph has been built before), and change `sleep 25` to `sleep 20`. Mark both executable: `chmod +x .husky/post-commit .husky/post-checkout`.
+> **Why `timeout 300`?** graphify `_rebuild_code` has no internal deadline. On large repos it can hang indefinitely if it hits a file lock, encoding error, or memory pressure. `timeout 300` auto-kills the background process after 5 minutes — the git commit returns immediately either way, and the next commit retriggers a fresh attempt.
+>
+> **Why `_resources_ok`?** Without it, rapid-fire commits (amend chains, rebase, interactive rebase) spawn multiple concurrent graphify processes. Observed: 3 stuck processes at 65–73% CPU each, load average 12+, RAM exhausted. The resource check ensures a rebuild only starts when the machine can handle it.
+
+Create the same file at `.husky/post-checkout` with one change: wrap the graphify block with `if command -v graphify > /dev/null 2>&1 && [ -d "graphify-out" ]` (force-rebuild only when the graph has been built before). Mark both executable: `chmod +x .husky/post-commit .husky/post-checkout`.
 
 **What "safe to commit" means here:** a developer with none of these tools runs exactly the 4 rebase guards and exits 0 — no Python spawned, no directories created, no errors.
 
@@ -1716,6 +1979,7 @@ After full setup, the pipeline looks like this:
 ```
 AI agent session opens (Claude Code shown — other agents use equivalent plugin hooks)
     → SessionStart: code-review-graph status
+    → SessionStart: setup nudge (only if CLI installed but no graph built yet)
     → SessionStart: graph cheatsheet injected (query→tool map, ~150 tokens, once per session)
 
 AI agent searches the codebase (grep / rg / find)
@@ -1733,15 +1997,27 @@ AI agent edits a file
     [graphify does NOT update here — too slow for per-turn trigger]
 
 Code committed
-    → post-commit: graphify update . (background nohup, non-blocking)
-    → post-commit: code-review-graph update + embed (background nohup)
+    → post-commit: _resources_ok() check
+        ├── CPU > 50% or memory < 2 GB → skip rebuild, log why
+        ├── pgrep: graphify already running → skip
+        └── resources OK → graphify update . (background nohup, timeout 300)
+    → post-commit: _resources_ok() check
+        ├── pgrep: CRG already running → skip
+        └── resources OK → code-review-graph update + embed (background nohup)
 
 Branch switched
-    → post-checkout: graphify update . (background nohup, full rebuild for new branch)
+    → post-checkout: diff count = git diff --name-only PREV NEW | wc -l
+        ├── ≤5 files OR same-base branch switch
+        │     ├── graphify: incremental update (SHA256 cached, fast) [resource-guarded]
+        │     └── CRG: update --skip-flows + embed [resource-guarded]
+        └── >5 files OR brand-new branch
+              ├── graphify: force full rebuild (GRAPHIFY_FORCE=true) [resource-guarded]
+              └── CRG: build (full SQLite rebuild) [resource-guarded]
 
-Result: developer commits or switches branches → both graphs update in background.
+Result: developer commits or switches branches → both graphs update in background (if device has resources).
         Agent edits files → CRG updates after each AI turn.
         Agent searches → graph answers before grep fires.
+        Device overloaded → rebuilds silently skip, next commit retries.
 ```
 
 ---
@@ -1847,8 +2123,12 @@ your-project/
 ├── CLAUDE.md                          ← 2-line pointer to docs/agent/knowledge-graph.md
 ├── .claude/
 │   ├── settings.json                  ← permissions only, no hooks
-│   ├── settings.example.json          ← new (hook reference: PreToolUse smart-grep + Stop CRG update + SessionStart CRG status)
+│   ├── settings.example.json          ← new (hook reference: Stop CRG update + SessionStart cheatsheet + setup nudge)
 │   └── skills/                        ← new (code-review-graph skills relevant to the repo)
+├── .husky/                            ← Husky hooks (if using Husky)
+│   ├── pre-commit                     ← branch protection (blocks direct commits to protected branches)
+│   ├── post-commit                    ← graphify + CRG rebuild (resource-guarded, background nohup)
+│   └── post-checkout                  ← graphify + CRG rebuild on branch switch (resource-guarded, smart incremental/full)
 └── docs/agent/knowledge-graph.md      ← new (full tool reference)
 ```
 
@@ -1865,16 +2145,11 @@ your-project/
 └── .kiro/ / .opencode.json            ← IDE-specific
 ```
 
-**Outside project (global AI agent settings — Claude Code example):**
-```
-~/.claude/settings.example.json        ← updated (PreToolUse smart-grep + Stop CRG update)
-```
-Other agents: equivalent global config in `~/.cursor/`, `~/.config/gemini/`, etc.
-
-**New teammate setup** (copy `.mcp.example.json` and configure local hooks):
+**New teammate setup** (copy example files and activate):
 ```bash
 cp .mcp.example.json .mcp.json
-# Add hooks from .claude/settings.example.json into .claude/settings.local.json
+cp .claude/settings.example.json .claude/settings.local.json
+# Or copy hooks into ~/.claude/settings.json to activate across all projects
 ```
 
 ---
