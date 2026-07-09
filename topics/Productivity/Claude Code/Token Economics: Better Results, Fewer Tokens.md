@@ -110,7 +110,46 @@ Three patterns do the heavy lifting:
 
 1. **Agentic, on-demand retrieval instead of pre-loading everything.** This repo's knowledge-graph tooling (`graphify` + `code-review-graph`) builds its index with Tree-sitter — **0 LLM tokens** to parse 1,000+ files into a queryable graph. Every session that skips it re-reads dozens of files just to get oriented — one measured session lost "twenty thousand tokens evaporated before a single line of code is written." Querying the graph (`semantic_search_nodes`, `get_impact_radius`) costs a few hundred tokens instead of a fresh directory sweep.
 2. **Subagents with clean context.** Dispatching research or exploration to a subagent means the main conversation gets a distilled answer back, not the transcript of every file it read to get there. The heavy lifting happens in a context that gets thrown away; only the conclusion survives.
-3. **Prompt caching.** Reusing the static prefix of a prompt (system instructions, tool definitions, unchanging file content) cuts input cost up to 90% and cuts time-to-first-token by roughly a third. It's free correctness — no output changes, no quality tradeoff — for anything that repeats across calls.
+3. **Prompt caching** — big enough to get its own section, below.
+
+---
+
+## Caching: The 90% Lever
+
+Prompt caching is the single highest-leverage, zero-quality-loss technique in this whole post. The model already computed the attention values for your static prefix — system prompt, tool definitions, the unchanging file you're iterating on — on the last call. Instead of throwing that work away, the provider keeps it warm and charges you a fraction to reuse it. The output is byte-identical; only the bill and the latency change.
+
+The headline number every provider converges on is **~90% off the cached portion of input**. The mechanics differ enough across the three majors that the strategy has to differ too:
+
+| Provider | Cache TTL | Write (first hit) | Read (cache hit) | How to get it |
+|---|---|---|---|---|
+| **Anthropic (Claude)** | 5 min or 1 hour (opt-in) | **1.25×** standard input for 5 min, **2.0×** for 1 hour | **0.10× input** (90% off) | Explicit: mark `cache_control: { type: "ephemeral" }` on the prefix blocks you want cached |
+| **OpenAI (GPT-5.x)** | up to **24 hours** (default on 5.5+, no fee) | 1.0× input, no surcharge | **0.50× input** (50% off, ≥1024 tok, 128-tok increments) | Automatic — routed to servers that recently computed the same prefix, no code change |
+| **Google (Gemini 3.x)** | 60 min default (extensible) | 1.0× input + per-hour storage cost | **0.10× input** (90% off) | Implicit (auto, free) or explicit (declared, guaranteed discount) |
+
+<div align="center">
+  <img src="../../../assets/B-16/caching-lever.png" alt="Comparison of Anthropic, OpenAI, and Gemini prompt caching: TTL, write cost, read discount, plus break-even math and the 5-minute TTL cliff"/>
+  <br/>
+  <sub>Sources: <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Anthropic prompt-caching docs</a>, <a href="https://developers.openai.com/api/docs/guides/prompt-caching">OpenAI prompt-caching guide</a>, <a href="https://ai.google.dev/gemini-api/docs/caching">Gemini context caching docs</a>. Chart built from their published mechanics — not a reproduction of any vendor graphic.</sub>
+</div>
+
+### The break-even that determines whether caching is even worth it
+
+Caching is not free money — there's a **write surcharge** on the first hit, and it only pays off if enough *reads* land before the prefix expires to amortize it. The rule of thumb, backed by the per-vendor pricing math: **you break even at roughly 1.3–1.4 reads per write.** Below that line, caching *increases* cost — you paid the 1.25× (or 2.0×) write tax and then never reused it. A 20,000-token system prompt that gets hit ~1.1 times per five-minute window genuinely costs *more* with caching turned on than off. The lever only works when there's repetition inside the window.
+
+### The 5-minute TTL cliff (and how to not fall off it)
+
+Anthropic quietly dropped the Claude cache TTL from 60 minutes down to **5 minutes** in early 2026, and it caught a lot of production workloads mid-stride: savings that were tracking ~84% fell to ~52% overnight, because every request that landed past the 300-second mark became a fresh write instead of a cheap read. If your batch job processes 200 items at 2 seconds each (400 seconds total), the cache dies around item 135 and *every call after that is a miss* — the 90% lever silently switches off mid-workflow.
+
+Four mitigations hold the cache warm, and they generalize across providers:
+
+- **Batch within the window.** Don't trickle requests in over an hour. Cluster the work so all the reads land before the TTL expires — turn a slow steady stream into a tight burst.
+- **Keep-alive ping.** For a long session against high-value cached content, send a lightweight request roughly every 4 minutes. Accessing a cached block *resets* its TTL, so a cheap read keeps an expensive write alive indefinitely.
+- **Static-prefix-first.** Cache matching is positional — it breaks the moment a single byte changes ahead of the cached segment. Put the unchanging bytes (system prompt, tool defs, reference docs) at the very front, and push anything dynamic (the current user message, working memory, the file you're actively editing) to the *back*. The most common reason a cache hit rate is stuck low is dynamic state living in the system prompt, invalidating the whole prefix every turn.
+- **Batch API for overnight jobs.** When the window is too long to batch within, switch to the provider's Batch API: it processes requests with a shared prefix, so the *first* request in the batch pays the write cost and the rest pay the read cost (10%) — and Anthropic/Gemini stack a further ~50% batch discount on top, which can reach ~95% off the repeated portion for genuinely async work.
+
+### My rule for sessions, not just servers
+
+Most of that table is server-side API economics, but the same instinct applies to an interactive coding session: **work in tight bursts, not long drips.** If you're iterating on one file, keep the turns close together so the provider's cache for that file stays warm between requests — leave for a coffee and a meeting and you come back to a cold cache paying full write cost again. Bunch the exploration, the edits, and the review into the same window. It's the same "fewer tokens, fewer watts, fewer dollars" loop this whole post runs on, just timed.
 
 ---
 
@@ -185,7 +224,7 @@ Either way, the habits in this post stop being optional the moment the subsidy e
 - [ ] Replace prompt-based lint/type checks with command hooks
 - [ ] Index the codebase once (Tree-sitter-based graph, not LLM-based) instead of re-reading it every session
 - [ ] Dispatch exploration and research to subagents; keep the main thread to conclusions
-- [ ] Turn on prompt caching for anything that repeats across calls
+- [ ] Turn on prompt caching — and structure for it: static prefix at the front, dynamic state at the back, batch reads inside the TTL window (break-even ≈1.3 reads/write)
 - [ ] Guard any background job — hooks, rebuilds, local inference — with CPU/memory checks and process dedupe before running multiple worktrees or projects in parallel
 - [ ] Capture decisions in memory/spec files once — read them, don't re-derive them
 - [ ] Mine session logs and PR review comments for recurring corrections; encode each one once into `CLAUDE.md`/rules instead of re-correcting it every time it recurs
@@ -224,6 +263,15 @@ If one line in this pays off in your own repo, that's the whole point of writing
 **Context Engineering:**
 - [Anthropic — Context engineering: memory, compaction, and tool clearing (Claude Cookbook)](https://platform.claude.com/cookbook/tool-use-context-engineering-context-engineering-tools)
 - [Don't Break the Cache: Prompt Caching for Long-Horizon Agentic Tasks](https://arxiv.org/pdf/2601.06007)
+
+**Prompt Caching (primary docs — source for the caching chart & break-even):**
+- [Anthropic — Prompt caching (1.25×/2.0× write, 0.10× read, 5-min/1-hr TTL)](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
+- [OpenAI — Prompt caching (up to 24-hr default, 50% off ≥1024 tok, automatic)](https://developers.openai.com/api/docs/guides/prompt-caching)
+- [Google — Gemini context caching (90% off, implicit vs explicit, 60-min TTL)](https://ai.google.dev/gemini-api/docs/caching)
+
+**Caching strategy & the 5-minute TTL cliff (analysis, cross-checked against docs above):**
+- [Claude Prompt Caching in 2026 — the 5-minute TTL change costing you money](https://dev.to/whoffagents/claude-prompt-caching-in-2026-the-5-minute-ttl-change-thats-costing-you-money-4363)
+- [Prompt Caching Deep Dive — when it helps, when it hurts, the 270s cliff](https://dev.to/whoffagents/prompt-caching-deep-dive-when-it-helps-when-it-hurts-and-the-270s-cliff-291j)
 
 **Usage Data:**
 - [Anthropic Economic Index report: Cadences](https://www.anthropic.com/research/economic-index-june-2026-report)

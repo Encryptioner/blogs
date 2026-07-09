@@ -122,11 +122,45 @@ Accuracy drops as token count climbs — even well inside the limit. **Context r
 
 - **On-demand retrieval:** our knowledge graph (`graphify` + `code-review-graph`) indexes 1,000+ files for **0 LLM tokens**; skipping it burns ~20,000 tokens re-orienting every session
 - **Subagents** with clean, disposable context — the transcript gets thrown away, only the conclusion survives
-- **Prompt caching:** up to 90% cheaper input, ~30% faster time-to-first-token — free correctness, no quality tradeoff
+- **Prompt caching** — big enough to get its own slide →
 
 ---
 
-## Slide 10: Memory Compounds
+## Slide 10: Caching — The 90% Lever
+
+# 🧊 The Single Biggest Zero-Quality-Loss Lever
+
+The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is byte-identical; only the bill and latency change. ~90% off the cached input is the number all three majors converge on.
+
+| Provider | TTL | Write | Read (hit) |
+|---|---|---|---|
+| **Claude** | 5 min / 1 hr | 1.25× (2.0×/1hr) | **0.10×** · 90% off |
+| **GPT-5.x** | up to **24 h** | 1.0×, no fee | **0.50×** · 50% off |
+| **Gemini 3.x** | 60 min | 1.0× + storage | **0.10×** · 90% off |
+
+![Prompt caching across providers](../assets/B-16/caching-lever.png)
+
+---
+
+## Slide 11: Cache or Crash
+
+# ⚠️ Break-Even ≈ 1.3 Reads Per Write
+
+Caching isn't free money. You pay a **write surcharge** on the first hit; it only pays off if ≥1.3 reads land before the TTL expires. A 20K-token prefix hit ~1.1×/5-min costs *more* with caching on.
+
+**The 5-minute cliff:** Anthropic dropped Claude's TTL 60min → 5min in early 2026. Savings fell ~84% → ~52% — every call past 300s became a fresh write.
+
+**Hold the cache warm:**
+- **Batch within the window** — tight bursts, not a slow drip
+- **Keep-alive ping** — a light read every ~4 min resets the TTL
+- **Static-prefix-first** — dynamic state at the *back*, never the front (one byte change ahead of the cache invalidates the whole prefix)
+- **Batch API** for overnight jobs — first item writes, the rest read at 10% + ~50% batch off
+
+*Same instinct, interactive sessions: iterate in tight bursts, keep turns close, don't let the file cache go cold across a meeting.*
+
+---
+
+## Slide 12: Memory Compounds
 
 # 🧠 Reuse Beats Re-Derivation
 
@@ -142,7 +176,7 @@ Capture once. Read forever. Don't re-derive — forward *or* backward.
 
 ---
 
-## Slide 11: Less Code, Less to Reload
+## Slide 13: Less Code, Less to Reload
 
 # ✂️ Every Line Written Is a Line Reloaded Later
 
@@ -158,7 +192,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 12: Beyond the Bill
+## Slide 14: Beyond the Bill
 
 # 🌍 Two Reasons This Isn't Only About Money
 
@@ -168,7 +202,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 13: Checklist
+## Slide 15: Checklist
 
 # ✅ Apply This Week
 
@@ -176,14 +210,15 @@ Fewer lines today = a standing token discount on every future session that touch
 - [ ] Match the tool to the constraint that binds — local, OpenRouter/OpenCode, or Claude Code/Codex
 - [ ] `CLAUDE.md` under ~200 lines; globbed rules for the rest
 - [ ] Command hooks over prompt hooks for deterministic checks
-- [ ] Index once (Tree-sitter), query on demand; cache prompts; reuse memory instead of re-deriving it
+- [ ] Index once (Tree-sitter), query on demand; reuse memory instead of re-deriving it
+- [ ] **Cache structured for the window** — static prefix front, dynamic state back, batch reads inside TTL (break-even ≈1.3 reads/write)
 - [ ] Mine chat logs and PR review comments for recurring corrections; encode each one once, don't re-correct it every time
 - [ ] Guard background jobs (CPU/memory + dedupe) before running multiple worktrees
 - [ ] Smallest correct diff, always — it's a discount on every future session, every watt, every dollar
 
 ---
 
-## Slide 14: The Bottom Line
+## Slide 16: The Bottom Line
 
 # 🎉 The Bottom Line
 
@@ -195,13 +230,14 @@ The cheapest model was never the one with the lowest price per token. It's the o
 
 ---
 
-## Slide 15: Resources & References
+## Slide 17: Resources & References
 
 # 📚 Resources & References
 
 ## Data Sources (primary)
 - [Artificial Analysis — Gemini 3.5 Flash cost analysis](https://artificialanalysis.ai/articles/gemini-3-5-flash-everything-you-need-to-know) — the cheap-token-trap chart
 - [Scale AI SEAL — SWE-bench Pro standardized leaderboard](https://labs.scale.com/leaderboard/swe_bench_pro_commercial) — the harness-swing slide
+- [Anthropic / OpenAI / Gemini prompt-caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) — the caching chart
 - [Anthropic — Claude Sonnet 5 pricing](https://www.anthropic.com/news/claude-sonnet-5)
 - [Anthropic Economic Index — Cadences report](https://www.anthropic.com/research/economic-index-june-2026-report)
 - [UN News — AI's environmental costs](https://news.un.org/en/story/2026/06/1167658)
@@ -223,7 +259,7 @@ The cheapest model was never the one with the lowest price per token. It's the o
 
 ---
 
-## Slide 16: Closing
+## Slide 18: Closing
 
 # One Thing, Tonight
 
