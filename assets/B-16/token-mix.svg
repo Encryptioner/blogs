@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" width="900" height="540">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="540" fill="#f8fafc" rx="12"/>
+  <text x="450" y="32" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="2">WHERE OUR TOKENS ACTUALLY GO</text>
+
+  <!-- ═══ LEFT: the donut of low-value spend ═══ -->
+  <rect x="24" y="50" width="500" height="410" fill="white" rx="12" filter="url(#shadow)"/>
+  <text x="274" y="80" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1e293b">a typical session, honestly</text>
+
+  <!-- donut: cx=185 cy=235 r=100 stroke 54 ; C=628.3 -->
+  <g transform="rotate(-90 185 235)">
+    <!-- 42% make-it-professional -->
+    <circle cx="185" cy="235" r="100" fill="none" stroke="#ef4444" stroke-width="54"
+            stroke-dasharray="264 628" stroke-dashoffset="0"/>
+    <!-- 23% translate/summarize -->
+    <circle cx="185" cy="235" r="100" fill="none" stroke="#f97316" stroke-width="54"
+            stroke-dasharray="145 628" stroke-dashoffset="-264"/>
+    <!-- 18% the-thing-I-could've-googled -->
+    <circle cx="185" cy="235" r="100" fill="none" stroke="#f59e0b" stroke-width="54"
+            stroke-dasharray="113 628" stroke-dashoffset="-409"/>
+    <!-- 11% explain-this-stack-trace -->
+    <circle cx="185" cy="235" r="100" fill="none" stroke="#a3a3a3" stroke-width="54"
+            stroke-dasharray="69 628" stroke-dashoffset="-522"/>
+    <!-- 6% actually-architect-and-ship -->
+    <circle cx="185" cy="235" r="100" fill="none" stroke="#10b981" stroke-width="54"
+            stroke-dasharray="38 628" stroke-dashoffset="-591"/>
+  </g>
+  <!-- center hole label -->
+  <text x="185" y="230" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#94a3b8">high-value</text>
+  <text x="185" y="248" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="#10b981">6%</text>
+
+  <!-- legend -->
+  <g font-family="system-ui,sans-serif" font-size="10.5">
+    <rect x="305" y="110" width="12" height="12" fill="#ef4444" rx="2"/>
+    <text x="324" y="120" font-weight="700" fill="#1e293b">42%</text>
+    <text x="358" y="120" fill="#64748b">“make it sound professional” (email)</text>
+
+    <rect x="305" y="150" width="12" height="12" fill="#f97316" rx="2"/>
+    <text x="324" y="160" font-weight="700" fill="#1e293b">23%</text>
+    <text x="358" y="160" fill="#64748b">translate / summarize a PDF</text>
+
+    <rect x="305" y="190" width="12" height="12" fill="#f59e0b" rx="2"/>
+    <text x="324" y="200" font-weight="700" fill="#1e293b">18%</text>
+    <text x="358" y="200" fill="#64748b">the thing I could’ve Googled</text>
+
+    <rect x="305" y="230" width="12" height="12" fill="#a3a3a3" rx="2"/>
+    <text x="324" y="240" font-weight="700" fill="#1e293b">11%</text>
+    <text x="358" y="240" fill="#64748b">“explain this stack trace”</text>
+
+    <rect x="305" y="270" width="12" height="12" fill="#10b981" rx="2"/>
+    <text x="324" y="280" font-weight="800" fill="#065f46">6%</text>
+    <text x="358" y="280" font-weight="700" fill="#065f46">actually architect &amp; ship the feature</text>
+  </g>
+
+  <text x="274" y="425" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#b91c1c">~94% of tokens on tasks a $1 model does fine.</text>
+  <text x="274" y="443" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">The model doesn’t care which slice. Your budget and your résumé do.</text>
+
+  <!-- ═══ RIGHT: redirect ═══ -->
+  <rect x="544" y="50" width="332" height="410" fill="white" rx="12" filter="url(#shadow)"/>
+  <rect x="544" y="50" width="332" height="40" fill="#10b981" rx="12"/>
+  <rect x="544" y="78" width="332" height="12" fill="#10b981"/>
+  <text x="710" y="76" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="white">REDIRECT THE TOKENS</text>
+
+  <text x="564" y="118" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1e293b">Cheap tier — the 94%:</text>
+  <text x="564" y="140" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">• emails, rephrasing, translation, summaries →</text>
+  <text x="556" y="158" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#065f46">Haiku / Flash / local model</text>
+
+  <text x="564" y="196" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1e293b">Mid tier — the explaining:</text>
+  <text x="564" y="218" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">• debug, explain stack traces, review diffs →</text>
+  <text x="556" y="236" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#4338ca">Sonnet / GPT mid</text>
+
+  <text x="564" y="274" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1e293b">Flagship — the 6% that compounds:</text>
+  <text x="564" y="296" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">• architect, spec, hard refactor, the actual ship →</text>
+  <text x="556" y="314" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#7c3aed">Opus / Pro — but rarely</text>
+
+  <rect x="564" y="338" width="292" height="100" fill="#ecfdf5" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="574" y="360" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#065f46">The move for our market:</text>
+  <text x="574" y="380" font-family="system-ui,sans-serif" font-size="10.5" fill="#065f46">Don’t spend the subsidy on bulk generation.</text>
+  <text x="574" y="397" font-family="system-ui,sans-serif" font-size="10.5" fill="#065f46">Spend it where it captures value — engineering,</text>
+  <text x="574" y="414" font-family="system-ui,sans-serif" font-size="10.5" fill="#065f46">shipping, owning the system. Not just writing</text>
+  <text x="574" y="431" font-family="system-ui,sans-serif" font-size="10.5" fill="#065f46">code someone else profits from.</text>
+
+  <!-- footer -->
+  <text x="450" y="500" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8">Slice sizes illustrative, not a measured breakdown. Bangladesh note: 96% of internet users now use AI regularly, up from 88% in 2024 — writing/content is the top use case, only 28% for admin work (Telenor Asia, Dec 2025).</text>
+  <text x="450" y="517" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#cbd5e1">Original artwork, not a stock/meme image.</text>
+</svg>

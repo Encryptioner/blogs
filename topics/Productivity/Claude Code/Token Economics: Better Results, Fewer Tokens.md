@@ -8,6 +8,14 @@ Every AI coding session has a hidden meter running. Most engineers watch the res
 
 The worked examples below use Claude Code because that's this repo's own daily driver — but the arithmetic (price × tokens × attempts) and the guard rails don't belong to one vendor. There's a dedicated section on Codex, OpenCode, OpenRouter, and local models further down, plus what changes on your laptop when you're running several of them at once across worktrees.
 
+Before the math, the picture — this is the moment most teams first notice the meter exists:
+
+<div align="center">
+  <img src="../../../assets/B-16/bill-reveal.png" alt="Editorial cartoon: a relaxed developer enjoying a $20/month AI deal in month one, then the same developer a quarter later sweating over a $14,000 compute bill while finance asks who approved the robot's tab"/>
+  <br/>
+  <sub>The gag is just the real numbers with a face on it — the ~$14,000/mo figure and the 70× subsidy gap are cited further down. Original artwork, not a stock image.</sub>
+</div>
+
 ---
 
 ## The Real Cost Equation
@@ -54,6 +62,12 @@ That table is the reason `~/.claude/rules/model-routing.md` in this setup exists
 ```
 
 The benchmark data backs this up from the other direction: on SWE-bench Pro, **Haiku 4.5 solves problems for about $0.13 of spend per benchmark point** — the cheapest cost-per-correct-fix of any current model — while Opus 4.8 posts the highest score (69.2%) but at 5-25x the per-token price. Routing by task, not defaulting everything to the flagship model, is the single highest-leverage lever most teams never pull.
+
+<div align="center">
+  <img src="../../../assets/B-16/token-mix.png" alt="Chart showing a typical AI session: ~94% of tokens spent on low-value tasks like rephrasing emails and translation, only ~6% on high-value work like architecting and shipping a feature — with a redirect showing cheap-tier, mid-tier, and flagship-tier task routing"/>
+  <br/>
+  <sub>Slice sizes are illustrative, not a measured breakdown — the point is the shape, not the precision. Closer to home: 96% of Bangladeshi internet users now use AI regularly, up from 88% in 2024, and workplace adoption jumped 44% → 62% in a single year — but writing and content creation is the top use case, with only 28% reaching for AI on admin/delegation work (Telenor Asia, Dec 2025). Same 94/6 split, local numbers.</sub>
+</div>
 
 ---
 
@@ -168,7 +182,9 @@ That's not a benchmark claim, it's one real number from one real session — but
 Every repeated correction is a hidden multiplier on the "number of attempts" term from the cost equation at the top of this post — the agent doesn't fail once, it fails the *same way* every time nobody tells it to stop. Two logs already sitting on disk are worth mining for exactly this, and most teams never look at either:
 
 - **Session/chat logs.** This project's own auto-memory has a `feedback` category built for it: "any time the user corrects your approach... or confirms a non-obvious approach worked, save what is applicable to future conversations." This repo's memory index already has two live examples — a note that command hooks beat prompt hooks for deterministic checks, and one that skills should install globally, not per-project — corrections made once in a session, now loaded automatically at the start of every future one instead of being re-explained from scratch.
-- **PR review comments.** If the same review comment shows up on three different PRs — a missing null check, an error message that isn't pulled from the constants file, an `any` type that should've been a real one — that isn't three isolated nits, it's a pattern the model will keep reproducing until someone tells it once, permanently. That's exactly what a `CLAUDE.md`'s "Critical Gotchas" or "PR Review Rules" section is for: recurring review feedback, distilled once, applied on every future session without a human retyping the same comment a fourth time.
+- **PR review comments.** If the same review comment shows up on three different PRs — a missing null check, an error message that isn't pulled from the constants file, an `any` type that should've been a real one — that isn't three isolated nits, it's a pattern the model will keep reproducing until someone tells it once, permanently. That's exactly what a `CLAUDE.md`'s "Critical Gotchas" or "PR Review Rules" section is for: recurring review feedback, distilled once, applied on every future session without a human retyping the same comment a fourth time. (My own tool, **branchdiff**, does this mechanically — its review skill reads resolved/dismissed threads before commenting, so a dismissed nit with a reason isn't re-raised next pass. The tool enforces the discipline I'm describing by hand above.)
+
+> Both of the above are why tooling and reference material belong in the talk and the blog, not just the prose: the *pros* of a tool are in its README, but the **cons — what it costs in device load, license, or ban risk, and whether you keep it or cut it — are where the real-world experience actually lives.** Marketing only shows the pros. The decisions below are the cuts.
 
 The token math is the same "capture once, reuse forever" pattern as the memory index above — just pointed backward at your own mistake history instead of forward at new work. A correction re-explained in chat costs a few hundred tokens *every time it recurs*. The same correction encoded once in a rule costs those tokens once, then applies for free on every future turn where it's relevant.
 
@@ -208,16 +224,90 @@ None of that is on the pricing page either. Every unnecessary retry, every full-
 
 ## The Subsidy Clock Is Running Out
 
-One more reason today's prices aren't the real prices: **they're not real prices yet.** OpenAI, Anthropic, Google, and Meta are all pricing inference below what it costs them to serve it. OpenAI's own numbers show roughly $2 spent for every $1 earned on inference, with $14B in losses projected for 2026 and $44B in cumulative losses before profitability arrives — by their own timeline — in 2029. A fully-utilized $200/month ChatGPT Pro plan would cost close to **$14,000/month** at published API rates: a 70x subsidy gap that exists because labs are buying market share with venture capital, not because inference is actually that cheap.
+One more reason today's prices aren't the real prices: **they're not real prices yet.** OpenAI, Anthropic, Google, and Meta are all pricing inference below what it costs them to serve it. OpenAI's own numbers show roughly $2 spent for every $1 earned on inference, with $14B in losses projected for 2026 and $44B in cumulative losses before profitability arrives — by their own timeline — in 2029. A fully-utilized $200/month ChatGPT Pro plan would cost close to **$14,000/month** at published API rates: a 70x subsidy gap that exists because labs are buying market share with venture capital, not because inference is actually that cheap. This isn't a fringe observation anymore — Forbes ran a July 2026 piece bluntly titled *"AI Costs More Than The People It Replaced,"* and the same reporting surfaced that **Uber reportedly burned through its entire 2026 AI coding budget in four months.** The sticker shock is becoming the headline, not the footnote.
+
+> **News callout:** *["AI Costs More Than The People It Replaced"](https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/)* — Jemma Green, Forbes, Jul 2, 2026. The Uber budget figure was widely circulated in discussion of that piece.
 
 That subsidy is already unwinding. Anthropic moved enterprise customers from flat-rate plans to usage-based billing tied to actual compute in April 2026; GitHub Copilot followed weeks later, after years of quietly absorbing usage up to 8x the subscription's value for heavy users. Analysts expect frontier API prices to rise within 12–24 months, and enterprise AI bills to land 30–50% above today's levels once pricing reflects real infrastructure cost. (The honest counterweight: Gartner still expects the underlying cost *per unit* of inference to keep falling from hardware and algorithmic efficiency — this isn't pure doom, it's a floor rising under a ceiling that's also dropping.)
 
 Either way, the habits in this post stop being optional the moment the subsidy ends. A team that's already routing by task, caching aggressively, and keeping context lean barely notices the price hike when it lands. A team that's defaulted to the flagship model on every request — because it was cheap enough not to think about — is about to feel the whole 30–50% at once, with no muscle memory for absorbing it.
 
+## Make the Meter Visible — Track Before You Cut
+
+You cannot cut what you cannot see, and the single biggest reason teams overspend is that the meter is invisible by default. The good news: every agent writes local session logs, so tracking is *always* possible even when the built-in command is weak. The built-in visibility is uneven across agents, though, so pick the tracker that reads *your* agent's logs:
+
+| Agent | Native tracking | Where its logs live | Reach for |
+|---|---|---|---|
+| **Claude Code** | `/cost` (session token + spend), `/context` (window fill = context-rot warning), `/usage-credits` (org spend), status line, Agent SDK | local usage files | **ccusage**, tokscale |
+| **Codex CLI** | in-session token totals (input / cached input / output) — lighter than Claude's, users routinely want more | `~/.codex/sessions/*.jsonl` | **tokscale**, Dynatrace |
+| **OpenCode** | stored token/cost totals shown in the session context — but **no dedicated tracking command** | local SQLite / JSON | **opencode-stats**, Portkey |
+| **All / enterprise** | — | — | Dynatrace, Portkey, AgentsView |
+
+**The trackers, with their pros and cons** (because, again, the READMEs only ship the pros):
+
+- **[ccusage](https://github.com/ccusage/ccusage)** — ✅ the one I reach for on Claude Code: daily/weekly/monthly/per-session reports plus a **5-hour-block** view that maps directly onto the subscription window caps (you *see* a heavy day hitting the wall before you hit it), plus a live dashboard. ❌ Con: Claude-centric — it's expanding to other agents but it's not a true cross-agent dashboard yet.
+- **[tokscale](https://github.com/junhoyeo/tokscale)** — ✅ genuinely cross-agent: one CLI + dashboard across multiple coding agents, which matters when you run Claude *and* Codex *and* OpenCode in parallel (the multi-agent device theme from earlier). ❌ Con: newer and less mature than ccusage's Claude-specific depth.
+- **opencode-stats** (Rust, `lib.rs/crates/opencode-stats`) — ✅ fills OpenCode's exact gap: reads the local SQLite/JSON, shows token usage + cost estimates + 365-day stats. ❌ Con: OpenCode-only.
+- **Dynatrace / Portkey** — ✅ enterprise-grade, multi-agent governance and access control (Dynatrace expanded in April 2026 to cover Claude Code, Gemini CLI, Codex CLI, OpenCode, and Copilot SDK). ❌ Con: governance-shaped, not hacker-shaped — overhead an individual or small team doesn't need.
+
+The point isn't which dashboard — it's the habit: **glance at usage before you escalate a task to the flagship model, review the weekly report before you approve an agent run that fans out 20 subagents, and watch the 5-hour block (or your agent's equivalent) when you're on a subscription tier.** Every cut in the next section came out of exactly this kind of measurement — I cut Headroom because I *measured* the device load, and I pruned the idle graph MCP because I *measured* the context tax its schemas were charging every turn. Measure first; the optimizations are obvious once the numbers are in front of you.
+
+---
+
+## My Toolkit — What I Actually Run, and What I Cut
+
+Everything above is principle. This is what's installed on my machine, dated and verdict'd — including the tools I tried and threw out, because the cuts are where the real lessons are. I ran a full evaluation on 2026-07-04 with four hard constraints: **no device slowdown, no quality loss, no context loss, zero ban risk from any frontier provider.** Those constraints sorted the whole field fast.
+
+### The mental model: three layers, not one competition
+
+Token-reduction tools aren't competitors — they stack on different layers:
+
+| Layer | What it does | Example |
+|---|---|---|
+| **Output-side** | Make the model *write less* | Ponytail (code), caveman (prose) |
+| **Input-side** | Compress what the model *reads* before it hits the LLM | RTK (shell), Headroom (files) |
+| **Routing-side** | Send the request to a cheaper/fallback provider | OmniRoute, OpenRouter |
+
+A tool only saves tokens on its own layer. The mistake is picking one "best" token tool; the win is covering each layer with the lightest thing that does the job.
+
+### The one rule that decided most of it: ban risk lives on the wire
+
+**A tool only risks a provider ban if it sits between Claude Code and the provider *and* mutates the payload.** Rule-injection tools (Ponytail, caveman) inject instructions into the session — they never touch the network, so the risk is literally zero. Proxy tools (Headroom, OmniRoute) intercept and rewrite traffic — risk is real, and it's *highest on subscription auth* (Max/Pro plans) and lower on your own API key. That single distinction is why my final stack contains zero proxies.
+
+### The stack (and the cuts)
+
+| Tool | Layer | Footprint | Verdict |
+|---|---|---|---|
+| **Ponytail** | Output / code | Pure rules + hooks, ~983 tokens always-on | ✅ **Run** — YAGNI-first "laziness ladder," shortest working diff; benchmark medians say 6–20% the lines, 23–53% the cost, 3–6× faster |
+| **caveman** | Output / prose | Mode, zero daemon | ✅ **Run** — compressed prose, ~75% fewer tokens; overlaps Ponytail by design (one does code, one does prose — keep both) |
+| **RTK** (rtk-ai/rtk) | Input / shell | Rust binary, <10ms/call, no daemon | ✅ **Run** — auto-rewrites `git status` → `rtk git status`, 60–90% off ~100 common commands; **only Bash output**, Read/Grep/Glob bypass |
+| **Headroom** | Input / files | Local ML daemon + ~600MB models | ❌ **Cut** — 60–95% input reduction, AST-aware, byte-perfect, reversible cache… and exactly the device-drag failure this post warns about. Only tool covering *file-read* compression; I left that gap uncovered on purpose. If you adopt it: API-key only, never subscription auth |
+| **OmniRoute** | Routing | Local proxy + SQLite | ❌ **Cut** — 237-provider cost-arbitrage gateway; answers come back from random non-frontier models, so you get quality drift, context drift, *and* the ToS-ban pattern. Fails "no quality/context loss, no bans" on all three counts |
+| **token-optimizer** | Config / hygiene | Python hook per Read/Bash | ❌ **Cut** — PolyForm-NonCommercial license (blocks commercial work) plus per-call Python overhead |
+
+Final stack: **Ponytail + caveman + RTK** — three light layers, no daemon, no proxy on the wire, all commercial-safe. The file-read compression layer stays intentionally empty, because the only tool that covered it cost more in device load than it saved in tokens.
+
+### The graph-tools call — same tools, two contexts, two verdicts
+
+This is the nuance I'd get wrong if I just said "use graphify" or "don't." I run **graphify and code-review-graph on specific repos** — this blog repo included — *behind resource-guarded git hooks* (the Stop hook runs CRG's ~0.425s incremental update, graphify rebuilds only as a detached `nohup` after commits with a CPU/memory guard). What I explicitly *don't* run is the **always-on global MCP daemon** — on 2026-07-04 I removed `code-review-graph` from my global config because its background embeddings + indexing daemon was the exact thing making my daily-driver laptop slow across every project, whether that project needed a graph or not.
+
+Same lesson, sharper version: **an idle MCP server still costs context every turn.** Even abandoned, `code-review-graph` was loading 30+ tool schemas into every session's context before a single word was typed. Pruning it reclaimed that context with zero downside. The biggest free token lever is often a tool you're not using anymore that's still paying its schema tax.
+
+### branchdiff — my own review tool, as a token mechanism
+
+I built **branchdiff** (local diff viewer + AI review at `localhost`, nothing leaves the machine), and its token economics are deliberate, not accidental:
+
+- **Controlled context surface.** `branchdiff review context` pipes *just the diff* to the model — not a full repo dump. The AI sees exactly what changed, nothing more.
+- **Nth-time review awareness.** Before commenting, the review skill reads already-resolved and dismissed threads. Resolved points aren't re-raised; dismissed ones only come back with new evidence. Run `/branchdiff-review` after every commit without re-litigating the same feedback — that's the "Mine Your Own History" pattern from earlier, built into the tool.
+- **Focused passes over full dumps.** A security-only pass on a 200-line auth diff produces five precise comments instead of fifty; for a 200-file refactor, point the AI at the riskiest ten files first and run a second pass only if needed. Less output tokens, higher signal.
+
+The pattern across all of it: **the lightest layer that does the job, never a proxy on the wire, and cut anything that pays a daemon or schema tax you're not using.** That's the stack, and it's the reason the rest of this post's numbers hold up on a real laptop, not just a benchmark.
+
 ---
 
 ## Checklist — Apply This Week
 
+- [ ] **Make the meter visible first** — `/cost`, `/context`, `/usage-credits`, or ccusage's 5-hour-block report; you can't cut what you can't see
 - [ ] Route by task: haiku for lookups, sonnet as default, opus only when reasoning depth justifies 5–25x the cost
 - [ ] Match the tool to the constraint that actually binds — data residency → local, cross-vendor flexibility → OpenRouter/OpenCode, out-of-the-box agent quality → Claude Code/Codex
 - [ ] Keep `CLAUDE.md` under ~200 lines; move file-specific patterns into globbed `rules/`
@@ -276,16 +366,27 @@ If one line in this pays off in your own repo, that's the whole point of writing
 **Usage Data:**
 - [Anthropic Economic Index report: Cadences](https://www.anthropic.com/research/economic-index-june-2026-report)
 - [Anthropic Economic Index report: Learning curves](https://www.anthropic.com/research/economic-index-march-2026-report)
+- [Telenor Asia — Digital Lives Decoded 2025: Building Trust in Bangladesh's AI Future](https://www.telenorasia.com/announcements/mobile-technology-fuels-ai-adoption-in-bangladesh-according-to-telenor-asia-study/)
 
 **Environment & Subsidy Economics:**
 - [UN News — AI's environmental costs threaten water, land and climate](https://news.un.org/en/story/2026/06/1167658)
 - [AI Environment Statistics 2026 — power and water use](https://www.allaboutai.com/resources/ai-statistics/ai-environment/)
 - [Model subsidies are ending. What do you do now? — Arize AI](https://arize.com/blog/ai-model-subsidies-ending-llm-inference-costs/)
 - [AI Inference Cost Crisis 2026 — why OpenAI loses $1.35 per dollar earned](https://aiautomationglobal.com/blog/ai-inference-cost-crisis-openai-economics-2026)
+- ["AI Costs More Than The People It Replaced" — Jemma Green, Forbes, Jul 2, 2026](https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/) (headline + Uber budget anecdote)
 
 **Related posts from this repo:**
 - [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
 - [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph](./Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
+- [Self-Review With AI Before You Open the PR — branchdiff](./branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
+
+**My toolkit (tool sources — what I run / what I cut):**
+- 📊 Track first (cross-agent): [ccusage](https://github.com/ccusage/ccusage) (Claude) · [tokscale](https://github.com/junhoyeo/tokscale) (multi-agent) · [opencode-stats](https://lib.rs/crates/opencode-stats) (OpenCode) · built-in `/cost`, `/context`, `/usage-credits`
+- ✅ Run: [Ponytail](https://github.com/DietrichGebert/ponytail) (output/code) · caveman (output/prose) · [RTK](https://github.com/rtk-ai/rtk) (input/shell)
+- ❌ Cut: [Headroom](https://github.com/headroomlabs-ai/headroom) (device drag) · [OmniRoute](https://github.com/diegosouzapw/OmniRoute) (ban risk) · [token-optimizer](https://github.com/alexgreensh/token-optimizer) (license)
+- ⚠️ Context-dependent: graphify + code-review-graph (project-local only) · [branchdiff](https://github.com/Encryptioner/branchdiff-releases) (review — my own)
+
+> *Pros are in each tool's README; the cuts and the device/ban/license reasons behind them are from my own 2026-07-04 evaluation, not the marketing pages.*
 
 ---
 

@@ -10,7 +10,19 @@
 
 ---
 
-## Slide 2: The Hidden Meter
+## Slide 2: The Moment Most Teams Notice the Meter
+
+# 🧾 "Who Approved the Robot's Tab?"
+
+![Cartoon: the $20/month AI deal vs the $14,000 compute bill a quarter later](../assets/B-16/bill-reveal.png)
+
+*A $200/mo plan is worth ~$14,000/mo of real compute — a ~70× subsidy someone is paying. Forbes (Jul 2026): "AI Costs More Than The People It Replaced." Uber reportedly burned its whole 2026 AI coding budget in 4 months.*
+
+*The cartoon is just that math with a face on it. Let's make the meter visible.*
+
+---
+
+## Slide 3: The Hidden Meter
 
 # 🎯 Every AI Session Has a Meter Running
 
@@ -21,7 +33,7 @@
 
 ---
 
-## Slide 3: The Real Cost Equation
+## Slide 4: The Real Cost Equation
 
 # 💰 Cost ≠ Price Per Token
 
@@ -33,7 +45,7 @@ Vendors advertise factor 1. Factors 2 and 3 are yours to control — and where t
 
 ---
 
-## Slide 4: The Cheap-Token Trap
+## Slide 5: The Cheap-Token Trap
 
 # ⚠️ Cheaper Per Token ≠ Cheaper Per Task
 
@@ -52,7 +64,7 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 ---
 
-## Slide 5: Model Tiering
+## Slide 6: Model Tiering
 
 # 🎛️ Pay for Reasoning Only When Needed
 
@@ -68,7 +80,19 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 ---
 
-## Slide 6: Beyond One Vendor
+## Slide 7: Where Your Tokens Actually Go
+
+# 📊 ~94% Cheap Tasks, ~6% Real Value
+
+![Chart: typical session token mix — 94% low-value (emails, translation, googleable, stack traces), 6% high-value (architect & ship)](../assets/B-16/token-mix.png)
+
+Slices are illustrative, not measured. Bangladesh note: 96% of internet users now use AI regularly (up from 88% in 2024), workplace adoption jumped 44% → 62% in a year — but writing/content is the top use case, only 28% for admin work (Telenor Asia, Dec 2025).
+
+**The move:** cheap tier for the 94% (Haiku/Flash/local), flagship only for the 6% that compounds — architecture, hard refactors, actually shipping.
+
+---
+
+## Slide 8: Beyond One Vendor
 
 # 🧰 Same Arithmetic, Different Tools
 
@@ -83,7 +107,7 @@ Pick the tool for the constraint that binds: data residency → local; flexibili
 
 ---
 
-## Slide 7: Harness Beats Horsepower
+## Slide 9: Harness Beats Horsepower
 
 # 🔧 Scaffolding Matters as Much as the Model
 
@@ -100,7 +124,7 @@ Pick the tool for the constraint that binds: data residency → local; flexibili
 
 ---
 
-## Slide 8: One Laptop, Many Agents
+## Slide 10: One Laptop, Many Agents
 
 # 💻 Multi-Worktree Has a Device Cost Too
 
@@ -114,7 +138,48 @@ Fix: skip the rebuild if CPU load >50% of cores or free memory <2GB, plus proces
 
 ---
 
-## Slide 9: Feed Less, Not More
+## Slide 11: Make the Meter Visible
+
+# 📊 You Can't Cut What You Can't See — Across Every Agent
+
+Every agent writes local logs, so tracking is always possible. The built-in command is uneven — pick the tracker that reads *your* agent's logs:
+
+| Agent | Native | Logs | Tracker (with the con) |
+|---|---|---|---|
+| **Claude Code** | `/cost`, `/context`, `/usage-credits`, SDK | local files | **ccusage** ✅ 5-hr-block view ❌ Claude-centric |
+| **Codex CLI** | in-session token totals (light) | `~/.codex/sessions/*.jsonl` | **tokscale** ✅ cross-agent ❌ newer |
+| **OpenCode** | totals in session; **no tracking command** | SQLite / JSON | **opencode-stats** ✅ 365-day stats ❌ OpenCode-only |
+| **All / enterprise** | — | — | Dynatrace / Portkey ✅ governance ❌ overhead |
+
+**The habit:** glance at usage *before* escalating to the flagship model · review the weekly report *before* fanning out 20 subagents · watch the 5-hour block (or your agent's equivalent) on subscription tiers.
+
+*Every cut on the next slide came from this — Headroom cut because I measured device load; the idle graph MCP pruned because I measured its context tax.*
+
+---
+
+## Slide 12: My Toolkit — What I Run, What I Cut
+
+# 🧰 Marketing Shows the Pros. These Are the Cuts.
+
+Three layers stack, they don't compete: **output** (write less) · **input** (read less) · **routing** (cheaper provider).
+
+| Tool | Layer | Verdict — with the *con* |
+|---|---|---|
+| **Ponytail** | output/code | ✅ run — YAGNI ladder, shortest diff (6–20% lines, 23–53% cost) |
+| **caveman** | output/prose | ✅ run — ~75% fewer tokens; overlaps Ponytail by design |
+| **RTK** (rtk-ai/rtk) | input/shell | ✅ run — Rust, <10ms, 60–90% off Bash output; Read/Grep bypass |
+| **Headroom** | input/files | ❌ **cut** — 60–95% off, byte-perfect, *but* ~600MB ML daemon = the device-drag failure |
+| **OmniRoute** | routing | ❌ **cut** — 237-provider gateway → quality drift + ToS-ban pattern |
+| **graphify / CRG** | index | ⚠️ **project-local only** — used behind resource guards; cut as a global always-on daemon (idle MCP = 30+ schemas taxed every turn) |
+| **branchdiff** (mine) | review | ✅ run — pipes *just the diff*, nth-time awareness skips re-raised nits |
+
+**The rule that decided most of it:** ban risk lives on the wire — a tool only risks a ban if it sits between you and the provider *and* mutates the payload. Rule-injection (Ponytail) = zero. Proxies (Headroom, OmniRoute) = real. That's why my stack has zero proxies.
+
+*The cuts are the talk. READMEs only ship the pros.*
+
+---
+
+## Slide 13: Feed Less, Not More
 
 # 🌊 Bigger Window ≠ Better Recall
 
@@ -126,7 +191,7 @@ Accuracy drops as token count climbs — even well inside the limit. **Context r
 
 ---
 
-## Slide 10: Caching — The 90% Lever
+## Slide 14: Caching — The 90% Lever
 
 # 🧊 The Single Biggest Zero-Quality-Loss Lever
 
@@ -142,7 +207,7 @@ The provider already computed your static prefix last call. Keep it warm → reu
 
 ---
 
-## Slide 11: Cache or Crash
+## Slide 15: Cache or Crash
 
 # ⚠️ Break-Even ≈ 1.3 Reads Per Write
 
@@ -160,7 +225,7 @@ Caching isn't free money. You pay a **write surcharge** on the first hit; it onl
 
 ---
 
-## Slide 12: Memory Compounds
+## Slide 16: Memory Compounds
 
 # 🧠 Reuse Beats Re-Derivation
 
@@ -176,7 +241,7 @@ Capture once. Read forever. Don't re-derive — forward *or* backward.
 
 ---
 
-## Slide 13: Less Code, Less to Reload
+## Slide 17: Less Code, Less to Reload
 
 # ✂️ Every Line Written Is a Line Reloaded Later
 
@@ -192,7 +257,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 14: Beyond the Bill
+## Slide 18: Beyond the Bill
 
 # 🌍 Two Reasons This Isn't Only About Money
 
@@ -202,7 +267,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 15: Checklist
+## Slide 19: Checklist
 
 # ✅ Apply This Week
 
@@ -218,7 +283,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 16: The Bottom Line
+## Slide 20: The Bottom Line
 
 # 🎉 The Bottom Line
 
@@ -230,7 +295,7 @@ The cheapest model was never the one with the lowest price per token. It's the o
 
 ---
 
-## Slide 17: Resources & References
+## Slide 21: Resources & References
 
 # 📚 Resources & References
 
@@ -240,11 +305,19 @@ The cheapest model was never the one with the lowest price per token. It's the o
 - [Anthropic / OpenAI / Gemini prompt-caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) — the caching chart
 - [Anthropic — Claude Sonnet 5 pricing](https://www.anthropic.com/news/claude-sonnet-5)
 - [Anthropic Economic Index — Cadences report](https://www.anthropic.com/research/economic-index-june-2026-report)
+- [Telenor Asia — Digital Lives Decoded 2025: Bangladesh AI Future](https://www.telenorasia.com/announcements/mobile-technology-fuels-ai-adoption-in-bangladesh-according-to-telenor-asia-study/) — the token-mix slide's regional note
 - [UN News — AI's environmental costs](https://news.un.org/en/story/2026/06/1167658)
 - [Model subsidies are ending — Arize AI](https://arize.com/blog/ai-model-subsidies-ending-llm-inference-costs/)
+- ["AI Costs More Than The People It Replaced" — Forbes, Jul 2026](https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/) (cartoon slide + Uber budget anecdote)
 
 ## Data Sources (secondary, cross-checked)
 - [Best AI Model for Coding — SWE-bench Pro cost per task](https://www.morphllm.com/best-ai-model-for-coding)
+
+## My toolkit (run / cut — the real-world verdicts)
+- 📊 Track first (cross-agent): [ccusage](https://github.com/ccusage/ccusage) (Claude) · [tokscale](https://github.com/junhoyeo/tokscale) (multi-agent) · [opencode-stats](https://lib.rs/crates/opencode-stats) (OpenCode)
+- ✅ Run: [Ponytail](https://github.com/DietrichGebert/ponytail) · caveman · [RTK](https://github.com/rtk-ai/rtk)
+- ❌ Cut: [Headroom](https://github.com/headroomlabs-ai/headroom) (device drag) · [OmniRoute](https://github.com/diegosouzapw/OmniRoute) (ban risk) · [token-optimizer](https://github.com/alexgreensh/token-optimizer) (license)
+- ⚠️ Context-dependent: graphify + CRG (project-local) · [branchdiff](https://github.com/Encryptioner/branchdiff-releases) (my own)
 
 ## Author's Articles
 - [Token Economics: Better Results, Fewer Tokens](https://nerddevs.com/author/ankur/)
@@ -259,7 +332,7 @@ The cheapest model was never the one with the lowest price per token. It's the o
 
 ---
 
-## Slide 18: Closing
+## Slide 22: Closing
 
 # One Thing, Tonight
 

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="deal-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="bill-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="500" fill="#f8fafc" rx="12"/>
+  <text x="450" y="30" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#94a3b8" letter-spacing="2.5">THE DEAL · vs · THE BILL</text>
+
+  <!-- ═══ LEFT PANEL: THE DEAL ═══ -->
+  <rect x="24" y="48" width="400" height="360" fill="white" rx="12" filter="url(#shadow)"/>
+  <rect x="24" y="48" width="400" height="38" fill="url(#deal-grad)" rx="12"/>
+  <rect x="24" y="74" width="400" height="12" fill="url(#deal-grad)"/>
+  <text x="224" y="73" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="white">MONTH 1 — “the deal”</text>
+
+  <!-- happy dev -->
+  <!-- chair -->
+  <rect x="150" y="320" width="120" height="10" fill="#cbd5e1" rx="3"/>
+  <!-- torso -->
+  <rect x="172" y="230" width="76" height="92" fill="#6366f1" rx="16"/>
+  <!-- arms up (thumbs up energy) -->
+  <rect x="150" y="236" width="22" height="60" fill="#6366f1" rx="11" transform="rotate(-25 161 266)"/>
+  <!-- head -->
+  <circle cx="210" cy="200" r="40" fill="#fbbf24"/>
+  <!-- sunglasses -->
+  <rect x="184" y="190" width="20" height="14" fill="#1e293b" rx="4"/>
+  <rect x="216" y="190" width="20" height="14" fill="#1e293b" rx="4"/>
+  <rect x="203" y="196" width="14" height="4" fill="#1e293b"/>
+  <!-- smile -->
+  <path d="M194 218 Q210 232 226 218" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- speech bubble -->
+  <rect x="262" y="150" width="150" height="78" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5" rx="10"/>
+  <path d="M262 184 L240 196 L264 200 Z" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="337" y="176" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#065f46">AI ships all my PRs</text>
+  <text x="337" y="196" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#065f46">while I grab coffee ☕</text>
+  <text x="337" y="216" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#10b981">best $20/mo ever</text>
+
+  <!-- price tag -->
+  <rect x="150" y="350" width="120" height="34" fill="#dcfce7" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="210" y="372" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" font-weight="800" fill="#065f46">$20 / month</text>
+
+  <!-- ═══ CENTER ARROW ═══ -->
+  <text x="450" y="200" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#94a3b8">one quarter</text>
+  <path d="M450 212 L450 268" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5 5"/>
+  <path d="M438 258 L450 276 L462 258" fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="450" y="296" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#94a3b8">later…</text>
+
+  <!-- ═══ RIGHT PANEL: THE BILL ═══ -->
+  <rect x="476" y="48" width="400" height="360" fill="white" rx="12" filter="url(#shadow)"/>
+  <rect x="476" y="48" width="400" height="38" fill="url(#bill-grad)" rx="12"/>
+  <rect x="476" y="74" width="400" height="12" fill="url(#bill-grad)"/>
+  <text x="676" y="73" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="800" fill="white">QUARTER LATER — “the bill”</text>
+
+  <!-- sweating dev -->
+  <rect x="610" y="320" width="120" height="10" fill="#cbd5e1" rx="3"/>
+  <rect x="632" y="232" width="76" height="90" fill="#6366f1" rx="16"/>
+  <!-- arms down holding receipt -->
+  <rect x="610" y="250" width="20" height="56" fill="#6366f1" rx="10" transform="rotate(20 620 278)"/>
+  <!-- head -->
+  <circle cx="670" cy="202" r="40" fill="#fbbf24"/>
+  <!-- wide eyes -->
+  <circle cx="656" cy="196" r="6" fill="white" stroke="#1e293b" stroke-width="2"/>
+  <circle cx="656" cy="196" r="2.5" fill="#1e293b"/>
+  <circle cx="684" cy="196" r="6" fill="white" stroke="#1e293b" stroke-width="2"/>
+  <circle cx="684" cy="196" r="2.5" fill="#1e293b"/>
+  <!-- shocked mouth O -->
+  <ellipse cx="670" cy="220" rx="7" ry="9" fill="#1e293b"/>
+  <!-- sweat drops -->
+  <path d="M636 168 q-6 12 0 18 q6 -6 0 -18" fill="#38bdf8"/>
+  <path d="M708 176 q-5 10 0 15 q5 -5 0 -15" fill="#38bdf8" opacity="0.8"/>
+
+  <!-- receipt -->
+  <g transform="rotate(-6 560 250)">
+    <rect x="492" y="150" width="136" height="150" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.5" rx="4"/>
+    <text x="560" y="170" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" font-weight="700" fill="#92400e">MONTHLY AI USAGE</text>
+    <line x1="504" y1="178" x2="616" y2="178" stroke="#fcd34d" stroke-width="1"/>
+    <text x="504" y="194" font-family="ui-monospace,monospace" font-size="8.5" fill="#78350f">tokens in ......... a lot</text>
+    <text x="504" y="208" font-family="ui-monospace,monospace" font-size="8.5" fill="#78350f">retries ............ many</text>
+    <text x="504" y="222" font-family="ui-monospace,monospace" font-size="8.5" fill="#78350f">opus on everything . yes</text>
+    <text x="504" y="236" font-family="ui-monospace,monospace" font-size="8.5" fill="#78350f">“just explore repo” . x900</text>
+    <line x1="504" y1="244" x2="616" y2="244" stroke="#fcd34d" stroke-width="1"/>
+    <text x="504" y="262" font-family="ui-monospace,monospace" font-size="9" font-weight="700" fill="#92400e">real compute:</text>
+    <text x="614" y="280" text-anchor="end" font-family="ui-monospace,monospace" font-size="15" font-weight="800" fill="#b91c1c">$14,000</text>
+    <text x="614" y="293" text-anchor="end" font-family="ui-monospace,monospace" font-size="8" fill="#92400e">billed as $200 (for now)</text>
+  </g>
+
+  <!-- boss caption -->
+  <rect x="700" y="150" width="150" height="80" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" rx="10"/>
+  <path d="M700 200 L680 214 L702 210 Z" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="775" y="174" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#991b1b">Finance, in Slack:</text>
+  <text x="775" y="194" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#991b1b">“who approved</text>
+  <text x="775" y="210" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#991b1b">the robot’s tab?” 💸</text>
+
+  <!-- ═══ FOOTER: the real stat ═══ -->
+  <rect x="24" y="424" width="852" height="58" fill="white" rx="10" filter="url(#shadow)"/>
+  <text x="44" y="450" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1e293b">The punchline is real:</text>
+  <text x="200" y="450" font-family="system-ui,sans-serif" font-size="12" fill="#64748b">a fully-used $200/mo plan is worth ~$14,000/mo of compute — a ~70× subsidy someone is paying. Forbes called it</text>
+  <text x="44" y="470" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#b91c1b">“AI Costs More Than The People It Replaced.”</text>
+  <text x="382" y="470" font-family="system-ui,sans-serif" font-size="12" fill="#64748b">Uber reportedly burned its entire 2026 AI coding budget in 4 months. The cartoon is just the math with a face on it.</text>
+</svg>
