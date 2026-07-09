@@ -18,7 +18,9 @@
 13. Productivity: [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
 14. Productivity: [Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff](./topics/Productivity/branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
 15. Productivity: [Reviewing Teammates PRs Faster - branchdiff Sessions, AI Passes, and Sync Back](./topics/Productivity/branchdiff/Reviewing%20Teammates%20PRs%20Faster%20-%20branchdiff%20Sessions%2C%20AI%20Passes%2C%20and%20Sync%20Back.md)
+16. Productivity: [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
+3. Productivity: [Token Economics Presentation](./presentations/Token%20Economics%20Presentation.md)

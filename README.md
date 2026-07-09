@@ -17,6 +17,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers](./topics/Productivity/Integrating%20Bitbucket%20MCP%20with%20Cursor:%20A%20Practical%20Guide%20for%20Developers.md)
 - [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
 - [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent](./topics/Productivity/Claude%20Code/Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
+- [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
 
 ##### branchdiff
 - [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
@@ -34,6 +35,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 ## Presentations
 - [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 - [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
+- [Token Economics Presentation](./presentations/Token%20Economics%20Presentation.md)
 
 
 ## Links
