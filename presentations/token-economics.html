@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Economics — Better Results, Fewer Tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0b09;
+  --surface:#15130e;
+  --elevated:#1c1913;
+  --border:#2a261e;
+  --border-light:#3a342a;
+  --text:#f5f0e6;
+  --muted:#a39c8b;
+  --dim:#6b6557;
+  --accent:#ff7a3d;
+  --accent-soft:rgba(255,122,61,.12);
+  --accent-glow:rgba(255,122,61,.25);
+  --copper:#d4a574;
+  --success:#7dd3a0;
+  --danger:#ff6b6b;
+  --info:#7db8ff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ambient grain */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.4 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");opacity:.04;pointer-events:none;z-index:9999;mix-blend-mode:overlay}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:5.5vh 6vw;opacity:0;transform:translateX(40px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* header bar */
+.topbar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--surface);z-index:100}
+.progress{height:100%;background:linear-gradient(90deg,var(--accent),var(--copper));transition:width .5s ease;width:0}
+
+/* slide chrome */
+.chrome{position:fixed;top:18px;right:24px;display:flex;gap:14px;align-items:center;z-index:50;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--dim)}
+.chrome .pill{padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(21,19,14,.7);backdrop-filter:blur(8px)}
+.chrome .num{color:var(--accent)}
+
+/* nav controls */
+.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:50;background:rgba(21,19,14,.85);backdrop-filter:blur(10px);padding:6px;border:1px solid var(--border);border-radius:30px}
+.nav button{background:transparent;border:none;color:var(--muted);width:34px;height:34px;border-radius:50%;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.nav button:hover{background:var(--elevated);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:0 10px;display:flex;align-items:center;letter-spacing:.05em}
+
+/* typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--accent)}
+h1.title{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(2.2rem,5vw,4.2rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:14px}
+h1.title em{font-style:italic;color:var(--copper);font-weight:300}
+h2.subtitle{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:clamp(1.1rem,1.8vw,1.5rem);color:var(--muted);margin-bottom:30px}
+h3.section{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.1;letter-spacing:-.015em;margin-bottom:8px}
+h3.section em{font-style:italic;color:var(--copper)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:.1em;margin-bottom:6px}
+
+p{font-size:clamp(.92rem,1.15vw,1.05rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1rem,1.4vw,1.2rem);color:var(--muted);line-height:1.6}
+.muted{color:var(--muted)}
+.dim{color:var(--dim)}
+.accent{color:var(--accent)}
+.copper{color:var(--copper)}
+.success{color:var(--success)}
+.danger{color:var(--danger)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* italic editorial captions */
+.caption{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--muted);font-size:clamp(.9rem,1.1vw,1rem);line-height:1.6;border-left:2px solid var(--border-light);padding-left:16px;margin-top:14px}
+
+/* bullet lists */
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:14px;font-size:clamp(.92rem,1.15vw,1.05rem);line-height:1.55;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:10px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--copper);font-weight:600}
+ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.88em;color:var(--accent-2);border:1px solid var(--border)}
+
+/* code blocks */
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 28px;font-family:'JetBrains Mono',monospace;font-size:clamp(.95rem,1.5vw,1.3rem);color:var(--text);margin:20px 0;position:relative;overflow:hidden}
+.code-block::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),transparent)}
+.code-block .var{color:var(--accent)}
+.code-block .op{color:var(--copper)}
+.code-block .comment{color:var(--dim);display:block;font-size:.8em;margin-top:10px}
+
+/* tables */
+.table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1vw,.95rem)}
+table th{background:var(--elevated);text-align:left;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500;border-bottom:1px solid var(--border)}
+table td{padding:11px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+table tr:last-child td{border-bottom:none}
+table tr:hover td{background:rgba(255,122,61,.03)}
+table td.mono,table td .mono{font-family:'JetBrains Mono',monospace;color:var(--accent-2)}
+table td strong{color:var(--copper)}
+table .verdict-good{color:var(--success)}
+table .verdict-bad{color:var(--danger)}
+table .verdict-warn{color:var(--copper)}
+
+/* big stat numbers */
+.stat-row{display:flex;gap:30px;flex-wrap:wrap;margin:20px 0}
+.stat{flex:1;min-width:160px}
+.stat .num{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(2rem,3.5vw,3rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num em{font-style:italic;color:var(--copper)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.stat .desc{font-size:.9rem;color:var(--muted);margin-top:6px;line-height:1.4}
+
+/* callout cards */
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:14px 0;position:relative;overflow:hidden}
+.callout.accent{border-color:rgba(255,122,61,.3);background:linear-gradient(135deg,rgba(255,122,61,.06),var(--elevated))}
+.callout.danger{border-color:rgba(255,107,107,.25);background:linear-gradient(135deg,rgba(255,107,107,.05),var(--elevated))}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.callout.danger .label{color:var(--danger)}
+
+/* images */
+.fig{margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);max-width:100%}
+.fig img{display:block;width:100%;height:auto}
+.fig.wide{max-width:840px}
+.fig.med{max-width:620px}
+.fig.small{max-width:420px}
+.fig-caption{font-family:'Fraunces',serif;font-style:italic;font-size:.85rem;color:var(--dim);padding:10px 16px;border-top:1px solid var(--border)}
+
+/* two column */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;margin:18px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+/* checklist */
+.checklist{list-style:none;margin:16px 0}
+.checklist li{position:relative;padding-left:34px;margin-bottom:11px;font-size:clamp(.88rem,1.1vw,1rem);line-height:1.5;color:var(--text)}
+.checklist li::before{content:'';position:absolute;left:0;top:2px;width:18px;height:18px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:5px;top:6px;width:8px;height:4px;border-left:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(-45deg);opacity:.6}
+.checklist li strong{color:var(--copper)}
+.checklist li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.85em;color:var(--accent-2);border:1px solid var(--border)}
+
+/* resource links */
+.resource-group{margin-bottom:18px}
+.resource-group h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;font-weight:500}
+.resource-group a{display:block;color:var(--muted);text-decoration:none;font-size:.88rem;padding:5px 0;border-bottom:1px solid var(--border);transition:color .2s}
+.resource-group a:hover{color:var(--accent)}
+.resource-group a strong{color:var(--text);font-weight:500}
+
+/* hero slide */
+.hero{justify-content:center;align-items:flex-start;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(255,122,61,.3);border-radius:30px;background:var(--accent-soft);margin-bottom:30px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 6px transparent}}
+.hero-meta{margin-top:auto;padding-top:40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap}
+.hero-meta .presenter{font-size:1rem}
+.hero-meta .presenter strong{display:block;font-family:'Fraunces',serif;font-size:1.3rem;font-weight:400;color:var(--text);margin-bottom:4px}
+.hero-meta .presenter .role{color:var(--muted);font-size:.9rem;line-height:1.5;max-width:480px}
+.hero-meta .hook{font-family:'Fraunces',serif;font-style:italic;font-size:.92rem;color:var(--copper);max-width:380px;line-height:1.5;text-align:right}
+
+/* ambient background blobs */
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18}
+.ambient .b1{width:600px;height:600px;background:var(--accent);top:-200px;right:-150px}
+.ambient .b2{width:500px;height:500px;background:var(--copper);bottom:-200px;left:-100px;opacity:.1}
+
+/* overview mode */
+.overview{position:fixed;inset:0;background:rgba(12,11,9,.96);backdrop-filter:blur(20px);z-index:200;display:none;padding:60px 50px;overflow-y:auto}
+.overview.open{display:block}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1400px;margin:0 auto}
+.overview-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;cursor:pointer;transition:all .2s;min-height:140px;display:flex;flex-direction:column;justify-content:space-between}
+.overview-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.overview-card .num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.1em;margin-bottom:8px}
+.overview-card .ttl{font-family:'Fraunces',serif;font-size:1rem;color:var(--text);line-height:1.3}
+.overview-card .sub{font-size:.78rem;color:var(--dim);margin-top:6px}
+.overview h3{font-family:'Fraunces',serif;font-style:italic;font-size:1.5rem;color:var(--muted);margin-bottom:30px;text-align:center;font-weight:300}
+
+/* footer note */
+.foot{margin-top:auto;padding-top:18px;font-family:'Fraunces',serif;font-style:italic;font-size:.82rem;color:var(--dim);border-top:1px solid var(--border)}
+
+/* utility */
+.row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.tag.good{color:var(--success);border-color:rgba(125,211,160,.3)}
+.tag.bad{color:var(--danger);border-color:rgba(255,107,107,.3)}
+.tag.warn{color:var(--copper);border-color:rgba(212,165,116,.3)}
+
+/* keyboard hint */
+.kbd-hint{position:fixed;bottom:22px;right:24px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.08em;z-index:50;display:flex;gap:6px;align-items:center}
+.kbd{padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--muted)}
+
+@media print{
+  .nav,.chrome,.kbd-hint,.topbar,.ambient{display:none}
+  .slide{position:relative;page-break-after:always;opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="topbar"><div class="progress" id="progress"></div></div>
+
+<div class="chrome">
+  <span class="pill"><span class="num" id="curNum">01</span> / 22</span>
+  <span class="pill" id="curTitle">Title</span>
+</div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous">‹</button>
+  <span class="count" id="counter">01 / 22</span>
+  <button onclick="next()" title="Next">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="kbd-hint">
+  <span class="kbd">←</span><span class="kbd">→</span> navigate · <span class="kbd">O</span> overview · <span class="kbd">F</span> fullscreen
+</div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 -->
+<section class="slide hero active" data-title="Token Economics">
+  <div class="badge"><span class="dot"></span> A Talk on AI Cost Discipline</div>
+  <h1 class="title">Token <em>Economics</em></h1>
+  <h2 class="subtitle">Better Results, Fewer Tokens.</h2>
+  <div class="hero-meta">
+    <div class="presenter">
+      <strong>Ankur Mursalin</strong>
+      <div class="role">Lead Software Engineer, Nerddevs — 7+ years in production TypeScript/Node, now leading a team that ships more code through AI agents than by hand.</div>
+    </div>
+    <div class="hook">"Last month my MacBook fan spun up like a jet engine mid-standup — three worktrees, three agents, all fighting for the same cores. That's where this talk actually started."</div>
+  </div>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide" data-title="The Moment">
+  <div class="slide-num">02 · THE MOMENT MOST TEAMS NOTICE THE METER</div>
+  <h3 class="section">"Who Approved the <em>Robot's</em> Tab?" 🧾</h3>
+  <div class="two-col" style="margin-top:18px">
+    <div class="fig">
+      <img src="https://z-cdn-media.chatglm.cn/files/904b67ac-f90a-4441-964a-c3789885c222.png?auth_key=1883647174-e8b6506be18446c387994e5177175558-0-11382d80347d9e9f8b5b7c4c017e6ebd" alt="Bill reveal cartoon">
+      <div class="fig-caption">A $200/mo plan ≈ $14,000/mo of real compute — a ~70× subsidy someone is paying.</div>
+    </div>
+    <div>
+      <p class="lead">A $200/mo plan is worth roughly <strong class="accent">$14,000/mo of real compute</strong> — a ~70× subsidy someone is paying.</p>
+      <div class="callout danger">
+        <div class="label">Forbes · Jul 2026</div>
+        <p style="margin:0">"AI Costs More Than The People It Replaced."</p>
+      </div>
+      <p class="muted">Uber reportedly burned its whole 2026 AI coding budget in <strong class="copper">4 months</strong>.</p>
+      <p class="caption">The cartoon is just that math with a face on it. Let's make the meter visible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3 -->
+<section class="slide" data-title="The Hidden Meter">
+  <div class="slide-num">03 · THE HIDDEN METER</div>
+  <h3 class="section">Every AI Session Has a <em>Meter</em> Running 🎯</h3>
+  <ul class="bullets" style="margin-top:24px">
+    <li>We watch output quality. We ignore the token counter.</li>
+    <li>Then the monthly bill — or <strong>"context limit reached"</strong> — shows up.</li>
+    <li>Coding is the <strong>#1 use case</strong> for AI agents industry-wide. "Fixing errors" alone is <strong>~10% of enterprise API traffic</strong> <span class="muted">(Anthropic Economic Index)</span>.</li>
+    <li>Token discipline isn't a personal habit — it's a <strong>team cost lever</strong>.</li>
+  </ul>
+  <div class="callout accent" style="margin-top:auto">
+    <div class="label">The shift</div>
+    <p style="margin:0;font-size:1.05rem">From <span class="muted">"is the answer right?"</span> → to <span class="copper">"is the answer right, arrived at cheaply, on the first try?"</span></p>
+  </div>
+</section>
+
+<!-- SLIDE 4 -->
+<section class="slide" data-title="The Cost Equation">
+  <div class="slide-num">04 · THE REAL COST EQUATION</div>
+  <h3 class="section">Cost ≠ <em>Price Per Token</em> 💰</h3>
+  <div class="code-block" style="margin:30px 0">
+    cost = <span class="var">(price per token)</span> <span class="op">×</span> <span class="var">(tokens per task)</span> <span class="op">×</span> <span class="var">(attempts)</span>
+    <span class="comment"># Factor 1 is the vendor's. Factors 2 & 3 are yours — and where the real money moves.</span>
+  </div>
+  <div class="stat-row">
+    <div class="stat">
+      <div class="num">1</div>
+      <div class="label">Price / token</div>
+      <div class="desc">Advertised. Vendor-controlled.</div>
+    </div>
+    <div class="stat">
+      <div class="num"><em>2</em></div>
+      <div class="label">Tokens / task</div>
+      <div class="desc">Your prompt, context, scaffolding.</div>
+    </div>
+    <div class="stat">
+      <div class="num"><em>3</em></div>
+      <div class="label">Attempts</div>
+      <div class="desc">Retries, re-asks, re-derivation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5 -->
+<section class="slide" data-title="The Cheap-Token Trap">
+  <div class="slide-num">05 · THE CHEAP-TOKEN TRAP</div>
+  <h3 class="section">Cheaper Per Token ≠ <em>Cheaper Per Task</em> ⚠️</h3>
+  <div class="two-col" style="margin-top:16px">
+    <div>
+      <div class="callout">
+        <div class="label">Per-token price</div>
+        <p style="margin:0"><strong>Gemini 3.5 Flash:</strong> <span class="mono copper">$1.50/M</span> input<br><strong>Gemini 3.1 Pro:</strong> <span class="mono copper">~$2.00/M</span></p>
+        <p style="margin:8px 0 0;color:var(--success)">→ Flash looks like the win.</p>
+      </div>
+      <div class="callout danger">
+        <div class="label">Real cost — Artificial Analysis Intelligence Index</div>
+        <p style="margin:0"><strong>3.5 Flash:</strong> <span class="mono danger">$1,552</span><br><strong>3.1 Pro:</strong> <span class="mono success">~$887</span><br><strong>3 Flash (predecessor):</strong> <span class="mono">~$282</span></p>
+      </div>
+      <p class="caption">Cheaper per token → <strong style="color:var(--danger)">75% more expensive per workload</strong>. 3× pricier per token than its own predecessor, plus more input tokens from longer agentic turns. Both factors stack.</p>
+    </div>
+    <div class="fig">
+      <img src="https://z-cdn-media.chatglm.cn/files/428e02bd-cc04-41c1-b7ff-f9f0c6ff316f.png?auth_key=1883647174-3b787f7739344ca7abcdcbbd425eb2bc-0-f3c2a255aaf29c8ca3474b4f8cb65410" alt="Cost per task chart">
+      <div class="fig-caption">Source: Artificial Analysis, "Gemini 3.5 Flash: the new leader in intelligence versus speed," May 19, 2026.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6 -->
+<section class="slide" data-title="Model Tiering">
+  <div class="slide-num">06 · MODEL TIERING</div>
+  <h3 class="section">Pay for <em>Reasoning</em> Only When Needed 🎛️</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Use for</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Haiku 4.5</strong></td><td class="mono">$1/M</td><td class="mono">$5/M</td><td>Lookups, file discovery</td></tr>
+        <tr><td><strong>Sonnet 5</strong></td><td class="mono">$2→3/M</td><td class="mono">$10→15/M</td><td>Daily implementation</td></tr>
+        <tr><td><strong>Opus 4.8</strong></td><td class="mono">$5/M</td><td class="mono">$25/M</td><td>Architecture, hard debugging</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent">
+    <div class="label">Haiku 4.5 — the workhorse</div>
+    <p style="margin:0">~<strong class="copper">$0.13</strong> spent per SWE-bench Pro point — cheapest correct-fix ratio of any current model.</p>
+  </div>
+  <div class="callout">
+    <div class="label">Our rule · ~/.claude/rules/model-routing.md</div>
+    <p style="margin:0">Default to <strong>Sonnet</strong>. Escalate to <strong>Opus</strong> only when reasoning depth justifies <strong class="danger">5–25× the cost</strong>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 7 -->
+<section class="slide" data-title="Where Tokens Go">
+  <div class="slide-num">07 · WHERE YOUR TOKENS ACTUALLY GO</div>
+  <h3 class="section">~94% Cheap Tasks, ~6% <em>Real Value</em> 📊</h3>
+  <div class="two-col" style="margin-top:16px">
+    <div class="fig">
+      <img src="https://z-cdn-media.chatglm.cn/files/11eaa783-724a-418b-b40a-222643c8bb16.png?auth_key=1883647174-f8aef0ab67b0431db5c980ad67bb2394-0-78818fe3e02ee657532067463df4972b" alt="Token mix chart">
+    </div>
+    <div>
+      <p>Slices are illustrative, not measured.</p>
+      <div class="callout">
+        <div class="label">Bangladesh note · Telenor Asia, Dec 2025</div>
+        <p style="margin:0"><strong class="copper">96%</strong> of internet users now use AI regularly (up from 88% in 2024). Workplace adoption jumped <strong class="copper">44% → 62%</strong> in a year. Writing/content is the top use case; only <strong>28%</strong> for admin work.</p>
+      </div>
+      <p class="caption"><strong style="color:var(--accent)">The move:</strong> cheap tier for the 94% (Haiku/Flash/local), flagship only for the 6% that compounds — architecture, hard refactors, actually shipping.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 -->
+<section class="slide" data-title="Beyond One Vendor">
+  <div class="slide-num">08 · BEYOND ONE VENDOR</div>
+  <h3 class="section">Same Arithmetic, <em>Different Tools</em> 🧰</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Access</th><th>The tradeoff</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Claude Code / Codex CLI</strong></td><td>One vendor</td><td>Predictable, but capped on heavy days</td></tr>
+        <tr><td><strong>OpenCode</strong> <span class="tag">open-source</span></td><td>75+ providers, switch mid-session</td><td>One UI, any vendor's pricing underneath</td></tr>
+        <tr><td><strong>OpenRouter</strong></td><td>300+ models, one key</td><td>Cross-vendor arbitrage; proxy hop for caching</td></tr>
+        <tr><td><strong>Local</strong> <span class="muted">(Ollama / LM Studio)</span></td><td>Whatever fits your hardware</td><td><span class="danger">$0/token, but not free</span> — see next</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="caption">Pick the tool for the constraint that binds: <strong class="copper">data residency</strong> → local · <strong class="copper">flexibility</strong> → OpenRouter/OpenCode · <strong class="copper">out-of-the-box quality</strong> → Claude Code/Codex.</p>
+</section>
+
+<!-- SLIDE 9 -->
+<section class="slide" data-title="Harness Beats Horsepower">
+  <div class="slide-num">09 · HARNESS BEATS HORSEPOWER</div>
+  <h3 class="section">Scaffolding Matters as Much as the <em>Model</em> 🔧</h3>
+  <div class="stat-row" style="margin-top:24px">
+    <div class="stat">
+      <div class="num">69.2<span style="font-size:.5em">%</span></div>
+      <div class="label">Claude Opus 4.8 — own scaffolding</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--copper)">59.1<span style="font-size:.5em">%</span></div>
+      <div class="label">Scale SEAL — identical scaffolding</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--danger)">−10<span style="font-size:.5em">pts</span></div>
+      <div class="label">"Capability" that was actually harness</div>
+    </div>
+  </div>
+  <ul class="bullets">
+    <li>Same benchmark, same tasks — <strong>only the scaffolding changed</strong>.</li>
+    <li>Frontier LLMs reliably follow <strong>~150–200 instructions total</strong>. Claude Code's system prompt spends ~50 before your <code>CLAUDE.md</code> even loads.</li>
+  </ul>
+  <div class="two-col" style="margin-top:8px">
+    <div class="callout accent">
+      <div class="label">Rule 1</div>
+      <p style="margin:0"><code>CLAUDE.md</code> under ~200 lines; globbed <code>rules/*.md</code> for file-specific patterns.</p>
+    </div>
+    <div class="callout accent">
+      <div class="label">Rule 2</div>
+      <p style="margin:0"><strong>Command hooks</strong> (0 tokens, deterministic) over <strong>prompt hooks</strong> (cost tokens every call).</p>
+    </div>
+  </div>
+  <p class="caption" style="margin-top:14px">Source: Scale AI SEAL leaderboard, SWE-bench Pro (standardized scaffolding).</p>
+</section>
+
+<!-- SLIDE 10 -->
+<section class="slide" data-title="One Laptop, Many Agents">
+  <div class="slide-num">10 · ONE LAPTOP, MANY AGENTS</div>
+  <h3 class="section">Multi-Worktree Has a <em>Device Cost</em> Too 💻</h3>
+  <div class="callout danger">
+    <div class="label">Real example — this repo's graphify hook, no guard</div>
+    <p style="margin:0"><strong>3 rebuild processes</strong> at <span class="mono">65–73% CPU</span> each · load average <span class="mono">12+</span> · RAM saturated.</p>
+  </div>
+  <div class="callout accent">
+    <div class="label">Fix</div>
+    <p style="margin:0">Skip the rebuild if CPU load > <strong class="copper">50% of cores</strong> or free memory < <strong class="copper">2GB</strong>, plus process dedupe.</p>
+  </div>
+  <ul class="bullets">
+    <li>Every parallel worktree = a <strong>concurrent process</strong> on the same CPU / RAM / battery.</li>
+    <li>Local models sharpen this — <strong>one 8–14B model per active session</strong>, not per worktree.</li>
+    <li>A throttled laptop produces <strong class="danger">worse agent output</strong> long before the API bill is the bottleneck.</li>
+  </ul>
+</section>
+
+<!-- SLIDE 11 -->
+<section class="slide" data-title="Make the Meter Visible">
+  <div class="slide-num">11 · MAKE THE METER VISIBLE</div>
+  <h3 class="section">You Can't Cut What You Can't <em>See</em> 📊</h3>
+  <p class="muted" style="font-size:.92rem">Every agent writes local logs, so tracking is always possible. Pick the tracker that reads <em>your</em> agent's logs.</p>
+  <div class="table-wrap" style="font-size:.82rem">
+    <table>
+      <thead><tr><th>Agent</th><th>Native</th><th>Logs</th><th>Tracker (with the con)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Claude Code</strong></td><td><code>/cost</code>, <code>/context</code>, SDK</td><td>local files</td><td><strong class="success">ccusage</strong> ✅ 5-hr-block view · ❌ Claude-centric</td></tr>
+        <tr><td><strong>Codex CLI</strong></td><td>in-session totals (light)</td><td><code>~/.codex/sessions/*.jsonl</code></td><td><strong class="success">tokscale</strong> ✅ cross-agent · ❌ newer</td></tr>
+        <tr><td><strong>OpenCode</strong></td><td>no tracking command</td><td>SQLite / JSON</td><td><strong class="success">opencode-stats</strong> ✅ 365-day · ❌ OpenCode-only</td></tr>
+        <tr><td><strong>All / enterprise</strong></td><td>—</td><td>—</td><td>Dynatrace / Portkey ✅ governance · ❌ overhead</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent">
+    <div class="label">The habit</div>
+    <p style="margin:0;font-size:.95rem">Glance at usage <strong>before</strong> escalating to the flagship model · review the weekly report <strong>before</strong> fanning out 20 subagents · watch the 5-hour block on subscription tiers.</p>
+  </div>
+  <p class="caption">Every cut on the next slide came from this — Headroom cut because I measured device load; the idle graph MCP pruned because I measured its context tax.</p>
+</section>
+
+<!-- SLIDE 12 -->
+<section class="slide" data-title="My Toolkit">
+  <div class="slide-num">12 · MY TOOLKIT — WHAT I RUN, WHAT I CUT</div>
+  <h3 class="section">Marketing Shows the Pros. These Are the <em>Cuts</em>. 🧰</h3>
+  <p class="muted" style="font-size:.9rem">Three layers stack: <strong class="copper">output</strong> (write less) · <strong class="copper">input</strong> (read less) · <strong class="copper">routing</strong> (cheaper provider).</p>
+  <div class="table-wrap" style="font-size:.8rem">
+    <table>
+      <thead><tr><th>Tool</th><th>Layer</th><th>Verdict — with the con</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Ponytail</strong></td><td>output / code</td><td class="verdict-good">✅ run — YAGNI ladder, shortest diff (6–20% lines, 23–53% cost)</td></tr>
+        <tr><td><strong>caveman</strong></td><td>output / prose</td><td class="verdict-good">✅ run — ~75% fewer tokens; overlaps Ponytail by design</td></tr>
+        <tr><td><strong>RTK</strong> (rtk-ai/rtk)</td><td>input / shell</td><td class="verdict-good">✅ run — Rust, <10ms, 60–90% off Bash output; Read/Grep bypass</td></tr>
+        <tr><td><strong>Headroom</strong></td><td>input / files</td><td class="verdict-bad">❌ cut — 60–95% off, byte-perfect, but ~600MB ML daemon = device-drag</td></tr>
+        <tr><td><strong>OmniRoute</strong></td><td>routing</td><td class="verdict-bad">❌ cut — 237-provider gateway → quality drift + ToS-ban pattern</td></tr>
+        <tr><td><strong>graphify / CRG</strong></td><td>index</td><td class="verdict-warn">⚠️ project-local only — behind resource guards; cut as global daemon</td></tr>
+        <tr><td><strong>branchdiff</strong> <span class="tag">mine</span></td><td>review</td><td class="verdict-good">✅ run — pipes just the diff, nth-time awareness skips re-raised nits</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent" style="font-size:.88rem">
+    <div class="label">The rule that decided most of it</div>
+    <p style="margin:0">Ban risk lives on the wire — a tool only risks a ban if it sits between you and the provider <strong>and</strong> mutates the payload. Rule-injection (Ponytail) = zero. Proxies (Headroom, OmniRoute) = real. That's why my stack has <strong class="copper">zero proxies</strong>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 13 -->
+<section class="slide" data-title="Feed Less, Not More">
+  <div class="slide-num">13 · FEED LESS, NOT MORE</div>
+  <h3 class="section">Bigger Window ≠ <em>Better Recall</em> 🌊</h3>
+  <p class="lead">Accuracy drops as token count climbs — even well inside the limit. <strong class="accent">Context rot</strong> is real; the fix is a smaller haystack, not a bigger window.</p>
+  <ul class="bullets" style="margin-top:20px">
+    <li><strong>On-demand retrieval:</strong> our knowledge graph (<code>graphify</code> + <code>code-review-graph</code>) indexes 1,000+ files for <strong class="success">0 LLM tokens</strong>; skipping it burns ~20,000 tokens re-orienting every session.</li>
+    <li><strong>Subagents</strong> with clean, disposable context — the transcript gets thrown away, only the conclusion survives.</li>
+    <li><strong>Prompt caching</strong> — big enough to get its own slide →</li>
+  </ul>
+</section>
+
+<!-- SLIDE 14 -->
+<section class="slide" data-title="Caching — The 90% Lever">
+  <div class="slide-num">14 · CACHING — THE 90% LEVER</div>
+  <h3 class="section">The Single Biggest <em>Zero-Quality-Loss</em> Lever 🧊</h3>
+  <p style="font-size:.95rem">The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is <strong class="success">byte-identical</strong>; only the bill and latency change.</p>
+  <div class="table-wrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>Provider</th><th>TTL</th><th>Write</th><th>Read (hit)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Claude</strong></td><td class="mono">5 min / 1 hr</td><td class="mono">1.25× (2.0× / 1hr)</td><td class="mono success">0.10× · 90% off</td></tr>
+        <tr><td><strong>GPT-5.x</strong></td><td class="mono">up to 24 h</td><td class="mono">1.0×, no fee</td><td class="mono">0.50× · 50% off</td></tr>
+        <tr><td><strong>Gemini 3.x</strong></td><td class="mono">60 min</td><td class="mono">1.0× + storage</td><td class="mono success">0.10× · 90% off</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="fig" style="margin-top:14px">
+    <img src="https://z-cdn-media.chatglm.cn/files/f387c608-4379-4584-928f-c25b09bacc9a.png?auth_key=1883647174-c2213dd16ac34e7c9ba7a3c5e966e82a-0-f3ce66523cc98d1cda03ac14e30e445c" alt="Caching lever chart" style="max-height:300px;object-fit:contain;width:100%">
+  </div>
+</section>
+
+<!-- SLIDE 15 -->
+<section class="slide" data-title="Cache or Crash">
+  <div class="slide-num">15 · CACHE OR CRASH</div>
+  <h3 class="section">Break-Even ≈ <em>1.3</em> Reads Per Write ⚠️</h3>
+  <p>Caching isn't free money. You pay a <strong class="danger">write surcharge</strong> on the first hit; it only pays off if ≥1.3 reads land before the TTL expires. A 20K-token prefix hit ~1.1×/5-min costs <em>more</em> with caching on.</p>
+  <div class="callout danger">
+    <div class="label">The 5-minute cliff</div>
+    <p style="margin:0">Anthropic dropped Claude's TTL <strong>60min → 5min</strong> in early 2026. Savings fell <strong class="copper">~84% → ~52%</strong> — every call past 300s became a fresh write.</p>
+  </div>
+  <p style="margin-top:16px"><strong class="accent">Hold the cache warm:</strong></p>
+  <div class="two-col" style="margin-top:8px">
+    <ul class="bullets" style="margin:0">
+      <li><strong>Batch within the window</strong> — tight bursts, not a slow drip.</li>
+      <li><strong>Keep-alive ping</strong> — a light read every ~4 min resets the TTL.</li>
+    </ul>
+    <ul class="bullets" style="margin:0">
+      <li><strong>Static-prefix-first</strong> — dynamic state at the <em>back</em>; one byte change ahead of the cache invalidates the whole prefix.</li>
+      <li><strong>Batch API</strong> for overnight jobs — first item writes, the rest read at 10% + ~50% batch off.</li>
+    </ul>
+  </div>
+  <p class="caption">Same instinct, interactive sessions: iterate in tight bursts, keep turns close, don't let the file cache go cold across a meeting.</p>
+</section>
+
+<!-- SLIDE 16 -->
+<section class="slide" data-title="Memory Compounds">
+  <div class="slide-num">16 · MEMORY COMPOUNDS</div>
+  <h3 class="section">Reuse Beats <em>Re-Derivation</em> 🧠</h3>
+  <p class="muted">One real session — this repo's own memory index.</p>
+  <div class="stat-row" style="margin-top:24px">
+    <div class="stat">
+      <div class="num">23,909</div>
+      <div class="label">Tokens — reading 50 indexed observations</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--danger)">485,629</div>
+      <div class="label">Tokens — original work that produced them</div>
+    </div>
+    <div class="stat">
+      <div class="num" style="color:var(--success)"><em>95%</em></div>
+      <div class="label">Fewer tokens — same starting knowledge</div>
+    </div>
+  </div>
+  <div class="callout accent">
+    <div class="label">Same idea pointed backward</div>
+    <p style="margin:0">Mine your own chat logs and PR review comments for recurring corrections — same nit on three PRs is a <strong>pattern</strong>, not three nits. Encode it once in <code>CLAUDE.md</code>/rules; the model stops repeating the mistake, and "number of attempts" from Slide 3 stops multiplying.</p>
+  </div>
+  <p class="caption" style="margin-top:auto">Capture once. Read forever. Don't re-derive — forward <em>or</em> backward.</p>
+</section>
+
+<!-- SLIDE 17 -->
+<section class="slide" data-title="Less Code, Less to Reload">
+  <div class="slide-num">17 · LESS CODE, LESS TO RELOAD</div>
+  <h3 class="section">Every Line Written Is a Line <em>Reloaded Later</em> ✂️</h3>
+  <p class="muted">Benchmark medians — lean-by-default vs. no constraint (5 tasks, 3 models).</p>
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Metric</th><th>No constraint</th><th>Lean-by-default</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Lines of code</strong></td><td class="mono">100%</td><td class="mono success">6–20%</td></tr>
+        <tr><td><strong>Cost</strong></td><td class="mono">100%</td><td class="mono success">23–53%</td></tr>
+        <tr><td><strong>Speed</strong></td><td class="mono">1×</td><td class="mono success">3–6×</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent" style="margin-top:auto">
+    <div class="label">The standing discount</div>
+    <p style="margin:0;font-size:1.05rem">Fewer lines today = a <strong class="copper">standing token discount</strong> on every future session that touches the file.</p>
+  </div>
+</section>
+
+<!-- SLIDE 18 -->
+<section class="slide" data-title="Beyond the Bill">
+  <div class="slide-num">18 · BEYOND THE BILL</div>
+  <h3 class="section">Two Reasons This Isn't <em>Only About Money</em> 🌍</h3>
+  <div class="two-col" style="margin-top:18px">
+    <div>
+      <div class="callout">
+        <div class="label">⚡ Energy & water</div>
+        <p style="margin:0;font-size:.92rem">AI data centers alone projected to draw <strong class="copper">945 TWh by 2030</strong> — nearly triple Pakistan + Bangladesh + Nigeria's combined electricity use.</p>
+        <p style="margin:8px 0 0;font-size:.88rem" class="muted">2025 baseline: ~33–80M tons CO₂ · ~313–765 billion liters water. Every wasted token is a real watt and a real drop.</p>
+      </div>
+      <div class="callout danger">
+        <div class="label">📉 The subsidy is ending</div>
+        <p style="margin:0;font-size:.92rem">OpenAI spends ~<strong>$2 per $1 earned</strong> on inference — <strong class="copper">$14B in 2026 losses</strong>.</p>
+        <p style="margin:8px 0 0;font-size:.88rem" class="muted">A $200 ChatGPT Pro plan would cost ~$14,000/mo at real API rates (70× gap). Anthropic & GitHub already moved enterprise customers to usage-based billing in 2026. Prices rise 30–50% within 12–24 months.</p>
+      </div>
+    </div>
+    <div class="fig">
+      <img src="https://z-cdn-media.chatglm.cn/files/04f5167a-aa85-4fb9-a590-1a1754c622b9.jpg?auth_key=1883647174-0a1c676565e6467580bca2ef1806bda8-0-10b80234a13ab21af6def56f595f68c1" alt="How did we get so poor" style="max-height:420px;object-fit:cover;width:100%">
+      <div class="fig-caption">The subsidy ending, visualized.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 19 -->
+<section class="slide" data-title="Checklist">
+  <div class="slide-num">19 · APPLY THIS WEEK</div>
+  <h3 class="section">Checklist ✅</h3>
+  <ul class="checklist" style="margin-top:18px;columns:2;column-gap:40px">
+    <li>Route by task: <strong>haiku → sonnet</strong> (default) → opus</li>
+    <li>Match the tool to the constraint that binds — local, OpenRouter/OpenCode, or Claude Code/Codex</li>
+    <li><code>CLAUDE.md</code> under ~200 lines; globbed rules for the rest</li>
+    <li>Command hooks over prompt hooks for deterministic checks</li>
+    <li>Index once (Tree-sitter), query on demand; reuse memory instead of re-deriving it</li>
+    <li><strong>Cache structured for the window</strong> — static prefix front, dynamic state back, batch reads inside TTL (break-even ≈1.3 reads/write)</li>
+    <li>Mine chat logs and PR review comments for recurring corrections; encode each one once</li>
+    <li>Guard background jobs (CPU/memory + dedupe) before running multiple worktrees</li>
+    <li><strong>Smallest correct diff, always</strong> — it's a discount on every future session, every watt, every dollar</li>
+  </ul>
+</section>
+
+<!-- SLIDE 20 -->
+<section class="slide" data-title="The Bottom Line">
+  <div class="slide-num">20 · THE BOTTOM LINE</div>
+  <h3 class="section">The <em>Bottom Line</em> 🎉</h3>
+  <div style="margin-top:30px;max-width:780px">
+    <p style="font-family:'Fraunces',serif;font-size:clamp(1.1rem,1.6vw,1.4rem);line-height:1.55;color:var(--text);font-weight:300">
+      The MacBook fan and the burned token budget were the <em class="copper">same failure</em> wearing different costumes — too many tokens spent finding what a sharper request would've found in one pass.
+    </p>
+    <p style="font-family:'Fraunces',serif;font-size:clamp(1.1rem,1.6vw,1.4rem);line-height:1.55;color:var(--muted);font-weight:300;margin-top:20px">
+      The cheapest model was never the one with the lowest price per token. It's the one that reaches the correct answer in the <em class="accent">fewest tokens, on the first attempt, on a device that isn't choking</em> — and it's the only version of this that survives the subsidy clock running out.
+    </p>
+  </div>
+  <div class="callout accent" style="margin-top:auto">
+    <div class="label">The call</div>
+    <p style="margin:0;font-size:1.1rem">Pull all five levers while they're still <strong class="copper">optional</strong> — not after usage-based billing makes them <strong class="danger">mandatory</strong>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 21 -->
+<section class="slide" data-title="Resources & References">
+  <div class="slide-num">21 · RESOURCES & REFERENCES</div>
+  <h3 class="section">Resources & <em>References</em> 📚</h3>
+  <div style="columns:2;column-gap:36px;margin-top:18px">
+    <div class="resource-group">
+      <h4>Data Sources (primary)</h4>
+      <a href="https://artificialanalysis.ai/articles/gemini-3-5-flash-everything-you-need-to-know"><strong>Artificial Analysis</strong> — Gemini 3.5 Flash cost analysis</a>
+      <a href="https://labs.scale.com/leaderboard/swe_bench_pro_commercial"><strong>Scale AI SEAL</strong> — SWE-bench Pro standardized leaderboard</a>
+      <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching"><strong>Anthropic / OpenAI / Gemini</strong> — prompt-caching docs</a>
+      <a href="https://www.anthropic.com/news/claude-sonnet-5"><strong>Anthropic</strong> — Claude Sonnet 5 pricing</a>
+      <a href="https://www.anthropic.com/research/economic-index-june-2026-report"><strong>Anthropic Economic Index</strong> — Cadences report</a>
+      <a href="https://www.telenorasia.com/announcements/mobile-technology-fuels-ai-adoption-in-bangladesh-according-to-telenor-asia-study/"><strong>Telenor Asia</strong> — Digital Lives Decoded 2025: Bangladesh</a>
+      <a href="https://news.un.org/en/story/2026/06/1167658"><strong>UN News</strong> — AI's environmental costs</a>
+      <a href="https://arize.com/blog/ai-model-subsidies-ending-llm-inference-costs/"><strong>Arize AI</strong> — Model subsidies are ending</a>
+      <a href="https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/"><strong>Forbes</strong> — "AI Costs More Than The People It Replaced" (Jul 2026)</a>
+    </div>
+    <div class="resource-group">
+      <h4>Toolkit — run / cut</h4>
+      <a href="https://github.com/ccusage/ccusage">📊 <strong>ccusage</strong> (Claude) · tokscale (multi-agent) · opencode-stats</a>
+      <a href="https://github.com/DietrichGebert/ponytail">✅ <strong>Ponytail</strong> · caveman · RTK</a>
+      <a href="https://github.com/headroomlabs-ai/headroom">❌ <strong>Headroom</strong> (device drag) · OmniRoute (ban risk)</a>
+      <a href="https://github.com/Encryptioner/branchdiff-releases">⚠️ <strong>graphify + CRG</strong> (project-local) · branchdiff (mine)</a>
+    </div>
+    <div class="resource-group">
+      <h4>Author's Articles</h4>
+      <a href="https://nerddevs.com/author/ankur/"><strong>Token Economics: Better Results, Fewer Tokens</strong></a>
+      <a href="https://dev.to/mir_mursalin_ankur"><strong>Claude Code Configuration Blueprint</strong></a>
+      <a href="https://dev.to/mir_mursalin_ankur"><strong>Graphify + code-review-graph</strong></a>
+    </div>
+    <div class="resource-group">
+      <h4>Connect with Author</h4>
+      <a href="https://encryptioner.github.io">🌐 <strong>encryptioner.github.io</strong></a>
+      <a href="https://linkedin.com/in/mir-mursalin-ankur">💼 <strong>linkedin.com/in/mir-mursalin-ankur</strong></a>
+      <a href="https://github.com/Encryptioner">🐙 <strong>github.com/Encryptioner</strong></a>
+      <a href="https://twitter.com/AnkurMursalin">🐦 <strong>@AnkurMursalin</strong></a>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 22 -->
+<section class="slide hero" data-title="Closing">
+  <div class="badge"><span class="dot"></span> One Thing, Tonight</div>
+  <h1 class="title">One <em>Thing</em>, Tonight.</h1>
+  <h2 class="subtitle">Open your model-routing rule — or write one if you don't have it — and send one task to the cheapest model that can actually do it.</h2>
+  <p style="font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;color:var(--muted);margin-top:10px">That's the whole talk, in one action.</p>
+  <div class="hero-meta">
+    <div class="presenter">
+      <strong>Thank you.</strong>
+      <div class="role">I'd rather hear what broke than what worked. Come find me after.</div>
+    </div>
+    <div class="hook" style="text-align:right">— Ankur Mursalin<br><span class="muted" style="font-size:.8rem;font-style:normal;font-family:'JetBrains Mono',monospace">Token Economics · 2026</span></div>
+  </div>
+</section>
+
+</div>
+
+<!-- Overview -->
+<div class="overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+
+const progress = document.getElementById('progress');
+const curNum = document.getElementById('curNum');
+const counter = document.getElementById('counter');
+const curTitle = document.getElementById('curTitle');
+const overview = document.getElementById('overview');
+
+function show(index){
+  if(index < 0) index = 0;
+  if(index >= total) index = total - 1;
+  slides.forEach((s,i)=>{
+    s.classList.remove('active','prev');
+    if(i === index) s.classList.add('active');
+    if(i < index) s.classList.add('prev');
+  });
+  current = index;
+  const n = String(index+1).padStart(2,'0');
+  curNum.textContent = n;
+  counter.textContent = n + ' / ' + total;
+  curTitle.textContent = slides[index].dataset.title || '';
+  progress.style.width = ((index+1)/total*100) + '%';
+  // scroll slide to top
+  slides[index].scrollTop = 0;
+}
+
+function next(){ show(current+1); }
+function prev(){ show(current-1); }
+
+function toggleOverview(){
+  if(overview.classList.contains('open')){
+    overview.classList.remove('open');
+  } else {
+    buildOverview();
+    overview.classList.add('open');
+  }
+}
+
+function buildOverview(){
+  const grid = document.getElementById('overviewGrid');
+  grid.innerHTML = '';
+  slides.forEach((s,i)=>{
+    const card = document.createElement('div');
+    card.className = 'overview-card';
+    const num = String(i+1).padStart(2,'0');
+    const title = s.dataset.title || ('Slide ' + (i+1));
+    const firstH = s.querySelector('h3.section, h1.title');
+    const sub = firstH ? firstH.textContent.trim().slice(0,80) : '';
+    card.innerHTML = '<div class="num">'+num+'</div><div class="ttl">'+title+'</div><div class="sub">'+sub+'</div>';
+    card.onclick = ()=>{ show(i); overview.classList.remove('open'); };
+    grid.appendChild(card);
+  });
+}
+
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){
+    e.preventDefault(); next();
+  } else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){
+    e.preventDefault(); prev();
+  } else if(e.key === 'Home'){
+    e.preventDefault(); show(0);
+  } else if(e.key === 'End'){
+    e.preventDefault(); show(total-1);
+  } else if(e.key === 'o' || e.key === 'O'){
+    e.preventDefault(); toggleOverview();
+  } else if(e.key === 'f' || e.key === 'F'){
+    e.preventDefault(); toggleFullscreen();
+  } else if(e.key === 'Escape'){
+    if(overview.classList.contains('open')) overview.classList.remove('open');
+  }
+});
+
+// touch support
+let touchStartX = 0;
+document.addEventListener('touchstart',(e)=>{ touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend',(e)=>{
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+});
+
+// click to advance (optional, on right side)
+document.addEventListener('click',(e)=>{
+  if(e.target.closest('.nav, .overview, .chrome, a, button, .fig, .table-wrap, .callout, .overview-card')) return;
+  const x = e.clientX / window.innerWidth;
+  if(x > 0.6) next();
+  else if(x < 0.4) prev();
+});
+
+show(0);
+</script>
+</body>
+</html>
