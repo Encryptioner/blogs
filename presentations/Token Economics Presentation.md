@@ -198,7 +198,7 @@ Accuracy drops as token count climbs — even well inside the limit. **Context r
 
 The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is byte-identical; only the bill and latency change. ~90% off the cached input is the number all three majors converge on.
 
-| Provider | TTL | Write | Read (hit) |
+| Provider | TTL | Write | Read (Cache hit) |
 |---|---|---|---|
 | **Claude** | 5 min / 1 hr | 1.25× (2.0×/1hr) | **0.10×** · 90% off |
 | **GPT-5.x** | up to **24 h** | 1.0×, no fee | **0.50×** · 50% off |
@@ -281,9 +281,15 @@ Three layers stack: **output** (write less) · **input** (read less) · **routin
 
 # How Did We Get So Poor
 
-![How did we get so poor](../assets/B-16/how=do-we-get-so-poor.jpg)
+Before AI, the funnel only grew: **idea → execute → usage**, small group to more at every stage. After AI, that funnel flips — everyone ideates, execution and real usage shrink.
+
+![How did we get so poor](../assets/B-16/how-do-we-get-so-poor.jpg)
 
 *The subsidy ending, visualized.*
+
+![Before AI vs after AI: idea, execute, usage headcount by stage inverts](../assets/B-16/before-ai-vs-after-ai.jpeg)
+
+*Idea → execute → usage, before and after.*
 
 ---
 

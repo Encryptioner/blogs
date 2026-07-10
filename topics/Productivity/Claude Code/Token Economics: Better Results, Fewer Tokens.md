@@ -295,6 +295,14 @@ That subsidy is already unwinding. Anthropic moved enterprise customers from fla
 
 Either way, the habits in this post stop being optional the moment the subsidy ends. A team that's already routing by task, caching aggressively, and keeping context lean barely notices the price hike when it lands. A team that's defaulted to the flagship model on every request — because it was cheap enough not to think about — is about to feel the whole 30–50% at once, with no muscle memory for absorbing it.
 
+Before AI, the **idea → execute → usage** funnel only grew: a small group of ideators, a bigger group executing, the biggest group of all just using the result. After AI, that funnel flips — everyone can generate an idea, execution and real usage shrink to a fraction of the ideas produced. Cheap, subsidized inference is what made that inversion affordable; it's also what ends when the subsidy does.
+
+<div align="center">
+  <img src="../../../assets/B-16/before-ai-vs-after-ai.jpeg" alt="Before AI vs after AI: idea, execute, usage headcount by stage inverts"/>
+  <br/>
+  <sub>Idea → execute → usage, before and after.</sub>
+</div>
+
 ## Make the Meter Visible — Track Before You Cut
 
 You cannot cut what you cannot see, and the single biggest reason teams overspend is that the meter is invisible by default. The good news: every agent writes local session logs, so tracking is *always* possible even when the built-in command is weak. The built-in visibility is uneven across agents, though, so pick the tracker that reads *your* agent's logs:
