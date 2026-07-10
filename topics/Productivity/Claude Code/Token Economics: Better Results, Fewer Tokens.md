@@ -46,6 +46,37 @@ And the gap isn't a Gemini quirk — it holds across the entire field. Artificia
 
 ---
 
+## The Method: Explore, Plan, Execute, Verify
+
+Cost per task isn't only a routing problem — it's a workflow problem. The single biggest attempt-multiplier isn't the wrong model, it's skipping straight to code before the approach is even agreed on. Four habits, in order, buy back most of that:
+
+1. **Explore — scope it yourself.** Never hand over "fix the payment bug" and let the agent go looking. Point it at the component and the store directly. Your own codebase knowledge is free; the agent's exploration is not — every file it opens to get oriented is tokens spent before a single line of the actual fix exists.
+2. **Plan — in read-only mode.** Plan Mode blocks write tools at the permission level, so the agent can only propose, not act. Reading a plan takes two minutes; reading a wrong 300-line diff takes twenty. Boris Cherny, the creator of Claude Code, reportedly starts most of his own sessions in Plan Mode — the people who built the tool don't trust it to run unplanned.
+3. **Execute — only after you approve the approach.** A plan costs hundreds of tokens to produce and review. A wrong implementation costs thousands — and it's a *twice-reviewed* cost, since someone has to catch it and someone has to redo it.
+4. **Verify — the loop exits on green, not on confidence.** The judge is the test runner's output, never the model's opinion of its own work.
+
+In this repo, that loop is encoded as a chain of skills — `spec` → `grill` → `plan` → `grill` → `implement` → `verify` → `pre-review` → `fix` — with rules like "never skip planning for changes touching two or more files" and "never batch all changes then verify at the end" written directly into the `plan` and `implement` skills, not left to memory.
+
+### Grill: the agent that attacks your own plan
+
+A plan that never gets challenged is just a guess with more formatting. `grill` is a skill whose entire job is to be hostile to the work in front of it — a skeptical staff-engineer pass, not a rubber stamp. It runs a severity ladder (blocker · critical · major · minor) down to one of four verdicts: pass, pass with conditions, needs rework, or **reject** — and reject actually fires, blocking the chain from continuing.
+
+Two things make it work instead of becoming theater. First, it's **non-optional**: `spec` and `plan` invoke it automatically, because a critic you can skip is a critic you skip on exactly the day you needed it most. Second, it runs as a **separate invocation**, not a follow-up question in the same session. Asking the same conversation "is this plan good?" gets a yes almost every time — same model, same blind spots, reviewing its own reasoning. That's not a review, that's a mirror. The economics are blunt: a rejected plan costs five minutes; a rejected *implementation* costs an afternoon and two rounds of human review.
+
+### Review your own diff before anyone else does
+
+The cheapest reviewer available to you is the one already looking at the code: yourself, before you open the PR. Once a feature works, run the agent over your own `git diff` against the team's review checklist before a colleague ever sees it — the prompt is as simple as "review `git diff main` against our checklist," and it reads only the changes, not the whole repo.
+
+This is private (embarrassing mistakes get caught before anyone else sees them), cheap (input is a few thousand tokens of diff, and it kills most of the review-bounce cycle — attempts, at PR granularity — before it starts), and consistent (the checklist lives in a `pre-review` skill backed by an 800-line coding-standards doc the agent has to read every time: versioned, PR-reviewed, and executed identically whether a junior or a senior runs it). Review culture, under version control, instead of tribal knowledge.
+
+### Tests: the honesty rules
+
+Two rules keep agent-written tests from quietly certifying agent-written bugs. **Rule one:** never let the same session write both the tests and the implementation — an agent grading its own homework will write tests that pass its own mistakes. Tests come first, either from the spec or from a fresh session with no visibility into the implementation it's about to check. **Rule two:** the loop exits on green, not on confidence, and when it's iterating, feed the model *failures only* — the three tests that broke, not the four hundred that passed, since re-reading passing output is pure token waste with zero new information.
+
+One version of this rule from an FDA-regulated codebase makes the stakes concrete: 21 test files carry `fda_task1`–`5` markers mapping directly to regulatory requirements, and the very first instruction file the agent reads says, in effect, do not delete or weaken any test carrying an fda marker. It's a guardrail against the single most natural thing an agent does when a test blocks it — make the test go away instead of fixing the code. The same discipline pays off on any 15-year-old codebase too: characterization tests that pin down current behavior before you touch it used to be a week nobody would approve; with an agent doing the mechanical work, it's an afternoon.
+
+---
+
 ## Model Tiering: Pay for Reasoning Only When You Need It
 
 This isn't a Claude-only habit — every vendor prices a cheap/default/flagship ladder, and the open-weight labs undercut all three on a per-token basis. Current pricing (July 2026), per million tokens:
@@ -142,7 +173,7 @@ Bigger context windows solved one problem and created another: **context rot**. 
 
 Three patterns do the heavy lifting:
 
-1. **Agentic, on-demand retrieval instead of pre-loading everything.** This repo's knowledge-graph tooling (`graphify` + `code-review-graph`) builds its index with Tree-sitter — **0 LLM tokens** to parse 1,000+ files into a queryable graph. Every session that skips it re-reads dozens of files just to get oriented — one measured session lost "twenty thousand tokens evaporated before a single line of code is written." Querying the graph (`semantic_search_nodes`, `get_impact_radius`) costs a few hundred tokens instead of a fresh directory sweep.
+1. **Agentic, on-demand retrieval instead of pre-loading everything.** This repo's knowledge-graph tooling (`graphify` + `code-review-graph`) builds its index with Tree-sitter — **0 LLM tokens** to parse 1,000+ files into a queryable graph. Every session that skips it re-reads dozens of files just to get oriented — one measured session lost "twenty thousand tokens evaporated before a single line of code is written." Querying the graph (`semantic_search_nodes`, `get_impact_radius`) costs a few hundred tokens instead of a fresh directory sweep. The retrieval is **enforced, not requested**: a hook intercepts every `grep` the agent tries, and if the graph can answer instead, the `grep` is blocked outright — the refusal message even prices the difference, graph query at ~100 tokens versus ~1,500 for the search sweep it replaced. A rule inside a hook is a constraint; the same rule in a prompt is just a request the model can ignore under pressure.
 2. **Subagents with clean context.** Dispatching research or exploration to a subagent means the main conversation gets a distilled answer back, not the transcript of every file it read to get there. The heavy lifting happens in a context that gets thrown away; only the conclusion survives.
 3. **Prompt caching** — big enough to get its own section, below.
 
@@ -362,6 +393,10 @@ None of these picks itself, and neither does any other AI output in your organiz
 ## Checklist — Apply This Week
 
 - [ ] **Make the meter visible first** — your agent's built-in usage command (Claude's `/cost`/`/context`, Codex's session totals, OpenCode's stored totals) or a cross-agent tracker like ccusage/tokscale; you can't cut what you can't see
+- [ ] **Plan before you generate** — a plan costs hundreds of tokens; a wrong implementation costs thousands, twice-reviewed
+- [ ] Let something adversarial (a `grill`-style skill) attack the plan before any code exists — never ask the same session to grade its own plan
+- [ ] Review your own diff before the PR — private, cheap, and catches the review-bounce cycle before it starts
+- [ ] Never let an agent be the sole reviewer of agent-written code; never let it write the tests and the implementation in the same session
 - [ ] Route by task: cheap tier (Haiku, GLM, MiniMax, Kimi) for lookups, mid tier as default, flagship only when reasoning depth justifies 5–25x the cost
 - [ ] Match the tool to the constraint that actually binds — data residency → local, cross-vendor flexibility → OpenRouter/OpenCode, out-of-the-box agent quality → Claude Code/Codex
 - [ ] Keep `CLAUDE.md` under ~200 lines; move file-specific patterns into globbed `rules/`
