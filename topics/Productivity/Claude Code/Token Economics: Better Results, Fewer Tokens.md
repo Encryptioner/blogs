@@ -16,6 +16,14 @@ Before the math, the picture — this is the moment most teams first notice the 
   <sub>The gag is just the real numbers with a face on it — the ~$14,000/mo figure and the 70× subsidy gap are cited further down. Original artwork, not a stock image.</sub>
 </div>
 
+And the gap isn't a Gemini quirk — it holds across the entire field. Artificial Analysis's own weighted cost-per-task ranking puts **Claude Fable 5 as the single most expensive model benchmarked, at $2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02. The flagship-est model on the market is, quite literally, the most expensive way to answer a question.
+
+<div align="center">
+  <img src="../../../assets/B-16/which-ai-cost-more-per-task.png" alt="Bar chart: Which AI models cost the most per task? Weighted average cost in USD per Intelligence Index task, ranked from Claude Fable 5 at $2.73 down to gpt-oss-20b at $0.02"/>
+  <br/>
+  <sub>Source: <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index">Artificial Analysis — Intelligence Index, weighted cost per task</a>, Jul 3, 2026.</sub>
+</div>
+
 ---
 
 ## The Real Cost Equation
@@ -28,9 +36,11 @@ cost = (price per token) × (tokens consumed per task) × (number of attempts)
 
 Vendors advertise the first factor. The second and third factors are where the real money moves, and they're controlled by *your* setup — model choice, harness quality, context hygiene — not by the vendor.
 
+That third factor is bigger than it looks. Coding is already the dominant AI-agent use case industry-wide, and Anthropic's own usage data shows "modifying software to correct errors" alone accounts for roughly 6% of consumer Claude.ai usage and **10% of enterprise API traffic**. A meaningful slice of the industry's entire token spend isn't new work at all — it's *attempts*, paying again for something that didn't work the first time.
+
 **The cheap-per-token trap, with real numbers (verified, mid-2026):** Gemini 3.5 Flash prices input at $1.50/M tokens against Gemini 3.1 Pro's ~$2.00/M — on the sticker, a clear win. But according to Artificial Analysis's own published evaluation — they run every model through their Intelligence Index and report the total cost — running the **full suite cost $1,552 on Gemini 3.5 Flash versus ~$887 on Gemini 3.1 Pro**: the "cheaper" model came out 75% *more expensive* per workload. Artificial Analysis attributes this to two stacking factors, not one: Flash 3.5 is priced 3× higher per token than its own predecessor (Gemini 3 Flash, at $0.50/$3.00 vs the new $1.50/$9.00 per million), *and* it uses significantly more input tokens per evaluation because agentic runs now take more turns. Gemini 3 Flash itself cost only ~$282 to run the identical suite — so Flash 3.5 costs 5.5× more than its own prior generation, on top of costing more than the "expensive" Pro tier it's supposed to undercut.
 
-The lesson: **price-per-token and cost-per-task are different numbers, and only one of them is on the pricing page.**
+The lesson: **price-per-token and cost-per-task are different numbers, and only one of them is on the pricing page.** Or, as one comment on a viral post of this same chart put it: paying for the flagship model on a task the cheap tier could handle is buying a Ferrari to drive to the grocery store.
 
 <div align="center">
   <img src="../../../assets/B-16/cost-per-task-chart.png" alt="Chart showing Gemini 3.5 Flash priced cheaper per token than Gemini 3.1 Pro, yet costing 75% more on the full benchmark suite"/>
@@ -42,15 +52,22 @@ The lesson: **price-per-token and cost-per-task are different numbers, and only 
 
 ## Model Tiering: Pay for Reasoning Only When You Need It
 
-Current Anthropic API pricing (July 2026), per million tokens:
+This isn't a Claude-only habit — every vendor prices a cheap/default/flagship ladder, and the open-weight labs undercut all three on a per-token basis. Current pricing (July 2026), per million tokens:
 
 | Model | Input | Output | Best for |
 |---|---|---|---|
 | Claude Haiku 4.5 | $1 | $5 | Lookups, file discovery, quick reformatting |
 | Claude Sonnet 5 | $2 (intro, until Aug 31 '26) → $3 | $10 → $15 | Implementation, review, daily development |
 | Claude Opus 4.8 | $5 | $25 | Architecture, complex debugging, spec writing |
+| Claude Fable 5 | $10 | $50 | Anthropic's hardest-reasoning tier, above Opus — for when Opus isn't enough |
+| GPT-5.6 Luna | $1 | $6 | OpenAI's cheap high-volume tier |
+| GPT-5.6 Terra | $2.50 | $15 | OpenAI's default/mid tier |
+| GPT-5.6 Sol | $5 | $30 | OpenAI's flagship tier |
+| GLM-4.6 (Zhipu/Z.ai, open-weight) | $0.43 | $1.74 | Cheap tier, self-hostable |
+| MiniMax M2 (open-weight) | $0.26 | $1.00 | Cheap tier, self-hostable |
+| Kimi K2.6 (Moonshot, open-weight) | $0.95 | $4.00 | Mid-cheap tier, self-hostable |
 
-Cached input runs up to **90% cheaper** than fresh input on all three.
+Cached input runs up to **90% cheaper** than fresh input across the Claude tiers.
 
 That table is the reason `~/.claude/rules/model-routing.md` in this setup exists as a rule, not a suggestion — every subagent dispatch in this session picks a model deliberately:
 
@@ -63,11 +80,19 @@ That table is the reason `~/.claude/rules/model-routing.md` in this setup exists
 
 The benchmark data backs this up from the other direction: on SWE-bench Pro, **Haiku 4.5 solves problems for about $0.13 of spend per benchmark point** — the cheapest cost-per-correct-fix of any current model — while Opus 4.8 posts the highest score (69.2%) but at 5-25x the per-token price. Routing by task, not defaulting everything to the flagship model, is the single highest-leverage lever most teams never pull.
 
+---
+
+## Where Your Tokens Actually Go
+
+For a working developer, the split isn't abstract: looking up syntax, rephrasing a Slack message, translating a stack trace, formatting a commit message — that's the bulk of a session's tokens, and none of it needs the flagship model. The 6% that actually compounds is architecture, hard refactors, and shipping.
+
 <div align="center">
-  <img src="../../../assets/B-16/token-mix.png" alt="Chart showing a typical AI session: ~94% of tokens spent on low-value tasks like rephrasing emails and translation, only ~6% on high-value work like architecting and shipping a feature — with a redirect showing cheap-tier, mid-tier, and flagship-tier task routing"/>
+  <img src="../../../assets/B-16/token-mix.png" alt="Chart showing a typical developer session: ~94% of tokens spent on low-value tasks like syntax lookups and boilerplate, only ~6% on high-value work like architecting and shipping a feature — with a redirect showing cheap-tier, mid-tier, and flagship-tier task routing"/>
   <br/>
-  <sub>Slice sizes are illustrative, not a measured breakdown — the point is the shape, not the precision. Closer to home: 96% of Bangladeshi internet users now use AI regularly, up from 88% in 2024, and workplace adoption jumped 44% → 62% in a single year — but writing and content creation is the top use case, with only 28% reaching for AI on admin/delegation work (Telenor Asia, Dec 2025). Same 94/6 split, local numbers.</sub>
+  <sub>Slice sizes are illustrative, not a measured breakdown — the point is the shape, not the precision. Closer to home: Anthropic's own Economic Index ranks Bangladesh 116th of 121 tracked countries on Claude.ai usage relative to population — a usage index of 0.11, among the lowest anywhere it's measured. But the topics that <em>are</em> distinctive there skew technical and developer-shaped: Math and CS theory (2.4× the global rate), Web front-end (1.8×), general software development (1.8×), and AI app building (1.6×) all outpace homework and self-presentation writing. Same 94/6 split holds — the 6% that gets used skews toward the work this post is about.</sub>
 </div>
+
+**The move:** cheap tier (Haiku, GLM, MiniMax, local) for the 94%, flagship only for the 6% that compounds.
 
 ---
 
@@ -81,9 +106,7 @@ Everything above happens to use Anthropic's price list, but none of it is Claude
 | **OpenAI Codex CLI** | OpenAI only | Go $8 / Plus $20 / Pro $100–$200; GPT-5.4 API at $2.50 in / $15 out per MTok | OpenAI markets ~4× better token efficiency than Claude Code — a vendor claim, worth measuring on your own workload before trusting it |
 | **OpenCode** (open-source) | 75+ providers — Claude, GPT, Gemini, local Ollama, switchable mid-session | Whatever the backing model charges | One terminal UI, any vendor's pricing tier underneath; built-in LSP integration feeds it real type signatures instead of the model guessing — fewer exploratory tokens spent either way |
 | **OpenRouter** | 300+ models, one API key | Pass-through provider pricing (no markup) + 5.5% card-funding fee (min $0.80) + 5% BYOK fee over 1M req/month | Cross-vendor arbitrage without rewriting your harness per provider; supports prompt caching with "sticky routing" to keep cache hits high — but you're trusting a proxy hop to pass caching semantics through correctly |
-| **Local (Ollama, LM Studio + open models)** | Whatever fits your hardware | $0 marginal cost per token | The token is free; the device isn't — see below |
-
-**The local-model catch, in numbers:** Ollama's floor is 8 GB RAM with no GPU, but agentic coding is a different animal — the KV cache grows every turn, so even a model that fit comfortably at turn one gets pushed into slow CPU territory by turn twenty. Realistic targets: 16 GB RAM minimum, 32 GB recommended, 64 GB for comfortable headroom; 7–8B models want 8–12 GB of VRAM (or unified memory on Apple Silicon, which doesn't split between GPU and system RAM the way a Windows laptop with a discrete GPU does). None of that shows up on a per-token price comparison, and neither does the quality gap: a weaker local model that needs three retries to reach the same correct answer a hosted model gets in one has spent more *wall-clock* and dev attention than the "expensive" API call, even at $0 marginal token cost. Support follows the same pattern — community-only, no SLA, you own the updates and the security posture. The real win with local models isn't price; it's that nothing leaves the device, which is the actual deciding factor for regulated or offline work.
+| **Local (Ollama, LM Studio + open models)** | Whatever fits your hardware | $0 marginal cost per token | The token is free; the device isn't — see the device-cost section below |
 
 ---
 
@@ -101,7 +124,7 @@ Two harness-level rules in this repo's config exist specifically to buy back tha
 
 ## Multi-Project, Multi-Worktree — One Laptop, Many Agents
 
-Token cost isn't only an API bill. It's also whatever is left of your CPU, RAM, and battery once you've opened three worktrees to pair-review a `branchdiff` PR, keep a side project's agent running in another tab, and let a background hook update a knowledge graph on commit. I've had a MacBook fan spin up like a jet engine mid-standup because of exactly this — three agent-adjacent processes fighting for the same cores at once.
+Token cost isn't only an API bill. It's also whatever is left of your CPU, RAM, and battery once you've opened three worktrees to pair-review a `branchdiff` PR, keep a side project's agent running in another tab, and let a background hook update a knowledge graph on commit. Every one of those is a concurrent process competing for the same cores — and it doesn't take much to tip that into visible thermal throttling.
 
 This repo's own graphify integration hit the same wall before it shipped a fix: without a guard, concurrent graph rebuilds piled up — **3 processes at 65–73% CPU each, load average past 12, RAM saturated** — because every worktree switch and every commit tried to rebuild at the same time. The fix wasn't a cheaper model; it was a resource check baked into the git hook itself: skip the rebuild if CPU load is above 50% of available cores or free memory drops under 2 GB, plus a `pgrep` dedupe so a second trigger can't stack a second process on top of the first.
 
@@ -110,7 +133,8 @@ That pattern is vendor-agnostic and it matters more, not less, as you multiply c
 - **Every parallel worktree is a concurrent process**, whether it's a hosted tool's background hook, a subagent dispatch, or — sharpest of all — a local model's inference process competing for the same RAM your IDE and browser already claimed.
 - **Guard background jobs, don't just schedule them.** A resource check (CPU + free-memory threshold) before any rebuild, index, or hook fires, plus process dedupe, is cheaper than the cleanup after three of them collide.
 - **Serialize the heavy jobs across worktrees.** One graph rebuild running at a time beats one per open worktree — the git hook above already does this by design.
-- **Local models need this rule doubled.** An 8–14B model fits one active session comfortably; open two or three worktree sessions on the same box and you're splitting the same 16–32 GB of RAM/VRAM three ways while your battery drains faster than any "up to 20 hours" spec sheet implies.
+
+**Local models sharpen the same problem, in numbers.** Ollama's floor is 8 GB RAM with no GPU, but agentic coding is a different animal — the KV cache grows every turn, so even a model that fit comfortably at turn one gets pushed into slow CPU territory by turn twenty. Realistic targets: 16 GB RAM minimum, 32 GB recommended, 64 GB for comfortable headroom; 7–8B models want 8–12 GB of VRAM (or unified memory on Apple Silicon, which doesn't split between GPU and system RAM the way a Windows laptop with a discrete GPU does). An 8–14B model fits one active session comfortably — open two or three worktree sessions on the same box and you're splitting that same 16–32 GB of RAM/VRAM three ways, with your battery draining faster than any "up to 20 hours" spec sheet implies. None of that shows up on a per-token price comparison, and neither does the quality gap: a weaker local model that needs three retries to reach the same correct answer a hosted model gets in one has spent more *wall-clock* and dev attention than the "expensive" API call, even at $0 marginal token cost. The real win with local models isn't price; it's that nothing leaves the device — the actual deciding factor for regulated or offline work.
 
 A laptop under load throttles, times out, and produces worse — slower, sometimes truncated — agent output long before the API bill becomes the bottleneck. Plan for concurrent device load the same deliberate way you plan for tokens-per-task.
 
@@ -148,7 +172,7 @@ The headline number every provider converges on is **~90% off the cached portion
 
 ### The break-even that determines whether caching is even worth it
 
-Caching is not free money — there's a **write surcharge** on the first hit, and it only pays off if enough *reads* land before the prefix expires to amortize it. The rule of thumb, backed by the per-vendor pricing math: **you break even at roughly 1.3–1.4 reads per write.** Below that line, caching *increases* cost — you paid the 1.25× (or 2.0×) write tax and then never reused it. A 20,000-token system prompt that gets hit ~1.1 times per five-minute window genuinely costs *more* with caching turned on than off. The lever only works when there's repetition inside the window.
+Caching is not free money — there's a **write surcharge** on the first hit, and it only pays off once enough *reads* land before the prefix expires to earn that surcharge back. Here's the actual math on Claude's 5-minute tier: a write costs **1.25×** normal input; each cache hit after that costs **0.10×** — a saving of 0.90× versus paying full price again. You need enough hits to cover the 0.25 extra you paid on the write: 0.25 ÷ 0.90 ≈ **1.4 reads to break even.** Fewer hits than that inside the window, and caching cost you money instead of saving it — a 20,000-token system prompt that only gets hit ~1.1 times per five-minute window is a real-world example of a cache that's actively losing money.
 
 ### The 5-minute TTL cliff (and how to not fall off it)
 
@@ -175,6 +199,16 @@ The most expensive token is one spent re-discovering something already known. Th
 
 That's not a benchmark claim, it's one real number from one real session — but the mechanism generalizes: any time context is captured once (a memory file, a spec, a knowledge graph, a CLAUDE.md gotcha) and *read* on every subsequent occasion instead of *re-derived*, the savings compound across every future session that touches the same ground.
 
+The infra that makes this systematic instead of accidental: **skills** — Claude Code's own skill system, and OpenCode's equivalent plugin system — package a repeatable workflow (file a bug, write a spec, run a security audit) into something invoked by name instead of re-explained in prose every time it comes up. **Memory plugins** go a layer further: they persist facts, corrections, and decisions *across sessions*, so a new conversation starts with everything a prior one learned instead of from zero. Same "capture once, reuse forever" principle as caching above — just moved from a manual habit into installed tooling.
+
+---
+
+## Compact Before You Run Out — Summarize, Don't Replay
+
+Context has its own cost curve: every extra token sitting in the window is a token every subsequent turn re-pays for, in both dollars and attention — the same context-rot mechanic as "Feed Less, Not More" above, just measured in session length instead of file count. The fix isn't finishing one unbroken thread; it's closing a session deliberately before it gets there.
+
+When a session's context is getting large — a long debugging thread, a big multi-file refactor, a research spiral — write a short summary of what's been decided and done, then start a fresh session and hand it that summary instead of the full transcript. Most agentic tools now do a version of this natively (compaction commands, session-summary hooks), but the manual version works everywhere: a markdown file with "what we tried, what worked, what's next" costs a few hundred tokens to write once and read forever, instead of every future turn re-reading — and re-paying for — the entire prior conversation.
+
 ---
 
 ## Mine Your Own History — Stop Paying for the Same Mistake Twice
@@ -194,6 +228,8 @@ The token math is the same "capture once, reuse forever" pattern as the memory i
 
 Every line of code written today is a line some future session has to load into context to understand, review, or modify. Fewer lines isn't just a maintainability win — it's a standing token discount on every future interaction with that file.
 
+Jeff Atwood put it plainly back in 2007: **"the best code is no code at all."** Every line you bring into the world is a line that has to be debugged, read, understood, and supported — that's technical debt in its most literal form. In the AI-agent era it compounds twice: once as the maintenance burden it always was, and again as a token bill every future session pays just to load the file before it can do any actual work on it.
+
 Benchmark medians across five everyday coding tasks (email validator, debounce, CSV sum, countdown timer, rate limiter) across three model tiers, comparing a YAGNI-first approach against no constraint:
 
 | Metric | No constraint | Lean-by-default | Change |
@@ -208,7 +244,7 @@ Deletion beats addition, boring beats clever, and the smallest correct diff wins
 
 ## The Dev-Team Angle
 
-Anthropic's own usage data shows coding isn't one use case among many — it's the dominant one. "Modifying software to correct errors" alone accounts for roughly 6% of consumer Claude.ai usage and **10% of enterprise API traffic**, and the top 10 tasks make up close to a fifth to a quarter of all conversations. Engineering teams are, structurally, the heaviest token consumers in most organizations that adopt AI coding tools.
+The error-fixing share from the cost equation above isn't a rounding error at team scale — the top 10 tasks industry-wide make up close to a fifth to a quarter of all conversations, and engineering teams are, structurally, the heaviest token consumers in most organizations that adopt AI coding tools.
 
 That makes token discipline a team-economics lever, not a personal frugality habit. A 47–77% cost reduction on the highest-volume workload in the company (from the table above) moves a real line item — and it costs nothing in output quality, because every technique here is a routing, caching, or context-hygiene change, not a capability cut.
 
@@ -228,7 +264,7 @@ One more reason today's prices aren't the real prices: **they're not real prices
 
 > **News callout:** *["AI Costs More Than The People It Replaced"](https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/)* — Jemma Green, Forbes, Jul 2, 2026. The Uber budget figure was widely circulated in discussion of that piece.
 
-That subsidy is already unwinding. Anthropic moved enterprise customers from flat-rate plans to usage-based billing tied to actual compute in April 2026; GitHub Copilot followed weeks later, after years of quietly absorbing usage up to 8x the subscription's value for heavy users. Analysts expect frontier API prices to rise within 12–24 months, and enterprise AI bills to land 30–50% above today's levels once pricing reflects real infrastructure cost. (The honest counterweight: Gartner still expects the underlying cost *per unit* of inference to keep falling from hardware and algorithmic efficiency — this isn't pure doom, it's a floor rising under a ceiling that's also dropping.)
+That subsidy is already unwinding. Anthropic moved enterprise customers from flat-rate plans to usage-based billing tied to actual compute in April 2026. GitHub Copilot — the tool ~4.7 million paying developers already use — follows on **June 1, 2026**: every plan moves from a flat allotment of "premium requests" to metered AI Credits priced off real per-token API rates, and the fallback that used to drop heavy users to a cheaper model when they ran out is gone entirely. Pro still lists at $10/month — it just now buys $15 of credits instead of an unlimited allotment. Same sticker price, a meter where there used to be a flat rate. Analysts expect frontier API prices to rise within 12–24 months, and enterprise AI bills to land 30–50% above today's levels once pricing reflects real infrastructure cost. (The honest counterweight: Gartner still expects the underlying cost *per unit* of inference to keep falling from hardware and algorithmic efficiency — this isn't pure doom, it's a floor rising under a ceiling that's also dropping.)
 
 Either way, the habits in this post stop being optional the moment the subsidy ends. A team that's already routing by task, caching aggressively, and keeping context lean barely notices the price hike when it lands. A team that's defaulted to the flagship model on every request — because it was cheap enough not to think about — is about to feel the whole 30–50% at once, with no muscle memory for absorbing it.
 
@@ -305,18 +341,41 @@ The pattern across all of it: **the lightest layer that does the job, never a pr
 
 ---
 
+## Judgment, Not Just a Checklist — Output, Outcome, Impact
+
+AI's headline effect isn't better decisions — it's more Output. A model can draft the code, the summary, the migration plan, all day, instantly. But Output, Outcome, and Impact are three different things, and AI only ever hands you the first one:
+
+- **Output** — the immediate, direct result the model generates: a code snippet, a summarized document, a predictive score.
+- **Outcome** — the observable shift in behavior or process *caused by* that output: a bug actually stops recurring, a report actually gets acted on.
+- **Impact** — the ultimate business or strategic value that shift produces: lower support cost, higher revenue, a team that ships without burning out.
+
+More Output doesn't automatically buy more Outcome, and more Outcome doesn't automatically buy more Impact. A model can generate ten pull requests in the time a human generates one — that's Output, verifiable in seconds. Whether those ten PRs actually reduce defect rates (Outcome), and whether that shows up as fewer incidents and a calmer on-call rotation six months later (Impact), is not something the model decides. That gap — between what AI can *produce* and what actually *changes* — is exactly where judgment lives: an engineering read on what will actually break, and a business read on what's actually worth paying for downstream, before the extra Output is worth anything at all.
+
+Everything in this post is one instance of that same gap, pointed at cost instead of code volume:
+
+| Output (what you did) | Outcome (what changed) | Impact (the long-term difference) |
+|---|---|---|
+| Route lookups to Haiku/GLM/MiniMax instead of the flagship | Same task costs 5–25× less | Team absorbs the subsidy unwind without a budget shock |
+| Structure prompts for caching (static prefix front, batch inside the TTL) | Repeated-prefix reads cost 90% less | The same fixed AI budget covers new work, not repeated context |
+| Prune the idle graph MCP daemon | Every session carries ~30 fewer tool schemas | Laptop stays responsive across concurrent worktrees — no thermal throttling |
+
+None of these picks itself, and neither does any other AI output in your organization. The checklist below is the Output layer of this specific post; deciding which lines actually turn into Outcome and Impact *for your team* is the part no checklist — and no model — can do for you.
+
+---
+
 ## Checklist — Apply This Week
 
-- [ ] **Make the meter visible first** — `/cost`, `/context`, `/usage-credits`, or ccusage's 5-hour-block report; you can't cut what you can't see
-- [ ] Route by task: haiku for lookups, sonnet as default, opus only when reasoning depth justifies 5–25x the cost
+- [ ] **Make the meter visible first** — your agent's built-in usage command (Claude's `/cost`/`/context`, Codex's session totals, OpenCode's stored totals) or a cross-agent tracker like ccusage/tokscale; you can't cut what you can't see
+- [ ] Route by task: cheap tier (Haiku, GLM, MiniMax, Kimi) for lookups, mid tier as default, flagship only when reasoning depth justifies 5–25x the cost
 - [ ] Match the tool to the constraint that actually binds — data residency → local, cross-vendor flexibility → OpenRouter/OpenCode, out-of-the-box agent quality → Claude Code/Codex
 - [ ] Keep `CLAUDE.md` under ~200 lines; move file-specific patterns into globbed `rules/`
 - [ ] Replace prompt-based lint/type checks with command hooks
 - [ ] Index the codebase once (Tree-sitter-based graph, not LLM-based) instead of re-reading it every session
 - [ ] Dispatch exploration and research to subagents; keep the main thread to conclusions
-- [ ] Turn on prompt caching — and structure for it: static prefix at the front, dynamic state at the back, batch reads inside the TTL window (break-even ≈1.3 reads/write)
+- [ ] Turn on prompt caching — and structure for it: static prefix at the front, dynamic state at the back, batch reads inside the TTL window (break-even ≈1.4 reads/write)
 - [ ] Guard any background job — hooks, rebuilds, local inference — with CPU/memory checks and process dedupe before running multiple worktrees or projects in parallel
 - [ ] Capture decisions in memory/spec files once — read them, don't re-derive them
+- [ ] When a session's context gets long, write a short summary and start fresh instead of replaying the whole transcript — a bigger context window is not a free lunch
 - [ ] Mine session logs and PR review comments for recurring corrections; encode each one once into `CLAUDE.md`/rules instead of re-correcting it every time it recurs
 - [ ] Default to the smallest correct diff; every deleted line is a discount on every future session
 - [ ] Treat an unnecessary token as a small real energy-and-water cost, not just a cent — the same discipline covers both
@@ -326,11 +385,9 @@ The pattern across all of it: **the lightest layer that does the job, never a pr
 
 ## The Bottom Line
 
-Back to where this started: the reason I'm writing this checklist instead of reading someone else's is that I've watched a session quietly burn a day's token budget on one lazy "look around the codebase first" prompt, and I've heard a laptop fan scream through three worktrees all fighting for the same five minutes of CPU. Both are the same failure wearing a different costume — too many tokens spent finding what a smaller, sharper request would have found in one pass.
+The cheapest model was never the one with the lowest price per token — it's the one that reaches the correct answer in the fewest tokens, on the first attempt, on a device that isn't choking. Pull these levers while they're still optional, not after usage-based billing makes them mandatory.
 
-The cheapest model was never the one with the lowest price per token. It's the one that reaches the correct answer in the fewest tokens, on the first attempt, on a device that isn't already choking — and it's the only version of this that survives the subsidy clock running out. Model tiering, tool choice, harness quality, context hygiene, and device headroom each move the bill independently of each other and independently of output quality. Pull all five levers while they're still optional, not after usage-based billing makes them mandatory.
-
-If one line in this pays off in your own repo, that's the whole point of writing it down. Open `~/.claude/rules/model-routing.md` — or whatever your tool calls it — tonight, and route one task to the cheapest model that can actually do it.
+Open `~/.claude/rules/model-routing.md` — or whatever your tool calls it — and route one task to the cheapest model that can actually do it.
 
 ---
 
@@ -363,10 +420,16 @@ If one line in this pays off in your own repo, that's the whole point of writing
 - [Claude Prompt Caching in 2026 — the 5-minute TTL change costing you money](https://dev.to/whoffagents/claude-prompt-caching-in-2026-the-5-minute-ttl-change-thats-costing-you-money-4363)
 - [Prompt Caching Deep Dive — when it helps, when it hurts, the 270s cliff](https://dev.to/whoffagents/prompt-caching-deep-dive-when-it-helps-when-it-hurts-and-the-270s-cliff-291j)
 
+**Multi-Vendor & Open-Weight Pricing (July 2026):**
+- [GitHub Blog — GitHub Copilot is moving to usage-based billing](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/) — source for the Copilot AI Credits shift
+- [OpenAI API Pricing](https://developers.openai.com/api/docs/pricing) — GPT-5.6 family (Luna/Terra/Sol) and GPT-5.5
+- GLM-4.6 (Zhipu/Z.ai) and MiniMax M2 and Kimi K2.6 (Moonshot) — pricing aggregated from provider docs and OpenRouter model pages, cross-checked mid-2026
+- [Jeff Atwood — "The Best Code is No Code At All"](https://blog.codinghorror.com/) (2007) — source for the "best code is no code at all" line
+
 **Usage Data:**
 - [Anthropic Economic Index report: Cadences](https://www.anthropic.com/research/economic-index-june-2026-report)
 - [Anthropic Economic Index report: Learning curves](https://www.anthropic.com/research/economic-index-march-2026-report)
-- [Telenor Asia — Digital Lives Decoded 2025: Building Trust in Bangladesh's AI Future](https://www.telenorasia.com/announcements/mobile-technology-fuels-ai-adoption-in-bangladesh-according-to-telenor-asia-study/)
+- [Anthropic Economic Index — country usage (Bangladesh: 116/121, usage index 0.11)](https://www.anthropic.com/economic-index#country-usage)
 
 **Environment & Subsidy Economics:**
 - [UN News — AI's environmental costs threaten water, land and climate](https://news.un.org/en/story/2026/06/1167658)
