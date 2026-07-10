@@ -16,14 +16,6 @@ Before the math, the picture — this is the moment most teams first notice the 
   <sub>The gag is just the real numbers with a face on it — the ~$14,000/mo figure and the 70× subsidy gap are cited further down. Original artwork, not a stock image.</sub>
 </div>
 
-And the gap isn't a Gemini quirk — it holds across the entire field. Artificial Analysis's own weighted cost-per-task ranking puts **Claude Fable 5 as the single most expensive model benchmarked, at $2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02. The flagship-est model on the market is, quite literally, the most expensive way to answer a question.
-
-<div align="center">
-  <img src="../../../assets/B-16/which-ai-cost-more-per-task.png" alt="Bar chart: Which AI models cost the most per task? Weighted average cost in USD per Intelligence Index task, ranked from Claude Fable 5 at $2.73 down to gpt-oss-20b at $0.02"/>
-  <br/>
-  <sub>Source: <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index">Artificial Analysis — Intelligence Index, weighted cost per task</a>, Jul 3, 2026.</sub>
-</div>
-
 ---
 
 ## The Real Cost Equation
@@ -42,10 +34,12 @@ That third factor is bigger than it looks. Coding is already the dominant AI-age
 
 The lesson: **price-per-token and cost-per-task are different numbers, and only one of them is on the pricing page.** Or, as one comment on a viral post of this same chart put it: paying for the flagship model on a task the cheap tier could handle is buying a Ferrari to drive to the grocery store.
 
+And the gap isn't a Gemini quirk — it holds across the entire field. Artificial Analysis's own weighted cost-per-task ranking puts **Claude Fable 5 as the single most expensive model benchmarked, at $2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02. The flagship-est model on the market is, quite literally, the most expensive way to answer a question.
+
 <div align="center">
-  <img src="../../../assets/B-16/cost-per-task-chart.png" alt="Chart showing Gemini 3.5 Flash priced cheaper per token than Gemini 3.1 Pro, yet costing 75% more on the full benchmark suite"/>
+  <img src="../../../assets/B-16/which-ai-cost-more-per-task.png" alt="Bar chart: Which AI models cost the most per task? Weighted average cost in USD per Intelligence Index task, ranked from Claude Fable 5 at $2.73 down to gpt-oss-20b at $0.02"/>
   <br/>
-  <sub>Source: <a href="https://artificialanalysis.ai/articles/gemini-3-5-flash-everything-you-need-to-know">Artificial Analysis — "Gemini 3.5 Flash: The new leader in intelligence versus speed"</a> (May 19, 2026). Chart built from their published figures — not a reproduction of their original graphic.</sub>
+  <sub>Source: <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index">Artificial Analysis — Intelligence Index, weighted cost per task</a>, Jul 3, 2026.</sub>
 </div>
 
 ---
@@ -122,7 +116,7 @@ Two harness-level rules in this repo's config exist specifically to buy back tha
 
 ---
 
-## Multi-Project, Multi-Worktree — One Laptop, Many Agents
+## Device Cost — Not Just a Token Bill
 
 Token cost isn't only an API bill. It's also whatever is left of your CPU, RAM, and battery once you've opened three worktrees to pair-review a `branchdiff` PR, keep a side project's agent running in another tab, and let a background hook update a knowledge graph on commit. Every one of those is a concurrent process competing for the same cores — and it doesn't take much to tip that into visible thermal throttling.
 

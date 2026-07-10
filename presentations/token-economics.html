@@ -203,13 +203,13 @@ table .verdict-warn{color:var(--copper)}
 <div class="topbar"><div class="progress" id="progress"></div></div>
 
 <div class="chrome">
-  <span class="pill"><span class="num" id="curNum">01</span> / 20</span>
+  <span class="pill"><span class="num" id="curNum">01</span> / 21</span>
   <span class="pill" id="curTitle">Title</span>
 </div>
 
 <div class="nav">
   <button onclick="prev()" title="Previous">‹</button>
-  <span class="count" id="counter">01 / 20</span>
+  <span class="count" id="counter">01 / 21</span>
   <button onclick="next()" title="Next">›</button>
   <button onclick="toggleOverview()" title="Overview (O)">▦</button>
   <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
@@ -238,7 +238,7 @@ table .verdict-warn{color:var(--copper)}
 <!-- SLIDE 2 -->
 <section class="slide" data-title="The Bill Nobody Saw Coming">
   <div class="slide-num">02 · THE MOMENT MOST TEAMS NOTICE THE METER</div>
-  <h3 class="section">The Bill Nobody Saw <em>Coming</em> 🧾</h3>
+  <h3 class="section">The Bill Nobody Saw <em>Coming</em></h3>
   <div class="two-col" style="margin-top:18px">
     <div class="fig">
       <img src="../assets/B-16/bill-reveal.png" alt="Bill reveal cartoon">
@@ -251,19 +251,15 @@ table .verdict-warn{color:var(--copper)}
         <p style="margin:0">"AI Costs More Than The People It Replaced."</p>
       </div>
       <p class="muted">Uber reportedly burned its whole 2026 AI coding budget in <strong class="copper">4 months</strong>.</p>
+      <p class="caption">The cartoon is just that math with a face on it. Let's make the meter visible.</p>
     </div>
-  </div>
-  <p class="caption"><strong style="color:var(--accent)">It's not one vendor's quirk — it's the whole field.</strong> Claude Fable 5 is the single most expensive model benchmarked at <strong class="copper">$2.73 per Intelligence Index task</strong> — 136× the cheapest model measured, gpt-oss-20b at $0.02.</p>
-  <div class="fig" style="max-width:520px;margin-left:auto;margin-right:auto">
-    <img src="../assets/B-16/which-ai-cost-more-per-task.png" alt="Which AI models cost the most per task — weighted cost per Intelligence Index task">
-    <div class="fig-caption">Source: Artificial Analysis, Intelligence Index cost-per-task, Jul 3 2026. Let's make the meter visible.</div>
   </div>
 </section>
 
 <!-- SLIDE 3 -->
 <section class="slide" data-title="The Hidden Meter">
   <div class="slide-num">03 · THE HIDDEN METER</div>
-  <h3 class="section">Every AI Session Has a <em>Meter</em> Running 🎯</h3>
+  <h3 class="section">Every AI Session Has a <em>Meter</em> Running</h3>
   <ul class="bullets" style="margin-top:24px">
     <li>We watch output quality. We ignore the token counter.</li>
     <li>Then the monthly bill — or <strong>"context limit reached"</strong> — shows up.</li>
@@ -278,7 +274,7 @@ table .verdict-warn{color:var(--copper)}
 <!-- SLIDE 4 -->
 <section class="slide" data-title="The Cost Equation">
   <div class="slide-num">04 · THE REAL COST EQUATION</div>
-  <h3 class="section">Cost ≠ <em>Price Per Token</em> 💰</h3>
+  <h3 class="section">Cost ≠ <em>Price Per Token</em></h3>
   <div class="code-block" style="margin:30px 0">
     cost = <span class="var">(price per token)</span> <span class="op">×</span> <span class="var">(tokens per task)</span> <span class="op">×</span> <span class="var">(attempts)</span>
     <span class="comment"># Factor 1 is the vendor's. Factors 2 & 3 are yours — and where the real money moves.</span>
@@ -309,7 +305,7 @@ table .verdict-warn{color:var(--copper)}
 <!-- SLIDE 5 -->
 <section class="slide" data-title="The Cheap-Token Trap">
   <div class="slide-num">05 · THE CHEAP-TOKEN TRAP</div>
-  <h3 class="section">Cheaper Per Token ≠ <em>Cheaper Per Task</em> ⚠️</h3>
+  <h3 class="section">Cheaper Per Token ≠ <em>Cheaper Per Task</em></h3>
   <div class="two-col" style="margin-top:16px">
     <div>
       <div class="callout">
@@ -329,12 +325,17 @@ table .verdict-warn{color:var(--copper)}
       <div class="fig-caption">Source: Artificial Analysis, "Gemini 3.5 Flash: the new leader in intelligence versus speed," May 19, 2026.</div>
     </div>
   </div>
+  <p class="caption"><strong style="color:var(--accent)">It's not one vendor's quirk — it's the whole field.</strong> Claude Fable 5 is the single most expensive model benchmarked at <strong class="copper">$2.73 per Intelligence Index task</strong> — 136× the cheapest model measured, gpt-oss-20b at $0.02.</p>
+  <div class="fig" style="max-width:480px;margin-left:auto;margin-right:auto">
+    <img src="../assets/B-16/which-ai-cost-more-per-task.png" alt="Which AI models cost the most per task — weighted cost per Intelligence Index task, Claude Fable 5 at $2.73 down to gpt-oss-20b at $0.02">
+    <div class="fig-caption">Source: Artificial Analysis, Intelligence Index cost-per-task, Jul 3 2026.</div>
+  </div>
 </section>
 
 <!-- SLIDE 6 -->
 <section class="slide" data-title="Model Tiering">
   <div class="slide-num">06 · MODEL TIERING</div>
-  <h3 class="section">Pay for <em>Reasoning</em> Only When Needed — Every Vendor Has a Ladder 🎛️</h3>
+  <h3 class="section">Pay for <em>Reasoning</em> Only When Needed — Every Vendor Has a Ladder</h3>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Use for</th></tr></thead>
@@ -361,7 +362,7 @@ table .verdict-warn{color:var(--copper)}
 <!-- SLIDE 7 -->
 <section class="slide" data-title="Where Tokens Go">
   <div class="slide-num">07 · WHERE YOUR TOKENS ACTUALLY GO</div>
-  <h3 class="section">~94% Cheap Tasks, ~6% <em>Real Value</em> 📊</h3>
+  <h3 class="section">~94% Cheap Tasks, ~6% <em>Real Value</em></h3>
   <div class="two-col" style="margin-top:16px">
     <div class="fig">
       <img src="../assets/B-16/token-mix.png" alt="Token mix chart">
@@ -380,7 +381,7 @@ table .verdict-warn{color:var(--copper)}
 <!-- SLIDE 8 -->
 <section class="slide" data-title="Beyond One Vendor">
   <div class="slide-num">08 · BEYOND ONE VENDOR</div>
-  <h3 class="section">Same Arithmetic, <em>Different Tools</em> 🧰</h3>
+  <h3 class="section">Same Arithmetic, <em>Different Tools</em></h3>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Tool</th><th>Access</th><th>The tradeoff</th></tr></thead>
@@ -388,7 +389,7 @@ table .verdict-warn{color:var(--copper)}
         <tr><td><strong>Claude Code / Codex CLI</strong></td><td>One vendor</td><td>Predictable, but capped on heavy days</td></tr>
         <tr><td><strong>OpenCode</strong> <span class="tag">open-source</span></td><td>75+ providers, switch mid-session</td><td>One UI, any vendor's pricing underneath</td></tr>
         <tr><td><strong>OpenRouter</strong></td><td>300+ models, one key</td><td>Cross-vendor arbitrage; proxy hop for caching</td></tr>
-        <tr><td><strong>Local</strong> <span class="muted">(Ollama / LM Studio)</span></td><td>Whatever fits your hardware</td><td><span class="danger">$0/token, but not free</span> — see the device-cost slide</td></tr>
+        <tr><td><strong>Local</strong> <span class="muted">(Ollama / LM Studio)</span></td><td>Whatever fits your hardware</td><td><span class="danger">$0/token, but not free</span> — see the next slide</td></tr>
       </tbody>
     </table>
   </div>
@@ -396,9 +397,31 @@ table .verdict-warn{color:var(--copper)}
 </section>
 
 <!-- SLIDE 9 -->
+<section class="slide" data-title="Device Cost">
+  <div class="slide-num">09 · DEVICE COST</div>
+  <h3 class="section">Device Cost — <em>Not Just a Token Bill</em></h3>
+  <div class="callout danger">
+    <div class="label">Real example — this repo's graphify hook, no guard</div>
+    <p style="margin:0"><strong>3 rebuild processes</strong> at <span class="mono">65–73% CPU</span> each · load average <span class="mono">12+</span> · RAM saturated.</p>
+  </div>
+  <div class="callout accent">
+    <div class="label">Fix</div>
+    <p style="margin:0">Skip the rebuild if CPU load > <strong class="copper">50% of cores</strong> or free memory < <strong class="copper">2GB</strong>, plus process dedupe.</p>
+  </div>
+  <ul class="bullets">
+    <li>Every parallel worktree = a <strong>concurrent process</strong> on the same CPU / RAM / battery.</li>
+    <li>A throttled laptop produces <strong class="danger">worse agent output</strong> long before the API bill is the bottleneck.</li>
+  </ul>
+  <div class="callout" style="margin-top:10px">
+    <div class="label">Local models sharpen this, in numbers</div>
+    <p style="margin:0">An 8–14B model wants 8–12GB VRAM/unified memory and fits <strong>one active session</strong> comfortably. Open two or three worktree sessions on the same box and you're splitting 16–32GB of RAM/VRAM three ways, battery draining faster than any spec sheet implies. A weaker local model needing three retries has spent more wall-clock than the "expensive" API call did in one — even at $0 marginal token cost. The real win with local isn't price; it's that nothing leaves the device.</p>
+  </div>
+</section>
+
+<!-- SLIDE 10 -->
 <section class="slide" data-title="Harness Beats Horsepower">
-  <div class="slide-num">09 · HARNESS BEATS HORSEPOWER</div>
-  <h3 class="section">Scaffolding Matters as Much as the <em>Model</em> 🔧</h3>
+  <div class="slide-num">10 · HARNESS BEATS HORSEPOWER</div>
+  <h3 class="section">Scaffolding Matters as Much as the <em>Model</em></h3>
   <div class="stat-row" style="margin-top:24px">
     <div class="stat">
       <div class="num">69.2<span style="font-size:.5em">%</span></div>
@@ -430,80 +453,10 @@ table .verdict-warn{color:var(--copper)}
   <p class="caption" style="margin-top:14px">Source: Scale AI SEAL leaderboard, SWE-bench Pro (standardized scaffolding).</p>
 </section>
 
-<!-- SLIDE 10 -->
-<section class="slide" data-title="One Laptop, Many Agents">
-  <div class="slide-num">10 · ONE LAPTOP, MANY AGENTS</div>
-  <h3 class="section">Multi-Worktree Has a <em>Device Cost</em> Too 💻</h3>
-  <div class="callout danger">
-    <div class="label">Real example — this repo's graphify hook, no guard</div>
-    <p style="margin:0"><strong>3 rebuild processes</strong> at <span class="mono">65–73% CPU</span> each · load average <span class="mono">12+</span> · RAM saturated.</p>
-  </div>
-  <div class="callout accent">
-    <div class="label">Fix</div>
-    <p style="margin:0">Skip the rebuild if CPU load > <strong class="copper">50% of cores</strong> or free memory < <strong class="copper">2GB</strong>, plus process dedupe.</p>
-  </div>
-  <ul class="bullets">
-    <li>Every parallel worktree = a <strong>concurrent process</strong> on the same CPU / RAM / battery.</li>
-    <li>A throttled laptop produces <strong class="danger">worse agent output</strong> long before the API bill is the bottleneck.</li>
-  </ul>
-  <div class="callout" style="margin-top:10px">
-    <div class="label">Local models sharpen this, in numbers</div>
-    <p style="margin:0">An 8–14B model wants 8–12GB VRAM/unified memory and fits <strong>one active session</strong> comfortably. Open two or three worktree sessions on the same box and you're splitting 16–32GB of RAM/VRAM three ways, battery draining faster than any spec sheet implies. A weaker local model needing three retries has spent more wall-clock than the "expensive" API call did in one — even at $0 marginal token cost. The real win with local isn't price; it's that nothing leaves the device.</p>
-  </div>
-</section>
-
 <!-- SLIDE 11 -->
-<section class="slide" data-title="Make the Meter Visible">
-  <div class="slide-num">11 · MAKE THE METER VISIBLE</div>
-  <h3 class="section">You Can't Cut What You Can't <em>See</em> 📊</h3>
-  <p class="muted" style="font-size:.92rem">Every agent writes local logs, so tracking is always possible. Pick the tracker that reads <em>your</em> agent's logs.</p>
-  <div class="table-wrap" style="font-size:.82rem">
-    <table>
-      <thead><tr><th>Agent</th><th>Native</th><th>Logs</th><th>Tracker (with the con)</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Claude Code</strong></td><td><code>/cost</code>, <code>/context</code>, SDK</td><td>local files</td><td><strong class="success">ccusage</strong> ✅ 5-hr-block view · ❌ Claude-centric</td></tr>
-        <tr><td><strong>Codex CLI</strong></td><td>in-session totals (light)</td><td><code>~/.codex/sessions/*.jsonl</code></td><td><strong class="success">tokscale</strong> ✅ cross-agent · ❌ newer</td></tr>
-        <tr><td><strong>OpenCode</strong></td><td>no tracking command</td><td>SQLite / JSON</td><td><strong class="success">opencode-stats</strong> ✅ 365-day · ❌ OpenCode-only</td></tr>
-        <tr><td><strong>All / enterprise</strong></td><td>—</td><td>—</td><td>Dynatrace / Portkey ✅ governance · ❌ overhead</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="callout accent">
-    <div class="label">The habit</div>
-    <p style="margin:0;font-size:.95rem">Glance at usage <strong>before</strong> escalating to the flagship model · review the weekly report <strong>before</strong> fanning out 20 subagents · watch the 5-hour block on subscription tiers.</p>
-  </div>
-  <p class="caption">Every cut on the next slide came from this — Headroom cut once device load was measured; the idle graph MCP pruned once its context tax was measured.</p>
-</section>
-
-<!-- SLIDE 12 -->
-<section class="slide" data-title="My Toolkit">
-  <div class="slide-num">12 · MY TOOLKIT — WHAT I RUN, WHAT I CUT</div>
-  <h3 class="section">Marketing Shows the Pros. These Are the <em>Cuts</em>. 🧰</h3>
-  <p class="muted" style="font-size:.9rem">Three layers stack: <strong class="copper">output</strong> (write less) · <strong class="copper">input</strong> (read less) · <strong class="copper">routing</strong> (cheaper provider).</p>
-  <div class="table-wrap" style="font-size:.8rem">
-    <table>
-      <thead><tr><th>Tool</th><th>Layer</th><th>Verdict — with the con</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Ponytail</strong></td><td>output / code</td><td class="verdict-good">✅ run — YAGNI ladder, shortest diff (6–20% lines, 23–53% cost)</td></tr>
-        <tr><td><strong>caveman</strong></td><td>output / prose</td><td class="verdict-good">✅ run — ~75% fewer tokens; overlaps Ponytail by design</td></tr>
-        <tr><td><strong>RTK</strong> (rtk-ai/rtk)</td><td>input / shell</td><td class="verdict-good">✅ run — Rust, <10ms, 60–90% off Bash output; Read/Grep bypass</td></tr>
-        <tr><td><strong>Headroom</strong></td><td>input / files</td><td class="verdict-bad">❌ cut — 60–95% off, byte-perfect, but ~600MB ML daemon = device-drag</td></tr>
-        <tr><td><strong>OmniRoute</strong></td><td>routing</td><td class="verdict-bad">❌ cut — 237-provider gateway → quality drift + ToS-ban pattern</td></tr>
-        <tr><td><strong>graphify / CRG</strong></td><td>index</td><td class="verdict-warn">⚠️ project-local only — behind resource guards; cut as global daemon</td></tr>
-        <tr><td><strong>branchdiff</strong> <span class="tag">mine</span></td><td>review</td><td class="verdict-good">✅ run — pipes just the diff, nth-time awareness skips re-raised nits</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="callout accent" style="font-size:.88rem">
-    <div class="label">The rule that decided most of it</div>
-    <p style="margin:0">Ban risk lives on the wire — a tool only risks a ban if it sits between you and the provider <strong>and</strong> mutates the payload. Rule-injection (Ponytail) = zero. Proxies (Headroom, OmniRoute) = real. That's why my stack has <strong class="copper">zero proxies</strong>.</p>
-  </div>
-</section>
-
-<!-- SLIDE 13 -->
 <section class="slide" data-title="Feed Less, Not More">
-  <div class="slide-num">13 · FEED LESS, NOT MORE</div>
-  <h3 class="section">Bigger Window ≠ <em>Better Recall</em> 🌊</h3>
+  <div class="slide-num">11 · FEED LESS, NOT MORE</div>
+  <h3 class="section">Bigger Window ≠ <em>Better Recall</em></h3>
   <p class="lead">Accuracy drops as token count climbs — even well inside the limit. <strong class="accent">Context rot</strong> is real; the fix is a smaller haystack, not a bigger window.</p>
   <ul class="bullets" style="margin-top:20px">
     <li><strong>On-demand retrieval:</strong> our knowledge graph (<code>graphify</code> + <code>code-review-graph</code>) indexes 1,000+ files for <strong class="success">0 LLM tokens</strong>; skipping it burns ~20,000 tokens re-orienting every session.</li>
@@ -513,10 +466,10 @@ table .verdict-warn{color:var(--copper)}
   </ul>
 </section>
 
-<!-- SLIDE 14 -->
+<!-- SLIDE 12 -->
 <section class="slide" data-title="Caching — The 90% Lever">
-  <div class="slide-num">14 · CACHING — THE 90% LEVER</div>
-  <h3 class="section">The Single Biggest <em>Zero-Quality-Loss</em> Lever 🧊</h3>
+  <div class="slide-num">12 · CACHING — THE 90% LEVER</div>
+  <h3 class="section">The Single Biggest <em>Zero-Quality-Loss</em> Lever</h3>
   <p style="font-size:.95rem">The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is <strong class="success">byte-identical</strong>; only the bill and latency change. ~90% off the cached input is the number all three majors converge on.</p>
   <div class="table-wrap" style="margin-top:14px">
     <table>
@@ -533,10 +486,10 @@ table .verdict-warn{color:var(--copper)}
   </div>
 </section>
 
-<!-- SLIDE 15 -->
+<!-- SLIDE 13 -->
 <section class="slide" data-title="Cache or Crash">
-  <div class="slide-num">15 · CACHE OR CRASH</div>
-  <h3 class="section">The Break-Even <em>Math</em> ⚠️</h3>
+  <div class="slide-num">13 · CACHE OR CRASH</div>
+  <h3 class="section">The Break-Even <em>Math</em></h3>
   <p>Write costs <strong class="danger">1.25×</strong> normal input; each hit after costs <strong class="success">0.10×</strong> — a 0.90× saving per read. Cover the 0.25 extra you paid on the write: 0.25 ÷ 0.90 ≈ <strong class="copper">1.4 reads to break even.</strong> Fewer hits than that inside the window, and caching cost you money — a 20K-token prefix hit ~1.1×/5-min is a real example of a cache actively losing money.</p>
   <div class="callout danger">
     <div class="label">The 5-minute cliff</div>
@@ -556,10 +509,10 @@ table .verdict-warn{color:var(--copper)}
   <p class="caption">Same instinct, interactive sessions: iterate in tight bursts, keep turns close, don't let the file cache go cold across a meeting.</p>
 </section>
 
-<!-- SLIDE 16 -->
+<!-- SLIDE 14 -->
 <section class="slide" data-title="Memory Compounds">
-  <div class="slide-num">16 · MEMORY COMPOUNDS</div>
-  <h3 class="section">Reuse Beats <em>Re-Derivation</em> 🧠</h3>
+  <div class="slide-num">14 · MEMORY COMPOUNDS</div>
+  <h3 class="section">Reuse Beats <em>Re-Derivation</em></h3>
   <p class="muted">One real session — this repo's own memory index.</p>
   <div class="stat-row" style="margin-top:24px">
     <div class="stat">
@@ -586,10 +539,10 @@ table .verdict-warn{color:var(--copper)}
   <p class="caption" style="margin-top:auto">Capture once. Read forever. Don't re-derive — forward <em>or</em> backward.</p>
 </section>
 
-<!-- SLIDE 17 -->
+<!-- SLIDE 15 -->
 <section class="slide" data-title="Less Code, Less to Reload">
-  <div class="slide-num">17 · LESS CODE, LESS TO RELOAD</div>
-  <h3 class="section">Every Line Written Is a Line <em>Reloaded Later</em> ✂️</h3>
+  <div class="slide-num">15 · LESS CODE, LESS TO RELOAD</div>
+  <h3 class="section">Every Line Written Is a Line <em>Reloaded Later</em></h3>
   <p class="muted">Benchmark medians — lean-by-default vs. no constraint (5 tasks, 3 models).</p>
   <div class="table-wrap" style="margin-top:18px">
     <table>
@@ -608,10 +561,58 @@ table .verdict-warn{color:var(--copper)}
   <p class="caption" style="margin-top:auto">Jeff Atwood, 2007: <strong>"the best code is no code at all."</strong> Every line is a line that has to be debugged, read, and supported — technical debt in its most literal form. In the AI-agent era it compounds twice: maintenance burden, and a token bill every future session pays to load the file.</p>
 </section>
 
+<!-- SLIDE 16 -->
+<section class="slide" data-title="Make the Meter Visible">
+  <div class="slide-num">16 · MAKE THE METER VISIBLE</div>
+  <h3 class="section">You Can't Cut What You Can't <em>See</em></h3>
+  <p class="muted" style="font-size:.92rem">Every agent writes local logs, so tracking is always possible. Pick the tracker that reads <em>your</em> agent's logs.</p>
+  <div class="table-wrap" style="font-size:.82rem">
+    <table>
+      <thead><tr><th>Agent</th><th>Native</th><th>Logs</th><th>Tracker (with the con)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Claude Code</strong></td><td><code>/cost</code>, <code>/context</code>, SDK</td><td>local files</td><td><strong class="success">ccusage</strong> ✅ 5-hr-block view · ❌ Claude-centric</td></tr>
+        <tr><td><strong>Codex CLI</strong></td><td>in-session totals (light)</td><td><code>~/.codex/sessions/*.jsonl</code></td><td><strong class="success">tokscale</strong> ✅ cross-agent · ❌ newer</td></tr>
+        <tr><td><strong>OpenCode</strong></td><td>no tracking command</td><td>SQLite / JSON</td><td><strong class="success">opencode-stats</strong> ✅ 365-day · ❌ OpenCode-only</td></tr>
+        <tr><td><strong>All / enterprise</strong></td><td>—</td><td>—</td><td>Dynatrace / Portkey ✅ governance · ❌ overhead</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent">
+    <div class="label">The habit</div>
+    <p style="margin:0;font-size:.95rem">Glance at usage <strong>before</strong> escalating to the flagship model · review the weekly report <strong>before</strong> fanning out 20 subagents · watch the 5-hour block on subscription tiers.</p>
+  </div>
+  <p class="caption">Every cut on the next slide came from this — Headroom cut once device load was measured; the idle graph MCP pruned once its context tax was measured.</p>
+</section>
+
+<!-- SLIDE 17 -->
+<section class="slide" data-title="My Toolkit">
+  <div class="slide-num">17 · MY TOOLKIT — WHAT I RUN, WHAT I CUT</div>
+  <h3 class="section">Marketing Shows the Pros. These Are the <em>Cuts</em>.</h3>
+  <p class="muted" style="font-size:.9rem">Three layers stack: <strong class="copper">output</strong> (write less) · <strong class="copper">input</strong> (read less) · <strong class="copper">routing</strong> (cheaper provider).</p>
+  <div class="table-wrap" style="font-size:.8rem">
+    <table>
+      <thead><tr><th>Tool</th><th>Layer</th><th>Verdict — with the con</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Ponytail</strong></td><td>output / code</td><td class="verdict-good">✅ run — YAGNI ladder, shortest diff (6–20% lines, 23–53% cost)</td></tr>
+        <tr><td><strong>caveman</strong></td><td>output / prose</td><td class="verdict-good">✅ run — ~75% fewer tokens; overlaps Ponytail by design</td></tr>
+        <tr><td><strong>RTK</strong> (rtk-ai/rtk)</td><td>input / shell</td><td class="verdict-good">✅ run — Rust, <10ms, 60–90% off Bash output; Read/Grep bypass</td></tr>
+        <tr><td><strong>Headroom</strong></td><td>input / files</td><td class="verdict-bad">❌ cut — 60–95% off, byte-perfect, but ~600MB ML daemon = device-drag</td></tr>
+        <tr><td><strong>OmniRoute</strong></td><td>routing</td><td class="verdict-bad">❌ cut — 237-provider gateway → quality drift + ToS-ban pattern</td></tr>
+        <tr><td><strong>graphify / CRG</strong></td><td>index</td><td class="verdict-warn">⚠️ project-local only — behind resource guards; cut as global daemon</td></tr>
+        <tr><td><strong>branchdiff</strong> <span class="tag">mine</span></td><td>review</td><td class="verdict-good">✅ run — pipes just the diff, nth-time awareness skips re-raised nits</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent" style="font-size:.88rem">
+    <div class="label">The rule that decided most of it</div>
+    <p style="margin:0">Ban risk lives on the wire — a tool only risks a ban if it sits between you and the provider <strong>and</strong> mutates the payload. Rule-injection (Ponytail) = zero. Proxies (Headroom, OmniRoute) = real. That's why my stack has <strong class="copper">zero proxies</strong>.</p>
+  </div>
+</section>
+
 <!-- SLIDE 18 -->
 <section class="slide" data-title="Beyond the Bill">
   <div class="slide-num">18 · BEYOND THE BILL</div>
-  <h3 class="section">Two Reasons This Isn't <em>Only About Money</em> 🌍</h3>
+  <h3 class="section">Two Reasons This Isn't <em>Only About Money</em></h3>
   <div class="two-col" style="margin-top:18px">
     <div>
       <div class="callout">
@@ -633,28 +634,40 @@ table .verdict-warn{color:var(--copper)}
 </section>
 
 <!-- SLIDE 19 -->
-<section class="slide" data-title="Judgment">
-  <div class="slide-num">19 · JUDGMENT, NOT JUST A CHECKLIST</div>
-  <h3 class="section">Output → Outcome → <em>Impact</em> 🧭</h3>
-  <p style="font-size:.92rem">AI's headline effect isn't better decisions — it's more <strong class="accent">Output</strong> (code, summaries, predictions, instantly). But Output ≠ <strong class="copper">Outcome</strong> (the actual behavior/process shift) ≠ <strong class="success">Impact</strong> (the long-term business value) — and AI only ever hands you the first one.</p>
-  <p style="font-size:.88rem" class="muted">Ten AI-drafted PRs is Output, verifiable in seconds. Whether they cut defect rates is Outcome. Whether that's a calmer on-call rotation six months later is Impact. AI doesn't decide that gap — judgment does.</p>
-  <div class="table-wrap" style="margin-top:14px">
-    <table>
-      <thead><tr><th>Output (what you did)</th><th>Outcome (what changed)</th><th>Impact (long-term)</th></tr></thead>
-      <tbody>
-        <tr><td>Route to cheap tier instead of flagship</td><td>Task costs 5–25× less</td><td>Team absorbs the subsidy unwind</td></tr>
-        <tr><td>Structure for caching</td><td>Repeated reads cost 90% less</td><td>Same budget covers new work, not repeated context</td></tr>
-        <tr><td>Prune the idle graph MCP daemon</td><td>~30 fewer tool schemas per session</td><td>Laptop stays responsive across worktrees</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="caption" style="margin-top:auto"><strong>None of these picks itself.</strong> Engineering judgment (what will break) and business judgment (what's worth paying for) decide — not the model, not a checklist.</p>
+<section class="slide" data-title="AI Output vs Outcome and Impact">
+  <div class="slide-num">19 · AI OUTPUT VS. OUTCOME AND IMPACT</div>
+  <h3 class="section">Output ≠ Outcome ≠ <em>Impact</em></h3>
+  <p style="font-size:.95rem">AI's headline effect isn't better decisions — it's more <strong class="accent">Output</strong> (code, summaries, predictions, instantly). But Output, Outcome, and Impact are three different things, and AI only ever hands you the first one:</p>
+  <ul class="bullets" style="margin-top:16px">
+    <li><strong class="accent">Output</strong> — the immediate, direct result the model generates: a code snippet, a summarized document, a predictive score.</li>
+    <li><strong class="copper">Outcome</strong> — the observable shift in behavior or process <em>caused by</em> that output: a bug actually stops recurring, a report actually gets acted on.</li>
+    <li><strong class="success">Impact</strong> — the ultimate business or strategic value that shift produces: lower support cost, higher revenue, a team that ships without burning out.</li>
+  </ul>
+  <p class="caption" style="margin-top:auto">Ten AI-drafted PRs is Output, verifiable in seconds. Whether they cut defect rates is Outcome. Whether that's a calmer on-call rotation six months later is Impact. More Output doesn't automatically buy more Outcome, and more Outcome doesn't automatically buy more Impact — that gap is exactly where judgment lives.</p>
 </section>
 
 <!-- SLIDE 20 -->
+<section class="slide" data-title="The Result of Your Actions">
+  <div class="slide-num">20 · THE RESULT OF YOUR ACTIONS</div>
+  <h3 class="section">Applying the Lens <em>to This Talk</em></h3>
+  <p style="font-size:.92rem">Same idea, pointed at <em>your</em> decisions instead of AI's raw output — every technique in this talk is an action, and it has its own Outcome and Impact:</p>
+  <div class="table-wrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>Your Action</th><th>Outcome</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr><td>Route to cheap tier instead of flagship</td><td>Task costs 5–25× less</td><td>Team absorbs the subsidy unwind</td></tr>
+        <tr><td>Structure for caching</td><td>Repeated reads cost 90% less</td><td>Same budget covers new work</td></tr>
+        <tr><td>Prune the idle graph MCP daemon</td><td>~30 fewer tool schemas/session</td><td>Laptop stays responsive across worktrees</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="caption" style="margin-top:auto"><strong>None of these picks itself.</strong> Engineering judgment (what will break) and business judgment (what's worth paying for) decide which action is worth taking — not the model, not a checklist. The checklist next is the Action layer; deciding which lines apply to you is the part no checklist can do.</p>
+</section>
+
+<!-- SLIDE 21 -->
 <section class="slide" data-title="Checklist">
-  <div class="slide-num">20 · APPLY THIS WEEK</div>
-  <h3 class="section">Checklist ✅</h3>
+  <div class="slide-num">21 · APPLY THIS WEEK</div>
+  <h3 class="section">Checklist</h3>
   <ul class="checklist" style="margin-top:18px;columns:2;column-gap:40px">
     <li>Route by task: <strong>cheap tier</strong> (Haiku, GLM, MiniMax, Kimi) → <strong>mid tier</strong> (default) → flagship</li>
     <li>Match the tool to the constraint that binds — local, OpenRouter/OpenCode, or Claude Code/Codex</li>

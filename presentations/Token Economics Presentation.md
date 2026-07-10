@@ -12,23 +12,19 @@
 
 ## Slide 2: The Moment Most Teams Notice the Meter
 
-# 🧾 The Bill Nobody Saw Coming
+# The Bill Nobody Saw Coming
 
 ![Cartoon: the $20/month AI deal vs the $14,000 compute bill a quarter later](../assets/B-16/bill-reveal.png)
 
 *A $200/mo plan is worth ~$14,000/mo of real compute — a ~70× subsidy someone is paying. Forbes (Jul 2026): "AI Costs More Than The People It Replaced." Uber reportedly burned its whole 2026 AI coding budget in 4 months.*
 
-**It's not one vendor's quirk — it's the whole field.** Claude Fable 5 is the single most expensive model benchmarked at **$2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02.
-
-![Which AI models cost the most per task — weighted cost per Intelligence Index task, Claude Fable 5 to gpt-oss-20b](../assets/B-16/which-ai-cost-more-per-task.png)
-
-*Source: Artificial Analysis, Intelligence Index cost-per-task, Jul 3 2026. Let's make the meter visible.*
+*The cartoon is just that math with a face on it. Let's make the meter visible.*
 
 ---
 
 ## Slide 3: The Hidden Meter
 
-# 🎯 Every AI Session Has a Meter Running
+# Every AI Session Has a Meter Running
 
 - We watch output quality. We ignore the token counter.
 - Then the monthly bill — or "context limit reached" — shows up.
@@ -38,7 +34,7 @@
 
 ## Slide 4: The Real Cost Equation
 
-# 💰 Cost ≠ Price Per Token
+# Cost ≠ Price Per Token
 
 ```
 cost = (price per token) × (tokens per task) × (attempts)
@@ -52,7 +48,7 @@ Factor 3 is bigger than it looks: coding is the **#1 use case** for AI agents in
 
 ## Slide 5: The Cheap-Token Trap
 
-# ⚠️ Cheaper Per Token ≠ Cheaper Per Task
+# Cheaper Per Token ≠ Cheaper Per Task
 
 **Gemini 3.5 Flash:** $1.50/M input vs Gemini 3.1 Pro's ~$2.00/M — looks like the win
 
@@ -65,15 +61,17 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 *As one viral comment on this same chart put it: paying flagship prices for a task the cheap tier could handle is buying a Ferrari to drive to the grocery store.*
 
-![Cheaper per token vs cheaper per task](../assets/B-16/cost-per-task-chart.png)
+**It's not one vendor's quirk — it's the whole field.** Claude Fable 5 is the single most expensive model benchmarked at **$2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02.
 
-*Source: Artificial Analysis, "Gemini 3.5 Flash: the new leader in intelligence versus speed," May 19, 2026.*
+![Which AI models cost the most per task — weighted cost per Intelligence Index task, Claude Fable 5 to gpt-oss-20b](../assets/B-16/which-ai-cost-more-per-task.png)
+
+*Source: Artificial Analysis, Intelligence Index cost-per-task, Jul 3 2026.*
 
 ---
 
 ## Slide 6: Model Tiering
 
-# 🎛️ Pay for Reasoning Only When Needed — Every Vendor Has a Ladder
+# Pay for Reasoning Only When Needed — Every Vendor Has a Ladder
 
 | Model | Input | Output | Use for |
 |---|---|---|---|
@@ -92,7 +90,7 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 ## Slide 7: Where Your Tokens Actually Go
 
-# 📊 ~94% Cheap Tasks, ~6% Real Value
+# ~94% Cheap Tasks, ~6% Real Value
 
 ![Chart: typical developer session token mix — 94% low-value (syntax lookups, boilerplate, stack traces), 6% high-value (architect & ship)](../assets/B-16/token-mix.png)
 
@@ -104,22 +102,37 @@ For a working developer, the split isn't abstract: syntax lookups, rephrasing a 
 
 ## Slide 8: Beyond One Vendor
 
-# 🧰 Same Arithmetic, Different Tools
+# Same Arithmetic, Different Tools
 
 | Tool | Access | The tradeoff |
 |---|---|---|
 | Claude Code / Codex CLI | One vendor | Predictable, but capped on heavy days |
 | OpenCode (open-source) | 75+ providers, switch mid-session | One UI, any vendor's pricing underneath |
 | OpenRouter | 300+ models, one key | Cross-vendor arbitrage; proxy hop for caching |
-| Local (Ollama/LM Studio) | Whatever fits your hardware | **$0/token, but not free** — see the device-cost slide |
+| Local (Ollama/LM Studio) | Whatever fits your hardware | **$0/token, but not free** — see the next slide |
 
 Pick the tool for the constraint that binds: data residency → local; flexibility → OpenRouter/OpenCode; out-of-the-box quality → Claude Code/Codex.
 
 ---
 
-## Slide 9: Harness Beats Horsepower
+## Slide 9: Device Cost
 
-# 🔧 Scaffolding Matters as Much as the Model
+# Device Cost — Not Just a Token Bill
+
+Real example, this repo's graphify hook — no guard: **3 rebuild processes at 65–73% CPU each, load average 12+, RAM saturated.**
+
+Fix: skip the rebuild if CPU load >50% of cores or free memory <2GB, plus process dedupe. Same problem, any vendor:
+
+- Every parallel worktree = a concurrent process on the same CPU/RAM/battery
+- A throttled laptop produces worse agent output long before the API bill is the bottleneck
+
+**Local models sharpen this, in numbers:** an 8–14B model wants 8–12GB VRAM/unified memory and fits one active session comfortably. Open two or three worktree sessions on the same box and you're splitting 16–32GB of RAM/VRAM three ways, battery draining faster than any spec sheet implies. A weaker local model needing three retries has spent more wall-clock than the "expensive" API call did in one — even at $0 marginal token cost. The real win with local isn't price; it's that nothing leaves the device.
+
+---
+
+## Slide 10: Harness Beats Horsepower
+
+# Scaffolding Matters as Much as the Model
 
 - Claude Opus 4.8 on its own scaffolding: **69.2%** SWE-bench Pro
 - Scale AI's SEAL leaderboard, *identical* scaffolding for every model: best score is **59.1%**
@@ -134,24 +147,92 @@ Pick the tool for the constraint that binds: data residency → local; flexibili
 
 ---
 
-## Slide 10: One Laptop, Many Agents
+## Slide 11: Feed Less, Not More
 
-# 💻 Multi-Worktree Has a Device Cost Too
+# Bigger Window ≠ Better Recall
 
-Real example, this repo's graphify hook — no guard: **3 rebuild processes at 65–73% CPU each, load average 12+, RAM saturated.**
+Accuracy drops as token count climbs — even well inside the limit. **Context rot** is real; the fix is a smaller haystack, not a bigger window.
 
-Fix: skip the rebuild if CPU load >50% of cores or free memory <2GB, plus process dedupe. Same problem, any vendor:
-
-- Every parallel worktree = a concurrent process on the same CPU/RAM/battery
-- A throttled laptop produces worse agent output long before the API bill is the bottleneck
-
-**Local models sharpen this, in numbers:** an 8–14B model wants 8–12GB VRAM/unified memory and fits one active session comfortably. Open two or three worktree sessions on the same box and you're splitting 16–32GB of RAM/VRAM three ways, battery draining faster than any spec sheet implies. A weaker local model needing three retries has spent more wall-clock than the "expensive" API call did in one — even at $0 marginal token cost. The real win with local isn't price; it's that nothing leaves the device.
+- **On-demand retrieval:** our knowledge graph (`graphify` + `code-review-graph`) indexes 1,000+ files for **0 LLM tokens**; skipping it burns ~20,000 tokens re-orienting every session
+- **Subagents** with clean, disposable context — the transcript gets thrown away, only the conclusion survives
+- **Compact deliberately:** when a session's context gets long, summarize and start fresh instead of replaying the whole transcript — same discount as caching, applied to session length
+- **Prompt caching** — big enough to get its own slide →
 
 ---
 
-## Slide 11: Make the Meter Visible
+## Slide 12: Caching — The 90% Lever
 
-# 📊 You Can't Cut What You Can't See — Across Every Agent
+# The Single Biggest Zero-Quality-Loss Lever
+
+The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is byte-identical; only the bill and latency change. ~90% off the cached input is the number all three majors converge on.
+
+| Provider | TTL | Write | Read (hit) |
+|---|---|---|---|
+| **Claude** | 5 min / 1 hr | 1.25× (2.0×/1hr) | **0.10×** · 90% off |
+| **GPT-5.x** | up to **24 h** | 1.0×, no fee | **0.50×** · 50% off |
+| **Gemini 3.x** | 60 min | 1.0× + storage | **0.10×** · 90% off |
+
+![Prompt caching across providers](../assets/B-16/caching-lever.png)
+
+---
+
+## Slide 13: Cache or Crash
+
+# The Break-Even Math
+
+Write costs **1.25×** normal input; each hit after costs **0.10×** — a 0.90× saving per read. Cover the 0.25 extra you paid on the write: 0.25 ÷ 0.90 ≈ **1.4 reads to break even.** Fewer hits than that inside the window, and caching cost you money — a 20K-token prefix hit ~1.1×/5-min is a real example of a cache actively losing money.
+
+**The 5-minute cliff:** Anthropic dropped Claude's TTL 60min → 5min in early 2026. Savings fell ~84% → ~52% — every call past 300s became a fresh write.
+
+**Hold the cache warm:**
+- **Batch within the window** — tight bursts, not a slow drip
+- **Keep-alive ping** — a light read every ~4 min resets the TTL
+- **Static-prefix-first** — dynamic state at the *back*, never the front (one byte change ahead of the cache invalidates the whole prefix)
+- **Batch API** for overnight jobs — first item writes, the rest read at 10% + ~50% batch off
+
+*Same instinct, interactive sessions: iterate in tight bursts, keep turns close, don't let the file cache go cold across a meeting.*
+
+---
+
+## Slide 14: Memory Compounds
+
+# Reuse Beats Re-Derivation
+
+One real session, this repo's own memory index:
+
+- Reading 50 indexed observations: **23,909 tokens**
+- Original work that produced them: **485,629 tokens**
+- **95% fewer tokens** — same starting knowledge, reused instead of re-derived
+
+**Same idea pointed backward:** mine your own chat logs and PR review comments for recurring corrections — same nit on three PRs is a pattern, not three nits. Encode it once in `CLAUDE.md`/rules; the model stops repeating the mistake, and "number of attempts" from Slide 4 stops multiplying.
+
+**The infra that makes it systematic:** skills (Claude Code, OpenCode's plugin system) package a repeatable workflow instead of re-explaining it in prose each time. Memory plugins persist facts and decisions *across sessions*, so a new conversation starts with what a prior one learned instead of from zero.
+
+Capture once. Read forever. Don't re-derive — forward *or* backward.
+
+---
+
+## Slide 15: Less Code, Less to Reload
+
+# Every Line Written Is a Line Reloaded Later
+
+Benchmark medians, lean-by-default vs. no constraint (5 tasks, 3 models):
+
+| Metric | No constraint | Lean-by-default |
+|---|---|---|
+| Lines of code | 100% | 6–20% |
+| Cost | 100% | 23–53% |
+| Speed | 1× | 3–6× |
+
+Fewer lines today = a standing token discount on every future session that touches the file.
+
+*Jeff Atwood, 2007: **"the best code is no code at all."** Every line is a line that has to be debugged, read, and supported — technical debt in its most literal form. In the AI-agent era it compounds twice: maintenance burden, and a token bill every future session pays to load the file.*
+
+---
+
+## Slide 16: Make the Meter Visible
+
+# You Can't Cut What You Can't See — Across Every Agent
 
 Every agent writes local logs, so tracking is always possible. The built-in command is uneven — pick the tracker that reads *your* agent's logs:
 
@@ -168,9 +249,9 @@ Every agent writes local logs, so tracking is always possible. The built-in comm
 
 ---
 
-## Slide 12: My Toolkit — What I Run, What I Cut
+## Slide 17: My Toolkit — What I Run, What I Cut
 
-# 🧰 Marketing Shows the Pros. These Are the Cuts.
+# Marketing Shows the Pros. These Are the Cuts.
 
 Three layers stack, they don't compete: **output** (write less) · **input** (read less) · **routing** (cheaper provider).
 
@@ -190,92 +271,9 @@ Three layers stack, they don't compete: **output** (write less) · **input** (re
 
 ---
 
-## Slide 13: Feed Less, Not More
-
-# 🌊 Bigger Window ≠ Better Recall
-
-Accuracy drops as token count climbs — even well inside the limit. **Context rot** is real; the fix is a smaller haystack, not a bigger window.
-
-- **On-demand retrieval:** our knowledge graph (`graphify` + `code-review-graph`) indexes 1,000+ files for **0 LLM tokens**; skipping it burns ~20,000 tokens re-orienting every session
-- **Subagents** with clean, disposable context — the transcript gets thrown away, only the conclusion survives
-- **Compact deliberately:** when a session's context gets long, summarize and start fresh instead of replaying the whole transcript — same discount as caching, applied to session length
-- **Prompt caching** — big enough to get its own slide →
-
----
-
-## Slide 14: Caching — The 90% Lever
-
-# 🧊 The Single Biggest Zero-Quality-Loss Lever
-
-The provider already computed your static prefix last call. Keep it warm → reuse it at a fraction. Output is byte-identical; only the bill and latency change. ~90% off the cached input is the number all three majors converge on.
-
-| Provider | TTL | Write | Read (hit) |
-|---|---|---|---|
-| **Claude** | 5 min / 1 hr | 1.25× (2.0×/1hr) | **0.10×** · 90% off |
-| **GPT-5.x** | up to **24 h** | 1.0×, no fee | **0.50×** · 50% off |
-| **Gemini 3.x** | 60 min | 1.0× + storage | **0.10×** · 90% off |
-
-![Prompt caching across providers](../assets/B-16/caching-lever.png)
-
----
-
-## Slide 15: Cache or Crash
-
-# ⚠️ The Break-Even Math
-
-Write costs **1.25×** normal input; each hit after costs **0.10×** — a 0.90× saving per read. Cover the 0.25 extra you paid on the write: 0.25 ÷ 0.90 ≈ **1.4 reads to break even.** Fewer hits than that inside the window, and caching cost you money — a 20K-token prefix hit ~1.1×/5-min is a real example of a cache actively losing money.
-
-**The 5-minute cliff:** Anthropic dropped Claude's TTL 60min → 5min in early 2026. Savings fell ~84% → ~52% — every call past 300s became a fresh write.
-
-**Hold the cache warm:**
-- **Batch within the window** — tight bursts, not a slow drip
-- **Keep-alive ping** — a light read every ~4 min resets the TTL
-- **Static-prefix-first** — dynamic state at the *back*, never the front (one byte change ahead of the cache invalidates the whole prefix)
-- **Batch API** for overnight jobs — first item writes, the rest read at 10% + ~50% batch off
-
-*Same instinct, interactive sessions: iterate in tight bursts, keep turns close, don't let the file cache go cold across a meeting.*
-
----
-
-## Slide 16: Memory Compounds
-
-# 🧠 Reuse Beats Re-Derivation
-
-One real session, this repo's own memory index:
-
-- Reading 50 indexed observations: **23,909 tokens**
-- Original work that produced them: **485,629 tokens**
-- **95% fewer tokens** — same starting knowledge, reused instead of re-derived
-
-**Same idea pointed backward:** mine your own chat logs and PR review comments for recurring corrections — same nit on three PRs is a pattern, not three nits. Encode it once in `CLAUDE.md`/rules; the model stops repeating the mistake, and "number of attempts" from Slide 4 stops multiplying.
-
-**The infra that makes it systematic:** skills (Claude Code, OpenCode's plugin system) package a repeatable workflow instead of re-explaining it in prose each time. Memory plugins persist facts and decisions *across sessions*, so a new conversation starts with what a prior one learned instead of from zero.
-
-Capture once. Read forever. Don't re-derive — forward *or* backward.
-
----
-
-## Slide 17: Less Code, Less to Reload
-
-# ✂️ Every Line Written Is a Line Reloaded Later
-
-Benchmark medians, lean-by-default vs. no constraint (5 tasks, 3 models):
-
-| Metric | No constraint | Lean-by-default |
-|---|---|---|
-| Lines of code | 100% | 6–20% |
-| Cost | 100% | 23–53% |
-| Speed | 1× | 3–6× |
-
-Fewer lines today = a standing token discount on every future session that touches the file.
-
-*Jeff Atwood, 2007: **"the best code is no code at all."** Every line is a line that has to be debugged, read, and supported — technical debt in its most literal form. In the AI-agent era it compounds twice: maintenance burden, and a token bill every future session pays to load the file.*
-
----
-
 ## Slide 18: Beyond the Bill
 
-# 🌍 Two Reasons This Isn't Only About Money
+# Two Reasons This Isn't Only About Money
 
 **Energy & water:** AI data centers alone are projected to draw **945 TWh by 2030** — nearly triple Pakistan + Bangladesh + Nigeria's combined electricity use. 2025 baseline: ~33–80M tons of CO2, ~313–765 billion liters of water. Every wasted token is a real watt and a real drop.
 
@@ -283,27 +281,39 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 19: Judgment, Not Just a Checklist
+## Slide 19: AI Output vs. Outcome and Impact
 
-# 🧭 Output → Outcome → Impact
+# Output ≠ Outcome ≠ Impact
 
-AI's headline effect isn't better decisions — it's more **Output** (code, summaries, predictions, instantly). But Output ≠ **Outcome** (the actual behavior/process shift) ≠ **Impact** (the long-term business value) — and AI only ever hands you the first one.
+AI's headline effect isn't better decisions — it's more **Output** (code, summaries, predictions, instantly). But Output, Outcome, and Impact are three different things, and AI only ever hands you the first one:
 
-Ten AI-drafted PRs is Output, verifiable in seconds. Whether they cut defect rates is Outcome. Whether that's a calmer on-call rotation six months later is Impact. AI doesn't decide that gap — judgment does.
+- **Output** — the immediate, direct result the model generates: a code snippet, a summarized document, a predictive score.
+- **Outcome** — the observable shift in behavior or process *caused by* that output: a bug actually stops recurring, a report actually gets acted on.
+- **Impact** — the ultimate business or strategic value that shift produces: lower support cost, higher revenue, a team that ships without burning out.
 
-| Output | Outcome | Impact |
+Ten AI-drafted PRs is Output, verifiable in seconds. Whether they cut defect rates is Outcome. Whether that's a calmer on-call rotation six months later is Impact. More Output doesn't automatically buy more Outcome, and more Outcome doesn't automatically buy more Impact — that gap is exactly where judgment lives.
+
+---
+
+## Slide 20: The Result of Your Actions
+
+# Applying the Lens to This Talk
+
+Same idea, pointed at *your* decisions instead of AI's raw output — every technique in this talk is an action, and it has its own Outcome and Impact:
+
+| Your Action | Outcome | Impact |
 |---|---|---|
 | Route to cheap tier instead of flagship | Task costs 5–25× less | Team absorbs the subsidy unwind |
 | Structure for caching | Repeated reads cost 90% less | Same budget covers new work |
 | Prune the idle graph MCP daemon | ~30 fewer tool schemas/session | Laptop stays responsive across worktrees |
 
-**None of these picks itself.** Engineering judgment (what will break) and business judgment (what's worth paying for) decide — not the model, not a checklist.
+**None of these picks itself.** Engineering judgment (what will break) and business judgment (what's worth paying for) decide which action is worth taking — not the model, not a checklist. The checklist next is the Action layer; deciding which lines apply to you is the part no checklist can do.
 
 ---
 
-## Slide 20: Checklist
+## Slide 21: Checklist
 
-# ✅ Apply This Week
+# Apply This Week
 
 - [ ] Route by task: cheap tier (Haiku, GLM, MiniMax, Kimi) → mid tier (default) → flagship
 - [ ] Match the tool to the constraint that binds — local, OpenRouter/OpenCode, or Claude Code/Codex
