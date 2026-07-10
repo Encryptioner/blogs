@@ -18,7 +18,7 @@
 
 *A $200/mo plan is worth ~$14,000/mo of real compute — a ~70× subsidy someone is paying. Forbes (Jul 2026): "AI Costs More Than The People It Replaced." Uber reportedly burned its whole 2026 AI coding budget in 4 months.*
 
-*The cartoon is just that math with a face on it. Let's make the meter visible.*
+**It's not just enterprises.** Reddit, r/copilotstudio: dev/prod on a developer tenant, Pay-as-you-go on, one agent deployed dev→prod — Azure bill of **~$47,000**.
 
 ---
 
@@ -61,7 +61,13 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 *As one viral comment on this same chart put it: paying flagship prices for a task the cheap tier could handle is buying a Ferrari to drive to the grocery store.*
 
-**It's not one vendor's quirk — it's the whole field.** Claude Fable 5 is the single most expensive model benchmarked at **$2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02.
+---
+
+## Slide 6: Every Model, Same Trap
+
+# It's the Whole Field
+
+Claude Fable 5 is the single most expensive model benchmarked at **$2.73 per Intelligence Index task** — 136× the cheapest model measured, gpt-oss-20b at $0.02.
 
 ![Which AI models cost the most per task — weighted cost per Intelligence Index task, Claude Fable 5 to gpt-oss-20b](../assets/B-16/which-ai-cost-more-per-task.png)
 
@@ -69,7 +75,7 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 ---
 
-## Slide 6: Model Tiering
+## Slide 7: Model Tiering
 
 # Pay for Reasoning Only When Needed — Every Vendor Has a Ladder
 
@@ -88,19 +94,29 @@ Cheaper per token → 75% *more expensive* per workload — 3× pricier per toke
 
 ---
 
-## Slide 7: Where Your Tokens Actually Go
+## Slide 8: Where Your Tokens Actually Go
 
 # ~94% Cheap Tasks, ~6% Real Value
 
 ![Chart: typical developer session token mix — 94% low-value (syntax lookups, boilerplate, stack traces), 6% high-value (architect & ship)](../assets/B-16/token-mix.png)
 
-For a working developer, the split isn't abstract: syntax lookups, rephrasing a Slack message, translating a stack trace, formatting a commit — none of it needs the flagship model. Bangladesh note (Anthropic Economic Index): ranks 116th of 121 tracked countries on Claude.ai usage relative to population — usage index 0.11. But the distinctive topics skew technical and developer-shaped: Math and CS theory (2.4×), Web front-end (1.8×), software development (1.8×), AI app building (1.6×) — ahead of homework and self-presentation writing.
+For a working developer, the split isn't abstract: syntax lookups, rephrasing a Slack message, translating a stack trace, formatting a commit — none of it needs the flagship model.
 
 **The move:** cheap tier for the 94% (Haiku, GLM, MiniMax, local), flagship only for the 6% that compounds — architecture, hard refactors, actually shipping.
 
 ---
 
-## Slide 8: Beyond One Vendor
+## Slide 9: The Bangladesh Note
+
+# Distinctive, Not Absent
+
+Bangladesh note (Anthropic Economic Index): ranks 116th of 121 tracked countries on Claude.ai usage relative to population — usage index 0.11.
+
+But the distinctive topics skew technical and developer-shaped: Math and CS theory (2.4×), Web front-end (1.8×), software development (1.8×), AI app building (1.6×) — ahead of homework and self-presentation writing.
+
+---
+
+## Slide 10: Beyond One Vendor
 
 # Same Arithmetic, Different Tools
 
@@ -115,7 +131,7 @@ Pick the tool for the constraint that binds: data residency → local; flexibili
 
 ---
 
-## Slide 9: Device Cost
+## Slide 11: Device Cost
 
 # Device Cost — Not Just a Token Bill
 
@@ -130,7 +146,7 @@ Fix: skip the rebuild if CPU load >50% of cores or free memory <2GB, plus proces
 
 ---
 
-## Slide 10: Harness Beats Horsepower
+## Slide 12: Harness Beats Horsepower
 
 # Scaffolding Matters as Much as the Model
 
@@ -147,7 +163,7 @@ Fix: skip the rebuild if CPU load >50% of cores or free memory <2GB, plus proces
 
 ---
 
-## Slide 11: Feed Less, Not More
+## Slide 13: Feed Less, Not More
 
 # Bigger Window ≠ Better Recall
 
@@ -160,7 +176,7 @@ Accuracy drops as token count climbs — even well inside the limit. **Context r
 
 ---
 
-## Slide 12: Caching — The 90% Lever
+## Slide 14: Caching — The 90% Lever
 
 # The Single Biggest Zero-Quality-Loss Lever
 
@@ -176,7 +192,7 @@ The provider already computed your static prefix last call. Keep it warm → reu
 
 ---
 
-## Slide 13: Cache or Crash
+## Slide 15: Cache or Crash
 
 # The Break-Even Math
 
@@ -194,7 +210,7 @@ Write costs **1.25×** normal input; each hit after costs **0.10×** — a 0.90�
 
 ---
 
-## Slide 14: Memory Compounds
+## Slide 16: Memory Compounds
 
 # Reuse Beats Re-Derivation
 
@@ -212,7 +228,7 @@ Capture once. Read forever. Don't re-derive — forward *or* backward.
 
 ---
 
-## Slide 15: Less Code, Less to Reload
+## Slide 17: Less Code, Less to Reload
 
 # Every Line Written Is a Line Reloaded Later
 
@@ -230,7 +246,7 @@ Fewer lines today = a standing token discount on every future session that touch
 
 ---
 
-## Slide 16: Make the Meter Visible
+## Slide 18: Make the Meter Visible
 
 # You Can't Cut What You Can't See — Across Every Agent
 
@@ -249,7 +265,7 @@ Every agent writes local logs, so tracking is always possible. The built-in comm
 
 ---
 
-## Slide 17: My Toolkit — What I Run, What I Cut
+## Slide 19: My Toolkit — What I Run, What I Cut
 
 # Marketing Shows the Pros. These Are the Cuts.
 
@@ -271,7 +287,7 @@ Three layers stack, they don't compete: **output** (write less) · **input** (re
 
 ---
 
-## Slide 18: Beyond the Bill
+## Slide 20: Beyond the Bill
 
 # Two Reasons This Isn't Only About Money
 
@@ -281,7 +297,17 @@ Three layers stack, they don't compete: **output** (write less) · **input** (re
 
 ---
 
-## Slide 19: AI Output vs. Outcome and Impact
+## Slide 21: The Subsidy Ending, Visualized
+
+# How Did We Get So Poor
+
+![How did we get so poor](../assets/B-16/how=do-we-get-so-poor.jpg)
+
+*The subsidy ending, visualized.*
+
+---
+
+## Slide 22: AI Output vs. Outcome and Impact
 
 # Output ≠ Outcome ≠ Impact
 
@@ -295,7 +321,7 @@ Ten AI-drafted PRs is Output, verifiable in seconds. Whether they cut defect rat
 
 ---
 
-## Slide 20: The Result of Your Actions
+## Slide 23: The Result of Your Actions
 
 # Applying the Lens to This Talk
 
@@ -311,7 +337,7 @@ Same idea, pointed at *your* decisions instead of AI's raw output — every tech
 
 ---
 
-## Slide 21: Checklist
+## Slide 24: Checklist
 
 # Apply This Week
 

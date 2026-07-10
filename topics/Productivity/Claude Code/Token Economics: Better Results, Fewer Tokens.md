@@ -16,6 +16,8 @@ Before the math, the picture — this is the moment most teams first notice the 
   <sub>The gag is just the real numbers with a face on it — the ~$14,000/mo figure and the 70× subsidy gap are cited further down. Original artwork, not a stock image.</sub>
 </div>
 
+It isn't only enterprises eating this. One [Copilot Studio user's Reddit post](https://www.reddit.com/r/copilotstudio/comments/1ueqedl/woke_up_to_a_47k_bill_after_deploying_one_copilot/) lays it out plainly: separate dev/prod environments on a developer tenant, the Pay-as-you-go plan turned on, one agent deployed from dev to prod — and an Azure bill of **~$47,000**. One agent, one deployment, five figures.
+
 ---
 
 ## The Real Cost Equation
@@ -416,6 +418,7 @@ Open `~/.claude/rules/model-routing.md` — or whatever your tool calls it — a
 
 **Multi-Vendor & Open-Weight Pricing (July 2026):**
 - [GitHub Blog — GitHub Copilot is moving to usage-based billing](https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/) — source for the Copilot AI Credits shift
+- [Reddit r/copilotstudio — "Woke up to a $47K bill after deploying ONE Copilot agent"](https://www.reddit.com/r/copilotstudio/comments/1ueqedl/woke_up_to_a_47k_bill_after_deploying_one_copilot/)
 - [OpenAI API Pricing](https://developers.openai.com/api/docs/pricing) — GPT-5.6 family (Luna/Terra/Sol) and GPT-5.5
 - GLM-4.6 (Zhipu/Z.ai) and MiniMax M2 and Kimi K2.6 (Moonshot) — pricing aggregated from provider docs and OpenRouter model pages, cross-checked mid-2026
 - [Jeff Atwood — "The Best Code is No Code At All"](https://blog.codinghorror.com/) (2007) — source for the "best code is no code at all" line

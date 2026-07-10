@@ -24,6 +24,7 @@ tmp/
 
 # Misc
 *.tgz
+.playwright-mcp
 
 # Knowledge graph tools (generated output + platform-specific configs)
 graphify-out/
