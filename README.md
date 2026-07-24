@@ -36,6 +36,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation.md)
 - [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools.md)
 - [Token Economics Presentation](./presentations/Token%20Economics%20Presentation.md)
+- [Many Accounts, Many Providers, One Harness](./presentations/Many%20Accounts%20-%20Many%20Providers%20-%20One%20Harness.md)
 
 
 ## Links
