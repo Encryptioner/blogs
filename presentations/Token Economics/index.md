@@ -14,7 +14,7 @@
 
 # The Bill Nobody Saw Coming
 
-![Bill reveal cartoon](../assets/B-16/bill-reveal.png)
+![Bill reveal cartoon](../../assets/B-16/bill-reveal.png)
 
 *A $200/mo plan ≈ $14,000/mo of real compute — a ~70× subsidy someone is paying.*
 
@@ -127,7 +127,7 @@ Review git diff main against our checklist.
 
 And it's the whole field, not one vendor: **$2.73 per task** at the top (Claude Fable 5) down to cents for open-weight models — a spread of roughly two orders of magnitude, same benchmark, same month.
 
-![Cost per Intelligence Index task, Claude Fable 5 to gpt-oss-20b](../assets/B-16/which-ai-cost-more-per-task.png)
+![Cost per Intelligence Index task, Claude Fable 5 to gpt-oss-20b](../../assets/B-16/which-ai-cost-more-per-task.png)
 
 *Source: Artificial Analysis, Intelligence Index cost-per-task, Jul 3 2026.*
 
@@ -204,7 +204,7 @@ The provider already computed your static prefix last call. Keep it warm → reu
 | **GPT-5.x** | up to **24 h** | 1.0×, no fee | **0.50×** · 50% off |
 | **Gemini 3.x** | 60 min | 1.0× + storage | **0.10×** · 90% off |
 
-![Prompt caching across providers](../assets/B-16/caching-lever.png)
+![Prompt caching across providers](../../assets/B-16/caching-lever.png)
 
 ---
 
@@ -283,11 +283,11 @@ Three layers stack: **output** (write less) · **input** (read less) · **routin
 
 Before AI, the funnel only grew: **idea → execute → usage**, small group to more at every stage. After AI, that funnel flips — everyone ideates, execution and real usage shrink.
 
-![How did we get so poor](../assets/B-16/how-do-we-get-so-poor.jpg)
+![How did we get so poor](../../assets/B-16/how-do-we-get-so-poor.jpg)
 
 *The subsidy ending, visualized.*
 
-![Before AI vs after AI: idea, execute, usage headcount by stage inverts](../assets/B-16/before-ai-vs-after-ai.jpeg)
+![Before AI vs after AI: idea, execute, usage headcount by stage inverts](../../assets/B-16/before-ai-vs-after-ai.jpeg)
 
 *Idea → execute → usage, before and after.*
 
