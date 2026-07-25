@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Many Accounts, Many Providers, One Harness — Deck</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗂️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -311,6 +312,57 @@ code, .mono {
 .text-accent { color: var(--accent); }
 .text-muted  { color: var(--muted); }
 .text-warn   { color: var(--warn); }
+
+/* clickable figure + lightbox (click image to zoom, click backdrop / Esc to close) */
+.fig {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-elev-1);
+  cursor: zoom-in;
+  transition: border-color 160ms ease;
+}
+.fig:hover { border-color: var(--accent); }
+.fig img { display: block; width: 100%; height: auto; }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 7, 10, 0.94);
+  backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  cursor: zoom-out;
+}
+.lightbox[data-open="true"] { display: flex; }
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.lightbox .lb-close {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(13, 17, 23, 0.8);
+  color: var(--muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2001;
+}
+.lightbox .lb-close:hover { color: var(--primary); border-color: var(--accent); }
 
 
 /* ===== scoped per-slide styles ===== */
@@ -1630,7 +1682,7 @@ body.notes-mode .deck-slide[data-active="true"] aside[data-notes] ul li { margin
 .deck-counter {
   position: fixed;
   bottom: 18px;
-  right: 24px;
+  right: 64px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   font-weight: 500;
@@ -1872,15 +1924,20 @@ body.notes-mode .notes-toggle {
             <div class="presenter-line-2">Lead Software Engineer @ Nerddevs Ltd</div>
           </div>
     
-          <!-- right code card -->
-          <div class="code-card">
-            <div class="code-head">
-              <span class="dots"><i></i><i></i><i></i></span>
-              <span style="margin-left: 4px;">BASH · ~/session</span>
+          <!-- right stack: terminal card + identity diagram -->
+          <div style="display: flex; flex-direction: column; gap: 14px; width: 380px; flex-shrink: 0;">
+            <div class="code-card">
+              <div class="code-head">
+                <span class="dots"><i></i><i></i><i></i></span>
+                <span style="margin-left: 4px;">BASH · ~/session</span>
+              </div>
+      <pre><span class="p">$</span> <span class="v">CLAUDE_CONFIG_DIR</span>=<span class="s">~/.claude-ac1</span> claude <span class="a">&amp;</span>
+      <span class="p">$</span> <span class="v">OPENCODE_CONFIG_DIR</span>=<span class="s">~/.config/opencode-ac2</span> opencode <span class="a">&amp;</span>
+      <span class="c"># two identities, one machine, one shared context</span></pre>
             </div>
-    <pre><span class="p">$</span> <span class="v">CLAUDE_CONFIG_DIR</span>=<span class="s">~/.claude-ac1</span> claude <span class="a">&amp;</span>
-    <span class="p">$</span> <span class="v">OPENCODE_CONFIG_DIR</span>=<span class="s">~/.config/opencode-ac2</span> opencode <span class="a">&amp;</span>
-    <span class="c"># two identities, one machine, one shared context</span></pre>
+            <div class="fig">
+              <img src="images/harness-diagram.svg" alt="Diagram: two terminal identities, ac1 and ac2, each with their own config directory and provider, both reading the same shared CLAUDE.md and rules files">
+            </div>
           </div>
         </div>
       </div>
@@ -3173,6 +3230,11 @@ body.notes-mode .notes-toggle {
   </div>
 </div>
 
+<div class="lightbox" id="lightbox">
+  <div class="lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
 <script>
 (function() {
   const slides = Array.from(document.querySelectorAll('.deck-slide'));
@@ -3185,6 +3247,8 @@ body.notes-mode .notes-toggle {
   const gotoOverlay = document.getElementById('gotoOverlay');
   const gotoInput = document.getElementById('gotoInput');
   const notesToggle = document.getElementById('notesToggle');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
 
   let currentIdx = 0;
   let gotoMode = false;
@@ -3248,6 +3312,20 @@ body.notes-mode .notes-toggle {
     closeGoto();
   }
 
+  function openLightbox(src, alt) {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || '';
+    lightbox.setAttribute('data-open', 'true');
+  }
+  function closeLightbox() {
+    lightbox.setAttribute('data-open', 'false');
+    lightboxImg.src = '';
+  }
+  document.querySelectorAll('.fig img').forEach((img) => {
+    img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(img.src, img.alt); });
+  });
+  lightbox.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+
   function toggleBlackout() {
     blackout = !blackout;
     if (blackout) {
@@ -3305,7 +3383,8 @@ body.notes-mode .notes-toggle {
       case 'G':
         e.preventDefault(); openGoto(); break;
       case 'Escape':
-        if (document.fullscreenElement) document.exitFullscreen();
+        if (lightbox.getAttribute('data-open') === 'true') closeLightbox();
+        else if (document.fullscreenElement) document.exitFullscreen();
         break;
       case 'Enter':
         if (e.metaKey || e.ctrlKey) { e.preventDefault(); toggleFullscreen(); }
@@ -3325,7 +3404,7 @@ body.notes-mode .notes-toggle {
   });
 
   viewport.addEventListener('click', (e) => {
-    if (e.target.closest('a, button, input, .notes-toggle, .help-card, .goto-overlay, .help-overlay')) return;
+    if (e.target.closest('a, button, input, .notes-toggle, .help-card, .goto-overlay, .help-overlay, .fig, .lightbox')) return;
     if (helpOverlay.getAttribute('data-open') === 'true') return;
     if (gotoMode) return;
     const rect = viewport.getBoundingClientRect();
