@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 06 — Sessions, Sync & Platform Actions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   branchdiff feature deck — canonical <style> (shared across all decks)
+   GitHub-dark + neon mint · self-contained · no external CSS framework
+   ===================================================================== */
+:root{
+  --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+  --border:#30363D; --border-soft:#21262D;
+  --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+  --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+  --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:
+    radial-gradient(900px 500px at 88% -12%, rgba(0,227,168,.07), transparent 60%),
+    radial-gradient(700px 420px at 4% 6%, rgba(121,192,255,.045), transparent 55%);
+}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--info);text-decoration:none}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--info));box-shadow:0 0 12px var(--accent-glow);z-index:50;transition:width .4s var(--ease);width:0}
+
+/* top-right chrome */
+.chrome{position:fixed;top:14px;right:18px;z-index:40;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:rgba(22,27,34,.7);border:1px solid var(--border-soft);padding:5px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.chrome b{color:var(--accent);font-weight:600}
+
+/* nav */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(22,27,34,.82);border:1px solid var(--border-soft);padding:6px;border-radius:999px;backdrop-filter:blur(10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.nav button{background:transparent;border:none;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;font-size:15px;transition:.2s;font-family:inherit}
+.nav button:hover{background:var(--bg-elev-2);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);padding:0 8px;min-width:62px;text-align:center}
+.nav .lbl{font-family:'Inter',sans-serif;font-size:12px}
+
+/* deck + slides */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 6vw 11vh;opacity:0;transform:translateX(40px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* hero */
+.hero-slide{justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:6px 14px;border-radius:999px;align-self:flex-start}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+h1.title{font-size:clamp(36px,5.6vw,66px);line-height:1.04;font-weight:800;letter-spacing:-.03em;margin:20px 0;max-width:18ch}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-size:clamp(17px,1.9vw,23px);color:var(--muted);font-weight:400;max-width:60ch}
+.hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px 26px;color:var(--dim);font-size:13.5px}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .mono{color:var(--accent)}
+
+/* content slide chrome */
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h3.section{font-size:clamp(26px,3.4vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:22px;max-width:22ch}
+h3.section em{font-style:normal;color:var(--accent)}
+.lead-p{color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:70ch;margin-bottom:24px}
+
+/* bullets */
+ul.bullets{list-style:none;display:flex;flex-direction:column;gap:13px}
+ul.bullets li{position:relative;padding-left:26px;color:var(--text);font-size:clamp(14px,1.25vw,16.5px)}
+ul.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+ul.bullets li b{color:var(--text);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+ul.checklist{list-style:none;display:flex;flex-direction:column;gap:12px}
+ul.checklist li{position:relative;padding-left:30px;color:var(--text);font-size:clamp(14px,1.2vw,16px)}
+ul.checklist li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* layout grids */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cols-3-2{display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:start}
+@media(max-width:880px){.two-col,.three-col,.cols-3-2{grid-template-columns:1fr}}
+
+/* problem | solve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.vs .box{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs .box.problem{border-color:rgba(255,123,114,.3)}
+.vs .box.solve{border-color:rgba(0,227,168,.32);background:linear-gradient(180deg,var(--accent-soft),transparent 60%),var(--bg-elev-1)}
+.vs .box h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.vs .problem h4{color:var(--danger)} .vs .solve h4{color:var(--accent)}
+.vs .box p{color:var(--muted);font-size:14px}
+@media(max-width:760px){.vs{grid-template-columns:1fr}}
+
+/* code block (terminal window) */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:11px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px}
+.code-head{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--bg-elev-1);border-bottom:1px solid var(--border-soft)}
+.code-head .d{width:11px;height:11px;border-radius:50%}
+.code-head .r{background:#ff5f57}.code-head .y{background:#febc2e}.code-head .g{background:#28c840}
+.code-head .file{margin-left:8px;color:var(--dim);font-size:11.5px}
+.code-body{padding:14px 16px;color:var(--text);overflow-x:auto;line-height:1.65}
+.code-body .prompt{color:var(--accent)}
+.code-body .c{color:var(--dim)}.code-body .k{color:var(--purple)}.code-body .s{color:var(--accent)}
+.code-body .f{color:var(--info)}.code-body .n{color:var(--warn)}
+
+/* callout */
+.callout{border-left:3px solid var(--info);background:rgba(121,192,255,.07);padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;color:var(--text);margin:6px 0}
+.callout.accent{border-color:var(--accent);background:var(--accent-soft)}
+.callout.danger{border-color:var(--danger);background:rgba(255,123,114,.08)}
+.callout b{color:var(--text)}
+
+/* stats */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.stat{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--accent);line-height:1}
+.stat .label{font-size:13px;color:var(--text);font-weight:600;margin-top:8px}
+.stat .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* figure */
+.fig{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fig img{width:100%;display:block;cursor:zoom-in}
+.fig-caption{padding:11px 16px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border-soft);font-family:'JetBrains Mono',monospace}
+
+/* keyboard table */
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.key{display:flex;align-items:center;gap:10px;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted)}
+kbd{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-elev-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--text);min-width:22px;text-align:center}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(1,4,9,.92);display:none;place-items:center;z-index:100;padding:5vh 5vw;cursor:zoom-out}
+.lightbox.show{display:grid}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;border:1px solid var(--border)}
+
+/* overview grid */
+.overview{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;overflow-y:auto;padding:5vh 4vw}
+.overview.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-content:start}
+.overview .ocard{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:11px;padding:18px;cursor:pointer;transition:.2s}
+.overview .ocard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.overview .ocard .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.overview .ocard .t{font-size:15px;font-weight:600;margin-top:6px}
+
+/* deck end */
+.end-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.end-links a{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.2s}
+.end-links a.primary{background:var(--accent);color:#031b14}
+.end-links a.primary:hover{box-shadow:0 0 24px var(--accent-glow)}
+.end-links a.ghost{border:1px solid var(--border);color:var(--text)}
+.end-links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="chrome" id="chrome"></div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous (←)">‹</button>
+  <span class="count" id="counter">01</span>
+  <button onclick="next()" title="Next (→)">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Sessions, Sync & Platform">
+    <span class="badge"><span class="dot"></span> Deck 06 · branchdiff features</span>
+    <h1 class="title">Kill the <em>tab-switching tax</em>.</h1>
+    <h2 class="subtitle">Persistent sessions, two-way comment sync, the full PR lifecycle from one toolbar, and branches fetched before comparison — twenty tab switches collapsed into one.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">session</span> main..feature</span>
+      <span><span class="mono">port</span> 5391</span>
+      <span><span class="mono">sync</span> two-way</span>
+      <span><span class="mono">forge</span> GitHub · Bitbucket</span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The tab-switching tax">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Ten minutes of reading. <em>Twenty</em> tab switches.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>PR → editor → PR → Slack → AI → PR.</b> <span class="muted">Every action is a context switch; every switch costs attention you don't get back.</span></li>
+        <li><b>Force-push resets your place.</b> <span class="muted">Author rebases mid-review — your viewed markers and inline notes are gone.</span></li>
+        <li><b>Every forge action is a cloud round-trip.</b> <span class="muted">Approve, merge, request changes — each is a page load on a slow connection.</span></li>
+        <li><b>Stale local branches.</b> <span class="muted">Comparing against a branch you haven't checked out in weeks — the diff is fiction.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> review becomes a chore of window management. You stop reading carefully because the tooling fights you, not because the code is fine.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="Four pillars">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">Four pillars — <em>one toolbar</em>, no tab carousel.</h3>
+    <p class="lead-p">branchdiff collapses the PR-review loop into one local surface: a session that survives force-pushes, sync that pushes and pulls comments, the full PR lifecycle from a dropdown, and branches fetched before comparison so the diff is real.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>before · the loop</h4>
+        <p>Twenty tab switches per PR. Force-push wipes your place. Approve/Merge live on a slow web page. The branch you're comparing against is weeks stale.</p>
+      </div>
+      <div class="box solve">
+        <h4>after · one toolbar</h4>
+        <p>One persistent session. Push and pull comments in one click. Approve, request changes, merge, close — all from the toolbar. Branches fetched and fast-forwarded before the diff renders.</p>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>The flow:</b> open the PR locally once → read, comment, sync, act → done. No forge round-trips until you choose to merge.
+    </div>
+  </section>
+
+  <!-- 4 · PERSISTENT SESSIONS -->
+  <section class="slide" data-title="Persistent sessions">
+    <div class="slide-num">04 · persistent sessions (G6)</div>
+    <h3 class="section">A review session that <em>survives</em> new commits.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Named-pair persistence.</b> <span class="mono">branchdiff main..feature</span> keeps comments and viewed markers across new commits — even after a force-push.</li>
+        <li><b><span class="mono">--new</span> archives &amp; restarts.</b> <span class="muted">Want a clean slate? The old session is archived, not deleted.</span></li>
+        <li><b>PR-number auto-reset.</b> <span class="muted">Notices when the PR number changes — archives the old session, starts fresh.</span></li>
+        <li><b>Per-(repo + machine) state.</b> <span class="muted">Each ref pair gets its own port from 5391; sessions don't bleed.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Why it matters:</b> the author rebases three times mid-review. Your twelve inline comments and the seven files you marked viewed are all still there when you reload.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · MULTI-SESSION & ISOLATION -->
+  <section class="slide" data-title="Multi-session & isolation">
+    <div class="slide-num">05 · multi-session &amp; isolation</div>
+    <h3 class="section">One <em>session per ref pair</em> — no cross-talk.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="checklist">
+          <li>Run several reviews in parallel — each pair lands on its own port.</li>
+          <li><b><span class="mono">--detach</span></b> runs the server in the background; close the terminal, keep reviewing.</li>
+          <li><b>Close from the browser</b> — <span class="mono">/api/kill</span> shuts the server down without a terminal hop.</li>
+          <li><b>AI review isolation:</b> one AI, one session. Resolution order <span class="mono">BRANCHDIFF_SESSION_ID → --session → --port → last-active</span>.</li>
+        </ul>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">5391+</div><div class="label">ports</div><div class="desc">one per ref pair, ascending</div></div>
+        <div class="stat"><div class="num">∞</div><div class="label">sessions</div><div class="desc">per repo, per machine</div></div>
+        <div class="stat"><div class="num">4</div><div class="label">resolution</div><div class="desc">env → flag → port → last</div></div>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>Hands-on:</b> start a detached session, review from the browser, close it from the same browser when you're done — terminal freed for something else the whole time.
+    </div>
+  </section>
+
+  <!-- 6 · OPEN ANY PR URL LOCALLY -->
+  <section class="slide" data-title="Open any PR locally">
+    <div class="slide-num">06 · open any PR locally (G7)</div>
+    <h3 class="section">Paste a PR URL. <em>Read it locally</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">~/repo</span></div>
+        <div class="code-body">
+<span class="prompt">$</span> branchdiff https://github.com/owner/repo/pull/123
+<span class="c"># → git fetch (never git checkout)</span>
+<span class="c"># → resolves base &amp; head refs</span>
+<span class="c"># → opens localhost:539X in browser</span>
+<span class="c"># → first-open preview-pull badge appears</span>
+        </div>
+      </div>
+      <ul class="bullets">
+        <li><b>GitHub or Bitbucket.</b> <span class="muted">Same command, same UX — forge detection is automatic.</span></li>
+        <li><b><span class="mono">git fetch</span>, never <span class="mono">git checkout</span>.</b> <span class="muted">Your working tree stays exactly where you left it.</span></li>
+        <li><b>First-open preview-pull badge.</b> <span class="muted">Existing PR comments are pulled on demand — never a surprise.</span></li>
+        <li><b>Works from anywhere.</b> <span class="muted">Slack link, email, terminal — paste the URL, start reading.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · TWO-WAY COMMENT SYNC -->
+  <section class="slide" data-title="Two-way comment sync">
+    <div class="slide-num">07 · two-way comment sync</div>
+    <h3 class="section">Push, pull, or <em>sync all</em> — comments land on both sides.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Push to PR.</b> Single-comment threads become inline review comments; duplicates skipped automatically.</li>
+        <li><b>Pull from PR.</b> Bring collaborator comments back into your local view.</li>
+        <li><b>Sync All.</b> <span class="muted">One button — both directions, conflicts resolved by last-write.</span></li>
+        <li><b>Per-thread sync badge.</b> <span class="muted">Green dot = synced with PR; amber dot = local-only, not yet pushed.</span></li>
+        <li><b>Persistent status bar.</b> <span class="muted">At-a-glance sync state across the whole review.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>Multi-reply threads stay local.</b> Forge APIs don't map a back-and-forth onto their flat inline-comment model — those threads sync to your machine only, never accidentally split across the PR.
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · PR LIFECYCLE FROM TOOLBAR -->
+  <section class="slide" data-title="PR lifecycle from toolbar">
+    <div class="slide-num">08 · PR lifecycle from toolbar (G7)</div>
+    <h3 class="section">Every PR action — <em>one dropdown</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Approve</b> — with optional approve-with-comments checkbox.</li>
+        <li><b>Request changes</b> — with push-before-request-changes checkbox so new threads land first.</li>
+        <li><b>Comment</b> — general PR comment without approve/request.</li>
+        <li><b>Merge</b> — strategy picker (merge commit / squash / rebase).</li>
+        <li><b>Close / Reopen.</b></li>
+        <li><b>Mark Draft / Ready for review.</b></li>
+        <li><b>Edit title &amp; body</b> without leaving the page.</li>
+      </ul>
+      <div>
+        <div class="callout accent">
+          <b>Header state dot + reviewer pills</b> live on the toolbar — PR state is one glance away, not a page navigation.
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <b>Create PRs from the UI</b> too. Title, body, base, head — same surface you're already reviewing in.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · 90-SECOND FLOW (asset) -->
+  <section class="slide" data-title="The 90-second flow">
+    <div class="slide-num">09 · the 90-second flow</div>
+    <h3 class="section">The whole loop — <em>ninety seconds</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-13/90-second-flow.png" alt="90-second PR review flow" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">open PR → read locally → comment → sync → act · one toolbar, one tab</div>
+    </div>
+  </section>
+
+  <!-- 10 · PR LIFECYCLE GROUPS (asset) -->
+  <section class="slide" data-title="PR lifecycle action groups">
+    <div class="slide-num">10 · lifecycle action groups</div>
+    <h3 class="section">The toolbar, <em>by group</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="../../assets/B-13/pr-lifecycle-groups.png" alt="PR lifecycle action groups" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">approve · request · comment · merge · close · reopen · draft · ready · edit</div>
+      </div>
+      <div>
+        <p class="lead-p">Actions are grouped by review intent — read, decide, act — so the next step is always one click from where your cursor already is.</p>
+        <ul class="checklist">
+          <li><b>Decide:</b> Approve / Request changes / Comment.</li>
+          <li><b>Act:</b> Merge (with strategy) / Close / Reopen.</li>
+          <li><b>State:</b> Draft / Ready / Edit title &amp; body.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CLI -->
+  <section class="slide" data-title="The CLI">
+    <div class="slide-num">11 · the CLI (G11)</div>
+    <h3 class="section">Every action is <em>scriptable</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">~/repo</span></div>
+        <div class="code-body">
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">merge</span> --strategy squash
+<span class="prompt">$</span> branchdiff <span class="f">sync</span>            <span class="c"># push + pull</span>
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">approve</span> --with-comments
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">request-changes</span> --push-first
+<span class="prompt">$</span> branchdiff <span class="f">session</span> <span class="k">archive</span>
+<span class="prompt">$</span> branchdiff <span class="f">list</span>            <span class="c"># all running sessions</span>
+<span class="prompt">$</span> branchdiff <span class="f">killall</span>
+        </div>
+      </div>
+      <ul class="bullets">
+        <li><b><span class="mono">pr</span></b> — info / create / merge / approve / request-changes / close / reopen / draft / ready / edit / comment.</li>
+        <li><b><span class="mono">sync</span></b> — push / pull / push-thread.</li>
+        <li><b><span class="mono">session</span></b> — current / archive / history / delete.</li>
+        <li><b><span class="mono">list · killall · kill · open · prune</span></b> — manage running sessions.</li>
+        <li><b>Scope:</b> <span class="mono">list current</span>, <span class="mono">killall current</span> — act on the active repo only.</li>
+        <li><b><span class="mono">doctor · info · update · version · state reset</span></b> — health, repo fingerprint, self-update.</li>
+        <li><b>Shell completion</b> (bash + zsh) and offline <span class="mono">guide</span> / <span class="mono">changelog</span>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · BRANCH SYNC -->
+  <section class="slide" data-title="Branch sync before comparison">
+    <div class="slide-num">12 · branch sync (G16)</div>
+    <h3 class="section">Branches <em>fetched &amp; fast-forwarded</em> before the diff.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Not-here-but-remote:</b> created locally with tracking.</li>
+        <li><b>Behind remote:</b> fast-forwarded automatically.</li>
+        <li><b>Diverged:</b> left alone with a warning — branchdiff never silently rewrites your history.</li>
+        <li><b>Dirty checkout:</b> left alone — your uncommitted work is sacred.</li>
+        <li><b>Remote branches</b> created from the remote ref directly.</li>
+        <li><b><span class="mono">--no-sync</span></b> skips the whole step when you want to inspect stale-on-purpose.</li>
+      </ul>
+      <div>
+        <div class="callout danger">
+          <b>Stale-code review refusal.</b> If the local branch is behind what you're reviewing against, branchdiff refuses to render — <span class="mono">--allow-stale</span> overrides when you really mean it.
+        </div>
+        <div class="callout accent" style="margin-top:14px">
+          <b>Why it matters:</b> the diff you read is the diff that exists on the remote — not a fiction your local checkout invented three weeks ago.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · BOUNDARIES -->
+  <section class="slide" data-title="Honest boundaries">
+    <div class="slide-num">13 · honest boundaries</div>
+    <h3 class="section">What branchdiff <em>does not</em> do.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>No CI.</b> <span class="muted">Platform checks still gate the merge — branchdiff renders them, it doesn't replace them.</span></li>
+        <li><b>No multi-reply thread push.</b> <span class="muted">Forge APIs don't map back-and-forth threads onto flat inline comments.</span></li>
+        <li><b>No branch-protection bypass.</b> <span class="muted">Merge respects required reviews and status checks exactly as the forge enforces them.</span></li>
+        <li><b>Not a full PR-page replacement.</b> <span class="muted">Description, linked issues, CI block stay on the forge — <span class="mono">Open in browser</span> is one click.</span></li>
+      </ul>
+      <div class="callout">
+        <b>The honest framing:</b> branchdiff is the fastest way to <em>read, comment, and act on</em> a PR. It complements the forge — it doesn't pretend to be it.
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">14 · recap</div>
+    <h3 class="section">Twenty tabs, collapsed to <em>one</em>.</h3>
+    <p class="lead-p">Persistent sessions, two-way sync, the full PR lifecycle from a toolbar, and branches fetched before comparison — the entire review loop fits in one browser tab.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Sessions survive force-pushes; <span class="mono">--new</span> archives &amp; restarts; PR-number auto-reset.</li>
+      <li>Multi-session per repo/machine; AI isolation; <span class="mono">--detach</span>; close from the browser.</li>
+      <li>Open any PR URL locally — GitHub or Bitbucket, <span class="mono">git fetch</span> never <span class="mono">checkout</span>.</li>
+      <li>Push / pull / Sync All with per-thread sync badges and a persistent status bar.</li>
+      <li>PR lifecycle from the toolbar: approve, request, merge (with strategy), close, reopen, draft, ready, edit.</li>
+      <li>Full CLI — <span class="mono">pr</span>, <span class="mono">sync</span>, <span class="mono">session</span>, <span class="mono">list</span>, <span class="mono">killall</span> — plus shell completion.</li>
+      <li>Branches fetched &amp; fast-forwarded; stale-code review refused unless <span class="mono">--allow-stale</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="PROXY:07-repo-exploration.html" target="_blank" rel="noopener">Next deck → 07 · Repo Exploration</a>
+      <a class="ghost" href="index.html">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lbImg" alt="" /></div>
+<div class="overview" id="overview"></div>
+
+<script>
+/* ---- deck engine (shared across all decks) ---- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+const counter=document.getElementById('counter');
+const chromePill=document.getElementById('chrome');
+const progress=document.getElementById('progress');
+
+function titleOf(s){ return (s.dataset.title||'').slice(0,28); }
+function render(){
+  slides.forEach((s,n)=> s.classList.toggle('active',n===i)||s.classList.toggle('prev',n<i));
+  counter.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  chromePill.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length+' · '+titleOf(slides[i]);
+  progress.style.width=((i+1)/slides.length*100)+'%';
+}
+function next(){ if(i<slides.length-1){i++;render();} }
+function prev(){ if(i>0){i--;render();} }
+function goto(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(['ArrowRight','PageDown'].includes(e.key)||e.key===' '){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){goto(0);} else if(e.key==='End'){goto(slides.length-1);}
+  else if(e.key.toLowerCase()==='o'){toggleOverview();}
+  else if(e.key.toLowerCase()==='f'){toggleFullscreen();}
+});
+
+/* click zones + touch */
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('img,a,button,.overview')) return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.62) next(); else if(x<0.38) prev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.changedTouches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(d>50)prev();else if(d<-50)next();},{passive:true});
+
+/* lightbox */
+function openLightbox(img){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=img.src; lb.classList.add('show'); }
+
+/* overview */
+function toggleOverview(){
+  const o=document.getElementById('overview');
+  if(!o.classList.contains('show')){
+    o.innerHTML=slides.map((s,n)=>`<div class="ocard" onclick="goto(${n});toggleOverview()"><div class="n">${String(n+1).padStart(2,'0')}</div><div class="t">${titleOf(s)||'·'}</div></div>`).join('');
+    o.classList.add('show');
+  } else o.classList.remove('show');
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* hash deep-link */
+if(location.hash){ const m=location.hash.match(/(\d+)/); if(m) goto(parseInt(m[1],10)-1); }
+
+/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs */
+(function(){
+  const REPO='Encryptioner/blogs',BRANCH='master';
+  const DIR='presentations/Branchdiff Features';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const here = location.href;
+  // only rewrite when NOT already viewing through the proxy (i.e. opened raw / locally)
+  const proxied = here.indexOf('public-websites/any-page') !== -1;
+  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
+    const file=a.getAttribute('href').slice(6);
+    if(proxied){
+      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+      a.href=PROXY+encodeURIComponent(raw);
+    } else {
+      a.href=file; // local/raw: just open the sibling file
+    }
+    a.target='_blank'; a.rel='noopener';
+  });
+})();
+
+render();
+</script>
+</body>
+</html>

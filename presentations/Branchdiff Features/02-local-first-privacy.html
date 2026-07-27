@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 02 — 100% Local-First &amp; Private</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   branchdiff feature deck — canonical <style> (shared across all decks)
+   GitHub-dark + neon mint · self-contained · no external CSS framework
+   ===================================================================== */
+:root{
+  --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+  --border:#30363D; --border-soft:#21262D;
+  --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+  --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+  --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:
+    radial-gradient(900px 500px at 88% -12%, rgba(0,227,168,.07), transparent 60%),
+    radial-gradient(700px 420px at 4% 6%, rgba(121,192,255,.045), transparent 55%);
+}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--info);text-decoration:none}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--info));box-shadow:0 0 12px var(--accent-glow);z-index:50;transition:width .4s var(--ease);width:0}
+
+/* top-right chrome */
+.chrome{position:fixed;top:14px;right:18px;z-index:40;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:rgba(22,27,34,.7);border:1px solid var(--border-soft);padding:5px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.chrome b{color:var(--accent);font-weight:600}
+
+/* nav */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(22,27,34,.82);border:1px solid var(--border-soft);padding:6px;border-radius:999px;backdrop-filter:blur(10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.nav button{background:transparent;border:none;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;font-size:15px;transition:.2s;font-family:inherit}
+.nav button:hover{background:var(--bg-elev-2);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);padding:0 8px;min-width:62px;text-align:center}
+.nav .lbl{font-family:'Inter',sans-serif;font-size:12px}
+
+/* deck + slides */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 6vw 11vh;opacity:0;transform:translateX(40px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* hero */
+.hero-slide{justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:6px 14px;border-radius:999px;align-self:flex-start}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+h1.title{font-size:clamp(36px,5.6vw,66px);line-height:1.04;font-weight:800;letter-spacing:-.03em;margin:20px 0;max-width:18ch}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-size:clamp(17px,1.9vw,23px);color:var(--muted);font-weight:400;max-width:60ch}
+.hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px 26px;color:var(--dim);font-size:13.5px}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .mono{color:var(--accent)}
+
+/* content slide chrome */
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h3.section{font-size:clamp(26px,3.4vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:22px;max-width:22ch}
+h3.section em{font-style:normal;color:var(--accent)}
+.lead-p{color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:70ch;margin-bottom:24px}
+
+/* bullets */
+ul.bullets{list-style:none;display:flex;flex-direction:column;gap:13px}
+ul.bullets li{position:relative;padding-left:26px;color:var(--text);font-size:clamp(14px,1.25vw,16.5px)}
+ul.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+ul.bullets li b{color:var(--text);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+ul.checklist{list-style:none;display:flex;flex-direction:column;gap:12px}
+ul.checklist li{position:relative;padding-left:30px;color:var(--text);font-size:clamp(14px,1.2vw,16px)}
+ul.checklist li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* layout grids */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cols-3-2{display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:start}
+@media(max-width:880px){.two-col,.three-col,.cols-3-2{grid-template-columns:1fr}}
+
+/* problem | solve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.vs .box{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs .box.problem{border-color:rgba(255,123,114,.3)}
+.vs .box.solve{border-color:rgba(0,227,168,.32);background:linear-gradient(180deg,var(--accent-soft),transparent 60%),var(--bg-elev-1)}
+.vs .box h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.vs .problem h4{color:var(--danger)} .vs .solve h4{color:var(--accent)}
+.vs .box p{color:var(--muted);font-size:14px}
+@media(max-width:760px){.vs{grid-template-columns:1fr}}
+
+/* code block (terminal window) */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:11px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px}
+.code-head{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--bg-elev-1);border-bottom:1px solid var(--border-soft)}
+.code-head .d{width:11px;height:11px;border-radius:50%}
+.code-head .r{background:#ff5f57}.code-head .y{background:#febc2e}.code-head .g{background:#28c840}
+.code-head .file{margin-left:8px;color:var(--dim);font-size:11.5px}
+.code-body{padding:14px 16px;color:var(--text);overflow-x:auto;line-height:1.65}
+.code-body .prompt{color:var(--accent)}
+.code-body .c{color:var(--dim)}.code-body .k{color:var(--purple)}.code-body .s{color:var(--accent)}
+.code-body .f{color:var(--info)}.code-body .n{color:var(--warn)}
+
+/* callout */
+.callout{border-left:3px solid var(--info);background:rgba(121,192,255,.07);padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;color:var(--text);margin:6px 0}
+.callout.accent{border-color:var(--accent);background:var(--accent-soft)}
+.callout.danger{border-color:var(--danger);background:rgba(255,123,114,.08)}
+.callout b{color:var(--text)}
+
+/* stats */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.stat{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--accent);line-height:1}
+.stat .label{font-size:13px;color:var(--text);font-weight:600;margin-top:8px}
+.stat .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* figure */
+.fig{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fig img{width:100%;display:block;cursor:zoom-in}
+.fig-caption{padding:11px 16px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border-soft);font-family:'JetBrains Mono',monospace}
+
+/* keyboard table */
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.key{display:flex;align-items:center;gap:10px;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted)}
+kbd{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-elev-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--text);min-width:22px;text-align:center}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(1,4,9,.92);display:none;place-items:center;z-index:100;padding:5vh 5vw;cursor:zoom-out}
+.lightbox.show{display:grid}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;border:1px solid var(--border)}
+
+/* overview grid */
+.overview{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;overflow-y:auto;padding:5vh 4vw}
+.overview.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-content:start}
+.overview .ocard{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:11px;padding:18px;cursor:pointer;transition:.2s}
+.overview .ocard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.overview .ocard .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.overview .ocard .t{font-size:15px;font-weight:600;margin-top:6px}
+
+/* deck end */
+.end-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.end-links a{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.2s}
+.end-links a.primary{background:var(--accent);color:#031b14}
+.end-links a.primary:hover{box-shadow:0 0 24px var(--accent-glow)}
+.end-links a.ghost{border:1px solid var(--border);color:var(--text)}
+.end-links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="chrome" id="chrome"></div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous (←)">‹</button>
+  <span class="count" id="counter">01</span>
+  <button onclick="next()" title="Next (→)">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Local-First &amp; Private">
+    <span class="badge"><span class="dot"></span> Deck 02 · branchdiff features</span>
+    <h1 class="title">100% local-first &amp; <em>private</em>.</h1>
+    <h2 class="subtitle">The diff never leaves your machine. No telemetry, no signup, no API key — and your comments, viewed markers, and UI state survive a reboot, a force-push, and a fresh clone.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">0</span> outbound calls</span>
+      <span><span class="mono">~/.branchdiff/</span> SQLite sessions</span>
+      <span><span class="mono">no</span> auth, no key, no signup</span>
+      <span><span class="mono">localhost:5391</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The native problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Cloud diff tools ship your code <em>to a third party</em>.</h3>
+    <div class="vs">
+      <div class="box problem">
+        <h4>The friction</h4>
+        <p>Reviewing proprietary code in a browser-based diff means every line travels to a third-party server. Compliance and security teams object — and they're right to.</p>
+      </div>
+      <div class="box problem">
+        <h4>The data loss</h4>
+        <p>PR comments vanish when you're offline or when a branch is deleted without merging. UI state (which file you'd scrolled to, which you'd marked viewed) is tied to a folder path and disappears the moment you clone elsewhere.</p>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:18px">
+      <b>The result:</b> "I can't use this tool on this repo" — and a draft review that took an hour evaporates the next morning because the tab refreshed or the branch was rebased.
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">The diff <em>never leaves</em> your machine.</h3>
+    <p class="lead-p">branchdiff runs as a plain Node HTTP server bound to localhost. It reads the diff from disk, persists everything to SQLite under <span class="mono">~/.branchdiff/</span>, and identifies your repo by a fingerprint that follows the repo — not the directory.</p>
+    <div class="three-col">
+      <div class="stat"><div class="num">0</div><div class="label">Outbound traffic</div><div class="desc">except user-triggered gh / Bitbucket REST</div></div>
+      <div class="stat"><div class="num">SQLite</div><div class="label">Local persistence</div><div class="desc">survives restarts, reboots, force-pushes</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">Repo fingerprint</div><div class="desc">state follows the repo, not the path</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>No telemetry, no API key, no signup.</b> The only network calls are the ones you explicitly trigger — approve a PR, post a comment, fetch a branch.
+    </div>
+  </section>
+
+  <!-- 4 · SOURCE OF TRUTH VS WORKING SURFACE -->
+  <section class="slide" data-title="Source of truth vs working surface">
+    <div class="slide-num">04 · mental model</div>
+    <h3 class="section">The forge is the <em>source of truth</em>. branchdiff is the working surface.</h3>
+    <div class="fig">
+      <img src="../../assets/B-13/platform-vs-local-split.png" alt="Source of truth vs working surface" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">GitHub / Bitbucket stay the source of truth · branchdiff is the fast, private, local working surface</div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Two-way sync, one-way authority.</b> Comments flow up to the forge on your action; everything else — drafts, viewed markers, collapse state — stays local until you decide otherwise.
+    </div>
+  </section>
+
+  <!-- 5 · 100% LOCAL EXECUTION -->
+  <section class="slide" data-title="100% local execution">
+    <div class="slide-num">05 · local execution</div>
+    <h3 class="section">A plain Node HTTP server — <em>bound to localhost</em>.</h3>
+    <div class="cols-3-2">
+      <ul class="bullets">
+        <li><b>No daemon listening on the open internet.</b> <span class="muted">The server binds to localhost; only your browser on the same machine can reach it.</span></li>
+        <li><b>No telemetry, no analytics.</b> <span class="muted">Zero outbound traffic in steady state — confirmable with any network monitor.</span></li>
+        <li><b>No API key, no signup.</b> <span class="muted">No account on a branchdiff server exists — there is no branchdiff server.</span></li>
+        <li><b>The only network calls</b> are user-triggered: <span class="mono">gh</span> for GitHub, Bitbucket REST for posting comments or PR actions.</li>
+        <li><b>Open source.</b> <span class="muted">You can read every line of the network path before you trust it with proprietary code.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>For compliance teams:</b> "the diff is processed on the engineer's laptop, by software we can audit, and the bytes never leave the machine." That sentence unblocks the review.
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · SQLITE SESSIONS -->
+  <section class="slide" data-title="SQLite sessions in ~/.branchdiff/">
+    <div class="slide-num">06 · persistence</div>
+    <h3 class="section">Everything lives in <em>~/.branchdiff/</em>.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="bullets">
+          <li><b>Comment threads, replies, viewed markers, collapse state, tours</b> — all in SQLite, one DB per repo.</li>
+          <li><b>Survives restarts and reboots.</b> <span class="muted">Close the laptop, fly home, reopen — your place is exactly where you left it.</span></li>
+          <li><b>Per-repo directory</b> keyed by a stable repo hash, so two repos never collide.</li>
+          <li><b>Repo fingerprint</b> (next slide) means the same repo on two machines writes to the same logical store.</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/.branchdiff/</span>
+        </div>
+        <div class="code-body"><span class="c"># one directory per repo, keyed by repo hash</span>
+<span class="f">~/.branchdiff/</span>
+├── <span class="s">a1b2c3d4e5/</span>            <span class="c"># repo fingerprint dir</span>
+│   ├── <span class="f">sessions.db</span>          <span class="c"># comments, replies, viewed</span>
+│   ├── <span class="f">ui_state.db</span>          <span class="c"># collapse, viewed, filters</span>
+│   └── <span class="f">tours.db</span>             <span class="c"># AI-generated code tours</span>
+└── <span class="n">credentials.json</span>        <span class="c"># optional: Bitbucket token</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · REPO FINGERPRINT -->
+  <section class="slide" data-title="Repo fingerprint">
+    <div class="slide-num">07 · repo fingerprint</div>
+    <h3 class="section">State follows the <em>repo</em>, not the directory.</h3>
+    <p class="lead-p">A stable ID is derived from the repo's remotes — <span class="mono">upstream &gt; origin &gt; first remote</span> — and falls back to <span class="mono">local:&lt;hash&gt;</span> when there are no remotes. The same repo on two laptops, or across a fork, converges on the same fingerprint.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Without a fingerprint</h4>
+        <p>UI state is keyed by folder path. Clone the repo to <span class="mono">~/work/project</span> on a new machine and every viewed marker, every collapse, every draft is gone — even though it's the same codebase.</p>
+      </div>
+      <div class="box solve">
+        <h4>With a fingerprint</h4>
+        <p>The repo identifies itself by its remotes. <span class="mono">~/src/project</span> on your laptop, <span class="mono">~/code/project</span> on the CI box, a fork you cloned to debug — all resolve to the same logical store.</p>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Converges across forks and clones.</b> Comment on a fork today; the same threads surface when you clone upstream tomorrow — they share a fingerprint.
+    </div>
+  </section>
+
+  <!-- 8 · NO AUTH -->
+  <section class="slide" data-title="No auth — reuse what's already there">
+    <div class="slide-num">08 · no auth</div>
+    <h3 class="section">No login. <em>Reuse</em> the credentials you already have.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">GitHub · one-time</span>
+        </div>
+        <div class="code-body"><span class="prompt">$</span> gh auth login
+<span class="c"># ✓ Logged in as encryptioner</span>
+<span class="c"># branchdiff reads gh's token — nothing else to configure</span>
+
+<span class="prompt">$</span> branchdiff
+<span class="c"># → syncs comments, posts reviews via gh</span></div>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">Bitbucket · App Password</span>
+        </div>
+        <div class="code-body"><span class="c"># option A — env var</span>
+<span class="prompt">$</span> <span class="k">export</span> BITBUCKET_APP_PASSWORD=<span class="s">"…"</span>
+<span class="prompt">$</span> <span class="k">export</span> BITBUCKET_USERNAME=<span class="s">"encryptioner"</span>
+
+<span class="c"># option B — credentials file</span>
+<span class="f">~/.branchdiff/credentials.json</span>
+{ <span class="s">"bitbucket_app_password"</span>: <span class="s">"…"</span> }</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>No new account, ever.</b> GitHub users get a one-line <span class="mono">gh auth login</span>; Bitbucket users drop an App Password into env or a credentials file. That's the entire auth story.
+    </div>
+  </section>
+
+  <!-- 9 · EXPORT / IMPORT BUNDLE -->
+  <section class="slide" data-title="Export / import bundle">
+    <div class="slide-num">09 · portable bundles</div>
+    <h3 class="section">Take your work with you — <em>one JSON file</em>.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="bullets">
+          <li><b><span class="mono">export --all</span></b> writes sessions, threads, replies, tours, and uiState to a single JSON.</li>
+          <li><b>Bundle format v2</b> — includes UI state, LWW-merged on import by <span class="mono">updated_at</span>.</li>
+          <li><b>Three import modes:</b> <span class="mono">--merge</span> (default), <span class="mono">--skip</span>, <span class="mono">--overwrite</span>.</li>
+          <li><b><span class="mono">--dry-run</span></b> previews the merge before touching anything.</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">export &amp; import</span>
+        </div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff export --all
+<span class="c"># → wrote branchdiff-bundle-2026-07-27.json</span>
+
+<span class="prompt">$</span> branchdiff import bundle.json <span class="k">--merge</span>
+<span class="c"># merged 47 threads, 312 viewed markers</span>
+<span class="c"># (LWW by updated_at)</span>
+
+<span class="prompt">$</span> branchdiff import bundle.json <span class="k">--dry-run</span>
+<span class="c"># preview: 2 conflicts, both newer locally</span></div>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Why it matters:</b> move a review in progress to a new machine, hand a draft to a teammate, or back up before a destructive operation — without losing a single viewed marker.
+    </div>
+  </section>
+
+  <!-- 10 · STALE-TAB PROTECTION -->
+  <section class="slide" data-title="Stale-tab protection">
+    <div class="slide-num">10 · stale-tab guard</div>
+    <h3 class="section">An old tab <em>can't</em> silently overwrite a fresh server.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Random <span class="mono">SERVER_ID</span> per boot</b> — assigned when the process starts, never reused.</li>
+        <li><b><span class="mono">X-Branchdiff-Server-Id</span> header</b> on every write request from the UI.</li>
+        <li><b>UI polls <span class="mono">/api/info</span></b> in the background; mismatch → amber banner, traffic blocked.</li>
+        <li><b>Server returns <span class="mono">409 STALE_SERVER</span></b> if the header doesn't match — writes refused, not silently applied.</li>
+      </ul>
+      <div class="callout danger">
+        <b>The scenario this prevents:</b> you restart branchdiff in tab A. Tab B — left open from yesterday — keeps writing comments against the old server ID. Without the guard, those writes hit the wrong session or get lost. With it, tab B shows the amber banner and refuses to send.
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CREDIBILITY / HONEST BOUNDARIES -->
+  <section class="slide" data-title="Honest boundaries">
+    <div class="slide-num">11 · honest boundaries</div>
+    <h3 class="section">What branchdiff <em>doesn't</em> do.</h3>
+    <p class="lead-p">Saying this out loud so the rest of the deck reads as honest, not salesy.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Not a silver bullet</h4>
+        <p><b>No CI.</b> Platform checks still gate the merge — branchdiff reads diffs, it doesn't run your pipeline.<br/><br/>
+        <b>No cloud storage.</b> Wipe <span class="mono">~/.branchdiff/</span> and unpushed local drafts are gone. Export/import is your backup.<br/><br/>
+        <b>Multi-reply threads stay local.</b> Forge APIs don't map a threaded reply tree, so only top-level comments push up.</p>
+      </div>
+      <div class="box solve">
+        <h4>Stays in its lane</h4>
+        <p><b>No branch-protection bypass.</b> Merge respects required reviews and status checks exactly as the forge enforces them.<br/><br/>
+        <b>Not a full PR-page replacement.</b> Description, linked issues, and the CI block stay on the forge — <span class="mono">Open in browser</span> is one click.<br/><br/>
+        <b>Local-first is a real trade-off.</b> No server means no shared workspace — which is the point, and the cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · INSPECT YOUR STATE -->
+  <section class="slide" data-title="Inspect &amp; reset your state">
+    <div class="slide-num">12 · hands-on</div>
+    <h3 class="section">Inspect and reset your local state — <em>from the CLI</em>.</h3>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">branchdiff info</span>
+      </div>
+      <div class="code-body"><span class="prompt">$</span> branchdiff info
+<span class="c">repo fingerprint   </span> <span class="s">a1b2c3d4e5f6…</span>
+<span class="c">source             </span> <span class="f">origin</span> (github.com:acme/payment-svc)
+<span class="c">sessions           </span> <span class="n">3</span>
+<span class="c">comment threads    </span> <span class="n">47</span>  <span class="c">(12 open, 31 resolved, 4 dismissed)</span>
+<span class="c">viewed markers     </span> <span class="n">312</span>
+<span class="c">ui state size      </span> <span class="n">18 KB</span>
+
+<span class="prompt">$</span> branchdiff state reset
+<span class="c"># → cleared UI state (viewed markers, collapse, filters)</span>
+<span class="c"># → threads and replies preserved</span></div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Nothing is hidden.</b> The store is plain SQLite on disk; <span class="mono">info</span> is the same data, summarised. You can also <span class="mono">cat</span> the file or open it in any SQLite browser.
+    </div>
+  </section>
+
+  <!-- 13 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">13 · recap</div>
+    <h3 class="section">Local-first, in one line.</h3>
+    <p class="lead-p">No outbound traffic, no telemetry, no signup. SQLite under <span class="mono">~/.branchdiff/</span> survives reboots and force-pushes. A repo fingerprint means state follows the repo. Stale tabs can't silently corrupt a fresh server.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Plain Node HTTP bound to localhost — compliance-friendly, auditable.</li>
+      <li>SQLite sessions: threads, replies, viewed markers, collapse state, tours.</li>
+      <li>Repo fingerprint: same repo, two machines, one logical store.</li>
+      <li>No auth — reuse <span class="mono">gh</span> or a Bitbucket App Password.</li>
+      <li>Export/import bundle v2 with LWW merge and <span class="mono">--dry-run</span>.</li>
+      <li>Stale-tab guard via <span class="mono">X-Branchdiff-Server-Id</span> + <span class="mono">409 STALE_SERVER</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="PROXY:03-comments-review-surface.html" target="_blank" rel="noopener">Next deck → 03 · Comments &amp; Review Surface</a>
+      <a class="ghost" href="index.html">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lbImg" alt="" /></div>
+<div class="overview" id="overview"></div>
+
+<script>
+/* ---- deck engine (shared across all decks) ---- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+const counter=document.getElementById('counter');
+const chromePill=document.getElementById('chrome');
+const progress=document.getElementById('progress');
+
+function titleOf(s){ return (s.dataset.title||'').slice(0,28); }
+function render(){
+  slides.forEach((s,n)=> s.classList.toggle('active',n===i)||s.classList.toggle('prev',n<i));
+  counter.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  chromePill.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length+' · '+titleOf(slides[i]);
+  progress.style.width=((i+1)/slides.length*100)+'%';
+}
+function next(){ if(i<slides.length-1){i++;render();} }
+function prev(){ if(i>0){i--;render();} }
+function goto(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(['ArrowRight','PageDown'].includes(e.key)||e.key===' '){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){goto(0);} else if(e.key==='End'){goto(slides.length-1);}
+  else if(e.key.toLowerCase()==='o'){toggleOverview();}
+  else if(e.key.toLowerCase()==='f'){toggleFullscreen();}
+});
+
+/* click zones + touch */
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('img,a,button,.overview')) return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.62) next(); else if(x<0.38) prev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.changedTouches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(d>50)prev();else if(d<-50)next();},{passive:true});
+
+/* lightbox */
+function openLightbox(img){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=img.src; lb.classList.add('show'); }
+
+/* overview */
+function toggleOverview(){
+  const o=document.getElementById('overview');
+  if(!o.classList.contains('show')){
+    o.innerHTML=slides.map((s,n)=>`<div class="ocard" onclick="goto(${n});toggleOverview()"><div class="n">${String(n+1).padStart(2,'0')}</div><div class="t">${titleOf(s)||'·'}</div></div>`).join('');
+    o.classList.add('show');
+  } else o.classList.remove('show');
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* hash deep-link */
+if(location.hash){ const m=location.hash.match(/(\d+)/); if(m) goto(parseInt(m[1],10)-1); }
+
+/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs */
+(function(){
+  const REPO='Encryptioner/blogs',BRANCH='master';
+  const DIR='presentations/Branchdiff Features';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const here = location.href;
+  // only rewrite when NOT already viewing through the proxy (i.e. opened raw / locally)
+  const proxied = here.indexOf('public-websites/any-page') !== -1;
+  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
+    const file=a.getAttribute('href').slice(6);
+    if(proxied){
+      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+      a.href=PROXY+encodeURIComponent(raw);
+    } else {
+      a.href=file; // local/raw: just open the sibling file
+    }
+    a.target='_blank'; a.rel='noopener';
+  });
+})();
+
+render();
+</script>
+</body>
+</html>

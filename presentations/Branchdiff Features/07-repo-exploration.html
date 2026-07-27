@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 07 — Repo Exploration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   branchdiff feature deck — canonical <style> (shared across all decks)
+   GitHub-dark + neon mint · self-contained · no external CSS framework
+   ===================================================================== */
+:root{
+  --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+  --border:#30363D; --border-soft:#21262D;
+  --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+  --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+  --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:
+    radial-gradient(900px 500px at 88% -12%, rgba(0,227,168,.07), transparent 60%),
+    radial-gradient(700px 420px at 4% 6%, rgba(121,192,255,.045), transparent 55%);
+}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--info);text-decoration:none}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--info));box-shadow:0 0 12px var(--accent-glow);z-index:50;transition:width .4s var(--ease);width:0}
+
+/* top-right chrome */
+.chrome{position:fixed;top:14px;right:18px;z-index:40;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:rgba(22,27,34,.7);border:1px solid var(--border-soft);padding:5px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.chrome b{color:var(--accent);font-weight:600}
+
+/* nav */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(22,27,34,.82);border:1px solid var(--border-soft);padding:6px;border-radius:999px;backdrop-filter:blur(10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.nav button{background:transparent;border:none;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;font-size:15px;transition:.2s;font-family:inherit}
+.nav button:hover{background:var(--bg-elev-2);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);padding:0 8px;min-width:62px;text-align:center}
+.nav .lbl{font-family:'Inter',sans-serif;font-size:12px}
+
+/* deck + slides */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 6vw 11vh;opacity:0;transform:translateX(40px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* hero */
+.hero-slide{justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:6px 14px;border-radius:999px;align-self:flex-start}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+h1.title{font-size:clamp(36px,5.6vw,66px);line-height:1.04;font-weight:800;letter-spacing:-.03em;margin:20px 0;max-width:18ch}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-size:clamp(17px,1.9vw,23px);color:var(--muted);font-weight:400;max-width:60ch}
+.hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px 26px;color:var(--dim);font-size:13.5px}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .mono{color:var(--accent)}
+
+/* content slide chrome */
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h3.section{font-size:clamp(26px,3.4vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:22px;max-width:22ch}
+h3.section em{font-style:normal;color:var(--accent)}
+.lead-p{color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:70ch;margin-bottom:24px}
+
+/* bullets */
+ul.bullets{list-style:none;display:flex;flex-direction:column;gap:13px}
+ul.bullets li{position:relative;padding-left:26px;color:var(--text);font-size:clamp(14px,1.25vw,16.5px)}
+ul.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+ul.bullets li b{color:var(--text);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+ul.checklist{list-style:none;display:flex;flex-direction:column;gap:12px}
+ul.checklist li{position:relative;padding-left:30px;color:var(--text);font-size:clamp(14px,1.2vw,16px)}
+ul.checklist li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* layout grids */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cols-3-2{display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:start}
+@media(max-width:880px){.two-col,.three-col,.cols-3-2{grid-template-columns:1fr}}
+
+/* problem | solve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.vs .box{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs .box.problem{border-color:rgba(255,123,114,.3)}
+.vs .box.solve{border-color:rgba(0,227,168,.32);background:linear-gradient(180deg,var(--accent-soft),transparent 60%),var(--bg-elev-1)}
+.vs .box h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.vs .problem h4{color:var(--danger)} .vs .solve h4{color:var(--accent)}
+.vs .box p{color:var(--muted);font-size:14px}
+@media(max-width:760px){.vs{grid-template-columns:1fr}}
+
+/* code block (terminal window) */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:11px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px}
+.code-head{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--bg-elev-1);border-bottom:1px solid var(--border-soft)}
+.code-head .d{width:11px;height:11px;border-radius:50%}
+.code-head .r{background:#ff5f57}.code-head .y{background:#febc2e}.code-head .g{background:#28c840}
+.code-head .file{margin-left:8px;color:var(--dim);font-size:11.5px}
+.code-body{padding:14px 16px;color:var(--text);overflow-x:auto;line-height:1.65}
+.code-body .prompt{color:var(--accent)}
+.code-body .c{color:var(--dim)}.code-body .k{color:var(--purple)}.code-body .s{color:var(--accent)}
+.code-body .f{color:var(--info)}.code-body .n{color:var(--warn)}
+
+/* callout */
+.callout{border-left:3px solid var(--info);background:rgba(121,192,255,.07);padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;color:var(--text);margin:6px 0}
+.callout.accent{border-color:var(--accent);background:var(--accent-soft)}
+.callout.danger{border-color:var(--danger);background:rgba(255,123,114,.08)}
+.callout b{color:var(--text)}
+
+/* stats */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.stat{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--accent);line-height:1}
+.stat .label{font-size:13px;color:var(--text);font-weight:600;margin-top:8px}
+.stat .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* figure */
+.fig{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fig img{width:100%;display:block;cursor:zoom-in}
+.fig-caption{padding:11px 16px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border-soft);font-family:'JetBrains Mono',monospace}
+
+/* keyboard table */
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.key{display:flex;align-items:center;gap:10px;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted)}
+kbd{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-elev-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--text);min-width:22px;text-align:center}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(1,4,9,.92);display:none;place-items:center;z-index:100;padding:5vh 5vw;cursor:zoom-out}
+.lightbox.show{display:grid}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;border:1px solid var(--border)}
+
+/* overview grid */
+.overview{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;overflow-y:auto;padding:5vh 4vw}
+.overview.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-content:start}
+.overview .ocard{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:11px;padding:18px;cursor:pointer;transition:.2s}
+.overview .ocard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.overview .ocard .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.overview .ocard .t{font-size:15px;font-weight:600;margin-top:6px}
+
+/* deck end */
+.end-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.end-links a{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.2s}
+.end-links a.primary{background:var(--accent);color:#031b14}
+.end-links a.primary:hover{box-shadow:0 0 24px var(--accent-glow)}
+.end-links a.ghost{border:1px solid var(--border);color:var(--text)}
+.end-links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="chrome" id="chrome"></div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous (←)">‹</button>
+  <span class="count" id="counter">01</span>
+  <button onclick="next()" title="Next (→)">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Repo Exploration">
+    <span class="badge"><span class="dot"></span> Deck 07 · branchdiff features</span>
+    <h1 class="title">Time-travel through the repo — <em>without touching your working tree</em>.</h1>
+    <h2 class="subtitle">History, commit graph, blame, file tree, code search, branches, and repo-at-a-commit — all in one browser tab, all read-only, all virtualized past a few hundred rows. No detached HEAD, no paginated forge lists, no per-file blame round-trip.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">cli</span> history · show · tree · blame · search · branches</span>
+      <span><span class="mono">read-only</span> never modifies working tree</span>
+      <span><span class="mono">virtualized</span> 150+ row threshold</span>
+      <span><span class="mono">v1.7.0</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The native problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Every exploration tool is <em>elsewhere</em>, slow, or dangerous.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">git log</span> is text.</b> <span class="muted">No structure, no inline diff, no merge curves — pipe it into less and squint.</span></li>
+        <li><b>Forge commit lists paginate.</b> <span class="muted">50 commits per page, each click a cloud round-trip; "Load more" until the tab freezes.</span></li>
+        <li><b>Blame is one file per page.</b> <span class="muted">GitHub blame on a 4,000-line file is a separate URL and a long render — and you do it again for the next file.</span></li>
+        <li><b><span class="mono">git checkout &lt;old-commit&gt;</span> detaches HEAD.</b> <span class="muted">Browse the repo at an old commit and one wrong commit lands you in detached-HEAD limbo.</span></li>
+        <li><b>Linear history hides structure.</b> <span class="muted">A flat list hides which commits landed on which branch and where the merges happened.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> exploring a repo means five tools and five round-trips — terminal for log, browser for blame, a forge tab for branches, another for search, and a risky checkout to see what the repo looked like last release.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">One tab. <em>Read-only time-travel</em> through the whole repo.</h3>
+    <p class="lead-p">branchdiff reads git directly from disk and renders history, the commit DAG, blame, the file tree, search results, branches, and repo-at-a-commit in one browser tab — all virtualized, all read-only, none of them touching your working tree.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">∞</div><div class="label">Blame line cap</div><div class="desc">Virtualized, any file size</div></div>
+      <div class="stat"><div class="num">150+</div><div class="label">Row virtualization</div><div class="desc">Files · commits · blame</div></div>
+      <div class="stat"><div class="num">0</div><div class="label">Working-tree writes</div><div class="desc">Read-only time-travel</div></div>
+      <div class="stat"><div class="num">any</div><div class="label">Repo size</div><div class="desc">No backend, no paginated cloud</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>One surface, every angle</b> — history list, DAG, blame, tree, search, branches, and repo-at-a-commit all share the same chrome and the same virtualized renderer. Reach for any of them without leaving the tab.
+    </div>
+  </section>
+
+  <!-- 4 · FILE BROWSER -->
+  <section class="slide" data-title="File browser">
+    <div class="slide-num">04 · file browser</div>
+    <h3 class="section">A real file tree — <em>not a flat list</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/08-file-tree.png" alt="branchdiff file browser with sidebar tree and syntax-highlighted preview" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff tree · sidebar tree · syntax-highlighted preview</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Sidebar tree of the whole repo.</b> <span class="muted">Collapsible folders, file-type icons, expand/collapse all.</span></li>
+        <li><b>Syntax-highlighted previews.</b> <span class="muted">Source code (Shiki, 150+ languages), rendered markdown, SVG, and image files — all inline.</span></li>
+        <li><b>Collapsible sidebar.</b> <span class="muted">Hide the tree for a full-width preview when you're reading.</span></li>
+        <li><b>Reachable from the CLI.</b> <span class="muted"><span class="mono">branchdiff tree</span> opens the same browser view as the in-app icon nav.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · COMMIT HISTORY -->
+  <section class="slide" data-title="Commit history &amp; per-file history">
+    <div class="slide-num">05 · commit history</div>
+    <h3 class="section">Full history — <em>start of repo to any ref</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/05-history.png" alt="branchdiff commit history list with search and Merges toggle" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff history · search · Merges toggle · Load all · virtualized</div>
+      </div>
+      <div>
+        <ul class="bullets">
+          <li><b>From the start of the repo to any ref or range.</b> <span class="muted">Same renderer handles a 20-commit branch and a 20,000-commit main.</span></li>
+          <li><b>Search inline.</b> <span class="muted">Filter by message, author, or SHA without re-running git.</span></li>
+          <li><b>Merges toggle.</b> <span class="muted">Show or hide merge commits; the count badge reflects what's filtered.</span></li>
+          <li><b>Load all button.</b> <span class="muted">Past the first batch, click to pull the rest on demand — no upfront fetch of 20k rows.</span></li>
+          <li><b>Hover any row.</b> <span class="muted">Copy the hash to clipboard or open the commit in a new tab.</span></li>
+        </ul>
+        <div class="callout accent" style="margin-top:14px">
+          <b>Per-file history follows renames.</b> Open a file and press <b>History</b> — full-file compare has the same button, both open in a new tab so your place in the diff is preserved.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · REPO-AT-A-COMMIT -->
+  <section class="slide" data-title="Repo-at-a-commit">
+    <div class="slide-num">06 · repo-at-a-commit</div>
+    <h3 class="section">Browse the whole repo <em>as it looked</em> at any ref.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">branchdiff show &lt;ref&gt;</span>.</b> <span class="muted">Accepts a commit SHA, tag, branch, <span class="mono">HEAD~N</span> — anything <span class="mono">git rev-parse --verify</span> accepts.</span></li>
+        <li><b>Tree, folder, and content all reflect that ref.</b> <span class="muted">Walk the file tree, open files, read previews — every view is pinned to the commit you chose.</span></li>
+        <li><b>Working tree stays on your branch.</b> <span class="muted">No <span class="mono">git checkout</span>, no detached HEAD — your edits and your branch are untouched.</span></li>
+        <li><b>Read-only time-travel.</b> <span class="muted">The repo view is rendered from git objects; nothing is written to disk.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Why it matters:</b> the safest way to answer "what did this file look like in v1.4.0?" — open a second tab at that tag, diff in your head, never leave your working branch.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · BRANCHES & TAGS -->
+  <section class="slide" data-title="Branches &amp; tags">
+    <div class="slide-num">07 · branches &amp; tags</div>
+    <h3 class="section">Every ref in the repo — <em>local and remote</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/07-branches.png" alt="branchdiff branches and tags browser with last-commit times and tracking info" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff branches · last-commit time · tracking info · click → history</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Every local and remote branch, every tag.</b> <span class="muted">One list, sortable, with the full ref namespace.</span></li>
+        <li><b>Last-commit times.</b> <span class="muted">See at a glance which branches are active and which are stale.</span></li>
+        <li><b>Tracking info.</b> <span class="muted">Which local branch tracks which remote, and whether it's ahead or behind.</span></li>
+        <li><b>Click → history.</b> <span class="muted">Jump straight into the commit list for that branch or tag.</span></li>
+        <li><b>Hover → copy / open.</b> <span class="muted">Copy the ref name or open it in a new tab.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8 · CODE SEARCH -->
+  <section class="slide" data-title="Code search">
+    <div class="slide-num">08 · code search</div>
+    <h3 class="section"><span class="mono">git grep</span> — <em>rendered</em>, not piped to less.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/10-search.png" alt="branchdiff code search results grouped by file with highlighted matches" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff search · results grouped by file · literal / regex · case options</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Across every tracked file.</b> <span class="muted">Runs <span class="mono">git grep</span> over the working tree — untracked files don't pollute results.</span></li>
+        <li><b>Grouped by file.</b> <span class="muted">Each file becomes a collapsible section with its match count.</span></li>
+        <li><b>Literal or regex.</b> <span class="muted">Toggle match mode; case-sensitive or case-insensitive.</span></li>
+        <li><b>CLI or in-app.</b> <span class="muted"><span class="mono">branchdiff search "useState"</span> opens the same rendered view as the search box in the toolbar.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9 · BLAME -->
+  <section class="slide" data-title="Blame view">
+    <div class="slide-num">09 · blame view</div>
+    <h3 class="section">Blame any file — <em>no line cap, no per-file round-trip</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/09-blame.png" alt="branchdiff blame view with per-line commit author and message hunks" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff blame · per-line commit · author · message · grouped into hunks</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Open a file, press Blame.</b> <span class="muted">One keystroke from any file preview — no separate URL per file.</span></li>
+        <li><b>Per-line commit, author, and message.</b> <span class="muted">Adjacent lines from the same commit are grouped into a single hunk — the eye finds the boundary instantly.</span></li>
+        <li><b>Virtualized, any size.</b> <span class="muted">A 10,000-line file scrolls at 60fps — only visible rows are in the DOM.</span></li>
+        <li><b>No line cap.</b> <span class="muted">Unlike the forge blame view, nothing truncates at line 1,500.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · COMMIT GRAPH (DAG) -->
+  <section class="slide" data-title="Commit graph (DAG)">
+    <div class="slide-num">10 · commit graph</div>
+    <h3 class="section">The DAG — <em>merge curves, colored lanes, clickable nodes</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/06-commit-graph.png" alt="branchdiff commit graph DAG with continuous colored lanes and merge curves" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff graph · colored lanes · merge curves · legend · tooltips</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Toggle beside the history list.</b> <span class="muted">Same commits, structural view — see where branches diverged and merged.</span></li>
+        <li><b>Continuous colored lanes.</b> <span class="muted">Each branch keeps its color across the visible range.</span></li>
+        <li><b>Merge curves.</b> <span class="muted">Merges draw as smooth curves, not stair-steps — the topology reads at a glance.</span></li>
+        <li><b>Click any node.</b> <span class="muted">Jump to the commit detail page; hover for author, date, and message tooltips.</span></li>
+        <li><b>Merges + Graph compose.</b> <span class="muted">Toggle merge filtering and the graph view in either order.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 11 · COMMIT DETAIL PAGE -->
+  <section class="slide" data-title="Commit detail page">
+    <div class="slide-num">11 · commit detail</div>
+    <h3 class="section">A commit page that <em>has everything</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/11-commit-detail.png" alt="branchdiff commit detail page with SHA parents file list and unified diff" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">/commit/:hash · full SHA · parents · file list A/D/M/R +N/-N · unified / split diff</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Full SHA with copy button.</b> <span class="muted">The complete 40-char hash, one click to clipboard.</span></li>
+        <li><b>Author, date, message.</b> <span class="muted">Rendered as the commit was authored, including multi-line messages.</span></li>
+        <li><b>Parent links.</b> <span class="muted">Merges show both parents; click to walk back through either side.</span></li>
+        <li><b>File list with status.</b> <span class="muted">Added / Deleted / Modified / Renamed, plus <span class="mono">+N/-N</span> line counts per file.</span></li>
+        <li><b>Unified or split diff.</b> <span class="muted">Same renderer as the branch comparison — view modes are consistent across the app.</span></li>
+        <li><b>Session-aware comment threads.</b> <span class="muted">View-only threads on a single commit don't leak into branch comparison sessions.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · CROSS-PAGE CHROME -->
+  <section class="slide" data-title="Cross-page chrome &amp; ergonomics">
+    <div class="slide-num">12 · cross-page chrome</div>
+    <h3 class="section">Small things that <em>add up</em> across every page.</h3>
+    <div class="three-col">
+      <div class="stat"><div class="num">merge</div><div class="label">Purple badge</div><div class="desc">Detected from %P — squash &amp; fast-forward excluded</div></div>
+      <div class="stat"><div class="num">↔</div><div class="label">Swap button</div><div class="desc">Reverse base / compare in one click</div></div>
+      <div class="stat"><div class="num">↓ N</div><div class="label">Behind-by indicator</div><div class="desc">Amber badge when base trails compare</div></div>
+    </div>
+    <div class="two-col" style="margin-top:22px">
+      <ul class="bullets">
+        <li><b>Cross-page icon nav.</b> <span class="muted">History, branches, search, and files share a header nav — switch views without losing your ref.</span></li>
+        <li><b>Back button always sensible.</b> <span class="muted">Navigating into a commit or file pushes real history entries; browser back returns you to the right place.</span></li>
+        <li><b>Typo-tolerant refs.</b> <span class="muted">Mistype a branch or tag and branchdiff matches the closest one rather than 404'ing.</span></li>
+        <li><b>Merge badges from <span class="mono">%P</span>.</b> <span class="muted">Two parents = <span style="color:var(--purple)">merge</span> badge; squash and fast-forward commits stay unbadged.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>Behind-by + Swap.</b> An amber <span class="mono">↓ N behind</span> badge tells you the base is stale; the <span class="mono">↔</span> button reverses base and compare so you can flip perspective on the same pair.
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · CLI -->
+  <section class="slide" data-title="CLI">
+    <div class="slide-num">13 · cli</div>
+    <h3 class="section">Every view — <em>one terminal command away</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">history · show</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff history
+<span class="c"># full history of the current branch, virtualized</span>
+
+<span class="prompt">$</span> branchdiff show v1.7.0
+<span class="c"># browse the whole repo as it was at the v1.7.0 tag</span>
+
+<span class="prompt">$</span> branchdiff show HEAD~5
+<span class="c"># any valid git ref — SHA, tag, branch, HEAD~N</span></div>
+      </div>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">search · branches</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff search <span class="s">"useState"</span>
+<span class="c"># git grep across tracked files, grouped by file</span>
+
+<span class="prompt">$</span> branchdiff search <span class="s">"function \\bauth[A-Z]"</span> --regex
+<span class="c"># literal or regex, case-sensitive or insensitive</span>
+
+<span class="prompt">$</span> branchdiff branches
+<span class="c"># every local/remote branch + tag, last-commit times</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Same views, two entry points:</b> every CLI command here opens the identical browser surface you reach from the in-app header nav — pick the entry point that fits where you are.
+    </div>
+  </section>
+
+  <!-- 14 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">14 · recap</div>
+    <h3 class="section">Repo exploration, in one line.</h3>
+    <p class="lead-p">History, the DAG, blame, file tree, search, branches, and repo-at-a-commit — one tab, all virtualized, all read-only time-travel. No detached HEAD, no paginated forge lists, no per-file blame round-trip.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>File browser with sidebar tree and syntax-highlighted previews — source, markdown, SVG, images.</li>
+      <li>Commit history from start of repo to any ref; per-file history that follows renames.</li>
+      <li><span class="mono">show &lt;ref&gt;</span> — browse the repo at a commit, tag, or branch; working tree untouched.</li>
+      <li>Branches &amp; tags with last-commit times and tracking info; click into history.</li>
+      <li>Code search via <span class="mono">git grep</span>, grouped by file, literal or regex.</li>
+      <li>Blame any file — virtualized, no line cap, no per-file round-trip.</li>
+      <li>Commit graph DAG with colored lanes, merge curves, clickable nodes.</li>
+      <li>Commit detail with full SHA, parent links, file A/D/M/R counts, unified / split diff.</li>
+      <li>Merge badges, typo-tolerant refs, behind-by indicator, and a one-click swap.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="index.html">↑ All decks</a>
+      <a class="ghost" href="PROXY:01-local-diff-cockpit.html">↻ Restart from Deck 01</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lbImg" alt="" /></div>
+<div class="overview" id="overview"></div>
+
+<script>
+/* ---- deck engine (shared across all decks) ---- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+const counter=document.getElementById('counter');
+const chromePill=document.getElementById('chrome');
+const progress=document.getElementById('progress');
+
+function titleOf(s){ return (s.dataset.title||'').slice(0,28); }
+function render(){
+  slides.forEach((s,n)=> s.classList.toggle('active',n===i)||s.classList.toggle('prev',n<i));
+  counter.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  chromePill.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length+' · '+titleOf(slides[i]);
+  progress.style.width=((i+1)/slides.length*100)+'%';
+}
+function next(){ if(i<slides.length-1){i++;render();} }
+function prev(){ if(i>0){i--;render();} }
+function goto(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(['ArrowRight','PageDown'].includes(e.key)||e.key===' '){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){goto(0);} else if(e.key==='End'){goto(slides.length-1);}
+  else if(e.key.toLowerCase()==='o'){toggleOverview();}
+  else if(e.key.toLowerCase()==='f'){toggleFullscreen();}
+});
+
+/* click zones + touch */
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('img,a,button,.overview')) return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.62) next(); else if(x<0.38) prev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.changedTouches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(d>50)prev();else if(d<-50)next();},{passive:true});
+
+/* lightbox */
+function openLightbox(img){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=img.src; lb.classList.add('show'); }
+
+/* overview */
+function toggleOverview(){
+  const o=document.getElementById('overview');
+  if(!o.classList.contains('show')){
+    o.innerHTML=slides.map((s,n)=>`<div class="ocard" onclick="goto(${n});toggleOverview()"><div class="n">${String(n+1).padStart(2,'0')}</div><div class="t">${titleOf(s)||'·'}</div></div>`).join('');
+    o.classList.add('show');
+  } else o.classList.remove('show');
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* hash deep-link */
+if(location.hash){ const m=location.hash.match(/(\d+)/); if(m) goto(parseInt(m[1],10)-1); }
+
+/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs */
+(function(){
+  const REPO='Encryptioner/blogs',BRANCH='master';
+  const DIR='presentations/Branchdiff Features';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const here = location.href;
+  // only rewrite when NOT already viewing through the proxy (i.e. opened raw / locally)
+  const proxied = here.indexOf('public-websites/any-page') !== -1;
+  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
+    const file=a.getAttribute('href').slice(6);
+    if(proxied){
+      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+      a.href=PROXY+encodeURIComponent(raw);
+    } else {
+      a.href=file; // local/raw: just open the sibling file
+    }
+    a.target='_blank'; a.rel='noopener';
+  });
+})();
+
+render();
+</script>
+</body>
+</html>

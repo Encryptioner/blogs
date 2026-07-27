@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 04 — AI Review & Resolve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   branchdiff feature deck — canonical <style> (shared across all decks)
+   GitHub-dark + neon mint · self-contained · no external CSS framework
+   ===================================================================== */
+:root{
+  --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+  --border:#30363D; --border-soft:#21262D;
+  --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+  --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+  --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:
+    radial-gradient(900px 500px at 88% -12%, rgba(0,227,168,.07), transparent 60%),
+    radial-gradient(700px 420px at 4% 6%, rgba(121,192,255,.045), transparent 55%);
+}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--info);text-decoration:none}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--info));box-shadow:0 0 12px var(--accent-glow);z-index:50;transition:width .4s var(--ease);width:0}
+
+/* top-right chrome */
+.chrome{position:fixed;top:14px;right:18px;z-index:40;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:rgba(22,27,34,.7);border:1px solid var(--border-soft);padding:5px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.chrome b{color:var(--accent);font-weight:600}
+
+/* nav */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(22,27,34,.82);border:1px solid var(--border-soft);padding:6px;border-radius:999px;backdrop-filter:blur(10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.nav button{background:transparent;border:none;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;font-size:15px;transition:.2s;font-family:inherit}
+.nav button:hover{background:var(--bg-elev-2);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);padding:0 8px;min-width:62px;text-align:center}
+.nav .lbl{font-family:'Inter',sans-serif;font-size:12px}
+
+/* deck + slides */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 6vw 11vh;opacity:0;transform:translateX(40px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* hero */
+.hero-slide{justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:6px 14px;border-radius:999px;align-self:flex-start}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+h1.title{font-size:clamp(36px,5.6vw,66px);line-height:1.04;font-weight:800;letter-spacing:-.03em;margin:20px 0;max-width:18ch}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-size:clamp(17px,1.9vw,23px);color:var(--muted);font-weight:400;max-width:60ch}
+.hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px 26px;color:var(--dim);font-size:13.5px}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .mono{color:var(--accent)}
+
+/* content slide chrome */
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h3.section{font-size:clamp(26px,3.4vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:22px;max-width:22ch}
+h3.section em{font-style:normal;color:var(--accent)}
+.lead-p{color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:70ch;margin-bottom:24px}
+
+/* bullets */
+ul.bullets{list-style:none;display:flex;flex-direction:column;gap:13px}
+ul.bullets li{position:relative;padding-left:26px;color:var(--text);font-size:clamp(14px,1.25vw,16.5px)}
+ul.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+ul.bullets li b{color:var(--text);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+ul.checklist{list-style:none;display:flex;flex-direction:column;gap:12px}
+ul.checklist li{position:relative;padding-left:30px;color:var(--text);font-size:clamp(14px,1.2vw,16px)}
+ul.checklist li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* layout grids */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cols-3-2{display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:start}
+@media(max-width:880px){.two-col,.three-col,.cols-3-2{grid-template-columns:1fr}}
+
+/* problem | solve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.vs .box{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs .box.problem{border-color:rgba(255,123,114,.3)}
+.vs .box.solve{border-color:rgba(0,227,168,.32);background:linear-gradient(180deg,var(--accent-soft),transparent 60%),var(--bg-elev-1)}
+.vs .box h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.vs .problem h4{color:var(--danger)} .vs .solve h4{color:var(--accent)}
+.vs .box p{color:var(--muted);font-size:14px}
+@media(max-width:760px){.vs{grid-template-columns:1fr}}
+
+/* code block (terminal window) */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:11px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px}
+.code-head{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--bg-elev-1);border-bottom:1px solid var(--border-soft)}
+.code-head .d{width:11px;height:11px;border-radius:50%}
+.code-head .r{background:#ff5f57}.code-head .y{background:#febc2e}.code-head .g{background:#28c840}
+.code-head .file{margin-left:8px;color:var(--dim);font-size:11.5px}
+.code-body{padding:14px 16px;color:var(--text);overflow-x:auto;line-height:1.65}
+.code-body .prompt{color:var(--accent)}
+.code-body .c{color:var(--dim)}.code-body .k{color:var(--purple)}.code-body .s{color:var(--accent)}
+.code-body .f{color:var(--info)}.code-body .n{color:var(--warn)}
+
+/* callout */
+.callout{border-left:3px solid var(--info);background:rgba(121,192,255,.07);padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;color:var(--text);margin:6px 0}
+.callout.accent{border-color:var(--accent);background:var(--accent-soft)}
+.callout.danger{border-color:var(--danger);background:rgba(255,123,114,.08)}
+.callout b{color:var(--text)}
+
+/* stats */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.stat{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--accent);line-height:1}
+.stat .label{font-size:13px;color:var(--text);font-weight:600;margin-top:8px}
+.stat .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* figure */
+.fig{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fig img{width:100%;display:block;cursor:zoom-in}
+.fig-caption{padding:11px 16px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border-soft);font-family:'JetBrains Mono',monospace}
+
+/* keyboard table */
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.key{display:flex;align-items:center;gap:10px;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted)}
+kbd{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-elev-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--text);min-width:22px;text-align:center}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(1,4,9,.92);display:none;place-items:center;z-index:100;padding:5vh 5vw;cursor:zoom-out}
+.lightbox.show{display:grid}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;border:1px solid var(--border)}
+
+/* overview grid */
+.overview{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;overflow-y:auto;padding:5vh 4vw}
+.overview.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-content:start}
+.overview .ocard{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:11px;padding:18px;cursor:pointer;transition:.2s}
+.overview .ocard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.overview .ocard .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.overview .ocard .t{font-size:15px;font-weight:600;margin-top:6px}
+
+/* deck end */
+.end-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.end-links a{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.2s}
+.end-links a.primary{background:var(--accent);color:#031b14}
+.end-links a.primary:hover{box-shadow:0 0 24px var(--accent-glow)}
+.end-links a.ghost{border:1px solid var(--border);color:var(--text)}
+.end-links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="chrome" id="chrome"></div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous (←)">‹</button>
+  <span class="count" id="counter">01</span>
+  <button onclick="next()" title="Next (→)">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="AI Review & Resolve">
+    <span class="badge"><span class="dot"></span> Deck 04 · branchdiff features</span>
+    <h1 class="title">AI review that <em>lands on the line</em>.</h1>
+    <h2 class="subtitle">Comments hit real diff lines with severity tags, nth-pass awareness skips what's already resolved, and resolve verifies before it claims success — instead of pasting a diff into ChatGPT and getting untraceable prose back.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">v1.7.0</span> branchdiff agent</span>
+      <span><span class="mono">11</span> agent subcommands</span>
+      <span><span class="mono">8</span> pre-built workflows</span>
+      <span><span class="mono">claude · opencode · chatgpt · gemini · codex</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The paste-into-ChatGPT problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Pasting a diff into ChatGPT is <em>not a review</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Comments don't land on lines.</b> <span class="muted">The model returns prose; you copy fragments back into GitHub by hand and lose the file/line binding.</span></li>
+        <li><b>No audit trail.</b> <span class="muted">Two weeks later nobody knows which comments came from the AI, which from a teammate, or why one was dismissed.</span></li>
+        <li><b>Every engineer, different prompt.</b> <span class="muted">No shared tone, no shared severity, no shared notion of "already raised."</span></li>
+        <li><b>Re-running re-litigates everything.</b> <span class="muted">Run the same diff tomorrow and the AI raises the same nit on a thread you already resolved.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>And on the resolve side:</b> AI "fix" scripts claim success without verifying — they edit a file, see no error, and report done. Fixes silently land on the wrong branch after a merge or rebase.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">A controlled <em>agent surface</em> the AI drives.</h3>
+    <p class="lead-p">Instead of letting an LLM freewheel through your repo, branchdiff exposes a small, audited set of <span class="mono">agent</span> commands. The AI can read the diff, drop a comment on a real line with a tag, resolve a thread, or dismiss it — but only through the surface. Every action lands in the same SQLite session as your manual comments, with the same severity taxonomy.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Ad-hoc AI · paste into ChatGPT</h4>
+        <p>Untraceable prose · no line binding · no severity · no notion of "already raised" · fix-scripts claim done without verifying · the wrong branch silently receives the patch.</p>
+      </div>
+      <div class="box solve">
+        <h4>branchdiff agent surface</h4>
+        <p>Comments land on real diff lines with <span class="mono">[must-fix]</span> / <span class="mono">[suggestion]</span> / <span class="mono">[nit]</span> tags · same session as manual comments · nth-pass aware (resolved stays resolved) · resolve verifies build + tests + ancestry first.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · SELF-REVIEW BEFORE/AFTER -->
+  <section class="slide" data-title="Why a self-review pass">
+    <div class="slide-num">04 · why a self-review pass</div>
+    <h3 class="section">A second look, <em>before</em> anyone else sees it.</h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-14/self-review-before-after.png" alt="Self-review before vs. after opening the PR" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">Self-review · before vs. after opening the PR</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Same diff, fresh eyes.</b> <span class="muted">Switch to the other side of the branch pair and read your own change as a reviewer would.</span></li>
+        <li><b>Local, private.</b> <span class="muted">Run before the PR is even opened — nothing leaves the machine.</span></li>
+        <li><b>Catches the obvious.</b> <span class="muted">Most "AI review" findings are things the author would have caught with one more pass.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · THE AGENT SURFACE -->
+  <section class="slide" data-title="The agent command surface">
+    <div class="slide-num">05 · the agent surface</div>
+    <h3 class="section">Eleven subcommands. <em>No direct file writes.</em></h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Read:</b> <span class="mono">agent diff</span>, <span class="mono">agent list</span>, <span class="mono">agent file &lt;path&gt; --ref &lt;ref&gt;</span></li>
+        <li><b>Write:</b> <span class="mono">agent comment</span>, <span class="mono">agent general-comment</span>, <span class="mono">agent reply</span>, <span class="mono">agent edit-comment</span></li>
+        <li><b>Lifecycle:</b> <span class="mono">agent resolve &lt;id&gt;</span>, <span class="mono">agent dismiss &lt;id&gt;</span>, <span class="mono">agent delete-thread</span></li>
+        <li><b>Session:</b> all accept <span class="mono">--session</span> / <span class="mono">--port</span> / <span class="mono">BRANCHDIFF_SESSION_ID</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent --help</span></div>
+        <div class="code-body"><span class="c"># read the compared ref, not your checkout</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">file</span> src/auth.ts <span class="n">--ref</span> dev
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">list</span> --status open
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">resolve</span> d10176d2 \
+    <span class="n">--summary</span> <span class="s">"guard added; tests green on fix/auth-zero"</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>One surface, every agent.</b> Claude Code, opencode, Gemini CLI, Codex, or a plain ChatGPT paste — they all drive the same <span class="mono">agent</span> commands, so the audit trail and tone stay consistent regardless of which model reviewed.
+    </div>
+  </section>
+
+  <!-- 6 · COMMENTS LAND ON LINES -->
+  <section class="slide" data-title="Comments land on real lines">
+    <div class="slide-num">06 · line-bound comments</div>
+    <h3 class="section">Comments <em>land</em>. With a severity tag.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent comment</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">comment</span> \
+    <span class="n">--file</span> src/auth.ts \
+    <span class="n">--line</span> 42 \
+    <span class="n">--end-line</span> 44 \
+    <span class="n">--side</span> new \
+    <span class="n">--body</span> <span class="s">"[must-fix] returns undefined when amount===0;
+                caller will crash on .toString()"</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">general-comment</span> \
+    <span class="n">--body</span> <span class="s">"overall: clean refactor; one blocker above"</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Real file + line binding.</b> <span class="muted">Pinned to the diff at the compared ref — survives the model losing count.</span></li>
+        <li><b>Same tag taxonomy as manual comments.</b> <span class="muted"><span class="mono">[must-fix]</span>, <span class="mono">[suggestion]</span>, <span class="mono">[nit]</span>, <span class="mono">[question]</span> — the AI doesn't invent its own prefixes.</span></li>
+        <li><b>Range + side.</b> <span class="muted"><span class="mono">--end-line</span> and <span class="mono">--side old|new</span> for multi-line and removal-only notes.</span></li>
+        <li><b>Same SQLite session.</b> <span class="muted">Indistinguishable from your own comments in the UI.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · READS FROM GIT NOT CHECKOUT -->
+  <section class="slide" data-title="Reads from git, not your checkout">
+    <div class="slide-num">07 · reads from git, not checkout</div>
+    <h3 class="section">The review can't be <em>poisoned</em> by HEAD.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">agent file &lt;path&gt; --ref &lt;ref&gt;</span></b> reads file content at the compared ref — not whatever you happen to have checked out.</li>
+        <li><b>Why it matters:</b> if you've started patching things locally, or you're on a different branch, the AI still sees the diff as reviewed.</li>
+        <li><b>Reproducible.</b> Two engineers running the same review see the same code — no "works on my machine."</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent file</span></div>
+        <div class="code-body"><span class="c"># what the AI sees — pinned to the compared ref</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">file</span> src/auth.ts <span class="n">--ref</span> dev
+<span class="c"># → content of src/auth.ts at the dev tip,
+<span class="c">#   not your working tree</span>
+
+<span class="c"># the diff itself, the same way</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">diff</span> --json</div>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:18px">
+      <b>Without this,</b> an AI that calls <span class="mono">cat src/auth.ts</span> reads your half-finished local edits and reviews the wrong code. branchdiff closes that hole by default.
+    </div>
+  </section>
+
+  <!-- 8 · RESOLVE WITH VERIFICATION -->
+  <section class="slide" data-title="Resolve with verification">
+    <div class="slide-num">08 · resolve that verifies</div>
+    <h3 class="section">Resolve <em>proves</em> the fix before it claims done.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Finds the construct by content, not line number.</b> <span class="muted">Line numbers drift across commits; the resolve skill locates the function/block by what it actually says.</span></li>
+        <li><b>Confirms ancestry.</b> <span class="muted"><span class="mono">git merge-base --is-ancestor</span> + per-file compare prove the fix commit actually descends from the branch under review.</span></li>
+        <li><b>Runs the project's own checks.</b> <span class="muted">Whatever build / typecheck / test the repo already has — resolve invokes it, not a toy script.</span></li>
+        <li><b>Reports un-placeable findings.</b> <span class="muted">If it can't find the construct, it says so — never silently resolves.</span></li>
+        <li><b>Names the branch the fix landed on.</b> <span class="muted">So you can audit "fix shipped on <span class="mono">fix/auth-zero</span>, not <span class="mono">main</span>."</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent resolve</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">resolve</span> d10176d2 \
+    <span class="n">--summary</span> <span class="s">"guard added at auth.ts:42;
+                tests green on fix/auth-zero"</span>
+
+<span class="c"># under the hood, the resolve skill:</span>
+<span class="c">#  1. locates the function by content</span>
+<span class="c">#  2. git merge-base --is-ancestor</span>
+<span class="c">#  3. per-file compare vs. reviewed tip</span>
+<span class="c">#  4. runs the project's build + tests</span>
+<span class="c">#  5. only then marks thread resolved</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · NTH-PASS AWARENESS -->
+  <section class="slide" data-title="Nth-pass awareness">
+    <div class="slide-num">09 · nth-pass awareness</div>
+    <h3 class="section">Re-running the review <em>doesn't re-litigate</em>.</h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-15/ai-passes-decision.png" alt="AI nth-pass decision tree" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">AI nth-pass decision · fetch resolved + dismissed threads first</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Resolved threads stay resolved.</b> <span class="muted">Fetched before the review; the skill will not re-raise them.</span></li>
+        <li><b>Dismissed threads stay dismissed — unless evidence changed.</b> <span class="muted">Only re-flagged if the new diff contradicts the recorded reason.</span></li>
+        <li><b>Per-pass diff.</b> <span class="muted">Run <span class="mono">-p 2</span> to review only what's new since the previous commit on the source branch.</span></li>
+        <li><b>No more "AI keeps bringing up that nit."</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · GENERATED SKILLS -->
+  <section class="slide" data-title="Generated skills & slash commands">
+    <div class="slide-num">10 · generated skills</div>
+    <h3 class="section">Skills install in <em>one command</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff skill add</span></div>
+        <div class="code-body"><span class="c"># default: writes to .claude/skills/ in this repo</span>
+<span class="prompt">$</span> branchdiff <span class="k">skill</span> <span class="f">add</span> --type all
+
+<span class="c"># targets (any of):</span>
+<span class="c">#   claude-project · claude-user</span>
+<span class="c">#   opencode-project · opencode-user</span>
+<span class="c">#   agents-project · agents-user</span>
+<span class="prompt">$</span> branchdiff <span class="k">skill</span> <span class="f">add</span> --type review \
+    <span class="n">--target</span> claude-project
+
+<span class="c"># → .claude/skills/branchdiff-review/SKILL.md</span>
+<span class="c"># → .claude/skills/branchdiff-resolve/SKILL.md</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Two skills.</b> <span class="mono">branchdiff-review</span> (raise findings constructively) and <span class="mono">branchdiff-resolve</span> (verify before resolving).</li>
+        <li><b>Slash commands.</b> <span class="mono">/branchdiff-review</span> and <span class="mono">/branchdiff-resolve</span> in Claude Code.</li>
+        <li><b>opencode reads <span class="mono">.claude/skills</span>.</b> One install covers both Claude Code and opencode.</li>
+        <li><b>Constructive tone is baked in.</b> Leads with the problem, not judgment; acknowledges good code.</li>
+        <li><b>Re-runnable.</b> Updates files it wrote; leaves hand-written skills alone unless <span class="mono">--force</span>.</li>
+      </ul>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Tone, by example:</b> <span class="mono">"This returns undefined when amount === 0, which crashes the caller."</span> — not <span class="mono">"this is wrong."</span> The skill reinforces problem-first language, so the AI's comments read like a careful teammate, not a Linter with opinions.
+    </div>
+  </section>
+
+  <!-- 11 · PLUGIN MARKETPLACE -->
+  <section class="slide" data-title="Plugin marketplace">
+    <div class="slide-num">11 · plugin marketplace</div>
+    <h3 class="section">Or install once via the <em>plugin marketplace</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">claude plugin marketplace add</span></div>
+        <div class="code-body"><span class="c"># one-time, in any repo</span>
+<span class="prompt">$</span> claude plugin marketplace add \
+    Encryptioner/branchdiff-releases \
+    <span class="n">--sparse</span> plugins/branchdiff-skills
+
+<span class="c"># then enable</span>
+<span class="prompt">$</span> claude plugin enable branchdiff-skills
+
+<span class="c"># /branchdiff-review + /branchdiff-resolve
+<span class="c">#  are now available everywhere</span></span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Lives in <span class="mono">branchdiff-releases</span>.</b> Same repo as the curl installer that works for any <span class="mono">SKILL.md</span>-reading agent.</li>
+        <li><b>Version tracks the CLI.</b> <span class="mono">v1.7.0</span> CLI → plugin <span class="mono">1.7.0</span>. Re-rendered and committed on every CLI release.</li>
+        <li><b>Sparse checkout.</b> Only the skills plugin is pulled — not the whole releases repo.</li>
+        <li><b>Also: copy-paste prompts</b> for ChatGPT, Gemini, Codex — drive the same <span class="mono">agent</span> commands without any plugin installed.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · ONE-SHOT PIPE -->
+  <section class="slide" data-title="One-shot review pipe">
+    <div class="slide-num">12 · one-shot pipe</div>
+    <h3 class="section">Export context, run an agent, <em>import findings</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff review</span></div>
+        <div class="code-body"><span class="c"># 1. export the diff as markdown or JSON</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">context</span> --json &gt; ctx.json
+
+<span class="c"># 2. apply an AI review file</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">import</span> review.json
+
+<span class="c"># 3. one-shot: context → exec → import</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">run</span> \
+    <span class="n">--exec</span> <span class="s">"claude -p"</span>
+
+<span class="c"># bootstrap a fresh session, then review</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">run</span> --exec <span class="s">"opencode run"</span> \
+    <span class="n">--url</span> https://github.com/me/repo/pull/42 \
+    <span class="n">--fresh</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b><span class="mono">review context</span></b> — markdown or JSON export of the diff and open threads, for any AI.</li>
+        <li><b><span class="mono">review run --exec &lt;cmd&gt;</span></b> — pipes context to your agent, then imports its findings back as line-bound comments.</li>
+        <li><b><span class="mono">--url</span></b> bootstraps a session from any PR link.</li>
+        <li><b><span class="mono">--fresh</span></b> archives the current session first — clean slate for a new PR iteration.</li>
+        <li><b>Any agent.</b> <span class="mono">claude -p</span>, <span class="mono">opencode run</span>, <span class="mono">gemini</span>, a curl to an OpenAI-compatible endpoint — anything that reads stdin and writes JSON.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 13 · SELF-REVIEW WORKFLOW + STATS -->
+  <section class="slide" data-title="The 4-step self-review">
+    <div class="slide-num">13 · the 4-step flow</div>
+    <h3 class="section">Open the PR. Read it. React. <em>Then publish.</em></h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-14/self-review-4-steps.png" alt="Self-review in four steps" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">Self-review · open → read → comment → resolve</div>
+      </div>
+      <ul class="bullets">
+        <li><b>1 · Open locally.</b> <span class="mono">branchdiff</span> against the branch pair — full file in place.</li>
+        <li><b>2 · Read it as a reviewer.</b> Use the vim keys; mark files viewed as you go.</li>
+        <li><b>3 · React with the AI.</b> <span class="mono">/branchdiff-review</span> or <span class="mono">review run --exec</span> — comments land on lines, tagged.</li>
+        <li><b>4 · Resolve or dismiss.</b> Fix in another branch, run resolve — it verifies, then closes.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 14 · 8 WORKFLOWS + LOCAL-ONLY -->
+  <section class="slide" data-title="Workflows & local-only resolve">
+    <div class="slide-num">14 · workflows &amp; local-only by default</div>
+    <h3 class="section">Eight workflows. <em>Local by default.</em></h3>
+    <div class="two-col">
+      <div>
+        <div class="keys" style="grid-template-columns:1fr 1fr">
+          <div class="key">AI Review</div>
+          <div class="key">AI Resolve</div>
+          <div class="key">AI Tour</div>
+          <div class="key">AI Summary</div>
+          <div class="key">Security Audit</div>
+          <div class="key">Test Coverage Gaps</div>
+          <div class="key">Breaking-Change Review</div>
+          <div class="key">Dependency Review</div>
+        </div>
+        <p class="lead-p" style="margin-top:18px;margin-bottom:0">Each workflow is a pre-built prompt that targets a specific concern — pick one instead of writing a prompt from scratch.</p>
+      </div>
+      <div>
+        <ul class="checklist">
+          <li><b>Resolve is local-only by default.</b> Threads close in your branchdiff session; nothing is pushed to GitHub or Bitbucket.</li>
+          <li><b><span class="mono">--sync</span> mirrors to the forge.</b> Only when you explicitly ask.</li>
+          <li><b>Remote comments pulled first.</b> On PR-linked sessions, the latest forge comments are fetched before the review runs — so you don't re-raise what a teammate already said.</li>
+          <li><b>Push to GitHub / Bitbucket skips threads with replies.</b> Multi-reply threads stay local (the forge APIs can't represent them).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="fig" style="margin-top:18px;max-width:520px">
+      <img src="../../assets/B-14/session-stats.png" alt="Self-review session breakdown" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">Sample self-review session · resolved vs. dismissed vs. open</div>
+    </div>
+  </section>
+
+  <!-- 15 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">15 · recap</div>
+    <h3 class="section">AI review that <em>actually reviews</em>.</h3>
+    <p class="lead-p">A controlled <span class="mono">agent</span> surface that any LLM can drive; comments that land on real lines with severity tags; nth-pass awareness so resolved stays resolved; resolve that verifies ancestry, build, and tests before claiming done.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Eleven <span class="mono">agent</span> subcommands — read, comment, resolve, dismiss, all audited.</li>
+      <li>Reads file content at the compared ref, not your checkout — review can't be poisoned.</li>
+      <li>Generated skills (<span class="mono">skill add</span>) + plugin marketplace; works with Claude Code, opencode, ChatGPT, Gemini, Codex.</li>
+      <li><span class="mono">review run --exec</span> one-shot pipe; eight pre-built workflows.</li>
+      <li>Nth-pass aware: resolved not re-raised, dismissed only re-flagged if evidence changed.</li>
+      <li>Resolve verifies by content-match, ancestry, build, and tests — local-only unless <span class="mono">--sync</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="PROXY:05-automatic-pr-review.html" target="_blank" rel="noopener">Next deck → 05 · Automatic PR Review</a>
+      <a class="ghost" href="index.html">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lbImg" alt="" /></div>
+<div class="overview" id="overview"></div>
+
+<script>
+/* ---- deck engine (shared across all decks) ---- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+const counter=document.getElementById('counter');
+const chromePill=document.getElementById('chrome');
+const progress=document.getElementById('progress');
+
+function titleOf(s){ return (s.dataset.title||'').slice(0,28); }
+function render(){
+  slides.forEach((s,n)=> s.classList.toggle('active',n===i)||s.classList.toggle('prev',n<i));
+  counter.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  chromePill.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length+' · '+titleOf(slides[i]);
+  progress.style.width=((i+1)/slides.length*100)+'%';
+}
+function next(){ if(i<slides.length-1){i++;render();} }
+function prev(){ if(i>0){i--;render();} }
+function goto(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(['ArrowRight','PageDown'].includes(e.key)||e.key===' '){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){goto(0);} else if(e.key==='End'){goto(slides.length-1);}
+  else if(e.key.toLowerCase()==='o'){toggleOverview();}
+  else if(e.key.toLowerCase()==='f'){toggleFullscreen();}
+});
+
+/* click zones + touch */
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('img,a,button,.overview')) return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.62) next(); else if(x<0.38) prev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.changedTouches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(d>50)prev();else if(d<-50)next();},{passive:true});
+
+/* lightbox */
+function openLightbox(img){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=img.src; lb.classList.add('show'); }
+
+/* overview */
+function toggleOverview(){
+  const o=document.getElementById('overview');
+  if(!o.classList.contains('show')){
+    o.innerHTML=slides.map((s,n)=>`<div class="ocard" onclick="goto(${n});toggleOverview()"><div class="n">${String(n+1).padStart(2,'0')}</div><div class="t">${titleOf(s)||'·'}</div></div>`).join('');
+    o.classList.add('show');
+  } else o.classList.remove('show');
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* hash deep-link */
+if(location.hash){ const m=location.hash.match(/(\d+)/); if(m) goto(parseInt(m[1],10)-1); }
+
+/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs */
+(function(){
+  const REPO='Encryptioner/blogs',BRANCH='master';
+  const DIR='presentations/Branchdiff Features';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const here = location.href;
+  // only rewrite when NOT already viewing through the proxy (i.e. opened raw / locally)
+  const proxied = here.indexOf('public-websites/any-page') !== -1;
+  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
+    const file=a.getAttribute('href').slice(6);
+    if(proxied){
+      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+      a.href=PROXY+encodeURIComponent(raw);
+    } else {
+      a.href=file; // local/raw: just open the sibling file
+    }
+    a.target='_blank'; a.rel='noopener';
+  });
+})();
+
+render();
+</script>
+</body>
+</html>

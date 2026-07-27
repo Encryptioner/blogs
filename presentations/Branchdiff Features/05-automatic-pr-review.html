@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 05 — Automatic PR Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   branchdiff feature deck — canonical <style> (shared across all decks)
+   GitHub-dark + neon mint · self-contained · no external CSS framework
+   ===================================================================== */
+:root{
+  --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+  --border:#30363D; --border-soft:#21262D;
+  --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+  --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+  --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:
+    radial-gradient(900px 500px at 88% -12%, rgba(0,227,168,.07), transparent 60%),
+    radial-gradient(700px 420px at 4% 6%, rgba(121,192,255,.045), transparent 55%);
+}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--info);text-decoration:none}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--info));box-shadow:0 0 12px var(--accent-glow);z-index:50;transition:width .4s var(--ease);width:0}
+
+/* top-right chrome */
+.chrome{position:fixed;top:14px;right:18px;z-index:40;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:rgba(22,27,34,.7);border:1px solid var(--border-soft);padding:5px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.chrome b{color:var(--accent);font-weight:600}
+
+/* nav */
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(22,27,34,.82);border:1px solid var(--border-soft);padding:6px;border-radius:999px;backdrop-filter:blur(10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+.nav button{background:transparent;border:none;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:999px;display:grid;place-items:center;font-size:15px;transition:.2s;font-family:inherit}
+.nav button:hover{background:var(--bg-elev-2);color:var(--text)}
+.nav .count{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);padding:0 8px;min-width:62px;text-align:center}
+.nav .lbl{font-family:'Inter',sans-serif;font-size:12px}
+
+/* deck + slides */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 6vw 11vh;opacity:0;transform:translateX(40px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+
+/* hero */
+.hero-slide{justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:6px 14px;border-radius:999px;align-self:flex-start}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+h1.title{font-size:clamp(36px,5.6vw,66px);line-height:1.04;font-weight:800;letter-spacing:-.03em;margin:20px 0;max-width:18ch}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-size:clamp(17px,1.9vw,23px);color:var(--muted);font-weight:400;max-width:60ch}
+.hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px 26px;color:var(--dim);font-size:13.5px}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta .mono{color:var(--accent)}
+
+/* content slide chrome */
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h3.section{font-size:clamp(26px,3.4vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:22px;max-width:22ch}
+h3.section em{font-style:normal;color:var(--accent)}
+.lead-p{color:var(--muted);font-size:clamp(15px,1.4vw,18px);max-width:70ch;margin-bottom:24px}
+
+/* bullets */
+ul.bullets{list-style:none;display:flex;flex-direction:column;gap:13px}
+ul.bullets li{position:relative;padding-left:26px;color:var(--text);font-size:clamp(14px,1.25vw,16.5px)}
+ul.bullets li::before{content:"";position:absolute;left:2px;top:9px;width:7px;height:7px;background:var(--accent);transform:rotate(45deg)}
+ul.bullets li b{color:var(--text);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+ul.checklist{list-style:none;display:flex;flex-direction:column;gap:12px}
+ul.checklist li{position:relative;padding-left:30px;color:var(--text);font-size:clamp(14px,1.2vw,16px)}
+ul.checklist li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* layout grids */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.cols-3-2{display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:start}
+@media(max-width:880px){.two-col,.three-col,.cols-3-2{grid-template-columns:1fr}}
+
+/* problem | solve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.vs .box{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs .box.problem{border-color:rgba(255,123,114,.3)}
+.vs .box.solve{border-color:rgba(0,227,168,.32);background:linear-gradient(180deg,var(--accent-soft),transparent 60%),var(--bg-elev-1)}
+.vs .box h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.vs .problem h4{color:var(--danger)} .vs .solve h4{color:var(--accent)}
+.vs .box p{color:var(--muted);font-size:14px}
+@media(max-width:760px){.vs{grid-template-columns:1fr}}
+
+/* code block (terminal window) */
+.code-block{background:var(--bg-code);border:1px solid var(--border);border-radius:11px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:13px}
+.code-head{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--bg-elev-1);border-bottom:1px solid var(--border-soft)}
+.code-head .d{width:11px;height:11px;border-radius:50%}
+.code-head .r{background:#ff5f57}.code-head .y{background:#febc2e}.code-head .g{background:#28c840}
+.code-head .file{margin-left:8px;color:var(--dim);font-size:11.5px}
+.code-body{padding:14px 16px;color:var(--text);overflow-x:auto;line-height:1.65}
+.code-body .prompt{color:var(--accent)}
+.code-body .c{color:var(--dim)}.code-body .k{color:var(--purple)}.code-body .s{color:var(--accent)}
+.code-body .f{color:var(--info)}.code-body .n{color:var(--warn)}
+
+/* callout */
+.callout{border-left:3px solid var(--info);background:rgba(121,192,255,.07);padding:14px 18px;border-radius:0 9px 9px 0;font-size:14px;color:var(--text);margin:6px 0}
+.callout.accent{border-color:var(--accent);background:var(--accent-soft)}
+.callout.danger{border-color:var(--danger);background:rgba(255,123,114,.08)}
+.callout b{color:var(--text)}
+
+/* stats */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px}
+.stat{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3vw,38px);font-weight:700;color:var(--accent);line-height:1}
+.stat .label{font-size:13px;color:var(--text);font-weight:600;margin-top:8px}
+.stat .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+/* figure */
+.fig{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fig img{width:100%;display:block;cursor:zoom-in}
+.fig-caption{padding:11px 16px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border-soft);font-family:'JetBrains Mono',monospace}
+
+/* keyboard table */
+.keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.key{display:flex;align-items:center;gap:10px;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted)}
+kbd{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg-elev-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--text);min-width:22px;text-align:center}
+
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(1,4,9,.92);display:none;place-items:center;z-index:100;padding:5vh 5vw;cursor:zoom-out}
+.lightbox.show{display:grid}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;border:1px solid var(--border)}
+
+/* overview grid */
+.overview{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;overflow-y:auto;padding:5vh 4vw}
+.overview.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-content:start}
+.overview .ocard{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:11px;padding:18px;cursor:pointer;transition:.2s}
+.overview .ocard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.overview .ocard .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+.overview .ocard .t{font-size:15px;font-weight:600;margin-top:6px}
+
+/* deck end */
+.end-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.end-links a{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.2s}
+.end-links a.primary{background:var(--accent);color:#031b14}
+.end-links a.primary:hover{box-shadow:0 0 24px var(--accent-glow)}
+.end-links a.ghost{border:1px solid var(--border);color:var(--text)}
+.end-links a.ghost:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="chrome" id="chrome"></div>
+
+<div class="nav">
+  <button onclick="prev()" title="Previous (←)">‹</button>
+  <span class="count" id="counter">01</span>
+  <button onclick="next()" title="Next (→)">›</button>
+  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
+  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Automatic PR Review">
+    <span class="badge"><span class="dot"></span> Deck 05 · branchdiff features</span>
+    <h1 class="title">Automatic PR review, <em>with you at the wheel</em>.</h1>
+    <h2 class="subtitle">Stop pinging Slack to ask if anyone re-reviewed the new push. branchdiff auto watches your open PRs, runs your AI reviewer only when there are new commits, and never posts a comment without your flag.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">auto</span> open PRs · new commits only</span>
+      <span><span class="mono">--worktree</span> per-PR isolation</span>
+      <span><span class="mono">--auto-push</span> the only remote path</span>
+      <span><span class="mono">GitHub</span> + <span class="mono">Bitbucket</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The re-review tax">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Re-review is the <em>forgetful</em> tax.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Reviewers forget to re-review.</b> <span class="muted">You left comments, the author pushed fixes, pinged you in Slack — half the time nothing happens.</span></li>
+        <li><b>Fear of the autonomous post.</b> <span class="muted">"The AI commented on the PR without me" is a real fear — engineers won't hand a model the keys to their repo.</span></li>
+        <li><b>Reviewing someone's PR nukes your tree.</b> <span class="muted"><span class="mono">gh pr checkout</span> switches your working branch — the file you were mid-edit on is gone.</span></li>
+        <li><b>Two forges, two dashboards.</b> <span class="muted">GitHub and Bitbucket each make you re-click through every PR to see what's new since you last looked.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> re-review becomes a manual chore — so it slips, and threads that should have been caught before merge land in production.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff auto solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section"><em>branchdiff auto</em>: watch, decide, review — you keep the keys.</h3>
+    <p class="lead-p">One command lists every open PR with non-merge commits since your last review. You pick which to run your AI on. Every escalation — the actual review, the push to remote, the verdict — is gated behind a flag you have to set.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">auto</div><div class="label">Watch open PRs</div><div class="desc">GitHub + Bitbucket, new commits only</div></div>
+      <div class="stat"><div class="num">--worktree</div><div class="label">Per-PR isolation</div><div class="desc">Never switches your branch</div></div>
+      <div class="stat"><div class="num">--auto-push</div><div class="label">Only remote path</div><div class="desc">Nothing leaves without your flag</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>You stay in control of every escalation.</b> The watch is automatic; the review, the push, and the verdict are not.
+    </div>
+  </section>
+
+  <!-- 4 · REVIEW CADENCE -->
+  <section class="slide" data-title="Review cadence">
+    <div class="slide-num">04 · cadence</div>
+    <h3 class="section">A <em>cadence</em> for re-review — not a Slack ping.</h3>
+    <div class="fig">
+      <img src="../../assets/B-15/review-cadence.png" alt="Review cadence in six steps" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">Six steps: watch · detect new commits · pick · review · reconcile · decide</div>
+    </div>
+  </section>
+
+  <!-- 5 · AUTO FLOW -->
+  <section class="slide" data-title="auto flow & picker">
+    <div class="slide-num">05 · the picker</div>
+    <h3 class="section">Finds the PRs that <em>actually need you</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Lists open PRs</b> on GitHub and Bitbucket — one source, two forges.</li>
+        <li><b>Decides which have non-merge commits</b> since your last review. Merge commits don't count; the diff does.</li>
+        <li><b>Numbered picker:</b> comma-separated numbers, <span class="mono">a</span> for all, <span class="mono">q</span> to quit.</li>
+        <li><b>Filter by branch:</b> <span class="mono">--source</span> and <span class="mono">--dest</span> narrow the watch.</li>
+        <li><b><span class="mono">--watch 10</span></b> loops every 10 minutes — set it once, leave it running.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--watch</span> <span class="n">10</span>
+
+<span class="c"># 3 open PRs with new commits since last review:</span>
+<span class="n">1</span>  <span class="s">#142</span>  feat: webhook retry         <span class="c">(4 new)</span>
+<span class="n">2</span>  <span class="s">#151</span>  fix: race in queue          <span class="c">(2 new)</span>
+<span class="n">3</span>  <span class="s">#160</span>  docs: API reference         <span class="c">(1 new)</span>
+
+<span class="c">Pick (comma-separated, a=all, q=quit):</span> <span class="n">1,2</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · STAY-IN-CONTROL FLAGS -->
+  <section class="slide" data-title="Stay-in-control flags">
+    <div class="slide-num">06 · stay in control</div>
+    <h3 class="section">Every escalation is <em>your flag</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">--auto-review</span></b> skips the "run the review?" prompt.</li>
+        <li><b><span class="mono">--notify</span></b> desktop-notifies on start, done, push, and failure.</li>
+        <li><b><span class="mono">--auto-push</span> is the ONLY way comments reach the remote.</b> <span class="muted">Without it, the review stays local — you read it, then decide.</span></li>
+        <li><b>Non-interactive shell without <span class="mono">--auto-review</span> → refuses.</b> <span class="muted">No silent AI runs from a cron job.</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto \
+  <span class="k">--tool</span> claude \
+  <span class="k">--skill</span> \
+  <span class="k">--auto-push</span> \
+  <span class="k">--auto-approve</span>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Default is read-only.</b> Run <span class="mono">branchdiff auto</span> with no escalation flags and you get a local review of every PR that needs one — nothing posts anywhere.
+    </div>
+  </section>
+
+  <!-- 7 · DETERMINISTIC VERDICT -->
+  <section class="slide" data-title="Deterministic verdict gate">
+    <div class="slide-num">07 · the verdict gate</div>
+    <h3 class="section">Auto-approve is <em>deterministic</em>, not the AI's word.</h3>
+    <div class="callout accent">
+      <b>The gate, not the claim.</b> <span class="mono">--auto-approve</span> and <span class="mono">--auto-request-changes</span> both require <span class="mono">--auto-push</span> — and the verdict is a rule the AI cannot override.
+    </div>
+    <div class="vs" style="margin-top:18px">
+      <div class="box problem">
+        <h4>AI self-reports "safe"</h4>
+        <p>A model that asserts "looks good, ship it" on its own output has every incentive to be wrong — and no rule says it has to look at every open thread before deciding.</p>
+      </div>
+      <div class="box solve">
+        <h4>branchdiff deterministic gate</h4>
+        <p>Any open <span class="mono">[must-fix]</span> blocks approval — so does any open human-started thread. The AI reconciles prior threads: it resolves its own, and only replies to a human's. The un-enabled side still gets a written recommendation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · AI PASSES DECISION TREE -->
+  <section class="slide" data-title="Nth-pass reconciliation">
+    <div class="slide-num">08 · nth-pass</div>
+    <h3 class="section">Nth-pass <em>reconciliation</em> — the AI never re-litigates.</h3>
+    <div class="fig">
+      <img src="../../assets/B-15/ai-passes-decision.png" alt="AI passes decision tree" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">Decision tree: prior AI threads resolved, prior human threads only replied to, new threads opened only for new findings</div>
+    </div>
+  </section>
+
+  <!-- 9 · MULTI-TOOL & SKILL MODE -->
+  <section class="slide" data-title="Multi-tool & skill mode">
+    <div class="slide-num">09 · your agent</div>
+    <h3 class="section">Bring <em>your own agent</em> — any of six, or anything via stdin.</h3>
+    <div class="three-col">
+      <div class="stat">
+        <div class="num">--tool</div>
+        <div class="label">claude · opencode · codex · gemini · cursor · llm</div>
+        <div class="desc">Pick a built-in agent by name.</div>
+      </div>
+      <div class="stat">
+        <div class="num">--exec</div>
+        <div class="label">Any command reading stdin</div>
+        <div class="desc">Prints review JSON on stdout — pipe in anything.</div>
+      </div>
+      <div class="stat">
+        <div class="num">--skill</div>
+        <div class="label">Built-in "branchdiff" skill</div>
+        <div class="desc">Drives the Claude Code / opencode skill that ships with the CLI.</div>
+      </div>
+    </div>
+    <ul class="bullets" style="margin-top:22px">
+      <li><b><span class="mono">--skill-name</span></b> point at a different named skill, <b><span class="mono">--additional-skill</span></b> (repeatable) layer more on top, <b><span class="mono">--prompt</span></b> override the prompt entirely.</li>
+      <li><b>The AI runs as a child process via <span class="mono">sh -c</span></b>, inheriting your shell environment — so agents resolve your auth, config dirs, and API keys exactly as they would from your terminal.</li>
+    </ul>
+  </section>
+
+  <!-- 10 · PARALLEL & WORKTREE -->
+  <section class="slide" data-title="Parallel & worktree isolation">
+    <div class="slide-num">10 · parallel &amp; worktrees</div>
+    <h3 class="section"><em>Parallel</em> reviews, isolated in worktrees.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">--parallel &lt;n&gt;</span></b> reviews n PRs concurrently.</li>
+        <li><b>Requires <span class="mono">--worktree</span></b> — each PR checks out into its own <span class="mono">.worktrees/pr-&lt;n&gt;</span>, never touching your working branch.</li>
+        <li><b><span class="mono">--worktree-remove</span></b> cleans up — but <b>refuses to delete a dirty worktree</b>. It's kept and reported; you decide.</li>
+        <li><b>Hooks bypassed</b> for throwaway checkouts — your pre-commit hooks don't fire on review-only trees.</li>
+        <li><b>Worktree path is visible</b> in <span class="mono">list</span> and the toolbar badge, so you always know where a review is running.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto \
+  <span class="k">--parallel</span> <span class="n">3</span> \
+  <span class="k">--worktree</span>
+
+<span class="c"># PR #142 → .worktrees/pr-1</span>
+<span class="c"># PR #151 → .worktrees/pr-2</span>
+<span class="c"># PR #160 → .worktrees/pr-3</span>
+<span class="c"># three reviews run concurrently</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · AUTO-RESOLVE -->
+  <section class="slide" data-title="Auto-resolve pass">
+    <div class="slide-num">11 · auto-resolve</div>
+    <h3 class="section">After review, an optional <em>resolve</em> pass.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">--auto-resolve</span></b> runs a resolve pass after (or instead of) review.</li>
+        <li><b>AI fixes open threads locally, then resolves them.</b> <span class="muted">No commit, no push — the changes live in your worktree until you decide.</span></li>
+        <li><b>Separate skill surface:</b> <span class="mono">--resolve-skill-name</span>, <span class="mono">--additional-resolve-skill</span> (repeatable), <span class="mono">--resolve-prompt</span>.</li>
+        <li><b>Pairs with <span class="mono">--worktree</span></b> — resolved changes stay isolated; you inspect before merging anywhere.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto \
+  <span class="k">--auto-resolve</span> \
+  <span class="k">--worktree</span>
+
+<span class="c"># review pass  →  opens new threads</span>
+<span class="c"># resolve pass →  fixes prior open threads</span>
+<span class="c">#                locally, marks them resolved</span>
+<span class="c">#                (nothing pushed)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · AD-HOC & ISOLATION -->
+  <section class="slide" data-title="Ad-hoc & isolation">
+    <div class="slide-num">12 · escape hatches</div>
+    <h3 class="section">Ad-hoc reviews, account isolation, one auto per repo.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Review a single PR by URL</b> — skip the watch entirely.</li>
+        <li><b><span class="mono">--no-skip</span></b> re-opens already-reviewed PRs — the escape hatch for a review that posted nothing.</li>
+        <li><b>Account / env isolation:</b> the AI inherits your shell env, so point at a specific account via env-prefix (<span class="mono">CLAUDE_CONFIG_DIR=...</span>), <span class="mono">--tool</span>+<span class="mono">--exec</span>, or <span class="mono">--exec</span> alone.</li>
+        <li><b>One <span class="mono">auto</span> per repo.</b> A second is refused; <span class="mono">--force-session</span> to allow. Different repos are unaffected.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> &lt;pr-url&gt; <span class="k">--worktree</span>
+
+<span class="c"># review a single PR by URL</span>
+<span class="c"># → checks out into .worktrees/pr-1</span>
+<span class="c"># → your working branch is untouched</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">13 · recap</div>
+    <h3 class="section">Automatic, never autonomous.</h3>
+    <p class="lead-p"><span class="mono">branchdiff auto</span> watches your open PRs, runs your AI reviewer only on ones with new commits, and gates every escalation — push, verdict, resolve — behind a flag you set.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Numbered picker; <span class="mono">--watch 10</span> loops; filter by <span class="mono">--source</span> / <span class="mono">--dest</span>.</li>
+      <li><span class="mono">--auto-push</span> is the only path to the remote; non-interactive without <span class="mono">--auto-review</span> refuses.</li>
+      <li>Deterministic verdict gate — any open <span class="mono">[must-fix]</span> or human thread blocks approval.</li>
+      <li>Six tools or <span class="mono">--exec</span>; built-in skill or your own; <span class="mono">--parallel</span> + <span class="mono">--worktree</span> isolation.</li>
+      <li><span class="mono">--auto-resolve</span> fixes threads locally — no commit, no push until you say so.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="PROXY:06-sessions-sync-platform.html" target="_blank" rel="noopener">Next deck → 06 · Sessions, Sync &amp; Platform</a>
+      <a class="ghost" href="index.html">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lbImg" alt="" /></div>
+<div class="overview" id="overview"></div>
+
+<script>
+/* ---- deck engine (shared across all decks) ---- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0;
+const counter=document.getElementById('counter');
+const chromePill=document.getElementById('chrome');
+const progress=document.getElementById('progress');
+
+function titleOf(s){ return (s.dataset.title||'').slice(0,28); }
+function render(){
+  slides.forEach((s,n)=> s.classList.toggle('active',n===i)||s.classList.toggle('prev',n<i));
+  counter.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  chromePill.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length+' · '+titleOf(slides[i]);
+  progress.style.width=((i+1)/slides.length*100)+'%';
+}
+function next(){ if(i<slides.length-1){i++;render();} }
+function prev(){ if(i>0){i--;render();} }
+function goto(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+
+/* keyboard */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(['ArrowRight','PageDown'].includes(e.key)||e.key===' '){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){goto(0);} else if(e.key==='End'){goto(slides.length-1);}
+  else if(e.key.toLowerCase()==='o'){toggleOverview();}
+  else if(e.key.toLowerCase()==='f'){toggleFullscreen();}
+});
+
+/* click zones + touch */
+document.getElementById('deck').addEventListener('click',e=>{
+  if(e.target.closest('img,a,button,.overview')) return;
+  const x=e.clientX/window.innerWidth;
+  if(x>0.62) next(); else if(x<0.38) prev();
+});
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.changedTouches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(d>50)prev();else if(d<-50)next();},{passive:true});
+
+/* lightbox */
+function openLightbox(img){ const lb=document.getElementById('lightbox'); document.getElementById('lbImg').src=img.src; lb.classList.add('show'); }
+
+/* overview */
+function toggleOverview(){
+  const o=document.getElementById('overview');
+  if(!o.classList.contains('show')){
+    o.innerHTML=slides.map((s,n)=>`<div class="ocard" onclick="goto(${n});toggleOverview()"><div class="n">${String(n+1).padStart(2,'0')}</div><div class="t">${titleOf(s)||'·'}</div></div>`).join('');
+    o.classList.add('show');
+  } else o.classList.remove('show');
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* hash deep-link */
+if(location.hash){ const m=location.hash.match(/(\d+)/); if(m) goto(parseInt(m[1],10)-1); }
+
+/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs */
+(function(){
+  const REPO='Encryptioner/blogs',BRANCH='master';
+  const DIR='presentations/Branchdiff Features';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const here = location.href;
+  // only rewrite when NOT already viewing through the proxy (i.e. opened raw / locally)
+  const proxied = here.indexOf('public-websites/any-page') !== -1;
+  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
+    const file=a.getAttribute('href').slice(6);
+    if(proxied){
+      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+      a.href=PROXY+encodeURIComponent(raw);
+    } else {
+      a.href=file; // local/raw: just open the sibling file
+    }
+    a.target='_blank'; a.rel='noopener';
+  });
+})();
+
+render();
+</script>
+</body>
+</html>
