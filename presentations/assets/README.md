@@ -13,8 +13,12 @@ presentations/assets/
 │   ├── deck-chrome.css      # shared controls (nav, lightbox, overview) — theme-agnostic via --dk-*
 │   ├── deck-mobile.css      # mobile + rotation UX (scoped to body.dk-* classes; desktop untouched)
 │   └── branchdiff.css       # Branchdiff feature decks: slide layout + GitHub-dark/neon-mint theme
+├── LINKS.md                 # public URL for every presentation (markdown + HTML decks)
 └── README.md                # this file
 ```
+
+Public path for every presentation (markdown blob link or raw-content proxy
+link, per format) is documented in [`LINKS.md`](./LINKS.md).
 
 ## Decks wired in
 
