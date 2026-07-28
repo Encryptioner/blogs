@@ -33,10 +33,11 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 
 
 ## Presentations
-- [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation/index.md)
-- [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools/index.md)
-- [Token Economics Presentation](./presentations/Token%20Economics/index.md)
-- [Many Accounts, Many Providers, One Harness](./presentations/Many%20Accounts%20-%20Many%20Providers%20-%20One%20Harness/index.md)
+- [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
+- [Hands on Coding of Basic Application Tools](./presentations/P-2-hands-on-coding-tools/index.md)
+- [Token Economics Presentation](./presentations/P-3-token-economics/index.md)
+- [Many Accounts, Many Providers, One Harness](./presentations/P-4-many-accounts-many-providers/index.md)
+- [Branchdiff Features](./presentations/P-5-branchdiff-features/index.html)
 
 
 ## Links

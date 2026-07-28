@@ -1,6 +1,6 @@
 # Branchdiff Features — Presentation Plan
 
-Source-of-truth plan for the `Branchdiff Features/` presentation directory. This
+Source-of-truth plan for the `P-5-branchdiff-features/` presentation directory. This
 file decides **what to present** and **how**, and is the spec the HTML decks are
 built from. Read this before adding or editing a deck.
 
@@ -41,7 +41,7 @@ native PR workflow and showing how branchdiff removes it.
 ## 3. File structure
 
 ```
-blogs/presentations/Branchdiff Features/
+blogs/presentations/P-5-branchdiff-features/
 ├── index.md                      ← this plan
 ├── index.html                    ← navigation hub (deck gallery + install + proxy links)
 ├── 01-local-diff-cockpit.html    ← Deck 1
@@ -78,7 +78,7 @@ in JS so adding a deck is a one-line data entry:
 
 ```js
 const REPO = 'Encryptioner/blogs', BRANCH = 'master';
-const DIR  = 'presentations/Branchdiff Features';
+const DIR  = 'presentations/P-5-branchdiff-features';
 const PROXY = 'https://encryptioner.github.io/public-websites/any-page/';
 function deckUrl(file) {
   const raw = `https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
@@ -87,8 +87,8 @@ function deckUrl(file) {
 ```
 
 The hash form (`any-page/#…`) is the scheme-less raw URL — `slice(8)` drops
-`https://`, `encodeURI` turns the space in `Branchdiff Features` into `%20`
-(slashes stay literal). Image paths inside each deck stay
+`https://` (slashes stay literal; `encodeURI` is a no-op now that the dir has no
+spaces). Image paths inside each deck stay
 relative (`images/…`, `../../assets/B-NN/…`) — proven to resolve through this
 proxy by the existing Token Economics deck.
 

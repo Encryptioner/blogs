@@ -21,7 +21,8 @@
 16. Productivity: [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
 
 ## Presentations
-1. Productivity: [Automation of Daily Workflow Presentation](./presentations/Automation%20of%20Daily%20Workflow%20Presentation/index.md)
-2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/Hands%20on%20Coding%20of%20Basic%20Application%20Tools/index.md)
-3. Productivity: [Token Economics Presentation](./presentations/Token%20Economics/index.md)
-4. Productivity: [Many Accounts, Many Providers, One Harness](./presentations/Many%20Accounts%20-%20Many%20Providers%20-%20One%20Harness/index.md)
+1. Productivity: [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
+2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/P-2-hands-on-coding-tools/index.md)
+3. Productivity: [Token Economics Presentation](./presentations/P-3-token-economics/index.md)
+4. Productivity: [Many Accounts, Many Providers, One Harness](./presentations/P-4-many-accounts-many-providers/index.md)
+5. Productivity: [Branchdiff Features](./presentations/P-5-branchdiff-features/index.html)
