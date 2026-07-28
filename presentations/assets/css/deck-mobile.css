@@ -1,0 +1,84 @@
+/* =============================================================================
+   deck-mobile.css — mobile + rotation UX layer.
+   Loaded after deck-chrome.css. Everything is scoped to body.dk-* classes that
+   deck.js toggles via matchMedia, so desktop rendering is never touched.
+   Classes: .dk-touch (coarse pointer) · .dk-portrait/.dk-landscape · .dk-narrow
+           .dk-rotate (fixed-canvas deck in narrow portrait → show rotate hint)
+   ============================================================================= */
+
+/* --- dynamic-viewport height: kills the mobile 100vh / URL-bar drift --- */
+@supports (height: 100dvh) {
+  html, body { height: 100dvh; }
+  .deck { height: 100dvh; }          /* fluid decks (Token Economics, Branchdiff) */
+}
+
+/* --- kill rubber-band / scroll-chain bounce on touch --- */
+body.dk-touch { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+
+/* smooth rescale when rotating (short, so URL-bar tweaks don't feel laggy) */
+body.dk-touch .deck-stage-wrap,
+body.dk-touch #stageWrap { transition: transform .18s ease; }
+
+/* =============================================================================
+   chrome: thumb-friendly, notched, no keyboard hint
+   ============================================================================= */
+body.dk-touch .dk-kbd-hint { display: none; }
+
+body.dk-touch .dk-chrome {
+  top: calc(10px + env(safe-area-inset-top));
+  right: 10px;
+  gap: 8px;
+  font-size: 10px;
+}
+body.dk-touch .dk-pill { padding: 4px 9px; }
+
+body.dk-touch .dk-nav {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 7px;
+  gap: 6px;
+}
+body.dk-touch .dk-nav button {
+  width: 44px; height: 44px;       /* 44px = Apple/Google tap-target floor */
+  font-size: 18px;
+}
+body.dk-touch .dk-nav .dk-count { font-size: 12px; padding: 0 8px; }
+
+/* hide the title pill in portrait — room is tight and it duplicates the counter */
+body.dk-touch.dk-portrait .dk-chrome .dk-pill.dk-title { display: none; }
+
+/* =============================================================================
+   rotate hint — fixed-canvas decks in narrow portrait only (body.dk-rotate)
+   ============================================================================= */
+.dk-rotate-hint {
+  position: fixed;
+  left: 50%; bottom: calc(88px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: none; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px;
+  background: var(--dk-surface); color: var(--dk-text);
+  border: 1px solid var(--dk-border);
+  font-family: var(--dk-mono); font-size: 12px; letter-spacing: .02em;
+  z-index: 60; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+}
+body.dk-rotate .dk-rotate-hint { display: inline-flex; }
+.dk-rotate-icon {
+  display: inline-block; color: var(--dk-accent); font-size: 15px;
+  animation: dk-spin 2.4s ease-in-out infinite;
+}
+@keyframes dk-spin {
+  0%, 35% { transform: rotate(0deg); }
+  65%, 100% { transform: rotate(180deg); }
+}
+
+/* =============================================================================
+   lightbox + overview — full-bleed, big close, single-column on phone
+   ============================================================================= */
+body.dk-touch .dk-lightbox { padding: 12px; }
+body.dk-touch .dk-lb-close {
+  width: 44px; height: 44px; font-size: 20px;
+  top: calc(12px + env(safe-area-inset-top)); right: 12px;
+}
+body.dk-touch .dk-overview { padding: calc(56px + env(safe-area-inset-top)) 16px 80px; }
+body.dk-touch .dk-overview-grid { grid-template-columns: 1fr; gap: 14px; }
+body.dk-touch .dk-overview-card { min-height: 96px; }

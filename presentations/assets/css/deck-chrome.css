@@ -47,6 +47,7 @@
 .dk-nav {
   position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 50;
   display: flex; gap: 8px; align-items: center;
+  width: max-content; max-width: calc(100vw - 16px);   /* size to buttons, don't let left:50% shrink-to-fit crush them */
   padding: 6px; border: 1px solid var(--dk-border); border-radius: 30px;
   background: color-mix(in srgb, var(--dk-surface) 85%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);

@@ -122,12 +122,51 @@
 
     // --- fixed-canvas scaling (PPT-style fit) ---
     var stage = (cfg.canvas && cfg.stage) ? $(cfg.stage) : null;
+    function vp() {
+      // visualViewport is accurate on mobile (accounts for the URL bar); fall back to window.
+      var v = window.visualViewport;
+      return v ? { w: v.width, h: v.height } : { w: window.innerWidth, h: window.innerHeight };
+    }
     function fitStage() {
       if (!stage || !cfg.canvas) return;
-      var scale = Math.min(window.innerWidth / cfg.canvas.w, window.innerHeight / cfg.canvas.h);
+      var d = vp();
+      var scale = Math.min(d.w / cfg.canvas.w, d.h / cfg.canvas.h);
       stage.style.transform = 'scale(' + scale + ')';
     }
-    if (stage) { fitStage(); window.addEventListener('resize', fitStage); window.addEventListener('orientationchange', fitStage); }
+    if (stage) {
+      fitStage();
+      window.addEventListener('resize', fitStage);
+      window.addEventListener('orientationchange', fitStage);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', fitStage);
+    }
+
+    // --- mobile / orientation tracking (drives deck-mobile.css + the rotate hint) ---
+    var mNarrow = window.matchMedia('(max-width: 720px)');
+    var mLand = window.matchMedia('(orientation: landscape)');
+    var mCoarse = window.matchMedia('(pointer: coarse)');
+    var rotateDismissed = false;
+    function applyMode() {
+      var portrait = !mLand.matches;
+      var narrow = mNarrow.matches || mCoarse.matches;     // phone-width OR a touch device
+      document.body.classList.toggle('dk-touch', mCoarse.matches);
+      document.body.classList.toggle('dk-portrait', portrait);
+      document.body.classList.toggle('dk-landscape', !portrait);
+      document.body.classList.toggle('dk-narrow', narrow);
+      // rotate hint: only fixed-canvas decks on a narrow, portrait screen
+      var showRotate = !!(cfg.canvas && narrow && portrait && !rotateDismissed);
+      document.body.classList.toggle('dk-rotate', showRotate);
+    }
+    if (cfg.canvas) {
+      var hint = document.createElement('div');
+      hint.className = 'dk-rotate-hint';
+      hint.innerHTML = '<span class="dk-rotate-icon">↻</span><span>Rotate to landscape for the full slide</span>';
+      hint.addEventListener('click', function () { rotateDismissed = true; applyMode(); });
+      document.body.appendChild(hint);
+    }
+    [mNarrow, mLand, mCoarse].forEach(function (m) {
+      m.addEventListener('change', function () { rotateDismissed = false; applyMode(); fitStage(); });
+    });
+    applyMode();
 
     // --- fullscreen ---
     function toggleFullscreen() {
@@ -311,14 +350,15 @@
       });
     }
 
-    // --- swipe (passive) ---
+    // --- swipe (passive; horizontal-dominant so vertical scroll inside a slide is left alone) ---
     if (cfg.swipe) {
-      var sx = 0;
-      clickRoot.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+      var sx = 0, sy = 0;
+      clickRoot.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
       clickRoot.addEventListener('touchend', function (e) {
         if (lb && lb.isOpen(lb.box)) return;
         var dx = e.changedTouches[0].clientX - sx;
-        if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+        var dy = e.changedTouches[0].clientY - sy;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) { dx < 0 ? next() : prev(); }
       }, { passive: true });
     }
 

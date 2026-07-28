@@ -10,7 +10,8 @@ presentations/assets/
 ├── js/
 │   └── deck.js              # the engine — Deck.mount({...})
 ├── css/
-│   ├── deck-chrome.css      # shared controls (nav, lightbox, overview, mobile) — theme-agnostic via --dk-*
+│   ├── deck-chrome.css      # shared controls (nav, lightbox, overview) — theme-agnostic via --dk-*
+│   ├── deck-mobile.css      # mobile + rotation UX (scoped to body.dk-* classes; desktop untouched)
 │   └── branchdiff.css       # Branchdiff feature decks: slide layout + GitHub-dark/neon-mint theme
 └── README.md                # this file
 ```
@@ -81,16 +82,29 @@ variable names. Each deck aliases them in its `:root`:
 
 Defaults ship in `deck-chrome.css` so it renders even without aliasing.
 
-## Responsive foundation (current state)
+## Mobile + rotation support
 
-- **Chrome** — `@media (max-width:720px)` hides the keyboard hint, shrinks the
-  chrome pills, and grows nav tap targets to 40px; portrait hides the title pill.
-- **Fixed-canvas decks** — `fitStage` rescales on `resize`/`orientationchange`,
-  so rotation just works.
-- **Fluid decks** — slide padding/sizing use `vw`/`vh`/`clamp()`, already adapting.
+`deck.js` toggles `body.dk-*` classes via `matchMedia`; `deck-mobile.css` styles
+off them. Desktop never gets `dk-touch`/`dk-narrow`/`dk-rotate`, so it's untouched.
 
-### Next phase — PPT/Google-Slides mobile UI
-The foundation above is in place; the richer mobile UX (swipe indicators, a
-thumb-friendly bottom bar, slide thumbnails, presenter pinch-zoom) lands later in
-a new `css/deck-mobile.css` + a mobile bar in `deck.js` — both inherited by every
-deck automatically because the chrome is shared.
+- **`dk-touch`** (coarse pointer) — thumb-friendly chrome: 44px nav tap targets,
+  safe-area-inset padding, keyboard hint hidden, full-bleed lightbox, single-column
+  overview, `overscroll-behavior:none`.
+- **`dk-portrait` / `dk-landscape`** — orientation tracking. Title pill hides in
+  portrait (room is tight).
+- **`dk-narrow`** — phone-width viewport.
+- **`dk-rotate`** — fixed-canvas deck in a narrow portrait screen → shows a
+  dismissible "↻ rotate to landscape" hint (whole slide stays visible, letterboxed).
+  Dismissing resets on the next orientation change.
+- **`fitStage`** uses `visualViewport` (accurate despite the mobile URL bar) and
+  re-runs on `resize` + `orientationchange` + `visualViewport.resize`, so rotation
+  smoothly rescales the fixed canvas.
+- **Swipe** is horizontal-dominant (`|dx| > |dy|·1.2`) — vertical scroll inside a
+  fluid slide is never mistaken for a nav swipe.
+- **Fluid decks** (Token, Branchdiff) reflow in both orientations via `vw`/`vh`/`clamp()`
+  + `100dvh`; **fixed-canvas** (Many Accounts) is best in landscape (scale ~0.5×,
+  ~35px text) and graceful in portrait (scale-to-fit + rotate hint).
+
+### Possible next polish
+Presenter pinch-zoom on slides, swipe-edge indicators, slide-thumbnail rail. All
+would land in `deck-mobile.css` / `deck.js` and inherit to every deck automatically.
