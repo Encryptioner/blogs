@@ -296,14 +296,14 @@ Deck.mount({
 (function(){
   const REPO='Encryptioner/blogs',BRANCH='master';
   const DIR='presentations/Branchdiff Features';
-  const PROXY='https://encryptioner.github.io/public-websites/any-page/?url=';
+  const PROXY='https://encryptioner.github.io/public-websites/any-page/';
   const here = location.href;
   const proxied = here.indexOf('public-websites/any-page') !== -1;
   document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
     const file=a.getAttribute('href').slice(6);
     if(proxied){
       const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
-      a.href=PROXY+encodeURIComponent(raw);
+      a.href=PROXY+'#' + encodeURI(raw).slice(8);
     } else {
       a.href=file;
     }

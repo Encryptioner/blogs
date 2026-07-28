@@ -200,10 +200,10 @@
   // ---- proxy link builder (see index.md §4) ----
   const REPO = 'Encryptioner/blogs', BRANCH = 'master';
   const DIR  = 'presentations/Branchdiff Features';
-  const PROXY = 'https://encryptioner.github.io/public-websites/any-page/?url=';
+  const PROXY = 'https://encryptioner.github.io/public-websites/any-page/';
   function deckUrl(file){
     const raw = `https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
-    return PROXY + encodeURIComponent(raw);
+    return PROXY + '#' + encodeURI(raw).slice(8);
   }
 
   // ---- deck registry: add one entry per new deck ----

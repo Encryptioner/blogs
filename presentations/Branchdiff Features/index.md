@@ -79,16 +79,16 @@ in JS so adding a deck is a one-line data entry:
 ```js
 const REPO = 'Encryptioner/blogs', BRANCH = 'master';
 const DIR  = 'presentations/Branchdiff Features';
-const PROXY = 'https://encryptioner.github.io/public-websites/any-page/?url=';
+const PROXY = 'https://encryptioner.github.io/public-websites/any-page/';
 function deckUrl(file) {
   const raw = `https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
-  return PROXY + encodeURIComponent(raw);   // encodes the space in DIR → %20
+  return PROXY + '#' + encodeURI(raw).slice(8);   // slice(8) drops https://; encodeURI → %20 for the space
 }
 ```
 
-`encodeURIComponent` handles the space in `Branchdiff Features` → `%20`, then the
-whole URL is encoded again for the `url=` param (matching the Token Economics
-example, where the space surfaces as `%2520`). Image paths inside each deck stay
+The hash form (`any-page/#…`) is the scheme-less raw URL — `slice(8)` drops
+`https://`, `encodeURI` turns the space in `Branchdiff Features` into `%20`
+(slashes stay literal). Image paths inside each deck stay
 relative (`images/…`, `../../assets/B-NN/…`) — proven to resolve through this
 proxy by the existing Token Economics deck.
 
