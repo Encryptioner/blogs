@@ -60,6 +60,7 @@
     if (els.totalNum) els.totalNum.textContent = total;
 
     var current = 0;
+    var fitFluidSlide = null; // set below when canvas is fluid (null) — scales the active slide to fit, no scroll
 
     // --- reveal a slide ---
     function revealSlide(idx) {
@@ -102,6 +103,7 @@
       }
       try { slides[idx].scrollTop = 0; } catch (e) {}
       if (cfg.hash) history.replaceState(null, '', '#' + (idx + 1));
+      if (fitFluidSlide) fitFluidSlide();
     }
 
     function next() {
@@ -138,6 +140,33 @@
       window.addEventListener('resize', fitStage);
       window.addEventListener('orientationchange', fitStage);
       if (window.visualViewport) window.visualViewport.addEventListener('resize', fitStage);
+    }
+
+    // --- fluid-slide auto-fit (no fixed canvas): scale the whole slide down so it
+    // always fits the viewport with no internal scroll — same "whole slide always
+    // visible" contract as fitStage above, just measured per-slide instead of once.
+    if (!cfg.canvas && cfg.fit !== false) {
+      fitFluidSlide = function () {
+        var el = slides[current];
+        if (!el) return;
+        // reset first — height:auto lets scrollHeight report the TRUE unclipped
+        // content height; without this a prior fit's shrink would be measured instead.
+        el.style.height = '';
+        el.style.transform = '';
+        var natural = el.scrollHeight, avail = el.clientHeight;
+        if (avail > 0 && natural > avail) {
+          // grow the box to its full content height *before* scaling — otherwise
+          // inset:0 clips it to viewport height first and the transform just
+          // shrinks the already-truncated box, leaving dead space below.
+          el.style.height = natural + 'px';
+          el.style.transformOrigin = 'top center';
+          el.style.transform = 'scale(' + (avail / natural).toFixed(4) + ')';
+        }
+      };
+      window.addEventListener('resize', fitFluidSlide);
+      window.addEventListener('orientationchange', fitFluidSlide);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', fitFluidSlide);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitFluidSlide);
     }
 
     // --- mobile / orientation tracking (drives deck-mobile.css + the rotate hint) ---
