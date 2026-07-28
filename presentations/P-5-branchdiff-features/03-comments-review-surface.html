@@ -159,7 +159,7 @@
     <h3 class="section">General comments and a <em>viewed counter</em> that survives force-pushes.</h3>
     <div class="two-col">
       <ul class="bullets">
-        <li><b>General (diff-wide) comments.</b> <span class="muted">PR-level notes pulled from the forge (v1.6.1+) — count badge + jump button in the toolbar.</span></li>
+        <li><b>General (diff-wide) comments.</b> <span class="muted">PR-level notes pulled from the forge — count badge + jump button in the toolbar.</span></li>
         <li><b>Eye icon or <kbd>r</kbd> key.</b> <span class="muted">Mark any file viewed from the row or the keyboard; auto-advance scrolls to the next.</span></li>
         <li><b>"12 / 38 viewed" counter.</b> <span class="muted">Sidebar <span class="mono">👁 N</span> badge plus a progress line — always know what's left.</span></li>
         <li><b>Persisted in SQLite.</b> <span class="muted">Keyed by repo fingerprint + branch pair — survives commits, force-pushes, and machine moves.</span></li>
@@ -182,7 +182,7 @@
       <ul class="bullets">
         <li><b>FNV-1a hash of the diff signature.</b> <span class="muted">Content-based, so an unrelated commit that doesn't touch the file leaves it viewed.</span></li>
         <li><b>Viewed → stale only when content changes.</b> <span class="muted">File flips to an amber dot the moment its diff signature differs.</span></li>
-        <li><b>Re-view in one click.</b> <span class="muted">v1.7.0 re-signs the hash so the file stays viewed until the content moves again.</span></li>
+        <li><b>Re-view in one click.</b> <span class="muted">Re-signs the hash so the file stays viewed until the content moves again.</span></li>
         <li><b>Stale is its own filter.</b> <span class="muted">Combine <b>Stale</b> + search <span class="mono">auth</span> → exactly the auth files you need to re-read.</span></li>
       </ul>
     </div>

@@ -124,7 +124,7 @@
         <li><b>The whole file</b>, not just hunks — see surrounding code and patterns at a glance.</li>
         <li><b>Minimap strip</b> with red/green markers for changed regions; click to jump.</li>
         <li><b>Markdown preview</b> — render both sides as formatted markdown for docs PRs.</li>
-        <li><b>Per-pane copy buttons</b> and a widened 1800px dialog (v1.7.0).</li>
+        <li><b>Per-pane copy buttons</b> and a widened 1800px dialog.</li>
       </ul>
     </div>
   </section>
@@ -178,7 +178,7 @@
       <div class="stat"><div class="num">500</div><div class="label">lines</div><div class="desc">large-diff gating threshold</div></div>
       <div class="stat"><div class="num">∞</div><div class="label">blame</div><div class="desc">virtualized, no line cap</div></div>
     </div>
-    <p class="lead-p" style="margin-top:22px">File, commit, and blame lists virtualize past a few hundred rows; diff hunks gate at 500 lines so the tab never crashes on a massive PR. v1.7.0 switched to per-item absolute positioning — wrong height estimates no longer displace later rows, killing the blank-gap jank during fast scroll.</p>
+    <p class="lead-p" style="margin-top:22px">File, commit, and blame lists virtualize past a few hundred rows; diff hunks gate at 500 lines so the tab never crashes on a massive PR. Per-item absolute positioning means wrong height estimates no longer displace later rows, killing the blank-gap jank during fast scroll.</p>
   </section>
 
   <!-- 11 · RECAP -->
