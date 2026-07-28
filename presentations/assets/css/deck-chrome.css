@@ -32,14 +32,15 @@
 /* ----- slide counter / title pills ----- */
 .dk-chrome {
   position: fixed; top: 18px; right: 24px; z-index: 50;
-  display: flex; gap: 14px; align-items: center;
+  display: flex; gap: 14px; align-items: center; justify-content: flex-end;
+  max-width: calc(100vw - 20px);   /* right:24px anchor + no left bound otherwise — cap so long titles can't push it off the left edge */
   font-family: var(--dk-mono); font-size: 11px; letter-spacing: .08em; color: var(--dk-dim);
 }
 .dk-pill {
   padding: 4px 10px; border: 1px solid var(--dk-border); border-radius: 20px;
   background: color-mix(in srgb, var(--dk-surface) 70%, transparent);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 40vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dk-pill .dk-num { color: var(--dk-accent); }
 
@@ -51,7 +52,13 @@
   padding: 6px; border: 1px solid var(--dk-border); border-radius: 30px;
   background: color-mix(in srgb, var(--dk-surface) 85%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  /* overflow, never wrap: a deck with many buttons (core/goto/notes/help) can
+     exceed a narrow phone's width — scroll the dock itself instead of letting
+     a child wrap to 2 lines (which can grow the pill past the safe-area bottom). */
+  overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
 }
+.dk-nav::-webkit-scrollbar { display: none; }
+.dk-nav button { flex-shrink: 0; }
 .dk-nav button {
   background: transparent; border: none; color: var(--dk-muted);
   width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
@@ -63,6 +70,7 @@
 .dk-nav .dk-count {
   font-family: var(--dk-mono); font-size: 11px; color: var(--dk-muted);
   padding: 0 10px; letter-spacing: .05em;
+  white-space: nowrap; flex-shrink: 0;
 }
 .dk-notes-toggle {
   background: transparent; border: 1px solid var(--dk-border); color: var(--dk-muted);

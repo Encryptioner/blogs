@@ -167,6 +167,12 @@
       window.addEventListener('orientationchange', fitFluidSlide);
       if (window.visualViewport) window.visualViewport.addEventListener('resize', fitFluidSlide);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitFluidSlide);
+      // lazy <img>s finish loading well after the initial fit and can grow a
+      // slide taller than what was measured — 'load' doesn't bubble, so listen
+      // on the capture phase instead of wiring every image individually.
+      document.addEventListener('load', function (e) {
+        if (e.target && e.target.tagName === 'IMG') fitFluidSlide();
+      }, true);
     }
 
     // --- mobile / orientation tracking (drives deck-mobile.css + the rotate hint) ---

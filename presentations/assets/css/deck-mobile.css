@@ -6,10 +6,26 @@
            .dk-rotate (fixed-canvas deck in narrow portrait → show rotate hint)
    ============================================================================= */
 
-/* --- dynamic-viewport height: kills the mobile 100vh / URL-bar drift --- */
+/* --- dynamic-viewport height: kills the mobile 100vh / URL-bar drift ---
+   !important is deliberate: every deck's own inline <style> comes AFTER this
+   file in <head> and redeclares plain 100vh/100% at equal specificity, which
+   would otherwise win by source order and silently undo this fix on real
+   phones (Chrome DevTools' device emulation can't surface the difference,
+   since it doesn't simulate the address-bar show/hide that vh vs dvh differ on). */
 @supports (height: 100dvh) {
-  html, body { height: 100dvh; }
-  .deck { height: 100dvh; }          /* fluid decks (Token Economics, Branchdiff) */
+  html, body { height: 100dvh !important; }
+  .deck { height: 100dvh !important; }          /* fluid decks (Token Economics, Branchdiff) */
+}
+
+/* --- hard scroll-lock: the page itself must never scroll, on any deck.
+   Any inner element that needs its own scroll (tables, .dk-overview, a
+   deliberately scrollable slide) opts in explicitly with its own overflow rule. */
+html, body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 /* --- kill rubber-band / scroll-chain bounce on touch --- */
@@ -43,8 +59,9 @@ body.dk-touch .dk-nav button {
 }
 body.dk-touch .dk-nav .dk-count { font-size: 12px; padding: 0 8px; }
 
-/* hide the title pill in portrait — room is tight and it duplicates the counter */
-body.dk-touch.dk-portrait .dk-chrome .dk-pill.dk-title { display: none; }
+/* hide the title pill whenever narrow — room is tight (landscape phones too,
+   not just portrait: a long title can jointly overflow with the counter pill) */
+body.dk-narrow .dk-chrome .dk-pill.dk-title { display: none; }
 
 /* =============================================================================
    rotate hint — fixed-canvas decks in narrow portrait only (body.dk-rotate)
