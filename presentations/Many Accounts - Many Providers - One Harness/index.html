@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="../assets/css/deck-chrome.css">
+<script src="../assets/js/deck.js"></script>
 <style>
 /* ===== inlined global.css ===== */
 /* =====================================================================
@@ -61,6 +63,13 @@
   --fs-body:    16px;
   --fs-small:   13px;
   --fs-micro:   11px;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--bg-elev-1); --dk-elevated:var(--bg-elev-2);
+  --dk-border:var(--border); --dk-border-soft:var(--border-soft);
+  --dk-text:var(--primary); --dk-muted:var(--muted); --dk-dim:var(--muted-2);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:rgba(0,227,168,.25);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
 }
 
 /* reset & canvas */
@@ -3236,213 +3245,20 @@ body.notes-mode .notes-toggle {
 </div>
 
 <script>
-(function() {
-  const slides = Array.from(document.querySelectorAll('.deck-slide'));
-  const total = slides.length;
-  const curNumEl = document.getElementById('curNum');
-  const progressEl = document.getElementById('progress');
-  const stageWrap = document.getElementById('stageWrap');
-  const viewport = document.getElementById('viewport');
-  const helpOverlay = document.getElementById('helpOverlay');
-  const gotoOverlay = document.getElementById('gotoOverlay');
-  const gotoInput = document.getElementById('gotoInput');
-  const notesToggle = document.getElementById('notesToggle');
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightboxImg');
-
-  let currentIdx = 0;
-  let gotoMode = false;
-  let blackout = false;
-
-  function pad2(n) { return String(n+1).padStart(2, '0'); }
-
-  function show(idx) {
-    if (idx < 0) idx = 0;
-    if (idx > total - 1) idx = total - 1;
-    slides.forEach((s, i) => {
-      if (i === idx) s.setAttribute('data-active', 'true');
-      else s.removeAttribute('data-active');
-    });
-    currentIdx = idx;
-    curNumEl.textContent = pad2(idx);
-    const pct = ((idx + 1) / total) * 100;
-    progressEl.style.width = pct + '%';
-    history.replaceState(null, '', '#' + (idx + 1));
-  }
-
-  function next() { show(currentIdx + 1); }
-  function prev() { show(currentIdx - 1); }
-  function first() { show(0); }
-  function last()  { show(total - 1); }
-
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen();
-    }
-  }
-
-  function toggleHelp() {
-    const isOpen = helpOverlay.getAttribute('data-open') === 'true';
-    helpOverlay.setAttribute('data-open', isOpen ? 'false' : 'true');
-  }
-
-  function toggleNotes() {
-    document.body.classList.toggle('notes-mode');
-    const on = document.body.classList.contains('notes-mode');
-    notesToggle.textContent = 'Notes: ' + (on ? 'on' : 'off');
-  }
-
-  function openGoto() {
-    gotoOverlay.setAttribute('data-open', 'true');
-    gotoInput.value = '';
-    gotoInput.focus();
-    gotoMode = true;
-  }
-  function closeGoto() {
-    gotoOverlay.setAttribute('data-open', 'false');
-    gotoMode = false;
-  }
-  function submitGoto() {
-    const n = parseInt(gotoInput.value, 10);
-    if (!isNaN(n) && n >= 1 && n <= total) {
-      show(n - 1);
-    }
-    closeGoto();
-  }
-
-  function openLightbox(src, alt) {
-    lightboxImg.src = src;
-    lightboxImg.alt = alt || '';
-    lightbox.setAttribute('data-open', 'true');
-  }
-  function closeLightbox() {
-    lightbox.setAttribute('data-open', 'false');
-    lightboxImg.src = '';
-  }
-  document.querySelectorAll('.fig img').forEach((img) => {
-    img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(img.src, img.alt); });
-  });
-  lightbox.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
-
-  function toggleBlackout() {
-    blackout = !blackout;
-    if (blackout) {
-      const b = document.createElement('div');
-      b.id = 'blackout-screen';
-      b.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9999;cursor:pointer;';
-      b.addEventListener('click', toggleBlackout);
-      document.body.appendChild(b);
-    } else {
-      const b = document.getElementById('blackout-screen');
-      if (b) b.remove();
-    }
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (gotoMode && document.activeElement === gotoInput) {
-      if (e.key === 'Enter') { e.preventDefault(); submitGoto(); }
-      else if (e.key === 'Escape') { e.preventDefault(); closeGoto(); }
-      return;
-    }
-
-    if (helpOverlay.getAttribute('data-open') === 'true') {
-      if (e.key === 'Escape' || e.key === '?' || e.key === '/') {
-        e.preventDefault();
-        toggleHelp();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowRight':
-      case 'PageDown':
-      case ' ':
-        e.preventDefault(); next(); break;
-      case 'ArrowLeft':
-      case 'PageUp':
-        e.preventDefault(); prev(); break;
-      case 'Home':
-        e.preventDefault(); first(); break;
-      case 'End':
-        e.preventDefault(); last(); break;
-      case 'f':
-      case 'F':
-        e.preventDefault(); toggleFullscreen(); break;
-      case '?':
-      case '/':
-        e.preventDefault(); toggleHelp(); break;
-      case 's':
-      case 'S':
-        e.preventDefault(); toggleNotes(); break;
-      case 'b':
-      case 'B':
-        e.preventDefault(); toggleBlackout(); break;
-      case 'g':
-      case 'G':
-        e.preventDefault(); openGoto(); break;
-      case 'Escape':
-        if (lightbox.getAttribute('data-open') === 'true') closeLightbox();
-        else if (document.fullscreenElement) document.exitFullscreen();
-        break;
-      case 'Enter':
-        if (e.metaKey || e.ctrlKey) { e.preventDefault(); toggleFullscreen(); }
-        break;
-      default:
-        if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
-          const n = parseInt(e.key, 10);
-          if (n <= total) { e.preventDefault(); show(n - 1); }
-        }
-    }
-  });
-
-  notesToggle.addEventListener('click', (e) => { e.stopPropagation(); toggleNotes(); });
-
-  helpOverlay.addEventListener('click', (e) => {
-    if (e.target === helpOverlay) toggleHelp();
-  });
-
-  viewport.addEventListener('click', (e) => {
-    if (e.target.closest('a, button, input, .notes-toggle, .help-card, .goto-overlay, .help-overlay, .fig, .lightbox')) return;
-    if (helpOverlay.getAttribute('data-open') === 'true') return;
-    if (gotoMode) return;
-    const rect = viewport.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    if (x > rect.width / 2) next(); else prev();
-  });
-
-  let touchStartX = 0;
-  viewport.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-  }, { passive: true });
-  viewport.addEventListener('touchend', (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 50) {
-      if (dx < 0) next(); else prev();
-    }
-  }, { passive: true });
-
-  function fitStage() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const scale = Math.min(vw / 1280, vh / 720);
-    stageWrap.style.transform = 'scale(' + scale + ')';
-  }
-  window.addEventListener('resize', fitStage);
-  fitStage();
-
-  function loadFromHash() {
-    const h = window.location.hash.replace('#', '');
-    const n = parseInt(h, 10);
-    if (!isNaN(n) && n >= 1 && n <= total) show(n - 1);
-    else show(0);
-  }
-  window.addEventListener('hashchange', loadFromHash);
-  loadFromHash();
-
-  window.__deck = { show, next, prev, first, last, total, getCurrent: () => currentIdx };
-})();
+Deck.mount({
+  slide: '.deck-slide',
+  reveal: 'attr',
+  canvas: { w: 1280, h: 720 },
+  stage: '#stageWrap',
+  viewport: '#viewport',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  hash: true, clickAdvance: true, swipe: true,
+  lightbox: { toggle: 'attr' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  notes: { toggle: '#notesToggle', cls: 'notes-mode' },
+  blackout: true,
+  help: { overlay: '#helpOverlay' }
+});
 </script>
 
 </body>

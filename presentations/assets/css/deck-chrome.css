@@ -1,0 +1,167 @@
+/* =============================================================================
+   deck-chrome.css — shared presentation chrome (nav, lightbox, overview, mobile)
+   Theme-agnostic: every color comes from a --dk-* token. Each deck's own :root
+   aliases these to its palette, e.g.
+       :root { --dk-text: var(--text); --dk-accent: var(--accent); ... }
+   Defaults below render sanely even with no aliasing. Slide canvas + layout stay
+   in each deck's inline <style> — this file only styles the shared controls.
+   ============================================================================= */
+:root {
+  --dk-bg: #0c0b09;
+  --dk-surface: #15130e;
+  --dk-elevated: #1c1913;
+  --dk-border: #2a261e;
+  --dk-border-soft: #3a342a;
+  --dk-text: #f5f0e6;
+  --dk-muted: #a39c8b;
+  --dk-dim: #6b6557;
+  --dk-accent: #ff7a3d;
+  --dk-accent-soft: rgba(255, 122, 61, .12);
+  --dk-accent-glow: rgba(255, 122, 61, .25);
+  --dk-danger: #ff6b6b;
+  --dk-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* mobile bar height — used by the forward-looking mobile UI */
+  --dk-mobile-h: 0px;
+}
+
+/* ----- top progress bar ----- */
+.dk-topbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--dk-surface); z-index: 100; }
+.dk-progress { height: 100%; width: 0; background: linear-gradient(90deg, var(--dk-accent), var(--dk-elevated)); transition: width .5s ease; }
+
+/* ----- slide counter / title pills ----- */
+.dk-chrome {
+  position: fixed; top: 18px; right: 24px; z-index: 50;
+  display: flex; gap: 14px; align-items: center;
+  font-family: var(--dk-mono); font-size: 11px; letter-spacing: .08em; color: var(--dk-dim);
+}
+.dk-pill {
+  padding: 4px 10px; border: 1px solid var(--dk-border); border-radius: 20px;
+  background: color-mix(in srgb, var(--dk-surface) 70%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dk-pill .dk-num { color: var(--dk-accent); }
+
+/* ----- nav control dock ----- */
+.dk-nav {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 50;
+  display: flex; gap: 8px; align-items: center;
+  padding: 6px; border: 1px solid var(--dk-border); border-radius: 30px;
+  background: color-mix(in srgb, var(--dk-surface) 85%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.dk-nav button {
+  background: transparent; border: none; color: var(--dk-muted);
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  font-family: var(--dk-mono); font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: all .2s;
+}
+.dk-nav button:hover { background: var(--dk-elevated); color: var(--dk-text); }
+.dk-nav button[aria-pressed="true"] { background: var(--dk-accent-soft); color: var(--dk-accent); }
+.dk-nav .dk-count {
+  font-family: var(--dk-mono); font-size: 11px; color: var(--dk-muted);
+  padding: 0 10px; letter-spacing: .05em;
+}
+.dk-notes-toggle {
+  background: transparent; border: 1px solid var(--dk-border); color: var(--dk-muted);
+  font-family: var(--dk-mono); font-size: 11px; padding: 5px 12px; border-radius: 20px;
+  cursor: pointer; letter-spacing: .05em;
+}
+.dk-notes-toggle:hover { color: var(--dk-text); border-color: var(--dk-accent); }
+
+/* ----- keyboard hint ----- */
+.dk-kbd-hint {
+  position: fixed; bottom: 22px; right: 24px; z-index: 50;
+  display: flex; gap: 6px; align-items: center;
+  font-family: var(--dk-mono); font-size: 10px; color: var(--dk-dim); letter-spacing: .08em;
+}
+.dk-kbd { padding: 2px 6px; border: 1px solid var(--dk-border); border-radius: 3px; background: var(--dk-surface); color: var(--dk-muted); }
+
+/* ----- image lightbox ----- */
+.dk-lightbox {
+  position: fixed; inset: 0; z-index: 2000; display: none;
+  align-items: center; justify-content: center; padding: 40px; cursor: zoom-out;
+  background: color-mix(in srgb, var(--dk-bg) 96%, transparent);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+.dk-lightbox.open, .dk-lightbox[data-open="true"] { display: flex; }
+.dk-lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.dk-lb-close {
+  position: fixed; top: 22px; right: 24px; width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--dk-border); background: color-mix(in srgb, var(--dk-surface) 70%, transparent);
+  color: var(--dk-muted); font-size: 18px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 2001;
+}
+.dk-lb-close:hover { color: var(--dk-text); border-color: var(--dk-accent); }
+
+/* ----- overview grid ----- */
+.dk-overview {
+  position: fixed; inset: 0; z-index: 200; display: none; padding: 60px 50px; overflow-y: auto;
+  background: color-mix(in srgb, var(--dk-bg) 96%, transparent);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+.dk-overview.open, .dk-overview[data-open="true"] { display: block; }
+.dk-overview h3 {
+  font-family: var(--dk-mono); font-style: italic; font-size: 1.5rem; color: var(--dk-muted);
+  margin-bottom: 30px; text-align: center; font-weight: 300;
+}
+.dk-overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; }
+.dk-overview-card {
+  background: var(--dk-surface); border: 1px solid var(--dk-border); border-radius: 8px; padding: 20px;
+  cursor: pointer; transition: all .2s; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;
+}
+.dk-overview-card:hover { border-color: var(--dk-accent); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+.dk-overview-card[data-core="true"] { border-color: color-mix(in srgb, var(--dk-accent) 40%, var(--dk-border)); }
+.dk-overview-num { font-family: var(--dk-mono); font-size: 10px; color: var(--dk-accent); letter-spacing: .1em; margin-bottom: 8px; }
+.dk-overview-ttl { font-size: 1rem; color: var(--dk-text); line-height: 1.3; }
+.dk-overview-sub { font-size: .78rem; color: var(--dk-dim); margin-top: 6px; }
+
+/* ----- goto + help overlays ----- */
+.dk-goto, .dk-help {
+  position: fixed; inset: 0; z-index: 250; display: none;
+  align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--dk-bg) 80%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.dk-goto[data-open="true"], .dk-help[data-open="true"] { display: flex; }
+.dk-goto input {
+  font-family: var(--dk-mono); font-size: 2rem; text-align: center; width: 180px;
+  background: var(--dk-surface); color: var(--dk-text); border: 1px solid var(--dk-border);
+  border-radius: 8px; padding: 12px;
+}
+.dk-goto input:focus { outline: none; border-color: var(--dk-accent); }
+.dk-help-card {
+  background: var(--dk-surface); border: 1px solid var(--dk-border); border-radius: 12px;
+  padding: 32px 40px; max-width: 520px; max-height: 80vh; overflow-y: auto;
+}
+.dk-help-card h3 { margin: 0 0 16px; font-size: 1.1rem; color: var(--dk-accent); }
+.dk-help-card table { border-collapse: collapse; font-size: 14px; }
+.dk-help-card td { padding: 6px 14px 6px 0; color: var(--dk-text); }
+.dk-help-card td kbd { font-family: var(--dk-mono); font-size: 12px; padding: 2px 8px; border: 1px solid var(--dk-border); border-radius: 4px; background: var(--dk-elevated); color: var(--dk-muted); margin-right: 4px; }
+.dk-help-card .close-hint { margin-top: 18px; font-size: 12px; color: var(--dk-dim); text-align: center; }
+
+/* ----- blackout ----- */
+#dk-blackout { position: fixed; inset: 0; background: #000; z-index: 9999; cursor: pointer; }
+
+/* =============================================================================
+   Mobile (forward-looking): on small screens, drop the keyboard hint and grow the
+   nav dock so tap targets are comfortable. The fixed-canvas fitStage (deck.js)
+   already handles aspect/rotation; this just tunes the controls. Real PPT-style
+   mobile chrome lands in deck-mobile.css later.
+   ============================================================================= */
+@media (max-width: 720px) {
+  .dk-kbd-hint { display: none; }
+  .dk-chrome { top: 10px; right: 10px; gap: 8px; font-size: 10px; }
+  .dk-pill { padding: 3px 8px; }
+  .dk-nav { bottom: 12px; gap: 4px; padding: 5px; }
+  .dk-nav button { width: 40px; height: 40px; font-size: 16px; }
+  .dk-nav .dk-count { font-size: 12px; padding: 0 8px; }
+}
+@media (max-width: 720px) and (orientation: portrait) { .dk-chrome .dk-pill.dk-title { display: none; } }
+
+/* ----- print: flatten all slides, hide controls ----- */
+@media print {
+  .dk-nav, .dk-chrome, .dk-kbd-hint, .dk-topbar, .dk-lightbox, .dk-overview, .dk-goto, .dk-help, .dk-notes-toggle { display: none !important; }
+  [data-active] { opacity: 1 !important; transform: none !important; }
+}

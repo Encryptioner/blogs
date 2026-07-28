@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/deck-chrome.css">
+<script src="../assets/js/deck.js"></script>
 <style>
 :root{
   --bg:#0c0b09;
@@ -25,6 +27,13 @@
   --success:#7dd3a0;
   --danger:#ff6b6b;
   --info:#7db8ff;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -35,27 +44,14 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
 
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:5vh 6vw 10vh 6vw;opacity:0;transform:translateX(40px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
-.slide.active{opacity:1;transform:none;pointer-events:auto}
-.slide.prev{transform:translateX(-40px)}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateX(-40px)}
 
 .slide::-webkit-scrollbar{width:6px}
 .slide::-webkit-scrollbar-track{background:transparent}
 .slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
 
-/* header bar */
-.topbar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--surface);z-index:100}
-.progress{height:100%;background:linear-gradient(90deg,var(--accent),var(--copper));transition:width .5s ease;width:0}
-
-/* slide chrome */
-.chrome{position:fixed;top:18px;right:24px;display:flex;gap:14px;align-items:center;z-index:50;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--dim)}
-.chrome .pill{padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(21,19,14,.7);backdrop-filter:blur(8px)}
-.chrome .num{color:var(--accent)}
-
-/* nav controls */
-.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:50;background:rgba(21,19,14,.85);backdrop-filter:blur(10px);padding:6px;border:1px solid var(--border);border-radius:30px}
-.nav button{background:transparent;border:none;color:var(--muted);width:34px;height:34px;border-radius:50%;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.nav button:hover{background:var(--elevated);color:var(--text)}
-.nav .count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding:0 10px;display:flex;align-items:center;letter-spacing:.05em}
+/* nav/chrome/progress/lightbox/overview/kbd/print → shared in ../assets/css/deck-chrome.css */
 
 /* typography */
 .eyebrow{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:10px}
@@ -131,12 +127,7 @@ table .verdict-warn{color:var(--copper)}
 .fig.small{max-width:420px}
 .fig-caption{font-family:'Fraunces',serif;font-style:italic;font-size:1.05rem;color:var(--muted);padding:10px 16px;border-top:1px solid var(--border)}
 
-/* lightbox */
-.lightbox{position:fixed;inset:0;background:rgba(12,11,9,.96);backdrop-filter:blur(20px);z-index:300;display:none;align-items:center;justify-content:center;padding:40px;cursor:zoom-out}
-.lightbox.open{display:flex}
-.lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.lightbox .lb-close{position:fixed;top:22px;right:24px;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:rgba(21,19,14,.7);color:var(--muted);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.lightbox .lb-close:hover{color:var(--text);border-color:var(--border-light)}
+/* lightbox → shared (deck-chrome.css .dk-lightbox) */
 
 /* two column */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;margin:18px 0}
@@ -174,16 +165,7 @@ table .verdict-warn{color:var(--copper)}
 .ambient .b1{width:600px;height:600px;background:var(--accent);top:-200px;right:-150px}
 .ambient .b2{width:500px;height:500px;background:var(--copper);bottom:-200px;left:-100px;opacity:.1}
 
-/* overview mode */
-.overview{position:fixed;inset:0;background:rgba(12,11,9,.96);backdrop-filter:blur(20px);z-index:200;display:none;padding:60px 50px;overflow-y:auto}
-.overview.open{display:block}
-.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1400px;margin:0 auto}
-.overview-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;cursor:pointer;transition:all .2s;min-height:140px;display:flex;flex-direction:column;justify-content:space-between}
-.overview-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
-.overview-card .num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.1em;margin-bottom:8px}
-.overview-card .ttl{font-family:'Fraunces',serif;font-size:1rem;color:var(--text);line-height:1.3}
-.overview-card .sub{font-size:.78rem;color:var(--dim);margin-top:6px}
-.overview h3{font-family:'Fraunces',serif;font-style:italic;font-size:1.5rem;color:var(--muted);margin-bottom:30px;text-align:center;font-weight:300}
+/* overview → shared (deck-chrome.css .dk-overview) */
 
 /* footer note */
 .foot{margin-top:auto;padding-top:18px;font-family:'Fraunces',serif;font-style:italic;font-size:.82rem;color:var(--dim);border-top:1px solid var(--border)}
@@ -195,44 +177,37 @@ table .verdict-warn{color:var(--copper)}
 .tag.bad{color:var(--danger);border-color:rgba(255,107,107,.3)}
 .tag.warn{color:var(--copper);border-color:rgba(212,165,116,.3)}
 
-/* keyboard hint */
-.kbd-hint{position:fixed;bottom:22px;right:24px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.08em;z-index:50;display:flex;gap:6px;align-items:center}
-.kbd{padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--muted)}
-
-@media print{
-  .nav,.chrome,.kbd-hint,.topbar,.ambient{display:none}
-  .slide{position:relative;page-break-after:always;opacity:1;transform:none}
-}
+/* keyboard hint + print → shared (deck-chrome.css) */
 </style>
 </head>
 <body>
 
 <div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
 
-<div class="topbar"><div class="progress" id="progress"></div></div>
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
 
-<div class="chrome">
-  <span class="pill"><span class="num" id="curNum">01</span> / 21</span>
-  <span class="pill" id="curTitle">Title</span>
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">21</span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
 </div>
 
-<div class="nav">
-  <button onclick="prev()" title="Previous">‹</button>
-  <span class="count" id="counter">01 / 21</span>
-  <button onclick="next()" title="Next">›</button>
-  <button onclick="toggleOverview()" title="Overview (O)">▦</button>
-  <button onclick="toggleCore()" title="Core mode — 12-min trimmed run (C)" id="coreBtn" style="width:auto;padding:0 12px;border-radius:20px;font-size:11px;letter-spacing:.05em">Core</button>
-  <button onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
-</div>
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01 / 21</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="core" id="coreBtn" title="Core mode — 12-min trimmed run (C)">Core</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
 
-<div class="kbd-hint">
-  <span class="kbd">←</span><span class="kbd">→</span> navigate · <span class="kbd">O</span> overview · <span class="kbd">C</span> core mode (12-min) · <span class="kbd">F</span> fullscreen
+<div class="dk-kbd-hint">
+  <span class="dk-kbd">←</span><span class="dk-kbd">→</span> navigate · <span class="dk-kbd">O</span> overview · <span class="dk-kbd">C</span> core (12-min) · <span class="dk-kbd">F</span> fullscreen · <span class="dk-kbd">G</span> go to
 </div>
 
 <div class="deck" id="deck">
 
 <!-- SLIDE 1 -->
-<section class="slide hero active" data-title="Token Economics" data-core>
+<section class="slide hero" data-active="true" data-title="Token Economics" data-core>
   <div class="badge"><span class="dot"></span> A Talk on AI Cost Discipline</div>
   <h1 class="title">Token <em>Economics</em></h1>
   <h2 class="subtitle">Better Results, Fewer Tokens.</h2>
@@ -638,179 +613,35 @@ table .verdict-warn{color:var(--copper)}
 
 </div>
 
+<!-- Goto -->
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="3" inputmode="numeric" placeholder="1-21">
+</div>
+
 <!-- Lightbox -->
-<div class="lightbox" id="lightbox">
-  <div class="lb-close" title="Close (Esc)">✕</div>
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
   <img id="lightboxImg" src="" alt="">
 </div>
 
 <!-- Overview -->
-<div class="overview" id="overview">
+<div class="dk-overview" id="overview">
   <h3>All slides — click to jump</h3>
-  <div class="overview-grid" id="overviewGrid"></div>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
 </div>
 
 <script>
-const slides = document.querySelectorAll('.slide');
-const total = slides.length;
-let current = 0;
-
-// 12-minute core mode: only slides tagged data-core. Toggle with "C" or ?mode=core
-let coreMode = new URLSearchParams(location.search).get('mode') === 'core';
-function activeList(){
-  const idx = [];
-  slides.forEach((s,i)=>{ if(!coreMode || s.hasAttribute('data-core')) idx.push(i); });
-  return idx;
-}
-
-const progress = document.getElementById('progress');
-const curNum = document.getElementById('curNum');
-const counter = document.getElementById('counter');
-const curTitle = document.getElementById('curTitle');
-const overview = document.getElementById('overview');
-
-function show(index){
-  if(index < 0) index = 0;
-  if(index >= total) index = total - 1;
-  slides.forEach((s,i)=>{
-    s.classList.remove('active','prev');
-    if(i === index) s.classList.add('active');
-    if(i < index) s.classList.add('prev');
-  });
-  current = index;
-  const list = activeList();
-  const pos = list.indexOf(index);
-  const n = String(index+1).padStart(2,'0');
-  curNum.textContent = n;
-  counter.textContent = coreMode
-    ? (pos+1) + ' / ' + list.length + ' · CORE'
-    : n + ' / ' + total;
-  curTitle.textContent = (coreMode ? '⏱ 12-min · ' : '') + (slides[index].dataset.title || '');
-  progress.style.width = (coreMode ? ((pos+1)/list.length*100) : ((index+1)/total*100)) + '%';
-  // scroll slide to top
-  slides[index].scrollTop = 0;
-}
-
-function next(){
-  const list = activeList();
-  const pos = list.indexOf(current);
-  if(pos < list.length - 1) show(list[pos + 1]);
-  else if(pos === -1) show(list.find(i=>i>current) ?? list[list.length-1]);
-}
-function prev(){
-  const list = activeList();
-  const pos = list.indexOf(current);
-  if(pos > 0) show(list[pos - 1]);
-  else if(pos === -1) show([...list].reverse().find(i=>i<current) ?? list[0]);
-}
-function toggleCore(){
-  coreMode = !coreMode;
-  const btn = document.getElementById('coreBtn');
-  if(btn){
-    btn.style.background = coreMode ? 'var(--accent-soft)' : 'transparent';
-    btn.style.color = coreMode ? 'var(--accent)' : 'var(--muted)';
-    btn.style.border = coreMode ? '1px solid rgba(255,122,61,.4)' : 'none';
-    btn.textContent = coreMode ? 'Full' : 'Core';
-    btn.title = coreMode ? 'Full deck (C)' : 'Core mode — 12-min trimmed run (C)';
-  }
-  const list = activeList();
-  if(!list.includes(current)) current = list.find(i=>i>=current) ?? list[0];
-  show(current);
-}
-
-function toggleOverview(){
-  if(overview.classList.contains('open')){
-    overview.classList.remove('open');
-  } else {
-    buildOverview();
-    overview.classList.add('open');
-  }
-}
-
-function buildOverview(){
-  const grid = document.getElementById('overviewGrid');
-  grid.innerHTML = '';
-  slides.forEach((s,i)=>{
-    const card = document.createElement('div');
-    card.className = 'overview-card';
-    if(coreMode && !s.hasAttribute('data-core')){ card.style.opacity = '.28'; }
-    if(s.hasAttribute('data-core')){ card.style.borderColor = 'rgba(255,122,61,.35)'; }
-    const num = String(i+1).padStart(2,'0');
-    const title = s.dataset.title || ('Slide ' + (i+1));
-    const firstH = s.querySelector('h3.section, h1.title');
-    const sub = firstH ? firstH.textContent.trim().slice(0,80) : '';
-    card.innerHTML = '<div class="num">'+num+'</div><div class="ttl">'+title+'</div><div class="sub">'+sub+'</div>';
-    card.onclick = ()=>{ show(i); overview.classList.remove('open'); };
-    grid.appendChild(card);
-  });
-}
-
-function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-}
-
-document.addEventListener('keydown',(e)=>{
-  if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){
-    e.preventDefault(); next();
-  } else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){
-    e.preventDefault(); prev();
-  } else if(e.key === 'Home'){
-    e.preventDefault(); show(0);
-  } else if(e.key === 'End'){
-    e.preventDefault(); show(total-1);
-  } else if(e.key === 'o' || e.key === 'O'){
-    e.preventDefault(); toggleOverview();
-  } else if(e.key === 'c' || e.key === 'C'){
-    e.preventDefault(); toggleCore();
-    if(overview.classList.contains('open')) buildOverview();
-  } else if(e.key === 'f' || e.key === 'F'){
-    e.preventDefault(); toggleFullscreen();
-  } else if(e.key === 'Escape'){
-    if(lightbox.classList.contains('open')) closeLightbox();
-    else if(overview.classList.contains('open')) overview.classList.remove('open');
-  }
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  core: { attr: 'data-core', param: 'mode', label: '12-min' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' }
 });
-
-// image lightbox
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightboxImg');
-function openLightbox(src, alt){
-  lightboxImg.src = src;
-  lightboxImg.alt = alt || '';
-  lightbox.classList.add('open');
-}
-function closeLightbox(){
-  lightbox.classList.remove('open');
-  lightboxImg.src = '';
-}
-document.querySelectorAll('.fig img').forEach(img=>{
-  img.addEventListener('click', (e)=>{ e.stopPropagation(); openLightbox(img.src, img.alt); });
-});
-lightbox.addEventListener('click', (e)=>{ e.stopPropagation(); closeLightbox(); });
-
-// touch support
-let touchStartX = 0;
-document.addEventListener('touchstart',(e)=>{ touchStartX = e.touches[0].clientX; });
-document.addEventListener('touchend',(e)=>{
-  if(lightbox.classList.contains('open')) return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if(Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
-});
-
-// click to advance (optional, on right side)
-document.addEventListener('click',(e)=>{
-  if(lightbox.classList.contains('open')) return;
-  if(e.target.closest('.nav, .overview, .chrome, a, button, .fig, .table-wrap, .callout, .overview-card')) return;
-  const x = e.clientX / window.innerWidth;
-  if(x > 0.6) next();
-  else if(x < 0.4) prev();
-});
-
-if(coreMode){ coreMode = false; toggleCore(); } else { show(0); }
 </script>
 </body>
 </html>
