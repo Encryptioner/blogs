@@ -66,23 +66,24 @@ This has two consequences that don't show up in normal local testing:
   anything after it (e.g. a link-rewrite running in the same tag).
 
 **Cross-deck navigation links** (next-deck, "back to all decks", "restart")
-must go through the shared `Deck.wireProxyLinks({ dir: '...' })` helper in
-`deck.js` — mark the href `href="PROXY:target.html"` and call the helper once
-per deck:
-```js
-Deck.wireProxyLinks({ dir: 'presentations/P-5-branchdiff-features' });
+are plain anchors with the resolved proxy URL hardcoded directly — the same
+`https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/...`
+form the hub (`index.html`) uses and `LINKS.md` lists. Always pair with
+`target="_blank" rel="noopener"` (the proxy sandbox grants `allow-popups
+allow-popups-to-escape-sandbox`, so new-tab opens work):
+```html
+<a class="primary" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/02-local-first-privacy.html" target="_blank" rel="noopener">Next deck → 02 · ...</a>
 ```
-It resolves to the correct `https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/...`
-URL when viewed through the proxy, or a plain relative link when opened
-directly (local file / dev server) — so decks stay clickable end-to-end
-during local authoring without needing a live URL round-trip. **Every**
-internal link between deck files needs the `PROXY:` prefix, not just the
-"next deck" one — a bare `href="index.html"` (e.g. "back to hub") breaks
-identically once viewed through the proxy, landing on unrendered raw content.
-
-Don't duplicate this logic per-file — it's one function in `deck.js` for a
-reason (was previously copy-pasted into all 7 Branchdiff decks; centralize
-any future variant there too).
+Hardcoded, not JS-rewritten, because link correctness must not depend on
+`deck.js` loading inside the proxy's opaque-origin `srcdoc` sandbox. An
+earlier `href="PROXY:file"` + runtime JS-rewrite scheme rewrote hrefs in the
+*same* inline `<script>` as `Deck.mount()`; if the external `deck.js` didn't
+execute in the sandbox, `Deck` was undefined → `Deck.mount()` threw → the
+block died before the rewriter ran → href stayed `PROXY:file` → the browser
+parsed a `proxy:` scheme → dead link. A hardcoded absolute URL is
+context-blind (local, proxied, or shared — all identical) and needs zero JS.
+Add a new deck's links by copying the pattern from `LINKS.md` (or a sibling
+deck); never reintroduce the `PROXY:` prefix.
 
 ## 4. Mobile / responsive
 

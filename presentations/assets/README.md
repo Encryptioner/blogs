@@ -31,7 +31,7 @@ link, per format) is documented in [`LINKS.md`](./LINKS.md).
 |------|--------|--------|-----------|----------------|
 | Token Economics | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | core-mode, overview, goto, lightbox |
 | Many Accounts… | `deck.js` | fixed 1280×720 + `fitStage` | `.deck-slide` | goto, notes, blackout, help, lightbox |
-| Branchdiff 01–07 | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | overview, lightbox + proxy link-rewrite |
+| Branchdiff 01–07 | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | overview, lightbox |
 
 ## `Deck.mount(config)` — the API
 
