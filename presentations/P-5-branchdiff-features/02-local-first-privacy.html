@@ -26,6 +26,8 @@
   <span class="dk-count" id="counter">01</span>
   <button data-dk="next" title="Next (→)">›</button>
   <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
   <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
 </nav>
 <div class="deck" id="deck">
@@ -306,7 +308,7 @@
     </ul>
     <div class="end-links">
       <a class="primary" href="PROXY:03-comments-review-surface.html" target="_blank" rel="noopener">Next deck → 03 · Comments &amp; Review Surface</a>
-      <a class="ghost" href="index.html">↑ Back to all decks</a>
+      <a class="ghost" href="PROXY:index.html">↑ Back to all decks</a>
     </div>
   </section>
 
@@ -316,6 +318,30 @@
 <div class="dk-lightbox" id="lightbox">
   <div class="dk-lb-close" title="Close (Esc)">✕</div>
   <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-13">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
 </div>
 <div class="dk-overview" id="overview">
   <h3>All slides — click to jump</h3>
@@ -331,27 +357,14 @@ Deck.mount({
   hash: true, clickAdvance: true, swipe: true,
   ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
   lightbox: { toggle: 'class' },
-  overview: { titleSelector: 'h3.section, h1.title' }
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
 });
 
-/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs (Branchdiff-specific) */
-(function(){
-  const REPO='Encryptioner/blogs',BRANCH='master';
-  const DIR='presentations/P-5-branchdiff-features';
-  const PROXY='https://encryptioner.github.io/public-websites/any-page/';
-  const here = location.href;
-  const proxied = here.indexOf('public-websites/any-page') !== -1;
-  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
-    const file=a.getAttribute('href').slice(6);
-    if(proxied){
-      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
-      a.href=PROXY+'#' + encodeURI(raw).slice(8);
-    } else {
-      a.href=file;
-    }
-    a.target='_blank'; a.rel='noopener';
-  });
-})();
+/* PROXY link rewrite (Branchdiff-specific) — shared helper, see deck.js */
+Deck.wireProxyLinks({ dir: 'presentations/P-5-branchdiff-features' });
 </script>
 </body>
 </html>

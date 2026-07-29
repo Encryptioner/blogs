@@ -102,7 +102,10 @@
         els.progress.style.width = pct + '%';
       }
       try { slides[idx].scrollTop = 0; } catch (e) {}
-      if (cfg.hash) history.replaceState(null, '', '#' + (idx + 1));
+      // try/catch: throws SecurityError inside the proxy's sandboxed srcdoc iframe
+      // (opaque origin, no allow-same-origin) — the URL resolves against the
+      // injected <base href> to a different origin than the document's own.
+      if (cfg.hash) { try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) {} }
       if (fitFluidSlide) fitFluidSlide();
     }
 
@@ -415,5 +418,35 @@
     return api;
   }
 
-  window.Deck = { mount: mount };
+  // --- wireProxyLinks (optional, Branchdiff-specific): rewrites <a href="PROXY:file.html">
+  // links to the correct target depending on where the deck is being viewed —
+  // through the any-page raw-content proxy, or opened directly (local file/dev server).
+  //
+  //   Deck.wireProxyLinks({ dir: 'presentations/P-5-branchdiff-features' });
+  //
+  // Kept as a runtime check rather than a hardcoded proxy URL so a deck stays
+  // clickable end-to-end during local authoring/testing (see presentations/assets/Checklist.md).
+  function wireProxyLinks(opts) {
+    opts = opts || {};
+    var REPO = opts.repo || 'Encryptioner/blogs';
+    var BRANCH = opts.branch || 'master';
+    var DIR = opts.dir;
+    var PROXY = 'https://encryptioner.github.io/public-websites/any-page/';
+    // location.href reads 'about:srcdoc' inside the proxy's sandboxed iframe (no
+    // allow-same-origin), so it never matches — document.baseURI reflects the
+    // <base href> the proxy injects before setting srcdoc, so it works from inside too.
+    var proxied = document.baseURI.indexOf('raw.githubusercontent.com') !== -1;
+    Array.prototype.forEach.call(document.querySelectorAll('a[href^="PROXY:"]'), function (a) {
+      var file = a.getAttribute('href').slice(6);
+      if (proxied) {
+        var raw = 'https://raw.githubusercontent.com/' + REPO + '/refs/heads/' + BRANCH + '/' + DIR + '/' + file;
+        a.href = PROXY + '#' + encodeURI(raw).slice(8);
+      } else {
+        a.href = file;
+      }
+      a.target = '_blank'; a.rel = 'noopener';
+    });
+  }
+
+  window.Deck = { mount: mount, wireProxyLinks: wireProxyLinks };
 })();

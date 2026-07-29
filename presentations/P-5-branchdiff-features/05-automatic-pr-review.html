@@ -26,6 +26,8 @@
   <span class="dk-count" id="counter">01</span>
   <button data-dk="next" title="Next (→)">›</button>
   <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
   <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
 </nav>
 <div class="deck" id="deck">
@@ -151,7 +153,7 @@
     <div class="slide-num">07 · the verdict gate</div>
     <h3 class="section">Auto-approve is <em>deterministic</em>, not the AI's word.</h3>
     <div class="callout accent">
-      <b>The gate, not the claim.</b> <span class="mono">--auto-approve</span> and <span class="mono">--auto-request-changes</span> both require <span class="mono">--auto-push</span> — and the verdict is a rule the AI cannot override.
+      <b>The gate, not the claim.</b> <span class="mono">--auto-approve</span> and <span class="mono">--auto-request-changes</span> both require <span class="mono">--auto-push</span> — and the verdict is a rule the AI cannot override, dialed by an optional severity level (1&ndash;5, next slide).
     </div>
     <div class="vs" style="margin-top:18px">
       <div class="box problem">
@@ -165,9 +167,28 @@
     </div>
   </section>
 
-  <!-- 8 · AI PASSES DECISION TREE -->
+  <!-- 8 · SEVERITY-GATED VERDICT -->
+  <section class="slide" data-title="Severity levels">
+    <div class="slide-num">08 · severity levels</div>
+    <h3 class="section">Dial the gate — <em>five severity levels</em>, one flag.</h3>
+    <div class="stat-row">
+      <div class="stat"><div class="num">1</div><div class="label">must-fix</div><div class="desc">default — today's gate</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">+ suggestion</div><div class="desc"></div></div>
+      <div class="stat"><div class="num">3</div><div class="label">+ nit</div><div class="desc"></div></div>
+      <div class="stat"><div class="num">4</div><div class="label">+ question</div><div class="desc"></div></div>
+      <div class="stat"><div class="num">5</div><div class="label">any</div><div class="desc">every tag, untagged too</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Human threads always block.</b> Any thread a human started counts toward the gate at every level — only the <em>AI-tagged</em> boundary moves. <span class="mono">--auto-approve 2</span> / <span class="mono">--auto-request-changes 4</span> pick the level; both flags must agree if both are set.
+    </div>
+    <div class="callout" style="margin-top:12px">
+      <b>The run explains itself first.</b> Before <span class="mono">auto</span> or <span class="mono">review run</span> touches a PR, it prints what it's about to do — a "Using:" list of every flag you passed and a "Defaults in effect:" list for what didn't, including what the active level actually blocks.
+    </div>
+  </section>
+
+  <!-- 9 · AI PASSES DECISION TREE -->
   <section class="slide" data-title="Nth-pass reconciliation">
-    <div class="slide-num">08 · nth-pass</div>
+    <div class="slide-num">09 · nth-pass</div>
     <h3 class="section">Nth-pass <em>reconciliation</em> — the AI never re-litigates.</h3>
     <div class="fig">
       <img src="../../assets/B-15/ai-passes-decision.png" alt="AI passes decision tree" loading="lazy" onclick="openLightbox(this)" />
@@ -177,7 +198,7 @@
 
   <!-- 9 · MULTI-TOOL & SKILL MODE -->
   <section class="slide" data-title="Multi-tool & skill mode">
-    <div class="slide-num">09 · your agent</div>
+    <div class="slide-num">10 · your agent</div>
     <h3 class="section">Bring <em>your own agent</em> — any of six, or anything via stdin.</h3>
     <div class="three-col">
       <div class="stat">
@@ -204,7 +225,7 @@
 
   <!-- 10 · PARALLEL & WORKTREE -->
   <section class="slide" data-title="Parallel & worktree isolation">
-    <div class="slide-num">10 · parallel &amp; worktrees</div>
+    <div class="slide-num">11 · parallel &amp; worktrees</div>
     <h3 class="section"><em>Parallel</em> reviews, isolated in worktrees.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -235,7 +256,7 @@
 
   <!-- 11 · AUTO-RESOLVE -->
   <section class="slide" data-title="Auto-resolve pass">
-    <div class="slide-num">11 · auto-resolve</div>
+    <div class="slide-num">12 · auto-resolve</div>
     <h3 class="section">After review, an optional <em>resolve</em> pass.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -265,7 +286,7 @@
 
   <!-- 12 · AD-HOC & ISOLATION -->
   <section class="slide" data-title="Ad-hoc & isolation">
-    <div class="slide-num">12 · escape hatches</div>
+    <div class="slide-num">13 · escape hatches</div>
     <h3 class="section">Ad-hoc reviews, account isolation, one auto per repo.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -292,7 +313,7 @@
 
   <!-- 13 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">13 · recap</div>
+    <div class="slide-num">14 · recap</div>
     <h3 class="section">Automatic, never autonomous.</h3>
     <p class="lead-p"><span class="mono">branchdiff auto</span> watches your open PRs, runs your AI reviewer only on ones with new commits, and gates every escalation — push, verdict, resolve — behind a flag you set.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
@@ -304,7 +325,7 @@
     </ul>
     <div class="end-links">
       <a class="primary" href="PROXY:06-sessions-sync-platform.html" target="_blank" rel="noopener">Next deck → 06 · Sessions, Sync &amp; Platform</a>
-      <a class="ghost" href="index.html">↑ Back to all decks</a>
+      <a class="ghost" href="PROXY:index.html">↑ Back to all decks</a>
     </div>
   </section>
 
@@ -314,6 +335,30 @@
 <div class="dk-lightbox" id="lightbox">
   <div class="dk-lb-close" title="Close (Esc)">✕</div>
   <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-14">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
 </div>
 <div class="dk-overview" id="overview">
   <h3>All slides — click to jump</h3>
@@ -329,27 +374,14 @@ Deck.mount({
   hash: true, clickAdvance: true, swipe: true,
   ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
   lightbox: { toggle: 'class' },
-  overview: { titleSelector: 'h3.section, h1.title' }
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
 });
 
-/* PROXY link rewrite — convert in-deck relative links to proxied raw URLs (Branchdiff-specific) */
-(function(){
-  const REPO='Encryptioner/blogs',BRANCH='master';
-  const DIR='presentations/P-5-branchdiff-features';
-  const PROXY='https://encryptioner.github.io/public-websites/any-page/';
-  const here = location.href;
-  const proxied = here.indexOf('public-websites/any-page') !== -1;
-  document.querySelectorAll('a[href^="PROXY:"]').forEach(a=>{
-    const file=a.getAttribute('href').slice(6);
-    if(proxied){
-      const raw=`https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
-      a.href=PROXY+'#' + encodeURI(raw).slice(8);
-    } else {
-      a.href=file;
-    }
-    a.target='_blank'; a.rel='noopener';
-  });
-})();
+/* PROXY link rewrite (Branchdiff-specific) — shared helper, see deck.js */
+Deck.wireProxyLinks({ dir: 'presentations/P-5-branchdiff-features' });
 </script>
 </body>
 </html>

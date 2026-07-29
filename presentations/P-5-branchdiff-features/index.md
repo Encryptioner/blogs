@@ -224,9 +224,10 @@ on every feature slide — never describe an action without showing how to do it
 - **Solve:** tagged inline threads, persistent viewed/stale state, WYSIWYG
   comments, AI-generated code tours.
 - **Features:** `[must-fix]/[suggestion]/[nit]/[question]` tags, WYSIWYG Milkdown
-  editor, thread lifecycle (open/resolved/dismissed + replies), general comments,
-  viewed counter that survives force-pushes, FNV-1a stale detection, per-(pair+
-  mode) collapse persistence, working-tree (staged/unstaged) toggle, code tours.
+  editor, thread lifecycle (open/resolved/dismissed + replies), general comments
+  (one consolidated comment per review pass), viewed counter that survives
+  force-pushes, FNV-1a stale detection, per-(pair+mode) collapse persistence,
+  working-tree (staged/unstaged) toggle, code tours.
 - **Assets:** `04-inline-comment`, `B-14/comment-tag-taxonomy`,
   `B-15/viewed-stale-state`, `B-15/sidebar-filters-grid`.
 
@@ -253,7 +254,8 @@ on every feature slide — never describe an action without showing how to do it
   flags, isolated worktree per PR.
 - **Features:** `auto` watch/pick, `--auto-review/--notify/--auto-push`,
   `--tool/--exec`, `--skill`, `--parallel`, `--auto-resolve`, deterministic
-  `--auto-approve/--auto-request-changes` gate, `--no-skip`, account/env
+  `--auto-approve/--auto-request-changes [level]` gate (severity levels 1-5),
+  pre-run "Using:" / "Defaults in effect:" summary, `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard).
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
 
