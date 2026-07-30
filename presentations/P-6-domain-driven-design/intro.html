@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain-Driven Design — A Beginner's Guide</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+<style>
+:root{
+  --bg:#0B0E14;
+  --surface:#131826;
+  --elevated:#1A2036;
+  --border:#262D42;
+  --border-light:#333B56;
+  --text:#E8ECF5;
+  --muted:#8D96AE;
+  --dim:#5B6480;
+  --accent:#7C8CFF;
+  --accent-soft:rgba(124,140,255,.12);
+  --accent-glow:rgba(124,140,255,.28);
+  --gold:#F2B84B;
+  --success:#6EE7B7;
+  --danger:#FF8080;
+  --info:#7DD3FC;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:6vh 7vw 10vh 7vw;opacity:0;transform:translateX(40px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* nav/chrome/progress/lightbox/overview/kbd/print → shared in deck-chrome.css */
+
+/* typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+h1.title{font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.06;letter-spacing:-.025em;margin-bottom:12px}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-weight:500;font-size:clamp(1.2rem,2vw,1.55rem);color:var(--muted);margin-bottom:26px;line-height:1.4}
+h3.section{font-weight:800;font-size:clamp(1.7rem,3.2vw,2.5rem);line-height:1.15;letter-spacing:-.02em;margin-bottom:14px}
+h3.section em{font-style:normal;color:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);letter-spacing:.1em;margin-bottom:8px}
+
+p{font-size:clamp(1.02rem,1.35vw,1.22rem);color:var(--text);margin-bottom:12px}
+p.lead{font-size:clamp(1.1rem,1.6vw,1.35rem);color:var(--muted);line-height:1.6}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .gold{color:var(--gold)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.caption{font-style:italic;color:var(--muted);font-size:clamp(.95rem,1.2vw,1.1rem);line-height:1.6;border-left:2px solid var(--border-light);padding-left:16px;margin-top:14px}
+
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1rem,1.35vw,1.2rem);line-height:1.5}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--gold);font-weight:600}
+ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.88em;color:var(--accent);border:1px solid var(--border)}
+
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:clamp(.85rem,1.35vw,1.05rem);line-height:1.6;color:var(--text);margin:16px 0;position:relative;overflow:auto}
+.code-block::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),transparent)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--success)}
+.code-block .c{color:var(--dim);font-style:italic}
+.code-block .f{color:var(--gold)}
+pre{white-space:pre}
+
+.table-wrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.92rem,1.2vw,1.08rem)}
+table th{background:var(--elevated);text-align:left;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;border-bottom:1px solid var(--border)}
+table td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+table tr:last-child td{border-bottom:none}
+table td strong{color:var(--gold)}
+
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:14px 0}
+.callout.accent{border-color:rgba(124,140,255,.35);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+
+.fig{margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);max-width:100%}
+.fig img{display:block;width:100%;height:auto;cursor:zoom-in;transition:filter .2s;background:#fff}
+.fig img:hover{filter:brightness(1.05)}
+.fig.wide{max-width:820px}
+.fig.med{max-width:600px}
+.fig-caption{font-style:italic;font-size:.95rem;color:var(--muted);padding:10px 16px;border-top:1px solid var(--border)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;margin:16px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+.checklist{list-style:none;margin:16px 0}
+.checklist li{position:relative;padding-left:34px;margin-bottom:12px;font-size:clamp(1rem,1.3vw,1.15rem);line-height:1.45}
+.checklist li::before{content:'';position:absolute;left:0;top:2px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:4px;top:6px;width:8px;height:4px;border-left:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(-45deg);opacity:.7}
+
+.hero{justify-content:center;align-items:flex-start;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(124,140,255,.35);border-radius:30px;background:var(--accent-soft);margin-bottom:28px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 6px transparent}}
+.hero-meta{margin-top:auto;padding-top:36px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:28px;flex-wrap:wrap}
+.hero-meta .presenter strong{display:block;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.hero-meta .presenter .role{color:var(--muted);font-size:.98rem;line-height:1.5;max-width:460px}
+.hero-meta .hook{font-style:italic;font-size:1.02rem;color:var(--gold);max-width:360px;line-height:1.5;text-align:right}
+
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
+.ambient .b1{width:600px;height:600px;background:var(--accent);top:-200px;right:-150px}
+.ambient .b2{width:460px;height:460px;background:var(--gold);bottom:-200px;left:-100px;opacity:.08}
+
+.foot{margin-top:auto;padding-top:16px;font-style:italic;font-size:.8rem;color:var(--dim);border-top:1px solid var(--border)}
+.foot a{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">9</span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01 / 09</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="dk-kbd-hint">
+  <span class="dk-kbd">←</span><span class="dk-kbd">→</span> navigate · <span class="dk-kbd">O</span> overview · <span class="dk-kbd">F</span> fullscreen · <span class="dk-kbd">G</span> go to
+</div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 -->
+<section class="slide hero" data-active="true" data-title="Domain-Driven Design">
+  <div class="badge"><span class="dot"></span> DDD for Beginners</div>
+  <h1 class="title">Domain-Driven <em>Design</em></h1>
+  <h2 class="subtitle">Why your code should speak the language of the business.</h2>
+  <div class="hero-meta">
+    <div class="presenter">
+      <strong>Mir Mursalin Ankur</strong>
+      <div class="role">Lead Software Engineer @ Nerddevs Ltd</div>
+    </div>
+    <div class="hook">"Most software doesn't break because of syntax errors — it breaks because teams lose alignment with the business problem they're supposed to solve."</div>
+  </div>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide" data-title="A Bug That Vocabulary Caused">
+  <div class="eyebrow">01 · The Example</div>
+  <h3 class="section">The Bug: Two Teams, <em>One Word, Two Meanings</em></h3>
+  <p>Two small services in an online store. Both use a type called <code class="mono">Product</code>. Neither team thinks there's a problem.</p>
+  <div class="code-block"><pre><span class="c">// InventoryService — "price" is the wholesale cost we pay the supplier</span>
+<span class="k">class</span> Product { sku: string; price: number; stockCount: number; }
+
+<span class="c">// OrderService — imports the SAME Product type from a shared "models" folder</span>
+<span class="k">function</span> calculateTotal(product: Product, qty: number) {
+  <span class="k">return</span> product.price * qty;   <span class="c">// customer is charged supplier COST, not retail price</span>
+}</pre></div>
+  <div class="callout" style="border-color:rgba(255,128,128,.35)">
+    <div class="label" style="color:var(--danger)">The real-world outcome</div>
+    Nobody wrote a bug. Both teams used a reasonable field named <code class="mono">price</code>. The system still shipped a real one: <strong>customers were charged wholesale cost</strong> for weeks before anyone noticed margins had collapsed.
+  </div>
+</section>
+
+<!-- SLIDE 3 -->
+<section class="slide" data-title="Why This Keeps Happening">
+  <div class="eyebrow">02 · The Problem</div>
+  <h3 class="section">Systems Don't Fail on Day One — <em>They Fail as They Grow</em></h3>
+  <ul class="bullets">
+    <li><strong>Early systems succeed</strong> because one or two people hold the whole mental model in their head.</li>
+    <li><strong>Late-stage systems fail</strong> because that model fractures: teams grow, terminology drifts — exactly what caused the bug on the last slide.</li>
+    <li>Features get bolted on without design consideration. Every new requirement piles more special cases onto assumptions that are already stale.</li>
+    <li>This is rarely a tooling problem — it's a <strong>modeling</strong> problem. That's exactly the moment Domain-Driven Design (DDD) targets.</li>
+  </ul>
+  <div class="callout accent">
+    <div class="label">The core insight</div>
+    The hardest part of a complex product was never the codebase. It's agreeing on what the business is actually doing.
+  </div>
+</section>
+
+<!-- SLIDE 4 -->
+<section class="slide" data-title="What Is a Domain?">
+  <div class="eyebrow">03 · Foundations</div>
+  <h3 class="section">"Domain" Is <em>the Business</em> — Not the Code</h3>
+  <p>Before DDD makes sense, "domain" needs a plain definition. A <strong class="gold">domain</strong> is the real-world subject matter your software exists to serve — independent of any code. Your <strong class="gold">business domain</strong> is the specific one your company operates in. For our running example, that's <strong>Online Retail</strong>.</p>
+  <div class="two-col">
+    <div>
+      <ul class="bullets">
+        <li><strong>Core subdomain</strong> — what makes the business money or wins the market. Invest here: <em>Order Management, Pricing</em>.</li>
+        <li><strong>Supporting subdomain</strong> — necessary, not the differentiator: <em>Inventory, Fulfillment</em>.</li>
+        <li><strong>Generic subdomain</strong> — solved problems. Buy, don't build: <em>Payments Gateway, Auth</em>.</li>
+      </ul>
+      <p class="caption"><strong>How to find them:</strong> don't start from database tables — ask domain experts "what does this part of the business actually do?" Each answer is a subdomain, and each subdomain typically becomes its own Bounded Context in code.</p>
+    </div>
+    <div class="fig">
+      <img src="images/domain-subdomain-map.svg" alt="Online Retail business domain split into Core, Supporting, and Generic subdomains">
+    </div>
+  </div>
+  <div class="code-block"><pre><span class="c">src/</span>
+<span class="c">├── order-management/</span>   <span class="c">← Core domain</span>
+<span class="c">├── inventory/</span>          <span class="c">← Supporting domain</span>
+<span class="c">├── fulfillment/</span>        <span class="c">← Supporting domain</span>
+<span class="c">├── payments/</span>           <span class="c">← Generic domain — thin wrapper around a payment SDK</span>
+<span class="c">└── auth/</span>               <span class="c">← Generic domain — thin wrapper around Auth0 / Cognito</span></pre></div>
+</section>
+
+<!-- SLIDE 5 -->
+<section class="slide" data-title="What Is DDD">
+  <div class="eyebrow">04 · The Idea</div>
+  <h3 class="section">Model the Business, <em>Not the Database</em></h3>
+  <p>DDD is an approach to software design that puts the <strong>business domain</strong> — not the schema, not the framework — at the center of every decision. It requires engineers to collaborate deeply and continuously with domain experts, not just gather requirements once and disappear into tickets.</p>
+  <ul class="bullets">
+    <li><strong>Not a silver bullet.</strong> DDD doesn't generate code and won't fix a legacy monolith by itself.</li>
+    <li><strong>What it gives you instead:</strong> clarity about what the system should do, and where it's safe to change.</li>
+    <li><strong>Architecture-agnostic.</strong> Works for a monolith or microservices — what matters is whether the model reflects real domain rules.</li>
+  </ul>
+  <div class="fig wide">
+    <img src="images/ByteByteGo - Domain-Driven Design (DDD) Demystified.webp" alt="ByteByteGo cheatsheet on Domain-Driven Design">
+    <div class="fig-caption">A cheatsheet on Domain-Driven Design — ByteByteGo</div>
+  </div>
+</section>
+
+<!-- SLIDE 6 -->
+<section class="slide" data-title="Fix 1 — Ubiquitous Language">
+  <div class="eyebrow">05 · Fix #1</div>
+  <h3 class="section">One Word, <em>One Meaning</em> — Everywhere</h3>
+  <p><strong class="gold">Ubiquitous language</strong> is a shared vocabulary that developers and domain experts use everywhere: meetings, tickets, docs, and code. Applied to the bug from Slide 2, the fix starts with a naming conversation, not a code review comment:</p>
+  <div class="code-block"><pre><span class="c">// After a 15-minute glossary conversation with the business:</span>
+<span class="c">// "price" the business pays a supplier is a WholesaleCost.</span>
+<span class="c">// "price" the customer pays is a RetailPrice. Never the same field.</span>
+<span class="k">class</span> Product { sku: string; wholesaleCost: Money; retailPrice: Money; stockCount: number; }
+
+<span class="k">function</span> calculateTotal(product: Product, qty: number) {
+  <span class="k">return</span> product.retailPrice.multiply(qty);   <span class="c">// unambiguous</span>
+}</pre></div>
+  <p class="caption"><strong>Pros:</strong> shared meaning, readable code, better decisions. <strong>Cons:</strong> upfront workshop effort; sloppy naming breaks the whole benefit.</p>
+</section>
+
+<!-- SLIDE 7 -->
+<section class="slide" data-title="Fix 2 — Bounded Contexts">
+  <div class="eyebrow">06 · Fix #2</div>
+  <h3 class="section">Make the Confusion <em>Structurally Impossible</em></h3>
+  <div class="two-col">
+    <div>
+      <p>Renaming one field fixes one bug. It doesn't stop the <em>next</em> team from importing the wrong <code class="mono">Product</code> again — there's still one shared type for two meanings. A <strong class="gold">bounded context</strong> gives each meaning its own model.</p>
+      <div class="code-block"><pre><span class="c">// inventory-context/Product.ts — not shared</span>
+<span class="k">class</span> Product { sku: string; wholesaleCost: Money; stockCount: number; }
+
+<span class="c">// order-context/Product.ts — not shared</span>
+<span class="k">class</span> Product { sku: string; retailPrice: Money; }</pre></div>
+      <p class="caption"><strong>Pros:</strong> prevents a "big ball of mud"; teams evolve independently. <strong>Cons:</strong> you must design how contexts talk; wrong splits duplicate logic.</p>
+    </div>
+    <div class="fig">
+      <img src="images/luc-bounded-contexts.jpg" alt="Bounded contexts diagram — Order Management and Inventory each define Product independently">
+      <div class="fig-caption">Level Up Coding — same word, different meanings across bounded contexts</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 -->
+<section class="slide" data-title="Entities vs Value Objects">
+  <div class="eyebrow">07 · Building Blocks</div>
+  <h3 class="section">Inside a Context: Identity <em>vs.</em> Attributes</h3>
+  <p>Inside a bounded context, you still need to model the domain correctly. Two kinds of building blocks do that:</p>
+  <ul class="bullets">
+    <li><strong>Entity</strong> — defined by identity and lifecycle. A <code class="mono">Customer</code> stays the same person even after their address changes. Entities are <strong>mutable</strong>.</li>
+    <li><strong>Value Object</strong> — defined only by its values, often immutable. <code class="mono">Money</code> has no identity of its own — two equal amounts <em>are</em> the same value. Value objects are <strong>immutable</strong>.</li>
+  </ul>
+  <div class="code-block"><pre><span class="c">// Entity — has an ID that outlives any single attribute</span>
+<span class="k">class</span> Customer {
+  constructor(<span class="k">public readonly</span> id: string, <span class="k">private</span> address: Address) {}
+  relocate(newAddress: Address) { <span class="k">this</span>.address = newAddress; } <span class="c">// same customer, new address</span>
+}
+
+<span class="c">// Value Object — immutable, compared by value, no ID</span>
+<span class="k">class</span> Money {
+  constructor(<span class="k">public readonly</span> amount: number, <span class="k">public readonly</span> currency: string) {}
+  multiply(qty: number) { <span class="k">return new</span> Money(<span class="k">this</span>.amount * qty, <span class="k">this</span>.currency); }
+}</pre></div>
+</section>
+
+<!-- SLIDE 9 -->
+<section class="slide" data-title="When to Use It">
+  <div class="eyebrow">08 · Wrap-Up</div>
+  <h3 class="section">DDD Is a Tool, <em>Not a Default</em></h3>
+  <div class="two-col">
+    <div>
+      <div class="callout">
+        <div class="label" style="color:var(--success)">Reach for DDD when</div>
+        The domain is complex and keeps evolving (finance, healthcare, logistics, marketplaces); multiple teams share the system; it needs to live and change safely for years.
+      </div>
+      <div class="callout">
+        <div class="label" style="color:var(--danger)">Skip DDD when</div>
+        The app is mostly CRUD; you can't get sustained access to domain experts; the project is short-lived or low-impact.
+      </div>
+    </div>
+    <div>
+      <p class="lead">"You don't adopt DDD by adding patterns — you adopt it by removing ambiguity."</p>
+      <div class="callout accent">
+        <div class="label">Next up — Deep Dive</div>
+        Aggregates &amp; aggregate roots, Domain Events, Repositories, Context Mapping, and the Anti-Corruption Layer — tied together in one worked e-commerce example.
+        <br><br><a href="./deep-dive.html" class="mono accent">→ deep-dive.html</a>
+      </div>
+    </div>
+  </div>
+  <div class="foot">Sources: ByteByteGo — "Domain-Driven Design (DDD) Demystified" · Nikki Siapno, Level Up Coding — "Domain-Driven Design, Broken Down"</div>
+</section>
+
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="1" inputmode="numeric" placeholder="1-9">
+</div>
+
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide', reveal: 'attr', canvas: null,
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section,h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+});
+</script>
+</body>
+</html>

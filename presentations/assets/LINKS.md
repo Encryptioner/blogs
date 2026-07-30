@@ -35,3 +35,9 @@ Repo: `Encryptioner/blogs` · Branch: `master`
 - Deck 5 — Automatic PR Review: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/05-automatic-pr-review.html
 - Deck 6 — Sessions, Sync & Platform Actions: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/06-sessions-sync-platform.html
 - Deck 7 — Repo Exploration: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/07-repo-exploration.html
+
+## P-6 — Domain-Driven Design
+
+- Hub (deck gallery): https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/index.html
+- Intro — DDD for Beginners: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/intro.html
+- Deep Dive — Aggregates, Events, Context Maps: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/deep-dive.html

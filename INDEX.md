@@ -19,6 +19,8 @@
 14. Productivity: [Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff](./topics/Productivity/branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
 15. Productivity: [Reviewing Teammates PRs Faster - branchdiff Sessions, AI Passes, and Sync Back](./topics/Productivity/branchdiff/Reviewing%20Teammates%20PRs%20Faster%20-%20branchdiff%20Sessions%2C%20AI%20Passes%2C%20and%20Sync%20Back.md)
 16. Productivity: [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
+17. Software Architecture: [Domain-Driven Design for Beginners: What It Is and Why It Matters](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md)
+18. Software Architecture: [Domain-Driven Design Deep Dive: Aggregates, Events, and Context Maps in Practice](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
@@ -26,3 +28,4 @@
 3. Productivity: [Token Economics Presentation](./presentations/P-3-token-economics/index.md)
 4. Productivity: [Many Accounts, Many Providers, One Harness](./presentations/P-4-many-accounts-many-providers/index.md)
 5. Productivity: [Branchdiff Features](./presentations/P-5-branchdiff-features/index.html)
+6. Software Architecture: [Domain-Driven Design](./presentations/P-6-domain-driven-design/index.html)

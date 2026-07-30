@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="Inter, system-ui, sans-serif">
+  <rect width="960" height="560" rx="18" fill="#0B0E14"/>
+  <rect x="18" y="18" width="924" height="524" rx="16" fill="none" stroke="#333B56" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+  <text x="48" y="58" fill="#8D96AE" font-size="13" letter-spacing="2" font-family="JetBrains Mono, monospace">BUSINESS DOMAIN</text>
+  <text x="48" y="92" fill="#E8ECF5" font-size="30" font-weight="800">Online Retail</text>
+  <text x="48" y="120" fill="#8D96AE" font-size="15">The real-world problem space the software exists to serve — independent of any code.</text>
+
+  <!-- Core subdomain -->
+  <g>
+    <rect x="48" y="160" width="272" height="300" rx="14" fill="#131826" stroke="#7C8CFF" stroke-width="2"/>
+    <text x="72" y="196" fill="#7C8CFF" font-size="13" letter-spacing="1.5" font-family="JetBrains Mono, monospace" font-weight="700">CORE DOMAIN</text>
+    <rect x="72" y="216" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="184" y="244" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Order Management</text>
+    <rect x="72" y="274" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="184" y="302" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Pricing &amp; Promotions</text>
+    <text x="72" y="352" fill="#8D96AE" font-size="13.5" font-style="italic">Differentiates the</text>
+    <text x="72" y="372" fill="#8D96AE" font-size="13.5" font-style="italic">business — invest here.</text>
+    <text x="72" y="392" fill="#8D96AE" font-size="13.5" font-style="italic">Build custom, build it well.</text>
+  </g>
+
+  <!-- Supporting subdomain -->
+  <g>
+    <rect x="344" y="160" width="272" height="300" rx="14" fill="#131826" stroke="#F2B84B" stroke-width="2"/>
+    <text x="368" y="196" fill="#F2B84B" font-size="13" letter-spacing="1.5" font-family="JetBrains Mono, monospace" font-weight="700">SUPPORTING DOMAIN</text>
+    <rect x="368" y="216" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="480" y="244" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Inventory</text>
+    <rect x="368" y="274" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="480" y="302" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Fulfillment / Shipping</text>
+    <text x="368" y="352" fill="#8D96AE" font-size="13.5" font-style="italic">Necessary to run the</text>
+    <text x="368" y="372" fill="#8D96AE" font-size="13.5" font-style="italic">business, but not what</text>
+    <text x="368" y="392" fill="#8D96AE" font-size="13.5" font-style="italic">makes it win.</text>
+  </g>
+
+  <!-- Generic subdomain -->
+  <g>
+    <rect x="640" y="160" width="272" height="300" rx="14" fill="#131826" stroke="#5B6480" stroke-width="2"/>
+    <text x="664" y="196" fill="#8D96AE" font-size="13" letter-spacing="1.5" font-family="JetBrains Mono, monospace" font-weight="700">GENERIC DOMAIN</text>
+    <rect x="664" y="216" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="776" y="244" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Payments Gateway</text>
+    <rect x="664" y="274" width="224" height="46" rx="8" fill="#1A2036" stroke="#333B56"/>
+    <text x="776" y="302" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="600">Authentication</text>
+    <text x="664" y="352" fill="#8D96AE" font-size="13.5" font-style="italic">Solved problems.</text>
+    <text x="664" y="372" fill="#8D96AE" font-size="13.5" font-style="italic">Buy or plug in a vendor —</text>
+    <text x="664" y="392" fill="#8D96AE" font-size="13.5" font-style="italic">don't build it yourself.</text>
+  </g>
+
+  <text x="480" y="500" fill="#E8ECF5" font-size="16" text-anchor="middle" font-weight="500">Each subdomain above → becomes its own <tspan fill="#7C8CFF" font-weight="700">Bounded Context</tspan> in code</text>
+  <text x="480" y="528" fill="#5B6480" font-size="12.5" text-anchor="middle" font-family="JetBrains Mono, monospace">identified by asking domain experts "what does this part of the business actually do?" — not by looking at database tables</text>
+</svg>
