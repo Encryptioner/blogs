@@ -2,9 +2,9 @@
 
 > You don't adopt DDD by adding patterns. You adopt it by removing ambiguity.
 
-This is the second of two posts on Domain-Driven Design. The [first post](./Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md) covered the foundations — what a domain is, Ubiquitous Language, Bounded Contexts, Entities vs. Value Objects — using a bug caused by two teams disagreeing on what "Product" means. If any of those terms are unfamiliar, start there; this post assumes them.
+This is the second of two posts on Domain-Driven Design. The [first post](./Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md) covered the foundations — what a domain, business domain, and bounded context actually are — using Northwind, a small online retail business, and a bug caused by its Order and Inventory teams disagreeing on what "Product" means. If any of that is unfamiliar, start there; this post assumes it.
 
-Here, the same Order Management system keeps running, and hits four more real bugs — each one introduced before the pattern that fixes it, the same way as the first post. By the end, every pattern is wired together into a single request flow. A companion deck with the same content is available [here](../../../presentations/P-6-domain-driven-design/deep-dive.html).
+Here, Northwind keeps growing, and its Order Management system hits four more real bugs — each one introduced before the pattern that fixes it, the same way as the first post. Along the way, this post directly answers the question almost everyone asks once they've heard of Repositories: **does each bounded context need its own database?** By the end, every pattern is wired together into a single request flow. A companion deck with the same content is available [here](../../../presentations/P-6-domain-driven-design/deep-dive.html).
 
 ---
 
@@ -28,7 +28,7 @@ The first three patterns give you vocabulary and boundaries. What follows is wha
 
 ## The Bug: Two Code Paths, One Inconsistent Order
 
-`Order` lives in the codebase as a plain data bag. Two different parts of the system are allowed to mutate it directly, with no single place enforcing what's actually allowed.
+`Order` lives in Northwind's codebase as a plain data bag. Two different parts of the system are allowed to mutate it directly, with no single place enforcing what's actually allowed.
 
 ```ts
 // order.ts — just a data shape, no rules attached
@@ -45,7 +45,7 @@ function forceAddItem(order: Order, item: LineItem) {
 }
 ```
 
-A customer support agent used the admin panel to "add a free gift" to an order that had *already shipped*. The warehouse re-picked the order, and that day's finance report no longer matched the shipped-items count. Two teams, zero communication between them, and the exact same underlying bug — because nothing in the code says an order can't change after it's been placed.
+A Northwind support agent used the admin panel to "add a free gift" to an order that had *already shipped*. The warehouse re-picked the order, and that day's finance report no longer matched the shipped-items count. Two teams, zero communication between them, and the exact same underlying bug — because nothing in the code says an order can't change after it's been placed.
 
 ## Fix: Aggregates & the Aggregate Root
 
@@ -131,6 +131,8 @@ Renaming `reserveStock` tomorrow now only touches Inventory's own subscriber. `O
 **What you gain:** lower coupling between contexts; a cleaner domain model that isn't cluttered with knowledge of every downstream consumer; infrastructure in one context can evolve independently of another.
 **What it costs:** failures now surface later, since the reaction is asynchronous — and cross-context consistency needs deliberate design, because it's eventual rather than immediate.
 
+**A concrete growth path, so this doesn't feel like an infrastructure decision made too early:** `eventBus` above can start as nothing more than Node's built-in `EventEmitter` (or `eventemitter2`) inside a single monolith process — genuinely a few lines, no new infrastructure to run. If Order Management and Inventory later split into separate deployed services, the same `eventBus.publish` / `eventBus.on` calls move behind Redis pub/sub with no change to `OrderService` itself. If the system grows to the point where events need to be replayed, audited, or fanned out to many independent consumers at scale, that same interface moves behind Kafka. The domain code — `OrderPlaced`, and everything that reacts to it — never has to change across any of these three stages; only the adapter underneath the `eventBus` interface does.
+
 ## The Bug: SQL Buried Inside Business Logic
 
 ```ts
@@ -169,6 +171,38 @@ Swap Postgres for DynamoDB, or rename every column in a migration — only the c
 **What you gain:** persistence concerns never leak into business logic; the domain becomes directly, cheaply testable.
 **What it costs:** one additional layer of indirection to write and keep honest — worth it exactly when the alternative is untestable business rules.
 
+## How a Bounded Context Is Layered Internally: Ports & Adapters
+
+`OrderRepository` above is a small example of a much bigger idea worth naming explicitly: **Hexagonal Architecture**, also called **Ports & Adapters**. Every pattern used so far already fits into it — this section just gives the four rings names, so the whole context can be organized the same way on purpose instead of by accident.
+
+| Layer | What lives here | From this post |
+|---|---|---|
+| **Domain** (zero dependencies) | Aggregates, Entities, Value Objects, Domain Events — pure business rules, no imports from anything outside this ring | `Order`, `LineItem`, `OrderPlaced` |
+| **Application** (use cases) | Orchestrates the domain: loads an aggregate, calls its methods, saves it, publishes events | `placeOrder(orderId, repo)` |
+| **Infrastructure** (implements the domain's ports) | Concrete adapters — a real database, a real event bus, a real payment SDK client | `PostgresOrderRepository`, the Redis/Kafka-backed `eventBus`, the gateway ACL |
+| **Interfaces** (driving adapters) | Whatever calls into Application from the outside — HTTP controllers, admin tools, event handlers | the public/admin/service-to-service routes from later in this post |
+
+**The dependency rule, stated once so it's unambiguous: every arrow points inward, toward Domain.** Application is allowed to depend on Domain. Infrastructure is allowed to depend on Domain (it *implements* the `OrderRepository` interface that Domain/Application defined). Interfaces depend on Application. But Domain never imports anything from Infrastructure or Interfaces — `Order` and `OrderPlaced` have never heard of Postgres, Redis, or Express, and that's not an accident, it's the entire point. `OrderRepository` is what's called a **port** — an interface the Domain/Application layer defines and *owns*; `PostgresOrderRepository` is the **adapter** that plugs into it from Infrastructure. The direction of that relationship — Infrastructure depending on Domain, never the reverse — is what makes swapping Postgres for DynamoDB a one-file change instead of a rewrite.
+
+This is also the layer where **Eric Evans' original 2003 book, *Domain-Driven Design: Tackling Complexity in the Heart of Software***, is worth a direct nod — Aggregate, Entity, Value Object, Domain Event, and Repository are his tactical patterns by name, and they all belong in the Domain ring. Ports & Adapters isn't part of that original book, but it's become the near-universal way teams organize a bounded context's internals in practice, precisely because it keeps Evans' tactical patterns honestly isolated from whatever database or framework happens to be fashionable this year.
+
+## Common Confusion: One Database for All Contexts, or One Per Context?
+
+This is the question that comes up the moment Repositories click: **does Order Management need a physically separate database from Inventory?**
+
+The honest answer is that physical separation isn't the rule — **ownership and write-access are.** A bounded context must be the only thing that ever writes to its own data, and the only thing that reads it directly. Whether that's enforced by a separate physical database or by a schema boundary inside one shared instance depends on your architecture:
+
+| Architecture | What "database per context" looks like |
+|---|---|
+| **Microservices** | Usually a genuinely separate physical database per context — enforced by network boundaries, not just convention |
+| **Modular monolith** | One physical Postgres instance is fine — but `order_management` and `inventory` get separate schemas, **zero foreign keys crossing the boundary**, and neither ever queries the other's tables directly |
+
+Concretely, at Northwind: the monolith runs a single Postgres instance, but Inventory never runs `SELECT ... FROM orders JOIN products`. If Inventory needs to know an order happened, it reacts to the `OrderPlaced` event from the previous section, or calls Order Management's repository/API in-process — it never reaches across the schema boundary to read the table directly.
+
+**The smell that tells you the boundary is already broken:** the moment a SQL query joins across two bounded contexts' tables, the database has quietly become a shared kernel that nobody agreed to. That join will keep working right up until one team's migration breaks the other team's query — the exact same failure mode as the shared `Product` class from the first post, just one layer lower, in the schema instead of the code.
+
+The rule that generalizes across both architectures: **one writer per table, always** — whether "table" means a row in a shared Postgres instance or an entire database three networks away.
+
 ## The Bug: A Legacy Payment Gateway's Field Names, Everywhere
 
 ```ts
@@ -200,40 +234,95 @@ function translateGatewayWebhook(payload: LegacyGatewayPayload): PaymentComplete
 }
 ```
 
-When the vendor ships their v2 API, exactly one function changes. The rule of thumb: reach for a Shared Kernel between two contexts your own team controls; reach for an ACL at the edge of anything you don't control — legacy systems, third-party APIs, or another team's service you can't fully trust to stay stable.
+When the vendor ships their v2 API, exactly one function changes.
+
+**A translated reference is worth using at every context boundary, not only at the edge of a third-party vendor.** Order Management still needs to know *something* about Inventory's `Product` — is this SKU in stock? — but it should never import Inventory's actual `Product` class to find out, even though Inventory is an in-house team Northwind trusts completely. Instead, Order Management defines its own small, translated type for exactly what it needs:
+
+```ts
+// order-management/ProductRef.ts — Order Management's OWN translated view, never Inventory's real Product
+interface ProductRef { sku: string; available: boolean; }
+
+// populated by calling Inventory's API or reacting to its events — never by importing Inventory/Product.ts
+```
+
+This is the same shape as the payment-gateway ACL above, just applied between two contexts your own company owns. **The rule of thumb, then, isn't "ACL for outsiders, Shared Kernel for insiders" — it's the reverse of what beginners usually assume: a translated reference at the boundary is the default for every context relationship, in-house or not, and Shared Kernel is the deliberate exception** you choose only for a genuinely small, jointly-owned slice (like a common `Money` type) that both teams agree to co-own and version together.
+
+## How Contexts — and Their Teams — Actually Communicate
+
+Everything so far has shown *what* crosses a bounded context boundary (an event, a repository call, an ACL translation). It's worth being explicit about *how*, because this is where a lot of the remaining confusion lives — and it splits cleanly into a business/team question and a coding/technical question.
+
+**From the business perspective: context mapping is a team-communication pattern, not just an API diagram.** At Northwind, Order Management and Inventory are both run by in-house teams that need to evolve together — that relationship is called a **Partnership**: the two teams hold a standing contract review, and a change to the `OrderPlaced` event shape gets negotiated between them before it ships. Payments, on the other hand, is a **Conformist** relationship: it's a third-party vendor's API, Northwind has zero negotiating power over its schema, so Northwind's team simply accepts the vendor's model as-is and isolates it entirely behind the ACL from the previous section. A third common shape is **Customer/Supplier**: Inventory (upstream) ships changes on its own schedule, and Order Management (downstream) formally requests what it needs, the way a customer requests a feature from a vendor — even though both are in-house. Naming which relationship you actually have tells you how much negotiating leverage to expect, and stops a downstream team from being surprised when an upstream team ships a breaking change without asking.
+
+**From the coding perspective: contexts never call each other's internals — they talk through one of three explicit, versioned contracts:**
+
+- **Synchronous request/response** — a versioned REST/HTTP JSON API or gRPC call, for "ask and wait right now" (Order Management asking Inventory "is this SKU in stock?").
+- **Asynchronous events** — a message bus (Kafka, SQS, RabbitMQ, or an in-process event emitter at small scale), for "tell me when something happens" — this is exactly what `OrderPlaced` has been doing throughout this post.
+- **A Shared/Published Language** — a jointly-versioned schema (an OpenAPI spec, a Protobuf definition, or a JSON Schema) that both sides commit to. This schema *is* the actual contract that gets reviewed in the Partnership meeting described above — the team conversation and the technical contract are the same document, seen from two angles.
+
+**Because the contract is the boundary — not shared code — bounded contexts don't need to share a programming language.** Northwind's Order Management could run Node.js/TypeScript, Inventory could be a Go service, and Payments could be a Python wrapper around the vendor's SDK. DDD has no opinion on the runtime; it only cares whether the model is right and the contract between contexts is honored. (This is also why every code sample in this post is TypeScript-flavored pseudocode for readability — none of it is TypeScript-specific. An aggregate root in Go is a `struct` with exported methods and unexported fields enforcing the same invariant; a repository in Java is simply an `interface`; a domain event in Python is a small `dataclass` published to the same message bus. The pattern is the point, not the syntax.)
+
+## One Core, Many Doors: Public API, Admin API, Service-to-Service
+
+Go back to the very first bug in this post — the admin panel that let a support agent add an item to an already-shipped order. It's worth revisiting now with the full picture: **the bug wasn't that the admin panel was "different code."** The bug was that the admin panel had its *own separate path* into `lineItems`, instead of going through the same aggregate as everything else.
+
+A single bounded context routinely serves more than one audience, and that's completely fine — as long as every audience is routed through the same domain core underneath:
+
+- **Public API** — the storefront calling `POST /orders` on behalf of a customer.
+- **Admin API** — a support agent's internal tool, doing exactly what the buggy `admin-panel.ts` was trying to do, just now through the front door.
+- **Service-to-service** — another bounded context calling in via gRPC or reacting to an event, authenticated differently than a public customer would be.
+
+All three are just different **adapters** sitting in front of the identical `Order` aggregate from earlier in this post:
+
+```ts
+// public-api/orders-controller.ts
+app.post("/orders/:id/items", (req, res) => order.addLineItem(req.body.item));
+
+// admin-api/orders-controller.ts — a DIFFERENT route, SAME aggregate method
+app.post("/admin/orders/:id/items", requireSupportRole, (req, res) =>
+  order.addLineItem(req.body.item)   // the invariant from Slide 4 fires here too — no bypass
+);
+```
+
+Three doors, one aggregate enforcing the same rule no matter which door you came through. That's the deeper fix the Aggregate pattern was already giving you — the admin panel doesn't need special-case business logic, it needs to stop having its own door.
 
 ## It All Wires Together
 
 ```
-Customer places an order
-        │
-        ▼
- ┌─────────────────┐   Order.place()         ┌──────────────────┐
- │ Order (Aggregate │ ───────────────────────▶│ OrderPlaced event │
- │      Root)       │   enforces invariants   └──────────────────┘
- └─────────────────┘                                   │
-        │  OrderRepository.save()                      │  published on event bus
-        ▼                                               ▼
- ┌─────────────────┐                          ┌───────────────────┐
- │   Persistence    │                          │ Inventory context  │
- │ (hidden by repo) │                          │ reserves stock     │
- └─────────────────┘                          └───────────────────┘
-                                                          │
-                                                          ▼
-                                                ┌───────────────────┐
-                                                │ Payments context   │
-                                                │ (via ACL, external │
-                                                │  gateway webhook)  │
-                                                └───────────────────┘
+ Public API          Admin API         Service-to-service
+ (customer)           (support)          (other contexts)
+     │                    │                     │
+     └────────────────────┼─────────────────────┘
+                          ▼
+                ┌─────────────────┐   Order.place()         ┌──────────────────┐
+                │ Order (Aggregate │ ───────────────────────▶│ OrderPlaced event │
+                │      Root)       │   enforces invariants   └──────────────────┘
+                └─────────────────┘                                   │
+                        │  OrderRepository.save()                      │  published on event bus
+                        ▼                                               ▼
+                ┌─────────────────┐                          ┌───────────────────┐
+                │   Persistence    │                          │ Inventory context  │
+                │ (own schema/DB,  │                          │ reserves stock      │
+                │  hidden by repo) │                          │ (a Go service)      │
+                └─────────────────┘                          └───────────────────┘
+                                                                          │
+                                                                          ▼
+                                                                ┌───────────────────┐
+                                                                │ Payments context   │
+                                                                │ (via ACL, external │
+                                                                │  gateway webhook,   │
+                                                                │  Python wrapper)    │
+                                                                └───────────────────┘
 ```
 
-Ubiquitous Language named every box the way the business itself would name it. Bounded Contexts stopped Order Management, Inventory, and Payments from fighting over what "Product" means. The Aggregate stopped the admin-panel bug from existing at all. The Event decoupled Inventory from Order's internals, so one rename no longer breaks four unrelated services. The Repository kept SQL out of the domain, so business rules became unit-testable. The Anti-Corruption Layer kept a vendor's v2 migration contained to a single file.
+Ubiquitous Language named every box the way Northwind itself would name it. Bounded Contexts stopped Order Management, Inventory, and Payments from fighting over what "Product" means. Three doors — public, admin, and service-to-service — all funnel into the same Aggregate, so the admin-panel bug can't exist regardless of entry point. The Event decoupled Inventory from Order's internals, so one rename no longer breaks four unrelated services — and it doesn't matter that Inventory happens to run on a different stack entirely. The Repository kept SQL out of the domain, and its own schema boundary kept Inventory from silently joining across into Order Management's tables. The Anti-Corruption Layer kept a vendor's v2 migration contained to a single file.
 
 ## Checklist: Take It Back to Your Codebase
 
 - [ ] Find your biggest "plain data bag" — a type anyone in the codebase can mutate from anywhere. That's a missing aggregate root.
 - [ ] Grep for a function name that gets called directly from three or more unrelated files. That's a missing domain event.
-- [ ] Grep your domain or business-logic layer for `SELECT`, `UPDATE`, or an ORM import. That's a missing repository.
+- [ ] Grep your domain or business-logic layer for `SELECT`, `UPDATE`, or an ORM import. That's a missing repository — and a layering violation, since Domain should never depend on Infrastructure.
+- [ ] Search your codebase (or your DB migrations) for a SQL join that spans two different bounded contexts' tables. That's a database boundary that's already been silently crossed.
+- [ ] Check whether any context imports another in-house context's model directly instead of a translated reference type. That's a missing (in-house) Anti-Corruption Layer, not just a third-party-vendor concern.
 - [ ] At every integration with a system you don't control, check whether there's one translation file — or whether the vendor's field names are scattered everywhere. That's a missing Anti-Corruption Layer.
 
 And the reminder that bears repeating from the first post: simple CRUD apps, no sustained access to domain experts, and short-lived or low-impact projects are exactly where DDD does *not* pay off. Reach for it where the domain — not the plumbing — is genuinely the hard part.

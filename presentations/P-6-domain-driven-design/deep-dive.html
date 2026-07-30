@@ -46,31 +46,31 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .slide::-webkit-scrollbar-track{background:transparent}
 .slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
 
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px}
 .eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
 .eyebrow.problem{color:var(--danger)}
 .eyebrow.problem::before{background:var(--danger)}
 h1.title{font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.06;letter-spacing:-.025em;margin-bottom:12px}
 h1.title em{font-style:normal;color:var(--accent)}
 h2.subtitle{font-weight:500;font-size:clamp(1.2rem,2vw,1.55rem);color:var(--muted);margin-bottom:26px;line-height:1.4}
-h3.section{font-weight:800;font-size:clamp(1.6rem,3vw,2.3rem);line-height:1.15;letter-spacing:-.02em;margin-bottom:14px}
+h3.section{font-weight:800;font-size:clamp(1.45rem,2.7vw,2.15rem);line-height:1.14;letter-spacing:-.02em;margin-bottom:12px}
 h3.section em{font-style:normal;color:var(--accent)}
 h3.section.problem em{color:var(--danger)}
 
-p{font-size:clamp(1rem,1.3vw,1.18rem);color:var(--text);margin-bottom:12px}
-p.lead{font-size:clamp(1.1rem,1.6vw,1.35rem);color:var(--muted);line-height:1.6}
+p{font-size:clamp(.95rem,1.22vw,1.1rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.05rem,1.5vw,1.3rem);color:var(--muted);line-height:1.6}
 .muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .gold{color:var(--gold)}
 .mono{font-family:'JetBrains Mono',monospace}
 
-.caption{font-style:italic;color:var(--muted);font-size:clamp(.92rem,1.15vw,1.05rem);line-height:1.6;border-left:2px solid var(--border-light);padding-left:16px;margin-top:14px}
+.caption{font-style:italic;color:var(--muted);font-size:clamp(.86rem,1.08vw,.98rem);line-height:1.55;border-left:2px solid var(--border-light);padding-left:14px;margin-top:10px}
 
-ul.bullets{list-style:none;margin:14px 0}
-ul.bullets li{position:relative;padding-left:26px;margin-bottom:11px;font-size:clamp(.98rem,1.25vw,1.12rem);line-height:1.48}
-ul.bullets li::before{content:'';position:absolute;left:0;top:10px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets{list-style:none;margin:10px 0}
+ul.bullets li{position:relative;padding-left:24px;margin-bottom:9px;font-size:clamp(.9rem,1.15vw,1.04rem);line-height:1.42}
+ul.bullets li::before{content:'';position:absolute;left:0;top:9px;width:7px;height:7px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
 ul.bullets li strong{color:var(--gold);font-weight:600}
-ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.86em;color:var(--accent);border:1px solid var(--border)}
+ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.84em;color:var(--accent);border:1px solid var(--border)}
 
-.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.78rem,1.2vw,.95rem);line-height:1.55;color:var(--text);margin:14px 0;position:relative;overflow:auto}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:clamp(.72rem,1.1vw,.86rem);line-height:1.5;color:var(--text);margin:12px 0;position:relative;overflow:auto}
 .code-block::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),transparent)}
 .code-block.problem::before{background:linear-gradient(180deg,var(--danger),transparent)}
 .code-block .k{color:var(--accent)}
@@ -80,32 +80,32 @@ ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surfa
 .code-block .bad{color:var(--danger)}
 pre{white-space:pre}
 
-.table-wrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
-table{width:100%;border-collapse:collapse;font-size:clamp(.88rem,1.1vw,1.02rem)}
-table th{background:var(--elevated);text-align:left;padding:11px 15px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;border-bottom:1px solid var(--border)}
-table td{padding:10px 15px;border-bottom:1px solid var(--border);vertical-align:top}
+.table-wrap{overflow-x:auto;margin:12px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.8rem,1.02vw,.94rem)}
+table th{background:var(--elevated);text-align:left;padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600;border-bottom:1px solid var(--border)}
+table td{padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:top}
 table tr:last-child td{border-bottom:none}
 table td strong{color:var(--gold)}
 
-.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:14px 0}
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:10px 0}
 .callout.accent{border-color:rgba(124,140,255,.35);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
 .callout.danger{border-color:rgba(255,128,128,.35)}
-.callout .label{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
 .callout.danger .label{color:var(--danger)}
 
-.fig{margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);max-width:100%}
+.fig{margin:12px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);max-width:100%}
 .fig img{display:block;width:100%;height:auto;cursor:zoom-in;transition:filter .2s;background:#fff}
 .fig img:hover{filter:brightness(1.05)}
-.fig.wide{max-width:800px}
-.fig-caption{font-style:italic;font-size:.92rem;color:var(--muted);padding:10px 16px;border-top:1px solid var(--border)}
+.fig.wide{max-width:760px}
+.fig-caption{font-style:italic;font-size:.9rem;color:var(--muted);padding:9px 15px;border-top:1px solid var(--border)}
 
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:12px 0}
 @media(max-width:900px){.two-col{grid-template-columns:1fr}}
 
-.checklist{list-style:none;margin:16px 0}
-.checklist li{position:relative;padding-left:34px;margin-bottom:12px;font-size:clamp(.98rem,1.25vw,1.1rem);line-height:1.42}
-.checklist li::before{content:'';position:absolute;left:0;top:2px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
-.checklist li::after{content:'';position:absolute;left:4px;top:6px;width:8px;height:4px;border-left:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(-45deg);opacity:.7}
+.checklist{list-style:none;margin:14px 0}
+.checklist li{position:relative;padding-left:32px;margin-bottom:10px;font-size:clamp(.92rem,1.18vw,1.05rem);line-height:1.4}
+.checklist li::before{content:'';position:absolute;left:0;top:2px;width:16px;height:16px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:3px;top:5px;width:8px;height:4px;border-left:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(-45deg);opacity:.7}
 
 .hero{justify-content:center;align-items:flex-start;padding:8vh 8vw}
 .hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(124,140,255,.35);border-radius:30px;background:var(--accent-soft);margin-bottom:28px}
@@ -114,17 +114,17 @@ table td strong{color:var(--gold)}
 .hero-meta{margin-top:auto;padding-top:36px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:28px;flex-wrap:wrap}
 .hero-meta .presenter strong{display:block;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:4px}
 .hero-meta .presenter .role{color:var(--muted);font-size:.98rem;line-height:1.5;max-width:460px}
-.hero-meta .hook{font-style:italic;font-size:1.02rem;color:var(--gold);max-width:400px;line-height:1.5;text-align:right}
+.hero-meta .hook{font-style:italic;font-size:1rem;color:var(--gold);max-width:400px;line-height:1.5;text-align:right}
 
 .ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
 .ambient .b1{width:600px;height:600px;background:var(--accent);top:-200px;right:-150px}
 .ambient .b2{width:460px;height:460px;background:var(--gold);bottom:-200px;left:-100px;opacity:.08}
 
-.foot{margin-top:auto;padding-top:16px;font-style:italic;font-size:.8rem;color:var(--dim);border-top:1px solid var(--border)}
+.foot{margin-top:auto;padding-top:14px;font-style:italic;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
 .foot a{color:var(--dim)}
 
-.flow-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:clamp(.7rem,1.05vw,.85rem);line-height:1.5;color:var(--text);overflow:auto}
+.flow-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:clamp(.62rem,.95vw,.78rem);line-height:1.45;color:var(--text);overflow:auto}
 </style>
 </head>
 <body>
@@ -134,13 +134,13 @@ table td strong{color:var(--gold)}
 <div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
 
 <div class="dk-chrome">
-  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">12</span></span>
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">16</span></span>
   <span class="dk-pill dk-title" id="curTitle">Title</span>
 </div>
 
 <nav class="dk-nav">
   <button data-dk="prev" title="Previous (←)">‹</button>
-  <span class="dk-count" id="counter">01 / 12</span>
+  <span class="dk-count" id="counter">01 / 16</span>
   <button data-dk="next" title="Next (→)">›</button>
   <button data-dk="overview" title="Overview (O)">▦</button>
   <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
@@ -156,13 +156,13 @@ table td strong{color:var(--gold)}
 <section class="slide hero" data-active="true" data-title="DDD Deep Dive">
   <div class="badge"><span class="dot"></span> DDD Deep Dive</div>
   <h1 class="title">Domain-Driven Design — <em>Deep Dive</em></h1>
-  <h2 class="subtitle">Aggregates, Events, Repositories, and Context Maps in a real system.</h2>
+  <h2 class="subtitle">Aggregates, Events, Repositories, Ports &amp; Adapters, and Context Maps in a real system.</h2>
   <div class="hero-meta">
     <div class="presenter">
       <strong>Mir Mursalin Ankur</strong>
       <div class="role">Lead Software Engineer @ Nerddevs Ltd</div>
     </div>
-    <div class="hook">Picks up where the <a href="./intro.html" class="mono accent">Intro deck</a> left off — every pattern here is introduced with the bug it prevents.</div>
+    <div class="hook">Northwind, from the <a href="./intro.html" class="mono accent">Intro deck</a>, keeps growing — every pattern here is introduced with the bug it prevents.</div>
   </div>
 </section>
 
@@ -180,6 +180,7 @@ table td strong{color:var(--gold)}
       <tr><td><strong>Events + Repositories</strong> ← today</td><td>Decoupling + clean domain</td><td>More infrastructure + discipline</td></tr>
     </table>
   </div>
+  <p class="caption">This deck traces back to a specific source: Eric Evans' 2003 book <em>Domain-Driven Design</em> — Aggregate, Entity, Value Object, Domain Event, and Repository are his tactical patterns by name.</p>
   <div class="fig wide">
     <img src="images/luc-when-to-use-ddd.jpg" alt="DDD pattern trade-off table">
   </div>
@@ -214,7 +215,7 @@ table td strong{color:var(--gold)}
   <h3 class="section">One Door In — <em>Aggregates &amp; the Aggregate Root</em></h3>
   <div class="two-col">
     <div>
-      <p>An <strong class="gold">aggregate</strong> is a cluster of domain objects treated as a single consistency boundary, controlled by one <strong class="gold">aggregate root</strong>. Outside code talks only to the root — the rule lives in exactly one place.</p>
+      <p>An <strong class="gold">aggregate</strong> is a cluster of domain objects treated as a single consistency boundary, controlled by one <strong class="gold">aggregate root</strong>. Outside code talks only to the root.</p>
       <div class="code-block"><pre><span class="k">class</span> Order {                    <span class="c">// Aggregate Root</span>
   <span class="k">private</span> lineItems: LineItem[] = [];
   <span class="k">private</span> status = <span class="s">"draft"</span>;
@@ -232,7 +233,7 @@ table td strong{color:var(--gold)}
     <span class="k">return new</span> OrderPlaced(<span class="k">this</span>.id, <span class="k">this</span>.lineItems);
   }
 }</pre></div>
-      <p class="caption">Both controllers now call <code class="mono">order.addLineItem()</code> — there is no other door in, so the "already shipped" bug is no longer representable in code.</p>
+      <p class="caption">Both controllers now call <code class="mono">order.addLineItem()</code> — the "already shipped" bug is no longer representable in code.</p>
     </div>
     <div class="fig">
       <img src="images/luc-aggregates.jpg" alt="Aggregates diagram — Order and Payments aggregate roots communicating via events">
@@ -264,7 +265,7 @@ table td strong{color:var(--gold)}
 <section class="slide" data-title="Fix — Domain Events">
   <div class="eyebrow">05 · Fix</div>
   <h3 class="section">Let Other Contexts React — <em>Without Reaching In</em></h3>
-  <p>A <strong class="gold">domain event</strong> captures something meaningful that already happened, named in past tense. Published outward, it becomes an integration event other contexts subscribe to independently.</p>
+  <p>A <strong class="gold">domain event</strong> captures something meaningful that already happened. Published outward, it becomes an integration event other contexts subscribe to independently.</p>
   <div class="code-block"><pre><span class="k">class</span> OrderPlaced {
   constructor(<span class="k">public readonly</span> orderId: string, <span class="k">public readonly</span> lineItems: LineItem[]) {}
 }
@@ -276,11 +277,10 @@ table td strong{color:var(--gold)}
   }
 }
 
-<span class="c">// each subscriber lives in its own context, wired independently:</span>
 eventBus.on(OrderPlaced, e => inventoryService.reserveStock(e.lineItems));
 eventBus.on(OrderPlaced, e => emailService.sendConfirmation(e.orderId));
 eventBus.on(OrderPlaced, e => loyaltyService.addPoints(e.orderId));</pre></div>
-  <p class="caption">Renaming <code class="mono">reserveStock</code> tomorrow only touches Inventory's own subscriber — <code class="mono">OrderService</code> never changes again for this reason.</p>
+  <p class="caption"><strong>Growth path, no domain code changes:</strong> in-process <code class="mono">EventEmitter</code> for an MVP → Redis pub/sub once split into services → Kafka once events need replay/audit at scale. Only the adapter under <code class="mono">eventBus</code> changes.</p>
 </section>
 
 <!-- SLIDE 7 -->
@@ -296,7 +296,7 @@ eventBus.on(OrderPlaced, e => loyaltyService.addPoints(e.orderId));</pre></div>
 }</pre></div>
   <div class="callout danger">
     <div class="label">The real-world outcome</div>
-    A migration to a different column-naming convention broke every business-rule function that touched <code class="mono">orders</code>, because rules and raw SQL lived in the same place. Nobody could test "can't place an empty order" without a real database.
+    A migration to a different column-naming convention broke every business-rule function that touched <code class="mono">orders</code>. Nobody could test "can't place an empty order" without a real database.
   </div>
 </section>
 
@@ -320,8 +320,46 @@ eventBus.on(OrderPlaced, e => loyaltyService.addPoints(e.orderId));</pre></div>
 </section>
 
 <!-- SLIDE 9 -->
+<section class="slide" data-title="Ports & Adapters">
+  <div class="eyebrow">08 · Architecture</div>
+  <h3 class="section">How a Context Is Layered — <em>Everything Points Inward</em></h3>
+  <p><code class="mono">OrderRepository</code> is a small example of a bigger idea: <strong class="gold">Ports &amp; Adapters</strong>. It's a <strong>port</strong> Domain/Application owns; <code class="mono">PostgresOrderRepository</code> is the <strong>adapter</strong> plugging into it from Infrastructure.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Layer</th><th>What lives here</th><th>From this deck</th></tr>
+      <tr><td><strong>Domain</strong> (zero deps)</td><td>Aggregates, Entities, VOs, Events</td><td><code class="mono">Order</code>, <code class="mono">OrderPlaced</code></td></tr>
+      <tr><td><strong>Application</strong></td><td>Orchestrates the domain</td><td><code class="mono">place(orderId, repo)</code></td></tr>
+      <tr><td><strong>Infrastructure</strong></td><td>Implements the ports</td><td><code class="mono">PostgresOrderRepository</code>, <code class="mono">eventBus</code></td></tr>
+      <tr><td><strong>Interfaces</strong></td><td>Calls in from outside</td><td>public/admin/service routes (Slide 14)</td></tr>
+    </table>
+  </div>
+  <div class="callout accent">
+    <div class="label">The dependency rule</div>
+    <code class="mono">Order</code> and <code class="mono">OrderPlaced</code> have never heard of Postgres, Redis, or Express. Infrastructure and Interfaces depend on Domain — never the reverse.
+  </div>
+</section>
+
+<!-- SLIDE 10 -->
+<section class="slide" data-title="One Database or Many?">
+  <div class="eyebrow">09 · Common Confusion</div>
+  <h3 class="section">Ownership Matters More Than <em>Physical Separation</em></h3>
+  <p>Does Order Management need a physically separate database from Inventory? The rule isn't physical separation — a bounded context must be the only thing that ever writes to (and directly reads) its own data.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Architecture</th><th>What "database per context" looks like</th></tr>
+      <tr><td><strong>Microservices</strong></td><td>Usually a genuinely separate physical database per context</td></tr>
+      <tr><td><strong>Modular monolith</strong></td><td>One physical instance is fine — separate schemas, zero foreign keys crossing the boundary</td></tr>
+    </table>
+  </div>
+  <div class="callout accent">
+    <div class="label">The smell</div>
+    A SQL join across two bounded contexts' tables means the database has quietly become an unplanned shared kernel. <strong>One writer per table, always.</strong>
+  </div>
+</section>
+
+<!-- SLIDE 11 -->
 <section class="slide" data-title="Bug — Legacy Gateway Fields">
-  <div class="eyebrow problem">08 · The Bug</div>
+  <div class="eyebrow problem">10 · The Bug</div>
   <h3 class="section problem">When a Third Party's Model <em>Leaks Into Yours</em></h3>
   <div class="code-block problem"><pre><span class="c">// scattered across 6 files, wherever a webhook is handled</span>
 <span class="k">function</span> handleWebhook(payload: any) {
@@ -331,73 +369,120 @@ eventBus.on(OrderPlaced, e => loyaltyService.addPoints(e.orderId));</pre></div>
 }</pre></div>
   <div class="callout danger">
     <div class="label">The real-world outcome</div>
-    The gateway vendor renamed <code class="mono">amt_cents</code> to <code class="mono">amount_minor_units</code> in a v2 API. Six files broke, six different ways — the vendor's field names had leaked directly into business logic.
+    The gateway vendor renamed <code class="mono">amt_cents</code> to <code class="mono">amount_minor_units</code> in a v2 API. Six files broke, six different ways.
   </div>
 </section>
 
-<!-- SLIDE 10 -->
+<!-- SLIDE 12 -->
 <section class="slide" data-title="Fix — Context Mapping & ACL">
-  <div class="eyebrow">09 · Fix</div>
-  <h3 class="section">One Translator, <em>at the Boundary</em></h3>
-  <p>An <strong class="gold">Anti-Corruption Layer (ACL)</strong> is a single translation point that converts an external system's model into your own — a vendor's v2 migration only ever touches one file.</p>
+  <div class="eyebrow">11 · Fix</div>
+  <h3 class="section">A Translator at Every Boundary — <em>Not Just the Third-Party Edge</em></h3>
   <div class="code-block"><pre><span class="c">// payment-gateway-acl.ts — the ONLY file that knows the vendor's field names</span>
 <span class="k">function</span> translateGatewayWebhook(payload: LegacyGatewayPayload): PaymentCompleted {
-  <span class="k">return new</span> PaymentCompleted(
-    payload.order_ref,
-    Money.fromCents(payload.amt_cents, payload.cur)
-  );
-}</pre></div>
-  <p class="caption">A <strong>Shared Kernel</strong> is the other context-mapping shape — two contexts <em>you</em> control deliberately sharing a small model (like a common <code class="mono">Money</code> type). Rule of thumb: Shared Kernel between contexts your team owns; ACL at the edge of anything you don't control.</p>
+  <span class="k">return new</span> PaymentCompleted(payload.order_ref, Money.fromCents(payload.amt_cents, payload.cur));
+}
+
+<span class="c">// order-management/ProductRef.ts — Order Mgmt's OWN view of Inventory's Product,</span>
+<span class="c">// even though Inventory is a fully-trusted in-house team</span>
+<span class="k">interface</span> ProductRef { sku: string; available: boolean; }</pre></div>
+  <p class="caption"><strong>The rule of thumb reverses what beginners assume:</strong> a translated reference is the <em>default</em> at every boundary, in-house or not. <strong>Shared Kernel</strong> — jointly co-owning a small slice like <code class="mono">Money</code> — is the deliberate exception.</p>
 </section>
 
-<!-- SLIDE 11 -->
+<!-- SLIDE 13 -->
+<section class="slide" data-title="How Contexts Communicate">
+  <div class="eyebrow">12 · Synthesis</div>
+  <h3 class="section">Two Questions: <em>a Business One, a Coding One</em></h3>
+  <div class="two-col">
+    <div>
+      <p><strong class="gold">Business — team patterns:</strong></p>
+      <ul class="bullets">
+        <li><strong>Partnership</strong> — Order Mgmt &amp; Inventory, both in-house, evolve together via a standing contract review.</li>
+        <li><strong>Customer/Supplier</strong> — Inventory (upstream) ships on its schedule; Order Mgmt (downstream) formally requests changes.</li>
+        <li><strong>Conformist</strong> — Payments is a vendor; zero negotiating power, isolated behind the ACL.</li>
+      </ul>
+    </div>
+    <div>
+      <p><strong class="gold">Coding — explicit contracts only:</strong></p>
+      <ul class="bullets">
+        <li><strong>Synchronous</strong> — versioned REST/gRPC, "ask and wait now."</li>
+        <li><strong>Async events</strong> — a message bus, "tell me when it happens."</li>
+        <li><strong>Published Language</strong> — a jointly-versioned schema (OpenAPI/Protobuf) — the same doc the Partnership meeting reviews.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout accent">
+    <div class="label">Language-agnostic by design</div>
+    Order Management could be TypeScript, Inventory a Go service, Payments a Python wrapper — the contract is the boundary, not shared code. Every sample here is TypeScript-flavored pseudocode for readability, not a TypeScript requirement.
+  </div>
+</section>
+
+<!-- SLIDE 14 -->
+<section class="slide" data-title="One Core, Many Doors">
+  <div class="eyebrow">13 · Synthesis</div>
+  <h3 class="section">Public API, Admin API, Service-to-Service — <em>Same Aggregate</em></h3>
+  <p>Revisit Slide 3: the bug wasn't that the admin panel was "different code" — it had its own separate door into <code class="mono">lineItems</code> instead of the same aggregate as everything else.</p>
+  <div class="code-block"><pre><span class="c">// public-api/orders-controller.ts</span>
+app.post(<span class="s">"/orders/:id/items"</span>, (req, res) => order.addLineItem(req.body.item));
+
+<span class="c">// admin-api/orders-controller.ts — a DIFFERENT route, SAME aggregate method</span>
+app.post(<span class="s">"/admin/orders/:id/items"</span>, requireSupportRole, (req, res) =>
+  order.addLineItem(req.body.item)   <span class="c">// the invariant fires here too — no bypass</span>
+);</pre></div>
+  <p class="caption">Public, Admin, and Service-to-service are three <strong>Interfaces</strong>-ring adapters (Slide 9) — all funneling into the identical <code class="mono">Order</code> aggregate.</p>
+</section>
+
+<!-- SLIDE 15 -->
 <section class="slide" data-title="It All Wires Together">
-  <div class="eyebrow">10 · Synthesis</div>
+  <div class="eyebrow">14 · Synthesis</div>
   <h3 class="section">One Flow, <em>Every Pattern in Its Place</em></h3>
-  <div class="flow-block"><pre>Customer places an order
-        │
-        ▼
- ┌─────────────────┐   Order.place()         ┌──────────────────┐
- │ Order (Aggregate │──────────────────────▶ │ OrderPlaced event │
- │      Root)       │  enforces invariants   └──────────────────┘
- └─────────────────┘                                   │
-        │  OrderRepository.save()                      │  published on event bus
-        ▼                                               ▼
- ┌─────────────────┐                          ┌───────────────────┐
- │   Persistence    │                          │ Inventory context │
- │ (hidden by repo) │                          │ reserves stock     │
- └─────────────────┘                          └───────────────────┘
-                                                          │
-                                                          ▼
-                                                ┌───────────────────┐
-                                                │ Payments context   │
-                                                │ (via ACL, external │
-                                                │  gateway webhook)  │
-                                                └───────────────────┘</pre></div>
-  <p class="caption">Ubiquitous Language named every box the way the business would. Bounded Contexts kept "Product" from fighting over meaning. The Aggregate stopped the admin-panel bug. The Event stopped one rename breaking four services. The Repository stopped SQL from breaking business rules. The ACL kept a vendor's v2 migration to one file.</p>
+  <div class="flow-block"><pre> Public API      Admin API      Service-to-service
+ (customer)      (support)        (other contexts)
+     │               │                   │
+     └───────────────┼───────────────────┘
+                     ▼
+           ┌─────────────────┐   Order.place()         ┌──────────────────┐
+           │ Order (Aggregate │──────────────────────▶ │ OrderPlaced event │
+           │      Root)       │  enforces invariants   └──────────────────┘
+           └─────────────────┘                                   │
+                   │  OrderRepository.save()                      │  published on event bus
+                   ▼                                               ▼
+           ┌─────────────────┐                          ┌───────────────────┐
+           │   Persistence    │                          │ Inventory context │
+           │ (own schema/DB)  │                          │ reserves stock     │
+           └─────────────────┘                          │ (a Go service)     │
+                                                          └───────────────────┘
+                                                                     │
+                                                                     ▼
+                                                           ┌───────────────────┐
+                                                           │ Payments context   │
+                                                           │ (via ACL, external │
+                                                           │  gateway webhook)   │
+                                                           └───────────────────┘</pre></div>
+  <p class="caption">Ubiquitous Language named every box the way Northwind would. Bounded Contexts kept "Product" from fighting over meaning. Aggregates + Ports &amp; Adapters stopped the admin-panel bug across all three doors. Events decoupled Inventory — on a different stack — from Order's internals. Repositories + schema boundaries kept SQL and cross-context joins out. The ACL kept a vendor's v2 migration to one file.</p>
 </section>
 
-<!-- SLIDE 12 -->
+<!-- SLIDE 16 -->
 <section class="slide" data-title="Checklist & Resources">
-  <div class="eyebrow">11 · Wrap-Up</div>
+  <div class="eyebrow">15 · Wrap-Up</div>
   <h3 class="section">Take It Back to <em>Your Codebase</em></h3>
   <ul class="checklist">
-    <li>Find your biggest "plain data bag" — a type anyone can mutate from anywhere. That's a missing aggregate root.</li>
-    <li>Grep for a function name called directly from 3+ unrelated files. That's a missing domain event.</li>
-    <li>Grep your domain logic for <code class="mono">SELECT</code>, <code class="mono">UPDATE</code>, or an ORM import. That's a missing repository.</li>
-    <li>At every integration with a system you don't control: one translation file, or vendor names scattered everywhere? That's a missing ACL.</li>
+    <li>Find your biggest "god object." Identify its aggregate root and the invariants it should enforce alone.</li>
+    <li>Name one domain event your system already has implicitly, and make it explicit.</li>
+    <li>Check whether your domain layer imports anything database- or framework-specific — a missing repository, and a Ports &amp; Adapters violation.</li>
+    <li>Search for a SQL join spanning two bounded contexts' tables — a database boundary already crossed.</li>
+    <li>Check whether any context imports another in-house context's model directly instead of a translated reference — a missing ACL, not just a third-party concern.</li>
   </ul>
   <div class="callout accent">
     <div class="label">Remember</div>
     Simple CRUD apps, no sustained access to domain experts, short-lived or low-impact projects — DDD does not pay off there. Use the tool where the domain, not the plumbing, is the hard part.
   </div>
-  <div class="foot">Sources: ByteByteGo — "Domain-Driven Design (DDD) Demystified" · Nikki Siapno, Level Up Coding — "Domain-Driven Design, Broken Down" · Level Up Coding — "LUC #77: Domain-Driven Design Demystified" · <a href="./intro.html">← Back to Intro deck</a></div>
+  <div class="foot">Sources: ByteByteGo · Nikki Siapno, Level Up Coding · Eric Evans, <em>Domain-Driven Design</em> (2003) · <a href="./intro.html">← Back to Intro deck</a></div>
 </section>
 
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-12">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-16">
 </div>
 
 <div class="dk-lightbox" id="lightbox">
