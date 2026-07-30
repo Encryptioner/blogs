@@ -33,6 +33,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 ##### Domain-Driven Design
 - [Domain-Driven Design for Beginners: What It Is and Why It Matters](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md)
 - [Domain-Driven Design Deep Dive: Aggregates, Events, and Context Maps in Practice](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md)
+- [Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md)
 
 ### Career
 - Navigating Bangladesh's Software Industry - Guide for Developers: [Navigating Bangladesh's Software Industry - A Practical Guide for Developers in 2026](./topics/Career/Navigating%20Bangladesh's%20Software%20Industry%20-%20A%20Practical%20Guide%20for%20Developers%20in%202026.md)

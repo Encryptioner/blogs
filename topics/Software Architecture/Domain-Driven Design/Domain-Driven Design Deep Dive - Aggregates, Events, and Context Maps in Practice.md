@@ -2,7 +2,7 @@
 
 > You don't adopt DDD by adding patterns. You adopt it by removing ambiguity.
 
-This is the second of two posts on Domain-Driven Design. The [first post](./Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md) covered the foundations — what a domain, business domain, and bounded context actually are — using Northwind, a small online retail business, and a bug caused by its Order and Inventory teams disagreeing on what "Product" means. If any of that is unfamiliar, start there; this post assumes it.
+This is the second of three posts on Domain-Driven Design. The [first post](./Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md) covered the foundations — what a domain, business domain, and bounded context actually are — using Northwind, a small online retail business, and a bug caused by its Order and Inventory teams disagreeing on what "Product" means. If any of that is unfamiliar, start there; this post assumes it. The [third post](./Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md) takes these same patterns off Northwind and onto a real build.
 
 Here, Northwind keeps growing, and its Order Management system hits four more real bugs — each one introduced before the pattern that fixes it, the same way as the first post. Along the way, this post directly answers the question almost everyone asks once they've heard of Repositories: **does each bounded context need its own database?** By the end, every pattern is wired together into a single request flow. A companion deck with the same content is available [here](../../../presentations/P-6-domain-driven-design/deep-dive.html).
 
@@ -326,6 +326,10 @@ Ubiquitous Language named every box the way Northwind itself would name it. Boun
 - [ ] At every integration with a system you don't control, check whether there's one translation file — or whether the vendor's field names are scattered everywhere. That's a missing Anti-Corruption Layer.
 
 And the reminder that bears repeating from the first post: simple CRUD apps, no sustained access to domain experts, and short-lived or low-impact projects are exactly where DDD does *not* pay off. Reach for it where the domain — not the plumbing — is genuinely the hard part.
+
+## What's Next
+
+The [third post](./Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md) drops Northwind for a real ticket on a real internal platform, built as one AI subagent session per bounded context — including a subagent that reported "typecheck green" while the IDE showed real errors, and what it took to find out both were telling the truth.
 
 ## Sources
 

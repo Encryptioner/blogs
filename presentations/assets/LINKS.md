@@ -41,3 +41,4 @@ Repo: `Encryptioner/blogs` · Branch: `master`
 - Hub (deck gallery): https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/index.html
 - Intro — DDD for Beginners: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/intro.html
 - Deep Dive — Aggregates, Events, Context Maps: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/deep-dive.html
+- Real Build — DDD in Production: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/real-build.html

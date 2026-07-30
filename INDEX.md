@@ -21,6 +21,7 @@
 16. Productivity: [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
 17. Software Architecture: [Domain-Driven Design for Beginners: What It Is and Why It Matters](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md)
 18. Software Architecture: [Domain-Driven Design Deep Dive: Aggregates, Events, and Context Maps in Practice](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md)
+19. Software Architecture: [Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md)
 
 ## Presentations
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
