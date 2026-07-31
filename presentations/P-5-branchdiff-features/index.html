@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%8E%87%3C/text%3E%3C/svg%3E" />
 <title>branchdiff — Feature Decks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -87,6 +88,10 @@
   .card:hover{transform:translateY(-4px);border-color:rgba(0,227,168,.5);box-shadow:0 18px 40px -18px var(--accent-glow)}
   .card .thumb{aspect-ratio:16/9;background:var(--bg-code);overflow:hidden;border-bottom:1px solid var(--border-soft);position:relative}
   .card .thumb img{width:100%;height:100%;object-fit:cover;object-position:top left;opacity:.92}
+  .card .thumb.no-thumb{display:grid;place-items:center;background:
+    radial-gradient(120% 120% at 80% 0%, rgba(0,227,168,.10), transparent 55%),
+    linear-gradient(135deg,var(--bg-elev-1),var(--bg-code))}
+  .card .thumb.no-thumb::after{content:"⎇";font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:800;color:rgba(0,227,168,.22)}
   .card .thumb .num{
     position:absolute;top:10px;left:10px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;
     color:var(--accent);background:rgba(13,17,23,.78);border:1px solid var(--border);
@@ -146,6 +151,7 @@
     <span>branchdiff</span>
     <span class="sub">· feature decks</span>
   </div>
+  <span class="ver">v1.7.0</span>
 </div>
 
 <section class="hero">
@@ -158,11 +164,12 @@
     <span class="pill"><span class="dot p"></span> AI review &amp; resolve</span>
     <span class="pill"><span class="dot y"></span> SQLite sessions</span>
   </div>
+  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v1.7.0</span> — multi-repo auto, severity-gated approve, skip-PRs-by-size, click-to-open notifications.</p>
 </section>
 
 <section class="sec">
   <div class="sec-head">
-    <h2>The seven decks</h2>
+    <h2>Eight decks</h2>
     <span class="hint">// click any card to open the deck</span>
   </div>
   <div class="grid" id="deckGrid"></div>
@@ -219,6 +226,7 @@
     { n:'05', file:'05-automatic-pr-review.html',      title:'Automatic PR Review',             hook:'Watch open PRs, review the ones with new commits, stay in control of every escalation.', thumb:'../../assets/B-15/review-cadence.png' },
     { n:'06', file:'06-sessions-sync-platform.html',   title:'Sessions, Sync &amp; Actions',    hook:'Persistent sessions, two-way comment sync, and the full PR lifecycle from one toolbar.', thumb:'../../assets/B-13/90-second-flow.png' },
     { n:'07', file:'07-repo-exploration.html',         title:'Repo Exploration',                hook:'History, blame, tree, search, branches, and a commit graph — one tab, virtualized, read-only time-travel.', thumb:'images/06-commit-graph.png' },
+    { n:'08', file:'08-multi-repo-auto.html',          title:'Multi-Repo Auto Cycles',          hook:'One branchdiff auto run across every repo — one combined PR list, one cycle report, and servers tidied up after.', thumb:'' },
   ];
 
   const grid = document.getElementById('deckGrid');
@@ -228,9 +236,9 @@
     a.href = url; a.target = '_blank'; a.rel = 'noopener';
     a.className = 'card';
     a.innerHTML = `
-      <div class="thumb">
+      <div class="thumb${d.thumb ? '' : ' no-thumb'}">
         <span class="num">${d.n}</span>
-        <img loading="lazy" src="${d.thumb}" alt="${d.title} preview" onerror="this.style.display='none'">
+        ${d.thumb ? `<img loading="lazy" src="${d.thumb}" alt="${d.title} preview" onerror="this.style.display='none'">` : ''}
       </div>
       <div class="body">
         <h3>${d.title}</h3>

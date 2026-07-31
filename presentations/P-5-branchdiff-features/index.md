@@ -23,7 +23,7 @@ native PR workflow and showing how branchdiff removes it.
 | Decision | Choice | Why |
 |---|---|---|
 | Structure | Multiple **standalone** HTML decks (one per theme) + an `index.html` navigation hub | User wants modular, linkable decks — not one mega-deck |
-| Scope | **7 themed decks** curating all features through v1.7.0 | Public-friendly; not exhausting; every feature group maps to one deck |
+| Scope | **8 themed decks** curating all features through v1.7.0 | Public-friendly; not exhausting; every feature group maps to one deck |
 | Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current v1.7.0 UI; diagrams for flows that can't be screenshotted |
 | Visual identity | **GitHub-dark + neon mint** (matches a git tool's identity) | User pick |
 | CSS approach | **Self-contained custom CSS** (Style A architecture) recoloured to Style B palette | Robust through the raw-GitHub proxy — no Tailwind CDN dependency to fail; easy to template across decks |
@@ -51,6 +51,7 @@ blogs/presentations/P-5-branchdiff-features/
 ├── 05-automatic-pr-review.html   ← Deck 5
 ├── 06-sessions-sync-platform.html ← Deck 6
 ├── 07-repo-exploration.html      ← Deck 7
+├── 08-multi-repo-auto.html       ← Deck 8
 └── images/
     ├── 01-diff-unified.png       ← fresh capture
     ├── 02-diff-split.png
@@ -96,8 +97,9 @@ proxy by the existing Token Economics deck.
 
 ## 5. Feature → deck mapping (coverage through v1.7.0)
 
-All 16 feature groups map to exactly one deck (install lives in the hub). Nothing
-is dropped.
+All 16 feature groups map to exactly one deck (install lives in the hub). Deck 8
+extends `auto` to multiple repos — new in v1.7.0, the only feature not in the
+original G1–G16 grouping. Nothing is dropped.
 
 | # | Deck | Feature groups covered |
 |---|---|---|
@@ -108,6 +110,7 @@ is dropped.
 | 5 | Automatic PR Review | G9 `auto` · G10 worktrees |
 | 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync |
 | 7 | Repo Exploration | G13 history/blame/tree/search/branches/show/graph/commit-detail |
+| 8 | Multi-Repo Auto Cycles | multi-repo `auto` · `--repo-paths`/depth-1 discovery · `--repo-concurrency` · `--keep-servers` · discovery consent · cycle report · session-death resilience |
 | — | (hub) Get Started | G15 cross-platform install · self-update |
 
 ---
@@ -146,9 +149,11 @@ is dropped.
 | `B-15/ai-passes-decision.png` | AI passes decision tree | 4, 5 |
 | `B-15/review-cadence.png` | Review cadence in 6 steps | 5 |
 
-CLI commands (decks 2, 4, 5, 6) are shown as **styled code blocks** (real
+CLI commands (decks 2, 4, 5, 6, 8) are shown as **styled code blocks** (real
 commands + output as text), not terminal screenshots — cleaner and matches the
-existing decks' `.code-block` pattern.
+existing decks' `.code-block` pattern. Deck 8 (Multi-Repo Auto) uses code blocks
+exclusively — its content is terminal output (combined PR lists, cycle reports,
+server tallies), so it ships no screenshot or conceptual diagram of its own.
 
 ---
 
@@ -255,7 +260,7 @@ on every feature slide — never describe an action without showing how to do it
 - **Features:** `auto` watch/pick, `--auto-review/--notify/--auto-push`,
   `--tool/--exec`, `--skill`, `--parallel`, `--auto-resolve`, deterministic
   `--auto-approve/--auto-request-changes [level]` gate (severity levels 1-5),
-  pre-run "Using:" / "Defaults in effect:" summary, `--no-skip`, account/env
+  pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard).
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
 
@@ -285,16 +290,39 @@ on every feature slide — never describe an action without showing how to do it
 - **Assets:** `05-history`, `06-commit-graph`, `07-branches`, `08-file-tree`,
   `09-blame`, `10-search`, `11-commit-detail`.
 
+### Deck 8 — Multi-Repo Auto Cycles
+- **Problem:** reviewing PRs across several repos means `auto` once per repo —
+  `cd` in, run, wait, `cd` out, repeat. The per-repo prompts fragment one decision,
+  each run re-pays startup, and a shell loop cannot produce one combined list.
+- **Solve:** one `auto` run over a set of repos — `--repo-paths` or depth-1
+  discovery, one combined PR list across both forges, pick once, review each
+  selected PR in its own repo, then a cross-repo cycle report.
+- **Features:** `--repo-paths` (comma-separated, repeatable, abs/relative/`~`);
+  depth-1 discovery (cwd-is-repo vs. direct child repos; excludes `.`-prefixed and
+  `node_modules`); one combined list with flat numbering + `1-5` ranges and name
+  disambiguation; `--repo-concurrency` bounded scan pool (default 4); discovery
+  consent gate before unattended review; `--keep-servers` residual cap (one sweep
+  per cycle, finished-review servers only); session-death resilience and a
+  publication gate so a PR is marked reviewed only once its findings publish;
+  end-of-cycle report with live/stopped session markers; `--watch` across repos;
+  exit codes 0 (clean) / 1 (refusal) / 2 (skipped or failed).
+- **Assets:** none — code blocks only (terminal output: combined lists, cycle
+  reports, server tallies).
+
 ---
 
 ## 9. The hub (`index.html`)
 
 A standalone gallery page (same visual style) that:
-- Lists all 7 decks as cards (number, title, one-line problem, thumbnail) → each
-  links via `deckUrl(file)` (§4).
+- Lists all 8 decks as cards (number, title, one-line problem, thumbnail) → each
+  links via `deckUrl(file)` (§4). A deck with no screenshot (deck 8) renders a
+  branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- Footer: version badge (`v1.7.0`), link to the user guide / changelog / GitHub.
+- **Version coverage signal:** a `v1.7.0` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v1.7.0 — multi-repo auto,
+  severity-gated approve, click-to-open notifications." Footer links to the user
+  guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =
   drop the file in the dir + add one `{n, file, title, hook, thumb}` entry. No
   other edit needed.
@@ -303,10 +331,16 @@ A standalone gallery page (same visual style) that:
 
 ## 10. Extensibility — adding a deck when a new feature ships
 
-1. Copy `07-repo-exploration.html` (or any deck) → `08-<new-theme>.html`.
-2. Edit the `<title>`, hero, slides, and asset refs.
-3. Add the new screenshot to `images/` (capture via branchdiff + DevTools).
-4. Add one entry to the `DECKS` array in `index.html`.
+Deck 8 (Multi-Repo Auto) is the first deck added via this path — copy `05-automatic-pr-review.html`
+(sibling `auto` deck), keep the external CSS/JS refs and `Deck.mount` verbatim, and add one entry
+to the `DECKS` array. General steps:
+
+1. Copy the closest sibling deck → `NN-<new-theme>.html`.
+2. Edit the `<title>`, hero, slides, and asset refs. The `<style>` is shared externally —
+   nothing to port; only the `<section class="slide">` bodies change.
+3. Add a screenshot to `images/` if the feature is visual; otherwise leave `thumb:''` for the
+   branded `no-thumb` placeholder (deck 8 does this).
+4. Add one entry to the `DECKS` array in `index.html`; bump the topbar badge + coverage line.
 5. Add a row to §5 (mapping) and §6 (inventory) here.
 
 The `<style>` block is identical across decks — copy it whole, only the

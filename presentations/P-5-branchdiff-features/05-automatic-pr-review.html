@@ -311,13 +311,47 @@
     </div>
   </section>
 
-  <!-- 13 · RECAP -->
+  <!-- 13 · SKIP BY SIZE -->
+  <section class="slide" data-title="Skip PRs by size">
+    <div class="slide-num">14 · skip by size</div>
+    <h3 class="section">Not every PR <em>deserves</em> a pass — skip by size.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">--max-files</span> / <span class="mono">--min-files</span></b> skip PRs changing more (or fewer) than <span class="mono">n</span> files.</li>
+        <li><b><span class="mono">--max-lines</span> / <span class="mono">--min-lines</span></b> do the same on diff lines — additions + deletions together.</li>
+        <li><b>Measured against the PR base, inclusive.</b> A PR over the bound stays skipped as it grows — not the increment since your last review.</li>
+        <li><b>Free, and safe by default.</b> Size comes from the forge listing or one local <span class="mono">git diff</span>, only for PRs about to be reviewed. A PR whose size can't be determined is <em>reviewed, not dropped</em>.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="c"># giant PRs go to a human</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--tool</span> claude \
+  <span class="k">--max-files</span> <span class="n">200</span> <span class="k">--max-lines</span> <span class="n">4000</span>
+
+<span class="c"># don't spend a pass on a typo fix</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--min-lines</span> <span class="n">20</span> <span class="k">--auto-review</span>
+
+<span class="c"># each skip names the flag + by how much:</span>
+<span class="c">#   skip #412 — 412 files, over --max-files 200</span>
+        </div>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:14px">
+      <b>Filters, not a mode.</b> Compose with <span class="mono">--source</span>, <span class="mono">--dest</span>, <span class="mono">--skip-author</span>, or any flag — and across several repos the per-PR skips collapse to one tally: <span class="mono">skip 6 PRs outside the size bounds</span>. A size skip is a normal outcome, so the run still exits <span class="mono">0</span>.
+    </div>
+  </section>
+
+  <!-- 14 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">14 · recap</div>
+    <div class="slide-num">15 · recap</div>
     <h3 class="section">Automatic, never autonomous.</h3>
     <p class="lead-p"><span class="mono">branchdiff auto</span> watches your open PRs, runs your AI reviewer only on ones with new commits, and gates every escalation — push, verdict, resolve — behind a flag you set.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
-      <li>Numbered picker; <span class="mono">--watch 10</span> loops; filter by <span class="mono">--source</span> / <span class="mono">--dest</span>.</li>
+      <li>Numbered picker; <span class="mono">--watch 10</span> loops; filter by <span class="mono">--source</span> / <span class="mono">--dest</span> / size (<span class="mono">--max-files</span>, <span class="mono">--min-lines</span>, …).</li>
       <li><span class="mono">--auto-push</span> is the only path to the remote; non-interactive without <span class="mono">--auto-review</span> refuses.</li>
       <li>Deterministic verdict gate — any open <span class="mono">[must-fix]</span> or human thread blocks approval.</li>
       <li>Six tools or <span class="mono">--exec</span>; built-in skill or your own; <span class="mono">--parallel</span> + <span class="mono">--worktree</span> isolation.</li>
@@ -338,7 +372,7 @@
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-14">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-15">
 </div>
 
 <div class="dk-help" id="helpOverlay">

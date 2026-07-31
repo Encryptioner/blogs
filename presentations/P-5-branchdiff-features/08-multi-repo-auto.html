@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 08 — Multi-Repo Auto Cycles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Multi-Repo Auto Cycles">
+    <span class="badge"><span class="dot"></span> Deck 08 · branchdiff features</span>
+    <h1 class="title">Every repo's open PRs, in <em>one cycle</em>.</h1>
+    <h2 class="subtitle">Maintaining more than one repo used to mean <span class="mono">cd</span> in, run auto, wait, <span class="mono">cd</span> out, repeat — one decision fragmented across N terminals. Now one <span class="mono">branchdiff auto</span> run scans every repo, gathers their PRs into a single list, and reports what each pass reviewed.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">--repo-paths</span> name them, or discover them</span>
+      <span>one combined list · <span class="mono">GitHub</span> + <span class="mono">Bitbucket</span></span>
+      <span><span class="mono">--keep-servers</span> tidies up after</span>
+      <span>every other flag works <span class="mono">per-repo</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The per-repo loop">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">The <em>per-repo</em> loop — one decision, N terminals.</h3>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Today: auto one repo at a time</h4>
+        <p>Reviewing open PRs across several repos means <span class="mono">cd</span> in, run, wait, <span class="mono">cd</span> out, repeat. Each run re-prompts and re-pays startup. The real question — "which of my open PRs need me right now?" — is split into one prompt per repo.</p>
+      </div>
+      <div class="box problem">
+        <h4>The shell-loop workaround breaks</h4>
+        <p><span class="mono">for d in */; do (cd "$d" &amp;&amp; branchdiff auto …); done</span> cannot build one combined selection list — the requirement's central ask. It re-prompts per repo, silently breaks on non-repo directories, gives no cross-repo summary, and leaves an unbounded number of servers behind.</p>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:18px">
+      <b>The cost:</b> a <span class="mono">side-projects/</span>-shaped parent with ~25 repos and a handful of open PRs each is twenty-odd manual runs — or one shell loop that still can't show you all your candidates together.
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The multi-repo solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">One <em>auto</em> run, every repo — same flags you already know.</h3>
+    <p class="lead-p">Point <span class="mono">auto</span> at a set of repos. It scans each one, gathers every open PR — GitHub and Bitbucket — into a single candidate list, you pick once, and each selected PR is reviewed with the working directory switched into its own repo. Every existing flag behaves exactly as if <span class="mono">auto</span> had been launched from that repo.</p>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">~/side-projects</span>
+      </div>
+      <div class="code-body">
+<span class="c"># name repos explicitly…</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--repo-paths</span> ~/work/api,~/work/web <span class="k">--skill</span>
+
+<span class="c"># …or just run it from the parent directory</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--tool</span> claude
+<span class="c"># cwd isn't a repo → scans every direct child repo</span>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Two ways in, one rule.</b> <span class="mono">--repo-paths</span> names them; no flag and the current directory decides. The invocation cwd doesn't even have to be a git repo.
+    </div>
+  </section>
+
+  <!-- 4 · DISCOVERY -->
+  <section class="slide" data-title="Discovery, depth-1">
+    <div class="slide-num">04 · discovery</div>
+    <h3 class="section">Discovery is <em>depth-1</em> — one consistent rule.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>cwd is a repo → that repo.</b> <span class="muted">Today's behavior, byte-identical — children are not scanned.</span></li>
+        <li><b>cwd isn't a repo → its direct child repos.</b> <span class="muted">Depth 1 only — never a grandchild, no recursion.</span></li>
+        <li><b><span class="mono">--repo-paths &lt;parent&gt;</span></b> means "every repo in there" — same depth-1 rule.</li>
+        <li><b>A non-repo path passed explicitly expands</b> to its direct child repos; a nonexistent path is a hard error (exit 1), so a typo reviews nothing silently.</li>
+      </ul>
+      <div class="callout">
+        <b>Sensible exclusions.</b> Entries whose name starts with <span class="mono">.</span> (covers <span class="mono">.git</span>, <span class="mono">.worktrees</span>) and <span class="mono">node_modules</span> are never discovered. A <span class="mono">.worktrees/pr-12</span> checkout retargets its main repo — never counted as a separate target.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · ONE COMBINED LIST -->
+  <section class="slide" data-title="One combined list">
+    <div class="slide-num">05 · one list</div>
+    <h3 class="section">One list, <em>both forges</em>, flat numbering.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>GitHub and Bitbucket PRs from every repo</b> land in one combined candidate list.</li>
+        <li><b>Grouped under repo headings,</b> with flat global numbering — pick across the whole set at one prompt.</li>
+        <li><b>Ranges:</b> <span class="mono">1-5</span> alongside <span class="mono">a</span> (all), <span class="mono">2,5</span>, <span class="mono">q</span> (quit). Picking one repo's worth out of 60 stops being twelve typed numbers.</li>
+        <li><b>Colliding names disambiguated</b> — two repos named <span class="mono">api</span> render as <span class="mono">api (work/)</span> vs <span class="mono">api (oss/)</span>, stable for the whole run.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/side-projects</span>
+        </div>
+        <div class="code-body">
+<span class="c">Scanning 3 repos (4 at a time)…</span>
+<span class="c">[1/3] api     2 open, 1 need review</span>
+<span class="c">[2/3] web     3 open, 2 need review</span>
+<span class="c">[3/3] worker  1 open, 1 need review</span>
+
+<span class="c">-- api -----</span>
+<span class="n">1</span>  <span class="s">#142</span>  feat: webhook retry      <span class="c">(4 new)</span>
+<span class="c">-- web -----</span>
+<span class="n">2</span>  <span class="s">#151</span>  fix: race in queue       <span class="c">(2 new)</span>
+<span class="n">3</span>  <span class="s">#7</span>    docs: API reference      <span class="c">(1 new)</span>
+<span class="c">-- worker --</span>
+<span class="n">4</span>  <span class="s">#9</span>    chore: bump deps         <span class="c">(3 new)</span>
+
+<span class="c">Pick (a=all, 1-3, q=quit):</span> <span class="n">1-3</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · CONSENT -->
+  <section class="slide" data-title="Consent before blast radius">
+    <div class="slide-num">06 · consent</div>
+    <h3 class="section">Discovered repos ask <em>before</em> the blast radius.</h3>
+    <div class="callout accent">
+      <b>The riskier action never has the weaker gate.</b> Running <span class="mono">--auto-review --auto-push</span> over a parent directory would otherwise publish AI comments to every open PR in every child repo with no prompt. So when the run will proceed <em>without</em> showing a list, and the targets were <em>discovered</em> rather than named, <span class="mono">auto</span> asks once — listing every repo it's about to touch.
+    </div>
+    <ul class="bullets" style="margin-top:18px">
+      <li><b>Explicit <span class="mono">--repo-paths</span> never prompts</b> — you typed the set.</li>
+      <li><b>An interactive run without <span class="mono">--auto-review</span> never prompts</b> — the candidate list is already the consent step.</li>
+      <li><b>Non-interactive shell → refuses (exit 1),</b> naming <span class="mono">--repo-paths</span> as the way to run unattended. <span class="mono">--fresh</span> over discovered repos shares the same guard.</li>
+      <li><b>Asked once per run, not per cycle</b> — so a <span class="mono">--watch</span> loop doesn't block every five minutes.</li>
+    </ul>
+  </section>
+
+  <!-- 7 · DEVICE-FRIENDLY -->
+  <section class="slide" data-title="Device-friendly by design">
+    <div class="slide-num">07 · device-friendly</div>
+    <h3 class="section">Scales to 25 repos without <em>25 subprocesses</em> in flight.</h3>
+    <div class="stat-row">
+      <div class="stat"><div class="num">--repo-concurrency</div><div class="label">default 4 · clamp 1–16</div><div class="desc">Bounded worker pool for the scan phase.</div></div>
+      <div class="stat"><div class="num">sequential</div><div class="label">repos, one at a time</div><div class="desc"><span class="mono">--parallel</span> still fans out PRs within a repo.</div></div>
+      <div class="stat"><div class="num">skip — no remote</div><div class="label">local-only repos</div><div class="desc">No fetch, no PR query, no wasted subprocess.</div></div>
+    </div>
+    <ul class="bullets" style="margin-top:18px">
+      <li><b>Reads don't <span class="mono">chdir</span>.</b> The scan threads an explicit working directory through every git/gh/Bitbucket call, so concurrent workers never race on a process-global cwd.</li>
+      <li><b>"No PRs" is distinguished from "could not ask."</b> An unauthenticated host reports differently from a repo with zero open PRs — one run-level hint, not a warning per repo.</li>
+    </ul>
+  </section>
+
+  <!-- 8 · KEEP-SERVERS -->
+  <section class="slide" data-title="--keep-servers">
+    <div class="slide-num">08 · keep-servers</div>
+    <h3 class="section"><em>--keep-servers</em> tidies up <em>after</em> — not a peak cap.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Bounds how many servers the run <em>leaves alive</em>.</b> Default: <span class="mono">all</span> for one repo, <span class="mono">4</span> for multi-repo. <span class="mono">0</span> leaves none.</li>
+        <li><b>One sweep, once per cycle,</b> after every review is done — never mid-cycle, never per PR.</li>
+        <li><b>Only finished-review servers are retired.</b> A mid-review server is never shut down, regardless of the cap.</li>
+        <li><b>Only servers <em>this run</em> spawned.</b> A sibling <span class="mono">auto</span>, a hand-started server, a leftover — all left alone.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">cycle end</span>
+        </div>
+        <div class="code-body">
+<span class="c">3 repos · 4 reviewed · 0 failed · 1 skipped</span>
+
+<span class="c">6 servers spawned, 2 live,</span>
+<span class="c">4 retired (--keep-servers 2)</span>
+
+<span class="c">reopen any session with:</span>
+<span class="c">  branchdiff &lt;pr-url&gt;</span>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:14px">
+      <b>Residual, not peak.</b> The cap bounds what a cycle <em>leaves behind</em>, not what's alive <em>during</em> it — that peak is set by <span class="mono">--parallel</span> and how many PRs you select. Ctrl-C skips the sweep entirely; clean up leftover servers with <span class="mono">branchdiff killall</span>.
+    </div>
+  </section>
+
+  <!-- 9 · RESILIENCE -->
+  <section class="slide" data-title="Survives the user">
+    <div class="slide-num">09 · resilience</div>
+    <h3 class="section">Kill a server mid-run — <em>no crash, no false "reviewed"</em>.</h3>
+    <div class="callout danger">
+      <b>The hazard:</b> you can run <span class="mono">branchdiff kill --port N</span> or <span class="mono">killall</span> at any point while <span class="mono">auto</span> is running. Worse, an agentic CLI catches its own tool errors and exits 0 — so a review whose comments never landed could look like success.
+    </div>
+    <div class="callout accent" style="margin-top:14px">
+      <b>The guarantee:</b> every variant is handled — killed mid-review, between review and push, after completion, or <span class="mono">killall</span> wiping every session. After the AI child returns, <span class="mono">auto</span> probes the pinned session; a dead one is a review failure regardless of the child's exit code. A PR is stamped reviewed <em>only once its findings actually publish</em> — so the next cycle offers it again, no <span class="mono">--no-skip</span> needed.
+    </div>
+    <ul class="bullets" style="margin-top:14px">
+      <li><b>One health probe per PR pass</b> — no polling loop, no background health checker left running.</li>
+      <li><b>A genuinely clean review (0 comments) still passes</b> — "nothing to say" is never turned into a failure.</li>
+    </ul>
+  </section>
+
+  <!-- 10 · CYCLE REPORT -->
+  <section class="slide" data-title="The cycle report">
+    <div class="slide-num">10 · cycle report</div>
+    <h3 class="section">Every cycle ends with <em>what it did, and where</em>.</h3>
+    <p class="lead-p">The per-PR lines print while servers are still live and before later PRs run — by cycle end their URLs may be stale. The report is the one place state is settled: each PR's outcome, its remote URL, and its local session URL marked live or stopped, grouped by repo with the repo's path.</p>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">cycle report</span>
+      </div>
+      <div class="code-body">
+<span class="c">3 repos · 4 reviewed · 0 failed · 1 skipped</span>
+
+<span class="c">api  (~/work/api)</span>
+  <span class="s">#142</span>  done · 3 comments   <span class="c">● running</span>
+         <span class="c">→ github.com/org/repo/pull/142</span>
+         <span class="c">→ localhost:5391</span>
+
+<span class="c">web  (~/work/web)</span>
+  <span class="s">#151</span>  done · 2 comments   <span class="c">○ stopped</span>
+  <span class="s">#7</span>    ready             <span class="c">○ stopped</span>
+
+<span class="c">reopen any: branchdiff &lt;pr-url&gt;</span>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:14px">
+      <b>Exit codes you can script.</b> <span class="mono">0</span> clean (or a deliberate quit); <span class="mono">1</span> usage/config refusal — nothing attempted; <span class="mono">2</span> the run proceeded but something was skipped or failed. A run whose only non-zero counter is <span class="mono">skipped</span> still exits <span class="mono">0</span>.
+    </div>
+  </section>
+
+  <!-- 11 · HOW TO USE IT -->
+  <section class="slide" data-title="How to use it">
+    <div class="slide-num">11 · how to use it</div>
+    <h3 class="section">Real commands — <em>everything from deck 05 still applies</em>.</h3>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">~/side-projects</span>
+      </div>
+      <div class="code-body">
+<span class="c"># review every repo under the cwd, skill + resolve, tidy up</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto \
+  <span class="k">--repo-paths</span> ~/work \
+  <span class="k">--skill</span> <span class="k">--auto-resolve</span> <span class="k">--worktree</span> \
+  <span class="k">--keep-servers</span> <span class="n">2</span>
+
+<span class="c"># watch all repos, loop every 10 min</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--watch</span> <span class="n">10</span> <span class="k">--notify</span>
+
+<span class="c"># bound the scan, keep no servers</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--repo-concurrency</span> <span class="n">8</span> <span class="k">--keep-servers</span> <span class="n">0</span>
+      </div>
+    </div>
+    <ul class="checklist" style="margin-top:18px">
+      <li><span class="mono">--source</span> / <span class="mono">--dest</span> / <span class="mono">--skip-author</span> filter <em>within</em> every repo; <span class="mono">--auto-approve</span> / <span class="mono">--auto-request-changes</span> gate per PR.</li>
+      <li>Repo-local <span class="mono">CLAUDE.md</span> / <span class="mono">AGENTS.md</span> are picked up per repo — the AI child runs with <span class="mono">cwd</span> set to that repo.</li>
+      <li><span class="mono">--watch</span> re-resolves targets each cycle: a repo cloned into the parent mid-watch is picked up without a restart.</li>
+    </ul>
+  </section>
+
+  <!-- 12 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">12 · recap</div>
+    <h3 class="section">One cycle, every repo — same control you already trust.</h3>
+    <p class="lead-p"><span class="mono">branchdiff auto</span> now spans a set of repos in one run: discover or name them, pick from one combined list across both forges, and get a cross-repo report. Every escalation flag from deck 05 still applies — per repo.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li><span class="mono">--repo-paths</span> or depth-1 discovery; one list, GitHub + Bitbucket, flat numbering with <span class="mono">1-5</span> ranges.</li>
+      <li>Discovered repos ask before the blast radius; non-interactive refuses.</li>
+      <li><span class="mono">--repo-concurrency</span> bounds the scan; <span class="mono">--keep-servers</span> tidies up after (residual, not peak).</li>
+      <li>Kill-friendly: no false "reviewed" — a PR is stamped only once its findings publish.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+      <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/05-automatic-pr-review.html" target="_blank" rel="noopener">← 05 · Automatic PR Review</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-12">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+</body>
+</html>
