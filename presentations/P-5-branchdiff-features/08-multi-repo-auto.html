@@ -146,11 +146,11 @@
     <div class="slide-num">06 · consent</div>
     <h3 class="section">Discovered repos ask <em>before</em> the blast radius.</h3>
     <div class="callout accent">
-      <b>The riskier action never has the weaker gate.</b> Running <span class="mono">--auto-review --auto-push</span> over a parent directory would otherwise publish AI comments to every open PR in every child repo with no prompt. So when the run will proceed <em>without</em> showing a list, and the targets were <em>discovered</em> rather than named, <span class="mono">auto</span> asks once — listing every repo it's about to touch.
+      <b>The riskier action never has the weaker gate.</b> Running <span class="mono">--review --push</span> over a parent directory would otherwise publish AI comments to every open PR in every child repo with no prompt. So when the run will proceed <em>without</em> showing a list, and the targets were <em>discovered</em> rather than named, <span class="mono">auto</span> asks once — listing every repo it's about to touch.
     </div>
     <ul class="bullets" style="margin-top:18px">
       <li><b>Explicit <span class="mono">--repo-paths</span> never prompts</b> — you typed the set.</li>
-      <li><b>An interactive run without <span class="mono">--auto-review</span> never prompts</b> — the candidate list is already the consent step.</li>
+      <li><b>An interactive run without <span class="mono">--review</span> never prompts</b> — the candidate list is already the consent step.</li>
       <li><b>Non-interactive shell → refuses (exit 1),</b> naming <span class="mono">--repo-paths</span> as the way to run unattended. <span class="mono">--fresh</span> over discovered repos shares the same guard.</li>
       <li><b>Asked once per run, not per cycle</b> — so a <span class="mono">--watch</span> loop doesn't block every five minutes.</li>
     </ul>
@@ -262,7 +262,7 @@
 <span class="c"># review every repo under the cwd, skill + resolve, tidy up</span>
 <span class="prompt">$</span> <span class="f">branchdiff</span> auto \
   <span class="k">--repo-paths</span> ~/work \
-  <span class="k">--skill</span> <span class="k">--auto-resolve</span> <span class="k">--worktree</span> \
+  <span class="k">--skill</span> <span class="k">--resolve</span> <span class="k">--worktree</span> \
   <span class="k">--keep-servers</span> <span class="n">2</span>
 
 <span class="c"># watch all repos, loop every 10 min</span>
@@ -273,7 +273,7 @@
       </div>
     </div>
     <ul class="checklist" style="margin-top:18px">
-      <li><span class="mono">--source</span> / <span class="mono">--dest</span> / <span class="mono">--skip-author</span> filter <em>within</em> every repo; <span class="mono">--auto-approve</span> / <span class="mono">--auto-request-changes</span> gate per PR.</li>
+      <li><span class="mono">--source</span> / <span class="mono">--dest</span> / <span class="mono">--skip-author</span> filter <em>within</em> every repo; <span class="mono">--approve</span> / <span class="mono">--request-changes</span> gate per PR.</li>
       <li>Repo-local <span class="mono">CLAUDE.md</span> / <span class="mono">AGENTS.md</span> are picked up per repo — the AI child runs with <span class="mono">cwd</span> set to that repo.</li>
       <li><span class="mono">--watch</span> re-resolves targets each cycle: a repo cloned into the parent mid-watch is picked up without a restart.</li>
     </ul>

@@ -315,6 +315,7 @@ make
 - [Coding Challenges FYI](https://codingchallenges.fyi)
 - [My Shell Implementation](https://github.com/Encryptioner/ccsh-shell)
 - [Unix Programming Manual](https://man7.org/linux/man-pages/)
+- [Blog: I Built My Own Shell for Fun. You Can Too](https://github.com/Encryptioner/blogs/blob/master/topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md)
 
 **Connect & Learn:**
 - **Website**: [encryptioner.github.io](https://encryptioner.github.io)

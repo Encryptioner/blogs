@@ -22,8 +22,12 @@
 17. Software Architecture: [Domain-Driven Design for Beginners: What It Is and Why It Matters](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md)
 18. Software Architecture: [Domain-Driven Design Deep Dive: Aggregates, Events, and Context Maps in Practice](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md)
 19. Software Architecture: [Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams](./topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md)
+20. Productivity: [Build Your Own CodeRabbit With branchdiff auto - Unattended AI PR Review, On Your Terms](./topics/Productivity/branchdiff/Build%20Your%20Own%20CodeRabbit%20With%20branchdiff%20auto%20-%20Unattended%20AI%20PR%20Review%2C%20On%20Your%20Terms.md)
+21. Productivity: [Configure Once, Review Everywhere - branchdiff's Config System and Multi-Repo auto](./topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md)
+22. Productivity: [Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands](./topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md)
 
 ## Presentations
+0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)
 1. Productivity: [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
 2. Coding Challenges: [Hands on Coding of Basic Application Tools](./presentations/P-2-hands-on-coding-tools/index.md)
 3. Productivity: [Token Economics Presentation](./presentations/P-3-token-economics/index.md)

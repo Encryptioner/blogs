@@ -9,6 +9,10 @@ format, since GitHub serves raw `.html` as `text/plain` (won't render) while
 
 Repo: `Encryptioner/blogs` · Branch: `master`
 
+## Portal — All Presentations (topic-grouped index)
+
+- HTML hub: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html
+
 ## P-1 — Automation of Daily Workflow
 
 - Markdown: https://github.com/Encryptioner/blogs/blob/master/presentations/P-1-automation-daily-workflow/index.md

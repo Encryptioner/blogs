@@ -6,20 +6,22 @@ interaction layer (navigation, keyboard, swipe, lightbox, overview, fullscreen)
 lives here once.
 
 ```
-presentations/assets/
-├── js/
-│   └── deck.js              # the engine — Deck.mount({...})
-├── css/
-│   ├── deck-chrome.css      # shared controls (nav, lightbox, overview) — theme-agnostic via --dk-*
-│   ├── deck-mobile.css      # mobile + rotation UX (scoped to body.dk-* classes; desktop untouched)
-│   └── branchdiff.css       # Branchdiff feature decks: slide layout + GitHub-dark/neon-mint theme
-├── LINKS.md                 # public URL for every presentation (markdown + HTML decks)
-├── Checklist.md             # checklist: favicon, PPT-options, proxy gotchas, mobile, feature-sync
-└── README.md                # this file
+presentations/
+├── assets/
+│   ├── js/
+│   │   └── deck.js              # the engine — Deck.mount({...})
+│   └── css/
+│       ├── deck-chrome.css      # shared controls (nav, lightbox, overview) — theme-agnostic via --dk-*
+│       ├── deck-mobile.css      # mobile + rotation UX (scoped to body.dk-* classes; desktop untouched)
+│       └── branchdiff.css       # Branchdiff feature decks: slide layout + GitHub-dark/neon-mint theme
+└── docs/
+    ├── LINKS.md                 # public URL for every presentation (markdown + HTML decks)
+    ├── CHECKLIST.md             # checklist: favicon, PPT-options, proxy gotchas, mobile, feature-sync
+    └── README.md                # this file
 ```
 
 Adding a deck, updating one for a new PPT option, or syncing a deck with a
-new project feature? Read [`Checklist.md`](./Checklist.md) first — it's the
+new project feature? Read [`CHECKLIST.md`](./CHECKLIST.md) first — it's the
 process checklist; this file is the API reference.
 
 Public path for every presentation (markdown blob link or raw-content proxy

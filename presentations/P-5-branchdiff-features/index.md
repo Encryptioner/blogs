@@ -257,11 +257,14 @@ on every feature slide — never describe an action without showing how to do it
   is gone.
 - **Solve:** watch open PRs, review only ones with new commits, stay-in-control
   flags, isolated worktree per PR.
-- **Features:** `auto` watch/pick, `--auto-review/--notify/--auto-push`,
-  `--tool/--exec`, `--skill`, `--parallel`, `--auto-resolve`, deterministic
-  `--auto-approve/--auto-request-changes [level]` gate (severity levels 1-5),
+- **Features:** `auto` watch/pick, `--review/--notify/--push`,
+  `--tool/--exec`, `--skill`, `--parallel`, `--resolve`, deterministic
+  `--approve/--request-changes [level]` gate (severity levels 1-5),
   pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
-  isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard).
+  isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard),
+  config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
+  per-repo, `defaults`/`auto` keys, CLI > repo > global precedence, `auto.exec`/
+  `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`).
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
 
 ### Deck 6 — Sessions, Sync & Platform Actions

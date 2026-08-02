@@ -23,6 +23,9 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
 - [Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff](./topics/Productivity/branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
 - [Reviewing Teammates PRs Faster - branchdiff Sessions, AI Passes, and Sync Back](./topics/Productivity/branchdiff/Reviewing%20Teammates%20PRs%20Faster%20-%20branchdiff%20Sessions%2C%20AI%20Passes%2C%20and%20Sync%20Back.md)
+- [Build Your Own CodeRabbit With branchdiff auto - Unattended AI PR Review, On Your Terms](./topics/Productivity/branchdiff/Build%20Your%20Own%20CodeRabbit%20With%20branchdiff%20auto%20-%20Unattended%20AI%20PR%20Review%2C%20On%20Your%20Terms.md)
+- [Configure Once, Review Everywhere - branchdiff's Config System and Multi-Repo auto](./topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md)
+- [Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands](./topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
@@ -40,6 +43,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 
 
 ## Presentations
+- [All Presentations — topic-grouped index](./presentations/index.html)
 - [Automation of Daily Workflow Presentation](./presentations/P-1-automation-daily-workflow/index.md)
 - [Hands on Coding of Basic Application Tools](./presentations/P-2-hands-on-coding-tools/index.md)
 - [Token Economics Presentation](./presentations/P-3-token-economics/index.md)
