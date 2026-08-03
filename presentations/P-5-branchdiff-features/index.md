@@ -8,7 +8,7 @@ built from. Read this before adding or editing a deck.
 
 ## 1. Goal & audience
 
-Public-facing, step-by-step feature decks for **branchdiff** (v1.7.0), aimed at
+Public-facing, step-by-step feature decks for **branchdiff** (v2.0.0), aimed at
 developers who review code on GitHub / Bitbucket. Each deck is a self-contained
 HTML file framed as **native problem → branchdiff solve**, with real UI
 screenshots and conceptual diagrams.
@@ -23,8 +23,8 @@ native PR workflow and showing how branchdiff removes it.
 | Decision | Choice | Why |
 |---|---|---|
 | Structure | Multiple **standalone** HTML decks (one per theme) + an `index.html` navigation hub | User wants modular, linkable decks — not one mega-deck |
-| Scope | **8 themed decks** curating all features through v1.7.0 | Public-friendly; not exhausting; every feature group maps to one deck |
-| Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current v1.7.0 UI; diagrams for flows that can't be screenshotted |
+| Scope | **8 themed decks** curating all features through v2.0.0 | Public-friendly; not exhausting; every feature group maps to one deck |
+| Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current v2.0.0 UI; diagrams for flows that can't be screenshotted |
 | Visual identity | **GitHub-dark + neon mint** (matches a git tool's identity) | User pick |
 | CSS approach | **Self-contained custom CSS** (Style A architecture) recoloured to Style B palette | Robust through the raw-GitHub proxy — no Tailwind CDN dependency to fail; easy to template across decks |
 | Extensibility | Numbered files, data-driven hub, documented deck template | New feature ships → add one deck = one file + one hub entry |
@@ -95,10 +95,10 @@ proxy by the existing Token Economics deck.
 
 ---
 
-## 5. Feature → deck mapping (coverage through v1.7.0)
+## 5. Feature → deck mapping (coverage through v2.0.0)
 
 All 16 feature groups map to exactly one deck (install lives in the hub). Deck 8
-extends `auto` to multiple repos — new in v1.7.0, the only feature not in the
+extends `auto` to multiple repos — new in v2.0.0, the only feature not in the
 original G1–G16 grouping. Nothing is dropped.
 
 | # | Deck | Feature groups covered |
@@ -322,9 +322,9 @@ A standalone gallery page (same visual style) that:
   branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- **Version coverage signal:** a `v1.7.0` badge in the topbar (the `.ver` class)
-  plus a hero line — "Decks cover branchdiff through v1.7.0 — multi-repo auto,
-  severity-gated approve, click-to-open notifications." Footer links to the user
+- **Version coverage signal:** a `v2.0.0` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v2.0.0 — multi-repo auto,
+  detached server review, severity-gated approve, click-to-open notifications." Footer links to the user
   guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =
   drop the file in the dir + add one `{n, file, title, hook, thumb}` entry. No
