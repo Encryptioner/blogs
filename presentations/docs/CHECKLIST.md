@@ -68,7 +68,7 @@ This has two consequences that don't show up in normal local testing:
 **Cross-deck navigation links** (next-deck, "back to all decks", "restart")
 are plain anchors with the resolved proxy URL hardcoded directly — the same
 `https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/...`
-form the hub (`index.html`) uses and `LINKS.md` lists. Always pair with
+form the hub (`index.html`) uses and `PUBLIC_LINKS.md` lists. Always pair with
 `target="_blank" rel="noopener"` (the proxy sandbox grants `allow-popups
 allow-popups-to-escape-sandbox`, so new-tab opens work):
 ```html
@@ -82,8 +82,13 @@ execute in the sandbox, `Deck` was undefined → `Deck.mount()` threw → the
 block died before the rewriter ran → href stayed `PROXY:file` → the browser
 parsed a `proxy:` scheme → dead link. A hardcoded absolute URL is
 context-blind (local, proxied, or shared — all identical) and needs zero JS.
-Add a new deck's links by copying the pattern from `LINKS.md` (or a sibling
+Add a new deck's links by copying the pattern from `PUBLIC_LINKS.md` (or a sibling
 deck); never reintroduce the `PROXY:` prefix.
+
+**Companion blog:** every deck entry in `PUBLIC_LINKS.md` also lists the
+long-form blog post (B-NN) for the same topic as a GitHub blob link. When a new
+deck lands, add its blog line if a companion post exists; write _none_ when it
+doesn't, so deck↔blog coverage stays explicit instead of silently absent.
 
 ## 4. Mobile / responsive
 

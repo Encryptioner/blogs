@@ -15,7 +15,7 @@ presentations/
 │       ├── deck-mobile.css      # mobile + rotation UX (scoped to body.dk-* classes; desktop untouched)
 │       └── branchdiff.css       # Branchdiff feature decks: slide layout + GitHub-dark/neon-mint theme
 └── docs/
-    ├── LINKS.md                 # public URL for every presentation (markdown + HTML decks)
+    ├── PUBLIC_LINKS.md          # public URL for every presentation + companion blog (markdown + HTML decks)
     ├── CHECKLIST.md             # checklist: favicon, PPT-options, proxy gotchas, mobile, feature-sync
     └── README.md                # this file
 ```
@@ -24,8 +24,9 @@ Adding a deck, updating one for a new PPT option, or syncing a deck with a
 new project feature? Read [`CHECKLIST.md`](./CHECKLIST.md) first — it's the
 process checklist; this file is the API reference.
 
-Public path for every presentation (markdown blob link or raw-content proxy
-link, per format) is documented in [`LINKS.md`](./LINKS.md).
+Public path for every presentation **and its companion blog post** (markdown
+blob link or raw-content proxy link, per format) is documented in
+[`PUBLIC_LINKS.md`](./PUBLIC_LINKS.md).
 
 ## Decks wired in
 
