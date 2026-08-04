@@ -18,15 +18,13 @@ branchdiff auto
 ```
 
 ```
-Scanning 1 repo for open pull requests...
-
-api  (github.com/org/api)
-  #142  fix: refund path double-charges on partial amount     3 files   +48 -12   new commits since last review
-  #139  feat: webhook retry queue                              9 files  +310 -40   never reviewed
-  #137  chore: bump eslint to 9                                 1 file    +6  -4   already reviewed at HEAD, skipping
-
-Select PRs to review (comma-separated, ranges like 1-2, "a" for all, "q" to quit): a
+Fetching remote refs...
+  [1] github #142 fix/refund-double-charge → main — new commits
+  [2] github #139 feat/webhook-retry-queue → main — never reviewed
+  Review which? (numbers comma-separated, 'a'=all, 'q'=quit) a
 ```
+
+Only PRs that actually need a fresh look show up here — one already reviewed at its current commit is counted and skipped silently, never printed as a row you have to scroll past.
 
 Two filters keep the candidate list relevant instead of running against everything in the repo: `--source <branch>` and `--dest <branch>` narrow by branch name, so a nightly job for release PRs only can target `--dest main` and ignore feature-branch noise. `--watch <minutes>` turns the one-shot scan into a loop — check every N minutes, review whatever changed, sleep, repeat — which is the difference between "a script I remember to run" and "a bot that is just running."
 
@@ -57,6 +55,8 @@ What the AI is told to do is equally yours to shape. The default is a context-pl
 | `--additional-skill <name>` | Layer a second skill's guidance onto the same pass (repeatable) |
 | `--prompt "<text>"` | One-off extra instructions, either mode |
 
+If the built-in skill's judgment doesn't match your team's bar — too strict on style, too loose on security, whatever — don't fight it, generate your own with `branchdiff skill add`: `--type review|resolve|all` picks which skill(s) to write, `--target` (comma-separated: Claude Code, opencode, and other compatible runtimes) or `--dir <path>` picks where, `--name <prefix>` sets the filename prefix, and `--force` overwrites a file branchdiff didn't generate itself. Edit the generated file's instructions to taste, then point `--skill-name` at it.
+
 Since `--tool` just shells out to your normal CLI, the usual per-account tricks still apply — prefixing the command with an env var like `CLAUDE_CONFIG_DIR=~/.claude-work` when you run multiple accounts on one machine works exactly as it would running that CLI by hand.
 
 ---
@@ -75,7 +75,7 @@ branchdiff auto --dest main
 branchdiff auto --dest main --review --push
 ```
 
-`--notify` closes the loop without you tailing a log file — a desktop toast on start, on finish, on a comment push, on failure, each one carrying a link straight to the PR or the local session view. If nothing pops up, `branchdiff doctor --notify` names your OS's notification backend and tells you what to check.
+Worth a pre-flight check before the first unattended cycle: `branchdiff doctor` verifies git, node, sqlite's native binding, and the notification backend it detected on your OS — a broken binding should surface now, not at 2am on the first cron fire. `--notify` closes the loop without you tailing a log file — a desktop toast on start, on finish, on a comment push, on failure, each one carrying a link straight to the PR or the local session view. If nothing pops up, `branchdiff doctor --notify` fires a test toast against the backend it detected, so you can tell "not configured" apart from "configured but silently failing."
 
 ---
 
@@ -106,21 +106,20 @@ Both flags always write a verdict comment explaining the decision, but *actually
 Every `auto` run prints a summary up front — two lists, `Using:` for every flag you actually passed, `Defaults in effect:` for everything you didn't — before a single PR is touched.
 
 ```
-Using:
-  --tool claude
-  --dest main
-  --approve 1
-  --push
-Defaults in effect:
-  --watch: off (single pass)
-  --max-files: none
-  --worktree: off
-  --resolve: off
+branchdiff auto — this run
+  Using:
+    --tool claude  — AI command reviewing each PR
+    --dest main  — only PRs whose dest branch matches
+    --push  — pushes comments to the remote PR after each review
+    --approve 1  — approves once nothing blocks
+  Defaults in effect:
+    --watch not set  — single pass, then exit
+    --worktree not set  — reviews run in your actual working tree
 
-Run "branchdiff guide" for the full flag reference.
+  Full flag reference: branchdiff guide
 ```
 
-That is a small thing on paper and a large thing at 2am — when a command has two dozen possible flags, this is the difference between trusting what's about to run and hoping you remembered every switch correctly.
+That is a small thing on paper and a large thing at 2am — every line says not just which flag but what it does, so trusting what's about to run doesn't depend on remembering what `--approve 1` means from memory.
 
 ---
 
@@ -147,32 +146,37 @@ branchdiff auto --dest main --review --push --tool claude --detach
 ```
 
 ```
-branchdiff auto started in background
-  session: a3f9c2
-  log: ~/.branchdiff/auto-sessions/a3f9c2.log
+Started detached auto session 3f2a9c21-...-b8e0 (pid 42117).
+  Log: ~/.branchdiff/auto-sessions/3f2a9c21-...-b8e0.log
+  branchdiff auto attach 3f2a9c21-...-b8e0   # follow it live (once available)
 ```
 
 `branchdiff auto list` shows every live detached session — id, repo(s), pid, mode, watch interval, log path (`--json` for scripts). `branchdiff auto attach <id>` read-only tails the log (Ctrl-C stops watching, never the session itself). `branchdiff auto stop <id>` sends it the same signal a foreground Ctrl-C would.
 
-For real scheduling — "review PRs between 10am and 8pm on weekdays," not "review PRs whenever I remember to leave a terminal open" — `branchdiff auto cron add` writes actual crontab entries, tagged so branchdiff only ever touches its own lines:
+`--detach` still needs a human to type the command once, from a terminal that's up. For "review PRs between 10am and 8pm on weekdays, on a box that's just always on" — nobody attached, nothing typed each morning — `branchdiff auto cron add` writes actual crontab entries instead, tagged so branchdiff only ever touches its own lines. `--start`/`--end` take the two cron expressions, and `--review` is required on the add itself, same rule as `--detach`: a schedule with no human ever around to answer the interactive prompt has to opt into unattended mode up front.
 
 ```bash
 branchdiff auto cron add \
-  --dest main --tool claude --approve 1 --push \
-  --start "0 10 * * 1-5" --stop "0 20 * * 1-5"
+  --start "0 10 * * 1-5" --end "0 20 * * 1-5" \
+  --dest main --tool claude --review --approve 1 --push --watch 30
+```
 
+One easy trap: `cron add` doesn't add `--watch` for you. Without it, the 10am job fires once, reviews whatever's open at that instant, and exits — it won't keep catching new commits until the 8pm job stops it. Pass `--watch <n>` yourself if the point is covering the whole window, same as running `auto` by hand.
+
+```bash
 branchdiff auto cron list
 ```
 
 ```
-id: weekday-daytime
-  start: 0 10 * * 1-5   (detached --watch loop)
-  stop:  0 20 * * 1-5
-  repo:  ~/work/api
-  status: active
+  a3f9c21b  0 10 * * 1-5 → 0 20 * * 1-5  [waiting]
+  auto --dest main --tool claude --review --approve 1 --push --watch 30
+  next start: in 14 hours (2026-08-05 10:00)   last start: 3 days ago (2026-08-01 10:00)
+  next end: in 22 hours (2026-08-05 20:00)   last end: 2 days ago (2026-08-01 20:00)
 ```
 
-The start entry runs a `--detach --watch` loop under the hood; the stop entry sends the stop signal, silently doing nothing if the loop already ended on its own. `branchdiff auto stop --cron-id <id>` stops a schedule's live session on demand. This is Unix-only and needs no daemon beyond cron itself.
+Each schedule gets a random id (not a name you choose), and `cron list` shows both the raw `auto` args it'll fire with and the next/last start and end times it computed from the cron expressions.
+
+To stop or remove one: `branchdiff auto stop --cron-id <id>` stops a schedule's currently-live session on demand — the end entry does the same thing automatically at its cron time, silently doing nothing if the session already ended on its own. `branchdiff auto cron remove --id <id>` is the permanent version — deletes the schedule from the crontab entirely, stopping any live session for it first. This is Unix-only and needs no daemon beyond cron itself.
 
 ---
 
@@ -217,8 +221,8 @@ branchdiff auto --dest main                       # one-shot, interactive pick
 branchdiff auto --dest main --review --push \
   --tool claude --approve 1 --detach              # unattended, backgrounded
 branchdiff auto list                               # see what's running
-branchdiff auto cron add --dest main --tool claude \
-  --approve 1 --push --start "0 10 * * 1-5" --stop "0 20 * * 1-5"
+branchdiff auto cron add --start "0 10 * * 1-5" --end "0 20 * * 1-5" \
+  --dest main --tool claude --review --approve 1 --push --watch 30
 ```
 
 You already pay for the trust problem a hosted bot creates. `branchdiff auto` moves the "reviews land automatically" outcome onto infrastructure you can read, a model you picked, and a verdict rule you can actually explain to your team.

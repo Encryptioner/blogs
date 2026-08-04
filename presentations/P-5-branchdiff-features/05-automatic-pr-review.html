@@ -196,7 +196,7 @@
     </div>
   </section>
 
-  <!-- 9 · MULTI-TOOL & SKILL MODE -->
+  <!-- 10 · MULTI-TOOL & SKILL MODE -->
   <section class="slide" data-title="Multi-tool & skill mode">
     <div class="slide-num">10 · your agent</div>
     <h3 class="section">Bring <em>your own agent</em> — any of six, or anything via stdin.</h3>
@@ -223,7 +223,7 @@
     </ul>
   </section>
 
-  <!-- 10 · PARALLEL & WORKTREE -->
+  <!-- 11 · PARALLEL & WORKTREE -->
   <section class="slide" data-title="Parallel & worktree isolation">
     <div class="slide-num">11 · parallel &amp; worktrees</div>
     <h3 class="section"><em>Parallel</em> reviews, isolated in worktrees.</h3>
@@ -254,7 +254,7 @@
     </div>
   </section>
 
-  <!-- 11 · AUTO-RESOLVE -->
+  <!-- 12 · AUTO-RESOLVE -->
   <section class="slide" data-title="Auto-resolve pass">
     <div class="slide-num">12 · auto-resolve</div>
     <h3 class="section">After review, an optional <em>resolve</em> pass.</h3>
@@ -284,7 +284,7 @@
     </div>
   </section>
 
-  <!-- 12 · AD-HOC & ISOLATION -->
+  <!-- 13 · AD-HOC & ISOLATION -->
   <section class="slide" data-title="Ad-hoc & isolation">
     <div class="slide-num">13 · escape hatches</div>
     <h3 class="section">Ad-hoc reviews, account isolation, one auto per repo.</h3>
@@ -311,7 +311,7 @@
     </div>
   </section>
 
-  <!-- 13 · SKIP BY SIZE -->
+  <!-- 14 · SKIP BY SIZE -->
   <section class="slide" data-title="Skip PRs by size">
     <div class="slide-num">14 · skip by size</div>
     <h3 class="section">Not every PR <em>deserves</em> a pass — skip by size.</h3>
@@ -336,7 +336,7 @@
 <span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--min-lines</span> <span class="n">20</span> <span class="k">--review</span>
 
 <span class="c"># each skip names the flag + by how much:</span>
-<span class="c">#   skip #412 — 412 files, over --max-files 200</span>
+<span class="c">#   skip #412 — 412 files changed, over --max-files 200</span>
         </div>
       </div>
     </div>
@@ -345,9 +345,44 @@
     </div>
   </section>
 
-  <!-- 15 · CONFIG FILE SUPPORT -->
+  <!-- 15 · RUNNING IT UNATTENDED -->
+  <section class="slide" data-title="Running it unattended, for real">
+    <div class="slide-num">15 · always-on, for real</div>
+    <h3 class="section">Backgrounded and scheduled — the part that's actually a bot.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">--detach</span></b> forks <span class="mono">auto</span> into the background — terminal returns immediately, survives closing it. Requires <span class="mono">--review</span>: a backgrounded process can't answer an interactive prompt.</li>
+        <li><b><span class="mono">auto list</span></b> shows every live session; <span class="mono">auto attach &lt;id&gt;</span> tails its log.</li>
+        <li><b><span class="mono">auto stop &lt;id&gt;</span></b> stops it.</li>
+        <li><b><span class="mono">auto cron add --start &lt;cron&gt; --end &lt;cron&gt; --review --watch &lt;n&gt; ...</span></b> writes real crontab entries — "review PRs 10am–8pm on weekdays" on a box that's just always on. Pass <span class="mono">--watch</span> yourself, cron doesn't add it for you. Unix-only, no daemon beyond cron itself.</li>
+        <li><b><span class="mono">auto cron list</span></b> / <span class="mono">cron remove --id &lt;id&gt;</span> show and delete schedules.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/repo</span>
+        </div>
+        <div class="code-body">
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--dest</span> main <span class="k">--review</span> <span class="k">--push</span> \
+  <span class="k">--tool</span> claude <span class="k">--detach</span>
+
+<span class="c"># Started detached auto session 3f2a9c21-... (pid 42117).</span>
+<span class="c">#   Log: ~/.branchdiff/auto-sessions/3f2a9c21-....log</span>
+
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto cron add \
+  <span class="k">--start</span> <span class="s">"0 10 * * 1-5"</span> <span class="k">--end</span> <span class="s">"0 20 * * 1-5"</span> \
+  <span class="k">--dest</span> main <span class="k">--tool</span> claude <span class="k">--review</span> <span class="k">--approve</span> <span class="n">1</span> <span class="k">--push</span> <span class="k">--watch</span> <span class="n">30</span>
+        </div>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:14px">
+      <b>Runs while you're not looking — that's the point, and the risk.</b> A bad prompt or a misconfigured <span class="mono">--exec</span> runs unattended too. Start with <span class="mono">--notify</span> on and check <span class="mono">auto attach</span> until you trust it.
+    </div>
+  </section>
+
+  <!-- 16 · CONFIG FILE SUPPORT -->
   <section class="slide" data-title="Config file support">
-    <div class="slide-num">15 · configure once</div>
+    <div class="slide-num">16 · configure once</div>
     <h3 class="section">Stop retyping flags — <em>configure once</em>.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -386,9 +421,9 @@
     </div>
   </section>
 
-  <!-- 16 · RECAP -->
+  <!-- 17 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">16 · recap</div>
+    <div class="slide-num">17 · recap</div>
     <h3 class="section">Automatic by default — <em>autonomous when you opt in</em>.</h3>
     <p class="lead-p"><span class="mono">branchdiff auto</span> watches your open PRs, runs your AI reviewer only on ones with new commits, and gates every escalation — push, verdict, resolve — behind a flag you set. Set those flags, add <span class="mono">--detach</span>, and point it at several repos (deck 08) — the same control reviews unattended on a server.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
@@ -397,6 +432,7 @@
       <li>Deterministic verdict gate — any open <span class="mono">[must-fix]</span> or human thread blocks approval.</li>
       <li>Six tools or <span class="mono">--exec</span>; built-in skill or your own; <span class="mono">--parallel</span> + <span class="mono">--worktree</span> isolation.</li>
       <li><span class="mono">--resolve</span> fixes threads locally — no commit, no push until you say so.</li>
+      <li><span class="mono">--detach</span> backgrounds it; <span class="mono">auto cron add/list/remove</span> schedules real start/end windows on crontab.</li>
       <li><span class="mono">.branchdiff.json</span> / global config — set the defaults once, per repo or everywhere.</li>
     </ul>
     <div class="end-links">
@@ -414,7 +450,7 @@
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-16">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-17">
 </div>
 
 <div class="dk-help" id="helpOverlay">

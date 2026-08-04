@@ -18,31 +18,41 @@ For a human using branchdiff interactively, that was a minor inconvenience — y
 
 ## `branchdiff pr` — the PR lifecycle from the terminal
 
-`branchdiff pr` ships 11 subcommands: `info`, `create`, `merge`, `approve`, `request-changes`, `close`, `reopen`, `draft`, `ready`, `edit`, `comment`. Each one talks HTTP to a running branchdiff instance — the same server your browser tab is pointed at — and platform (GitHub or Bitbucket) is auto-detected from the repo's remote, overridable with `--platform` if you need to force it.
-
-A realistic sequence, picking up right where the review pass left off:
+`branchdiff pr` ships 11 subcommands: `info`, `create`, `merge`, `approve`, `request-changes`, `close`, `reopen`, `draft`, `ready`, `edit`, `comment`. Each one talks HTTP to a running branchdiff instance — the same server your browser tab is pointed at — and platform (GitHub or Bitbucket) is auto-detected from the repo's remote, overridable with `--platform` if you need to force it. This is the group your gating script calls the moment it decides a PR is done — everything below picks up right where the review pass left off.
 
 ```bash
 $ branchdiff pr info
-Title:      Add retry logic to webhook delivery
-State:      open
-Draft:      false
-Head SHA:   a3f9c21
-Reviewers:  none requested
-URL:        https://github.com/acme/api/pull/482
+PR #482: Add retry logic to webhook delivery
+Status: OPEN  Mergeable: yes
+Head: a3f9c21b3d0e
+Opened: 2026-07-30
+Comments: 2
+Reviewers: 1  (0 approved, 0 requested changes)
+  · alice
+URL: https://github.com/acme/api/pull/482
 
-$ branchdiff pr approve --body "Reviewed via branchdiff agent — no open must-fix threads."
-✓ Approved PR #482
+$ branchdiff pr approve --comment "Reviewed via branchdiff agent — no open must-fix threads."
+Approved PR #482 (github:acme/api)
 
-$ branchdiff pr merge --method squash
-✓ Merged PR #482 (squash)
+$ branchdiff pr merge --strategy squash
+Merged PR #482 (github:acme/api)
 ```
 
-`pr info` also takes `--json`, which matters more than it sounds like — it's the form a script or an AI agent actually parses to decide whether approving or merging is safe (is it a draft? are there unresolved reviewers? what's the head SHA, and does it match what was reviewed?).
+(`merge --strategy squash` did what it says — the confirmation line just names the repo, not the strategy.)
+
+`pr info` also takes `--json` — the form a script or an AI agent actually parses to decide whether approving or merging is safe (is it a draft? are there unresolved reviewers?).
 
 ```bash
 $ branchdiff pr info --json
-{"title":"Add retry logic to webhook delivery","state":"open","draft":false,"headSha":"a3f9c21","reviewers":[],"url":"https://github.com/acme/api/pull/482"}
+{
+  "prNumber": 482,
+  "prTitle": "Add retry logic to webhook delivery",
+  "state": "OPEN",
+  "isDraft": false,
+  "headSha": "a3f9c21b3d0e...",
+  "reviewers": [{ "username": "alice", "state": "commented" }],
+  "prUrl": "https://github.com/acme/api/pull/482"
+}
 ```
 
 The other eight subcommands cover the rest of what the browser's PR panel can do — `close`/`reopen`, `draft`/`ready` for flipping draft status, `request-changes` as the negative counterpart to `approve`, `create` for opening a brand-new PR from the CLI, `edit` for title/description changes, and `comment` for posting a general (non-inline) PR comment without going through `agent comment`.
@@ -51,21 +61,19 @@ The other eight subcommands cover the rest of what the browser's PR panel can do
 
 ## `branchdiff sync` — comment sync from the terminal
 
-`branchdiff sync` has two subcommands: `push` (local comment threads → remote PR) and `pull` (remote PR comments → local session). Both report exactly what happened — created, updated, or skipped — so a script can tell whether the sync actually did anything.
+This is what your gating script calls right after the agent finishes posting comments — before `pr approve` runs, so the remote PR shows the same findings the local decision was based on. `branchdiff sync` has three subcommands: `push` (local comment threads → remote PR), `push-thread <id>` (a single thread by id or 8-char prefix), and `pull` (remote PR comments → local session). Each reports exactly what happened — posted, already present, or skipped — so a script can tell whether the sync actually did anything.
 
 ```bash
 $ branchdiff sync push
-Created: 3
-Updated: 0
-Skipped: 1 (already synced)
+Pushed to PR (github:acme/api)
+  Comments: 3 posted, 1 already present
 
 $ branchdiff sync pull
-Created: 2  (new comments from a human reviewer)
-Updated: 0
-Skipped: 5 (already local)
+Pulled from PR (github:acme/api)
+  New threads: 2  New replies: 0  Skipped: 5
 ```
 
-This is the CLI equivalent of the browser's Sync All button — before 1.6.1 that button was the only way to push an agent's freshly-posted comments to the actual PR, or to pull in what a human reviewer added on GitHub since your last local pass. Now both directions are one command, scriptable.
+This is the CLI equivalent of the browser's Sync All button — before 1.6.1 that button was the only way to push an agent's freshly-posted comments to the actual PR, or to pull in what a human reviewer added on GitHub since your last local pass. Now both directions are one command, scriptable, plus `sync push-thread` for pushing just one thread without syncing everything else pending.
 
 ---
 
@@ -75,20 +83,38 @@ Four subcommands: `current`, `archive`, `history`, `delete`.
 
 ```bash
 $ branchdiff session current
-Session: main...feature/webhook-retry
-Port:    5391
-PID:     42117
-PR:      #482 (open)
+  Session a3f9c21b
+  Ref: main...feature/webhook-retry
+  Type: branch_pair
+  Archived: 2 previous sessions
 
 $ branchdiff session archive
-✓ Archived session for main...feature/webhook-retry
+Archived session a3f9c21b
+  New session: 7c02fe19
 
 $ branchdiff session history
-main...feature/webhook-retry     archived  12 threads   2026-07-28
-main...feature/webhook-retry     archived   4 threads   2026-06-14
+  a3f9c21b  archived 2026-07-28T09:14  12 threads, 9 resolved
+  e88d0a44  archived 2026-06-14T16:02  4 threads
+
+  View one: branchdiff review threads --session <id> --status all
 ```
 
-`session archive` is what `--new` does interactively when you start a fresh review pass over an old branch pair — it puts the old session's comment history somewhere queryable (`session history`, or `branchdiff review threads --session <id>`) instead of deleting it. `session delete` is the destructive version, for when you actually want a session gone.
+`session archive` is what `--new` does interactively when you start a fresh review pass over an old branch pair — it puts the old session's comment history somewhere queryable (`session history`, or `branchdiff review threads --session <id>`) instead of deleting it. `session delete --id <id>` is the destructive version, for when you actually want a session gone.
+
+---
+
+## `branchdiff export` / `import` — taking a session off the machine
+
+Archiving keeps history queryable on *this* machine. Handing a review off to a teammate, moving a review-in-progress to a new machine, or backing up a repo's comment trail before it's decommissioned all need the history to actually leave — that's what `export`/`import` are for.
+
+```bash
+$ branchdiff export --all --output review-482.json
+✓ Exported 3 sessions (+ 12 UI state rows) to review-482.json
+
+$ branchdiff import review-482.json --conflict skip
+```
+
+`export [ids...] [--all] [--output <file>]` writes sessions to a portable JSON bundle (stdout if `--output` is omitted). `import <file> [--conflict merge|skip|overwrite] [--dry-run]` reads one back in — `merge` (the default) keeps whichever side changed more recently, `skip` leaves anything already present alone, `overwrite` always takes the bundle's version. `--dry-run` previews without writing anything.
 
 ---
 
@@ -97,15 +123,17 @@ main...feature/webhook-retry     archived   4 threads   2026-06-14
 Four more `agent` subcommands landed alongside `pr`/`sync`/`session`: `delete-thread`, `clear-threads`, `edit-comment`, `delete-comment`. Before this, an agent could create comments and resolve or dismiss them, but it could not clean up after itself — no way to delete a thread it posted in error, edit a comment's wording after the fact, or wipe a batch of stale threads before a fresh pass. Now it can fully manage the comments it created, not just add to them:
 
 ```bash
-$ branchdiff agent edit-comment 91a2 --body "Missing signature verification before parsing body (updated: also applies to the retry path)"
-✓ Updated comment 91a2
+$ branchdiff agent edit-comment 91a2c4d8 --body "Missing signature verification before parsing body (updated: also applies to the retry path)"
+Edited comment 91a2c4d8
 
-$ branchdiff agent delete-thread t-204
-✓ Deleted thread t-204
+$ branchdiff agent delete-thread a3f9c21b
+Deleted thread a3f9c21b
 
-$ branchdiff agent clear-threads --status dismissed
-✓ Cleared 6 dismissed threads
+$ branchdiff agent clear-threads --yes
+Deleted 6 threads
 ```
+
+`clear-threads` is all-or-nothing for the session — there's no filter to clear only dismissed or only resolved threads, it wipes every thread in the active session. `--yes` skips the confirmation prompt; running from a non-interactive shell (a script, a CI job) skips it automatically either way, same rule as everything else unattended in this piece.
 
 ---
 
@@ -115,10 +143,11 @@ If you run branchdiff on more than one repo, or more than one ref-pair in the sa
 
 ```bash
 $ branchdiff pr approve
-Multiple instances found for this repo:
-  PORT 5391  PID 42117  main...feature/webhook-retry
-  PORT 5392  PID 42210  main...feature/rate-limit-fix
-Pass --port or --pid to choose one.
+Error: Multiple branchdiff instances for this repo. Specify one:
+  PORT 5391  pid 42117  main...feature/webhook-retry
+  PORT 5392  pid 42210  main...feature/rate-limit-fix
+
+  Example: branchdiff pr info --port 5391
 ```
 
 This matters most in exactly the multi-agent scenario this post is about — several branchdiff sessions running concurrently for different PRs, each driven by its own script instance, none of them stepping on each other by accident.
@@ -129,22 +158,25 @@ This matters most in exactly the multi-agent scenario this post is about — sev
 
 `branchdiff agent guide` prints a comprehensive CLI reference for AI agents, grouped by workflow: comments, PR lifecycle, sync, sessions, review pipeline. An agent can `cat` this once at the start of a session and learn the entire command surface — every subcommand, its flags, and what it does — instead of guessing at flag names or trial-and-erroring its way through `--help` output for a dozen subcommands.
 
+It opens with a requirements table (which command groups need a live session vs. a running server) and a supported-refs section, then walks through each workflow with real bash examples — an excerpt from the PR Lifecycle section:
+
 ```bash
-$ branchdiff agent guide | head -20
-branchdiff Agent CLI Reference
-===============================
+$ branchdiff agent guide | sed -n '/## 2. PR Lifecycle/,/^---/p'
+## 2. PR Lifecycle (requires running instance)
 
-## Comments
-  agent comment --file <path> --line <n> --body "..."
-  agent reply <thread-id> --body "..."
-  agent resolve <thread-id> [--summary "..."] [--sync]
-  ...
+Manage pull requests via the running branchdiff HTTP server. Platform (GitHub/Bitbucket) auto-detected.
 
-## PR Lifecycle
-  pr info [--json] [--platform github|bitbucket]
-  pr approve [--body "..."]
-  pr merge [--method squash|merge|rebase]
-  ...
+# View PR status for current branch (--json for scripts / AI agents)
+branchdiff pr info
+branchdiff pr info --json
+
+# Merge strategies
+branchdiff pr merge
+branchdiff pr merge --strategy squash
+
+# Review actions
+branchdiff pr approve --comment "LGTM"
+branchdiff pr request-changes --comment "Fix X before merging"
 ```
 
 Worth noting this is a different command from `review guide`, which covers only the review/resolve workflow (the skill-driven comment pass). `agent guide` is the full map — comments plus lifecycle plus sync plus sessions.
@@ -168,15 +200,16 @@ branchdiff agent list --status open
 
 # 3. Push any pending local comments to the remote PR
 branchdiff sync push
-# Created: 1  Updated: 0  Skipped: 0
+# Pushed to PR (github:acme/api)
+#   Comments: 1 posted, 0 already present
 
 # 4. Approve
-branchdiff pr approve --body "Automated review: no must-fix findings."
-# ✓ Approved PR #482
+branchdiff pr approve --comment "Automated review: no must-fix findings."
+# Approved PR #482 (github:acme/api)
 
 # 5. Merge
-branchdiff pr merge --method squash
-# ✓ Merged PR #482 (squash)
+branchdiff pr merge --strategy squash
+# Merged PR #482 (github:acme/api)
 ```
 
 Nothing here happens by default. `branchdiff agent`, `pr`, and `sync` are commands the operator's script explicitly calls, in an order the operator wrote — an installed skill does not decide on its own to approve or merge anything. The severity gate in step 2 ("only proceed if no `[must-fix]` threads") is logic the script author owns. This is opt-in scripting power: branchdiff exposes the primitives, you decide the policy that chains them together, the same way `branchdiff auto --approve`/`--request-changes` (a built-in version of a similar gate) only touches the remote PR state when you additionally pass `--push`.
@@ -212,7 +245,7 @@ branchdiff agent guide                                     # full CLI reference 
 branchdiff agent list --status open                        # check what's still open
 branchdiff sync push                                        # push local comments to the PR
 branchdiff pr approve                                       # approve from the terminal
-branchdiff pr merge --method squash                          # merge from the terminal
+branchdiff pr merge --strategy squash                        # merge from the terminal
 ```
 
 If your review workflow already lives in `branchdiff agent`, the missing half is one command group away. Try scripting the last step you were still doing by hand.

@@ -107,8 +107,8 @@ original G1–G16 grouping. Nothing is dropped.
 | 2 | 100% Local-First & Privacy | G2 local/sqlite/fingerprint/no-auth/export · G1.5 stale-tab guard |
 | 3 | Comments & Review Surface | G3 comments · G4 viewed/stale/collapse state · G12 tours |
 | 4 | AI Review & Resolve | G8 agent · skills · resolve-with-verify |
-| 5 | Automatic PR Review | G9 `auto` · G10 worktrees |
-| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync |
+| 5 | Automatic PR Review | G9 `auto` · G10 worktrees · `--detach`/`auto cron` unattended scheduling |
+| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` usage dashboard |
 | 7 | Repo Exploration | G13 history/blame/tree/search/branches/show/graph/commit-detail |
 | 8 | Multi-Repo Auto Cycles | multi-repo `auto` · `--repo-paths`/depth-1 discovery · `--repo-concurrency` · `--keep-servers` · discovery consent · cycle report · session-death resilience |
 | — | (hub) Get Started | G15 cross-platform install · self-update |
@@ -256,13 +256,17 @@ on every feature slide — never describe an action without showing how to do it
   without me"; reviewing someone's PR means `gh pr checkout` — your working tree
   is gone.
 - **Solve:** watch open PRs, review only ones with new commits, stay-in-control
-  flags, isolated worktree per PR.
+  flags, isolated worktree per PR, and — the part that makes it a real always-on
+  bot — run backgrounded or on a real schedule.
 - **Features:** `auto` watch/pick, `--review/--notify/--push`,
   `--tool/--exec`, `--skill`, `--parallel`, `--resolve`, deterministic
   `--approve/--request-changes [level]` gate (severity levels 1-5),
   pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard),
-  config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
+  **`--detach` (backgrounded, requires `--review`), `auto list`/`auto attach <id>`/
+  `auto stop <id>`, `auto cron add --start/--end` (requires `--review`, OS
+  crontab, Unix-only) / `auto cron list` / `auto cron remove --id` / `auto stop
+  --cron-id`**, config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
   per-repo, `defaults`/`auto` keys, CLI > repo > global precedence, `auto.exec`/
   `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`).
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
@@ -278,8 +282,12 @@ on every feature slide — never describe an action without showing how to do it
   close-from-browser, open any PR URL locally, push/pull/Sync All, per-thread sync
   badge, preview-pull, PR lifecycle actions (approve/request/merge/close/reopen/
   draft/ready/edit), create PR, push-before-request-changes, approve-with-comments,
-  `pr`/`sync`/`session`/`list`/`kill`/`info`/`doctor`/`update` CLI, shell
-  completion, branch fetch/ff, stale-code refusal.
+  `pr`/`sync`/`session`/`list`/`kill`/`info`/`doctor`/`update` CLI,
+  `branchdiff stats` usage dashboard (`--repo` scope, `--json`/`--share`,
+  `--days`/`--since`/`--until` window) aggregating across every repo by
+  default, `export`/`import` portable session bundles (`--conflict
+  merge|skip|overwrite`), shell completion, branch fetch/ff, stale-code
+  refusal.
 - **Assets:** `B-13/90-second-flow`, `B-13/pr-lifecycle-groups`; code blocks.
 
 ### Deck 7 — Repo Exploration (History, Blame, Tree, Search)
@@ -324,7 +332,9 @@ A standalone gallery page (same visual style) that:
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
 - **Version coverage signal:** a `v2.0.0` badge in the topbar (the `.ver` class)
   plus a hero line — "Decks cover branchdiff through v2.0.0 — multi-repo auto,
-  detached server review, severity-gated approve, click-to-open notifications." Footer links to the user
+  detached server review, cron-scheduled unattended runs, config file support,
+  severity-gated approve, skip-PRs-by-size, usage stats dashboard,
+  click-to-open notifications." Footer links to the user
   guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =
   drop the file in the dir + add one `{n, file, title, hook, thumb}` entry. No

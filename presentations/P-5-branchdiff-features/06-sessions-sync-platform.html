@@ -229,21 +229,21 @@
         <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">~/repo</span></div>
         <div class="code-body">
 <span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">merge</span> --strategy squash
-<span class="prompt">$</span> branchdiff <span class="f">sync</span>            <span class="c"># push + pull</span>
-<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">approve</span> --with-comments
-<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">request-changes</span> --push-first
+<span class="prompt">$</span> branchdiff <span class="f">sync</span> <span class="k">push</span>       <span class="c"># local threads → remote PR</span>
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">approve</span> --comment "LGTM"
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">request-changes</span> --comment "see inline"
 <span class="prompt">$</span> branchdiff <span class="f">session</span> <span class="k">archive</span>
 <span class="prompt">$</span> branchdiff <span class="f">list</span>            <span class="c"># all running sessions</span>
 <span class="prompt">$</span> branchdiff <span class="f">killall</span>
+<span class="prompt">$</span> branchdiff <span class="f">stats</span> --share  <span class="c"># usage stats, markdown summary</span>
         </div>
       </div>
       <ul class="bullets">
-        <li><b><span class="mono">pr</span></b> — info / create / merge / approve / request-changes / close / reopen / draft / ready / edit / comment.</li>
-        <li><b><span class="mono">sync</span></b> — push / pull / push-thread.</li>
-        <li><b><span class="mono">session</span></b> — current / archive / history / delete.</li>
-        <li><b><span class="mono">list · killall · kill · open · prune</span></b> — manage running sessions.</li>
-        <li><b>Scope:</b> <span class="mono">list current</span>, <span class="mono">killall current</span> — act on the active repo only.</li>
-        <li><b><span class="mono">doctor · info · update · version · state reset</span></b> — health, repo fingerprint, self-update.</li>
+        <li><b><span class="mono">pr</span> · <span class="mono">sync</span> · <span class="mono">session</span></b> — full PR lifecycle, comment sync, session management from the terminal.</li>
+        <li><b><span class="mono">list · kill · killall · open · prune</span></b> — manage running sessions; <span class="mono">current</span> scopes any of these to the active repo.</li>
+        <li><b><span class="mono">stats</span></b> — usage dashboard across every repo, with a shareable markdown summary.</li>
+        <li><b><span class="mono">export · import</span></b> — move a session's history to another machine or a teammate.</li>
+        <li><b><span class="mono">doctor · info · update</span></b> — health check, repo fingerprint, self-update.</li>
         <li><b>Shell completion</b> (bash + zsh) and offline <span class="mono">guide</span> / <span class="mono">changelog</span>.</li>
       </ul>
     </div>
