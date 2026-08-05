@@ -107,7 +107,7 @@ The features that make a teammate's 40-file PR manageable pay equal dividends on
 
 ### Step 4 — focused passes for the risky parts
 
-The generalist review catches a wide range. These four pre-built workflows catch a narrower, deeper class of issue:
+The generalist review catches a wide range. These four focused passes catch a narrower, deeper class of issue:
 
 **Security audit** — looks only for injection (SQL, command, XSS, template, NoSQL, prompt), secret leaks, weak crypto, broken authorisation, deserialisation traps, path traversal, SSRF, and dependency risk. Skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.
 

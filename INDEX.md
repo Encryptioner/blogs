@@ -34,3 +34,4 @@
 4. Productivity: [Many Accounts, Many Providers, One Harness](./presentations/P-4-many-accounts-many-providers/index.md)
 5. Productivity: [Branchdiff Features](./presentations/P-5-branchdiff-features/index.html)
 6. Software Architecture: [Domain-Driven Design](./presentations/P-6-domain-driven-design/index.html)
+7. Point Solution: [Local Whisper — A Private AI Chatbot That Lives in Your Browser](./presentations/P-7-local-whisper/index.html)

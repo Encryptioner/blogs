@@ -39,8 +39,8 @@
     <h2 class="subtitle">Comments hit real diff lines with severity tags, nth-pass awareness skips what's already resolved, and resolve verifies before it claims success — instead of pasting a diff into ChatGPT and getting untraceable prose back.</h2>
     <div class="hero-meta">
       <span><span class="mono">branchdiff</span> agent</span>
-      <span><span class="mono">11</span> agent subcommands</span>
-      <span><span class="mono">8</span> pre-built workflows</span>
+      <span><span class="mono">21</span> agent subcommands</span>
+      <span><span class="mono">8</span> guided review passes</span>
       <span><span class="mono">claude · opencode · chatgpt · gemini · codex</span></span>
     </div>
   </section>
@@ -99,7 +99,7 @@
   <!-- 5 · THE AGENT SURFACE -->
   <section class="slide" data-title="The agent command surface">
     <div class="slide-num">05 · the agent surface</div>
-    <h3 class="section">Eleven subcommands. <em>No direct file writes.</em></h3>
+    <h3 class="section">Twenty-one subcommands. <em>One audited surface.</em></h3>
     <div class="two-col">
       <ul class="bullets">
         <li><b>Read:</b> <span class="mono">agent diff</span>, <span class="mono">agent list</span>, <span class="mono">agent file &lt;path&gt; --ref &lt;ref&gt;</span></li>
@@ -332,7 +332,7 @@
   <!-- 14 · 8 WORKFLOWS + LOCAL-ONLY -->
   <section class="slide" data-title="Workflows & local-only resolve">
     <div class="slide-num">14 · workflows &amp; local-only by default</div>
-    <h3 class="section">Eight workflows. <em>Local by default.</em></h3>
+    <h3 class="section">Eight guided review passes. <em>Local by default.</em></h3>
     <div class="two-col">
       <div>
         <div class="keys" style="grid-template-columns:1fr 1fr">
@@ -345,7 +345,7 @@
           <div class="key">Breaking-Change Review</div>
           <div class="key">Dependency Review</div>
         </div>
-        <p class="lead-p" style="margin-top:18px;margin-bottom:0">Each workflow is a pre-built prompt that targets a specific concern — pick one instead of writing a prompt from scratch.</p>
+        <p class="lead-p" style="margin-top:18px;margin-bottom:0">Each pass is a targeted prompt — pick one instead of writing a prompt from scratch.</p>
       </div>
       <div>
         <ul class="checklist">
@@ -368,10 +368,10 @@
     <h3 class="section">AI review that <em>actually reviews</em>.</h3>
     <p class="lead-p">A controlled <span class="mono">agent</span> surface that any LLM can drive; comments that land on real lines with severity tags; nth-pass awareness so resolved stays resolved; resolve that verifies ancestry, build, and tests before claiming done.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
-      <li>Eleven <span class="mono">agent</span> subcommands — read, comment, resolve, dismiss, all audited.</li>
+      <li>Twenty-one <span class="mono">agent</span> subcommands — read, comment, resolve, dismiss, all audited.</li>
       <li>Reads file content at the compared ref, not your checkout — review can't be poisoned.</li>
       <li>Generated skills (<span class="mono">skill add</span>) + plugin marketplace; works with Claude Code, opencode, ChatGPT, Gemini, Codex.</li>
-      <li><span class="mono">review run --exec</span> one-shot pipe; eight pre-built workflows.</li>
+      <li><span class="mono">review run --exec</span> one-shot pipe; eight guided review passes.</li>
       <li>Nth-pass aware: resolved not re-raised, dismissed only re-flagged if evidence changed.</li>
       <li>Resolve verifies by content-match, ancestry, build, and tests — local-only unless <span class="mono">--sync</span>.</li>
     </ul>

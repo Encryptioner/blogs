@@ -66,3 +66,8 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
   - Blog (B-18): https://github.com/Encryptioner/blogs/blob/master/topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md
 - Real Build — DDD in Production: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-6-domain-driven-design/real-build.html
   - Blog (B-19): https://github.com/Encryptioner/blogs/blob/master/topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md
+
+## P-7 — Local Whisper
+
+- HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-7-local-whisper/index.html
+- Blog: _none yet_ (private-chat / in-browser LLM topic has no companion post)
