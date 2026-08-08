@@ -8,7 +8,7 @@ built from. Read this before adding or editing a deck.
 
 ## 1. Goal & audience
 
-Public-facing, step-by-step feature decks for **branchdiff** (v2.0.0), aimed at
+Public-facing, step-by-step feature decks for **branchdiff** (v2.0.1), aimed at
 developers who review code on GitHub / Bitbucket. Each deck is a self-contained
 HTML file framed as **native problem → branchdiff solve**, with real UI
 screenshots and conceptual diagrams.
@@ -95,7 +95,7 @@ proxy by the existing Token Economics deck.
 
 ---
 
-## 5. Feature → deck mapping (coverage through v2.0.0)
+## 5. Feature → deck mapping (coverage through v2.0.1)
 
 All 16 feature groups map to exactly one deck (install lives in the hub). Deck 8
 extends `auto` to multiple repos — new in v2.0.0, the only feature not in the
@@ -260,15 +260,20 @@ on every feature slide — never describe an action without showing how to do it
   bot — run backgrounded or on a real schedule.
 - **Features:** `auto` watch/pick, `--review/--notify/--push`,
   `--tool/--exec`, `--skill`, `--parallel`, `--resolve`, deterministic
-  `--approve/--request-changes [level]` gate (severity levels 1-5),
+  `--approve/--request-changes [level]` gate (severity levels 1-5; v2.0.1: a bare
+  sign-off — LGTM / done / +1 — no longer blocks approval, and a signed-off
+  human thread is resolved, not merely replied to),
   pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard),
   **`--detach` (backgrounded, requires `--review`), `auto list`/`auto attach <id>`/
-  `auto stop <id>`, `auto cron add --start/--end` (requires `--review`, OS
-  crontab, Unix-only) / `auto cron list` / `auto cron remove --id` / `auto stop
+  `auto stop <id>`, `auto cron add --start/--end` (requires `--review`,
+  launchd LaunchAgent on macOS / crontab on Linux — OS-detected so it actually
+  fires on a Mac, Unix-only) / `auto cron list` / `auto cron remove --id` / `auto stop
   --cron-id`**, config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
   per-repo, `defaults`/`auto` keys, CLI > repo > global precedence, `auto.exec`/
-  `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`).
+  `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`),
+  and v2.0.1 named reviewer-error reasons (rate-limit / overload / billing /
+  missing-key / timeout) with `--debug` stack traces logged to `~/.branchdiff/logs/`.
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
 
 ### Deck 6 — Sessions, Sync & Platform Actions
@@ -330,10 +335,11 @@ A standalone gallery page (same visual style) that:
   branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- **Version coverage signal:** a `v2.0.0` badge in the topbar (the `.ver` class)
-  plus a hero line — "Decks cover branchdiff through v2.0.0 — multi-repo auto,
-  detached server review, cron-scheduled unattended runs, config file support,
-  severity-gated approve, skip-PRs-by-size, usage stats dashboard,
+- **Version coverage signal:** a `v2.0.1` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v2.0.1 — multi-repo auto,
+  detached server review, launchd-on-macOS / cron-on-Linux unattended runs,
+  config file support, severity-gated approve, skip-PRs-by-size, a usage-stats
+  dashboard with a Configs viewer, named reviewer-error reasons,
   click-to-open notifications." Footer links to the user
   guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =

@@ -83,7 +83,7 @@ Worth a pre-flight check before the first unattended cycle: `branchdiff doctor` 
 
 Here is the part that actually matters if you are going to trust this thing enough to let it approve or block work. A SaaS reviewer that decides "looks good, approving" based on its own confidence is a liability the moment it is wrong and nobody can see why. `auto`'s verdict is not the AI's opinion — it is a deterministic rule evaluated after the review pass, over the state of open threads.
 
-`--approve [level]` and `--request-changes [level]` each take an optional strictness level, 1 through 5, default 1. Level 1 blocks approval on any open `[must-fix]` thread. Each step up widens what blocks it — level 2 also blocks on open `[suggestion]`s, up through level 5, which blocks on *any* open thread at all, tagged or not. And regardless of level: any thread a human started, tagged or not, blocks approval too — the tool never overrides a person's open concern to hit a clean number.
+`--approve [level]` and `--request-changes [level]` each take an optional strictness level, 1 through 5, default 1. Level 1 blocks approval on any open `[must-fix]` thread. Each step up widens what blocks it — level 2 also blocks on open `[suggestion]`s, up through level 5, which blocks on *any* open thread at all, tagged or not. And regardless of level: any thread a human started, tagged or not, blocks approval too — the tool never overrides a person's open concern to hit a clean number. As of v2.0.1 there is one deliberate exception: a bare acknowledgement — "LGTM", "done", "+1" — counts as a sign-off, not an open concern, so it no longer holds the gate. The point of the gate is to catch unresolved issues, not to freeze on a comment that was already agreement.
 
 | Level | Blocks approval on |
 | --- | --- |
@@ -97,7 +97,7 @@ Here is the part that actually matters if you are going to trust this thing enou
 branchdiff auto --dest main --review --approve 1 --request-changes 3 --push
 ```
 
-Both flags always write a verdict comment explaining the decision, but *actually* setting GitHub's or Bitbucket's review state additionally requires `--push` — without it, the reasoning stays local commentary and nothing on the remote PR changes. If you pass both `--approve` and `--request-changes` with different levels, `auto` refuses rather than guessing which one you meant. Before deciding, it reconciles threads from any earlier pass against the new diff — resolving its own prior findings, but only ever suggesting (never resolving) a human's, since closing someone else's discussion for them is never the AI's call to make.
+Both flags always write a verdict comment explaining the decision, but *actually* setting GitHub's or Bitbucket's review state additionally requires `--push` — without it, the reasoning stays local commentary and nothing on the remote PR changes. If you pass both `--approve` and `--request-changes` with different levels, `auto` refuses rather than guessing which one you meant. Before deciding, it reconciles threads from any earlier pass against the new diff — resolving its own prior findings, and (as of v2.0.1) resolving a human thread once that commenter has signed off on it; every other human thread it only replies to, never resolves, since closing someone else's open discussion for them is still not the AI's call to make.
 
 ---
 
@@ -153,7 +153,7 @@ Started detached auto session 3f2a9c21-...-b8e0 (pid 42117).
 
 `branchdiff auto list` shows every live detached session — id, repo(s), pid, mode, watch interval, log path (`--json` for scripts). `branchdiff auto attach <id>` read-only tails the log (Ctrl-C stops watching, never the session itself). `branchdiff auto stop <id>` sends it the same signal a foreground Ctrl-C would.
 
-`--detach` still needs a human to type the command once, from a terminal that's up. For "review PRs between 10am and 8pm on weekdays, on a box that's just always on" — nobody attached, nothing typed each morning — `branchdiff auto cron add` writes actual crontab entries instead, tagged so branchdiff only ever touches its own lines. `--start`/`--end` take the two cron expressions, and `--review` is required on the add itself, same rule as `--detach`: a schedule with no human ever around to answer the interactive prompt has to opt into unattended mode up front.
+`--detach` still needs a human to type the command once, from a terminal that's up. For "review PRs between 10am and 8pm on weekdays, on a box that's just always on" — nobody attached, nothing typed each morning — `branchdiff auto cron add` writes real schedule entries instead — crontab on Linux, a launchd LaunchAgent on macOS (why that matters in a moment) — tagged so branchdiff only ever touches its own lines. `--start`/`--end` take the two cron expressions, and `--review` is required on the add itself, same rule as `--detach`: a schedule with no human ever around to answer the interactive prompt has to opt into unattended mode up front.
 
 ```bash
 branchdiff auto cron add \
@@ -176,7 +176,9 @@ branchdiff auto cron list
 
 Each schedule gets a random id (not a name you choose), and `cron list` shows both the raw `auto` args it'll fire with and the next/last start and end times it computed from the cron expressions.
 
-To stop or remove one: `branchdiff auto stop --cron-id <id>` stops a schedule's currently-live session on demand — the end entry does the same thing automatically at its cron time, silently doing nothing if the session already ended on its own. `branchdiff auto cron remove --id <id>` is the permanent version — deletes the schedule from the crontab entirely, stopping any live session for it first. This is Unix-only and needs no daemon beyond cron itself.
+To stop or remove one: `branchdiff auto stop --cron-id <id>` stops a schedule's currently-live session on demand — the end entry does the same thing automatically at its cron time, silently doing nothing if the session already ended on its own. `branchdiff auto cron remove --id <id>` is the permanent version — deletes the schedule from the crontab entirely, stopping any live session for it first. This is Unix-only (macOS and Linux) and needs no extra daemon — launchd on macOS, cron on Linux, whichever your OS already runs.
+
+On macOS those entries are not crontab lines at all — they are a per-user **launchd** LaunchAgent, and that is not a preference but the fix for a silent failure. macOS TCC (the privacy layer behind Full Disk Access) quietly stops crontab from launching terminal tools, so a cron schedule installs cleanly and then never fires: no error, no log, nothing to grep. The bot simply stops reviewing, and weeks later someone notices. As of v2.0.1 branchdiff detects macOS and writes a LaunchAgent — the same mechanism the OS uses for its own daemons, which TCC permits — while Linux keeps crontab. The command is identical on both: same `--start`/`--end`, same `auto cron list` showing which backend it used and when it next fires.
 
 ---
 
@@ -196,7 +198,7 @@ branchdiff auto --dest main --review --push --worktree --parallel 3
 
 **A deterministic gate is only as good as your tags.** `--approve`/`--request-changes` trust `[must-fix]` and the rest of the tag taxonomy to be applied correctly by whatever `--tool` you chose. A model that consistently under-tags real bugs as `[nit]` will happily approve things it shouldn't — watch the first few weeks of output before raising the level or turning on `--push` unattended.
 
-**`--detach` and `cron` mean it runs while you're not looking.** That is the whole point, but it also means a bad prompt or a misconfigured `--exec` command runs unattended too. Start with `--notify` on and check `branchdiff auto attach <id>` regularly until you trust the setup.
+**`--detach` and `cron` mean it runs while you're not looking.** That is the whole point, but it also means a bad prompt or a misconfigured `--exec` command runs unattended too. When a review does fail, v2.0.1 tells you why by name — rate-limit, overload, billing, missing API key, timeout — rather than an opaque error, and `--debug` writes the full stack trace to per-run logs under `~/.branchdiff/logs/`. Start with `--notify` on and check `branchdiff auto attach <id>` regularly until you trust the setup.
 
 **Size gating is a proxy, not judgment.** A 400-line PR that touches billing logic is riskier than a 4,000-line PR that's entirely generated fixtures. `--max-lines` catches the obvious cases, not the subtle ones.
 
