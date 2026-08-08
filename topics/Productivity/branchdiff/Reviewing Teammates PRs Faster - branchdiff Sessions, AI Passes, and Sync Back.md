@@ -64,9 +64,13 @@ The sidebar has nine filter chips that stack with the search box. Each one answe
 
 Filters auto-hide when inapplicable — no `Staged` chip on a branch comparison, no `Commented` chip when nothing is commented yet. They stack with the search box, so *Filter → Stale + search "auth"* gives you exactly the auth files that changed since you last looked.
 
+As of v2.0.1 there is a tenth chip — **Resolved**. Files with a resolved thread (a local resolve, or one resolved on the PR) get a green ✓ pill on the row; click **Resolved** to jump to the first one. It earns its keep on a re-review, the exact moment you care which concerns the author has closed.
+
 Two toolbar helpers work alongside the filters: **Collapse all** folds every file for a high-level pass; **Expand all** opens everything for a deep read. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.
 
 For working-tree reviews, the **staged / unstaged toggle** flips between `git diff --staged` and `git diff` without re-running the command. File rows show inline status badges — **S** (staged), **U** (unstaged), amber dot (stale), checkmark (viewed and current).
+
+Note the other direction: a *branch* comparison (`main..feature`) is **committed-only by default as of v2.0.1** — untracked and uncommitted files no longer leak into it. If you want them in, `--include-staged` / `--include-unstaged` on the root command opt back in (they seed the shareable URL and reach the review/resolve skills, but never `auto`).
 
 A typical second-pass workflow: *Filter → Stale*, re-read those files, mark viewed; *Filter → Unviewed*, finish those; *Filter → Commented*, sanity-check the threads. The PR shrinks from "38 files" to a list of seven that need attention right now.
 

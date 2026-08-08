@@ -95,11 +95,11 @@ The features that make a teammate's 40-file PR manageable pay equal dividends on
 
 **Viewed counter + stale detection.** Mark files viewed (eye icon or right-click) as you walk through. The sidebar shows `12 / 24 viewed`. Any file you marked viewed but later changed gets flipped to *stale* with an amber dot — staleness is detected via an FNV-1a hash on the diff signature, so a rebase that does not change the content does not invalidate your markers.
 
-**Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box. On the second pass after a set of fixes: *Filter → Stale* shows exactly which files need re-reading.
+**Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box. On the second pass after a set of fixes: *Filter → Stale* shows exactly which files need re-reading. As of v2.0.1 there is a tenth — **Resolved**, files with a resolved thread, marked with a green ✓ pill; handy for confirming which of your earlier concerns are closed before you push.
 
 **Collapse all / Expand all.** A quick high-level pass before diving in. Files with open comments are force-expanded so threads are never hidden behind a collapsed diff.
 
-**Staged / unstaged toggle.** When reviewing your working tree before the first commit, flip between `git diff --staged` and `git diff` from the toolbar. File rows show inline status badges: **S** (staged) and **U** (unstaged).
+**Staged / unstaged toggle.** When reviewing your working tree before the first commit, flip between `git diff --staged` and `git diff` from the toolbar. File rows show inline status badges: **S** (staged) and **U** (unstaged). And for a branch comparison (`main..feature`), v2.0.1 made it **committed-only by default** — your untracked and uncommitted files no longer show up in the diff unless you pass `--include-staged` / `--include-unstaged` on the root command.
 
 **Full-file view + minimap.** The toolbar's *Full-file view* opens a VS Code-style rendering of the entire file with all hunks in place. A **minimap on the right** marks added, removed, and modified regions — scan a 1,000-line file at a glance and click straight to the change. Inline comments stay anchored when you switch from hunk view to full-file view. Markdown files get a **Preview** toggle (v1.5.0) that renders both sides as formatted markdown.
 

@@ -249,9 +249,26 @@
     </div>
   </section>
 
-  <!-- 12 · BRANCH SYNC -->
+  <!-- 12 · STATS DASHBOARD (v2.0.1) -->
+  <section class="slide" data-title="Usage stats & config, visible">
+    <div class="slide-num">12 · stats &amp; config (v2.0.1)</div>
+    <h3 class="section">See what's running — and <em>which config won</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">branchdiff stats</span></b> opens a web dashboard across every repo — running instances, auto sessions, cron schedules, and config. Auto-opens by default (<span class="mono">--no-open</span> for a text table).</li>
+        <li><b><span class="mono">--today</span> chip.</b> Scope to the calendar day, alongside <span class="mono">All</span> / <span class="mono">90d</span> / <span class="mono">30d</span> / <span class="mono">7d</span>; <span class="mono">--days</span> / <span class="mono">--since</span> / <span class="mono">--until</span> for any window; <span class="mono">--repo</span> to scope, <span class="mono">--json</span> / <span class="mono">--share</span> for scripts.</li>
+        <li><b>Configs viewer.</b> Browse the resolved hierarchy for any launch dir — <span class="mono">defaults</span> → <span class="mono">auto</span> → per-repo → <span class="mono">exec/tool</span> — with a per-key table showing which tier won. Copy path / content / open in editor.</li>
+        <li><b>Per-section Refresh.</b> A global refresh plus a button on each section — pull fresh auto sessions or cron schedules without reloading the page.</li>
+      </ul>
+      <div class="callout accent">
+        <b>Same view from the CLI.</b> <span class="mono">branchdiff config --json</span> dumps the resolved hierarchy (every child repo); <span class="mono">config --dir &lt;launchDir&gt;</span> resolves against a different tree; <span class="mono">config sample --full</span> writes every key that has a fixed default — and names the ones that don't, so you add them yourself.
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · BRANCH SYNC -->
   <section class="slide" data-title="Branch sync before comparison">
-    <div class="slide-num">12 · branch sync (G16)</div>
+    <div class="slide-num">13 · branch sync (G16)</div>
     <h3 class="section">Branches <em>fetched &amp; fast-forwarded</em> before the diff.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -273,9 +290,9 @@
     </div>
   </section>
 
-  <!-- 13 · BOUNDARIES -->
+  <!-- 14 · BOUNDARIES -->
   <section class="slide" data-title="Honest boundaries">
-    <div class="slide-num">13 · honest boundaries</div>
+    <div class="slide-num">14 · honest boundaries</div>
     <h3 class="section">What branchdiff <em>does not</em> do.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -290,9 +307,9 @@
     </div>
   </section>
 
-  <!-- 14 · RECAP -->
+  <!-- 15 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">14 · recap</div>
+    <div class="slide-num">15 · recap</div>
     <h3 class="section">Twenty tabs, collapsed to <em>one</em>.</h3>
     <p class="lead-p">Persistent sessions, two-way sync, the full PR lifecycle from a toolbar, and branches fetched before comparison — the entire review loop fits in one browser tab.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
@@ -319,7 +336,7 @@
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-14">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-15">
 </div>
 
 <div class="dk-help" id="helpOverlay">

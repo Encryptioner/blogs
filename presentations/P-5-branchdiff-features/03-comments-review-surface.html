@@ -148,6 +148,7 @@
         <li><b>Reply chains on any thread.</b> <span class="muted">Discussion stays attached to the line and the tag.</span></li>
         <li><b>Dismissed requires a reason.</b> <span class="muted">"Won't fix" is captured inline — no silent rejections.</span></li>
         <li><b>Threads with replies stay local.</b> <span class="muted">Forge APIs don't map multi-reply chains, so push skips them rather than flattening the conversation.</span></li>
+        <li><b>Resolved, findable (v2.0.1).</b> <span class="muted">A green <b>✓</b> pill on each file row counts resolved threads (a local resolve <em>or</em> one resolved on the PR); a <b>Resolved</b> sidebar filter narrows to just those files and jumps to the first resolved thread.</span></li>
       </ul>
       <div class="callout">
         <b>Honest scope:</b> multi-reply threads don't push to the forge — they live in your branchdiff session (and in the export bundle). Single comments resolve and sync normally.
@@ -201,6 +202,7 @@
         <li><b>1.5s debounced sync.</b> <span class="muted">UI state hooks batch writes to the server; offline suppression skips sync when the server is down.</span></li>
         <li><b>Working-tree toggle.</b> <span class="muted">Staged / unstaged switch via <span class="mono">--staged</span>; <span class="mono">-p 0</span> shows unstaged-only.</span></li>
         <li><b>Row badges <b>S</b> / <b>U</b>.</b> <span class="muted">See at a glance what's staged vs. still in your working tree — filterable in the sidebar.</span></li>
+        <li><b>Committed-only by default (v2.0.1).</b> <span class="muted">A branch-pair diff no longer leaks untracked or uncommitted files in — <span class="mono">--include-staged</span> / <span class="mono">--include-unstaged</span> on the root command opt back in (they seed the share URL and reach the review/resolve skills, but never reach <span class="mono">auto</span>).</span></li>
       </ul>
       <div class="fig" onclick="openLightbox(this)">
         <img src="../../assets/B-15/sidebar-filters-grid.png" alt="Sidebar filters including Staged and Unstaged" loading="lazy" />

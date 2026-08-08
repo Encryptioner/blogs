@@ -88,7 +88,7 @@ Two commands exist so you never have to guess which file won.
 branchdiff config
 ```
 
-prints the fully merged, effective config — every key, its resolved value, and which file it came from. A key nobody ever set doesn't show as "unset" — it shows branchdiff's real built-in default, so `branchdiff config` is a complete picture of how the next `auto` run will actually behave, not just a diff of what you changed.
+prints the fully merged, effective config — every key, its resolved value, and which file it came from. A key nobody ever set doesn't show as "unset" — it shows branchdiff's real built-in default, so `branchdiff config` is a complete picture of how the next `auto` run will actually behave, not just a diff of what you changed. As of v2.0.1 two flags extend it: `config --json` emits the whole resolved hierarchy as JSON, including every direct child repo of the launch directory — so a script or an AI agent can read which tier won without parsing the text — and `config --dir <launchDir>` resolves against a different directory than the current one. Point it at a parent folder and it expands to one block per child repo, the same view the stats dashboard's Configs section renders (see below).
 
 ```bash
 branchdiff config sample
@@ -96,6 +96,8 @@ branchdiff config sample --global
 ```
 
 scaffolds a starter file — a handful of commonly-useful keys, not every possible flag — at `.branchdiff.json` or, with `--global`, at `~/.branchdiff/config.json`. It refuses to overwrite a file that already exists unless you pass `--force`, so running it a second time by habit doesn't clobber a config you've since hand-edited.
+
+For when that curated set isn't enough, v2.0.1 adds `config sample --full`: it writes *every* key that has a fixed built-in default, grouped under the correct `defaults`/`auto` section, instead of the starter handful. Keys that have no fixed default (`maxFiles`, `base`, `skillName`, …) aren't written into the JSON — but they're listed by name in a note beneath it, so you know they exist and can add them yourself when a repo actually needs them.
 
 Two failure modes, handled differently on purpose:
 
@@ -154,7 +156,7 @@ And the exit code tells a script what happened without parsing that report: `0` 
 
 ## Checking the policy actually worked: `branchdiff stats`
 
-A per-cycle report is fine for "did this run go okay," but it doesn't answer "is the policy I set actually doing anything, across every repo, over the last month." `branchdiff stats` does — it aggregates across every repo branchdiff has touched by default, or scope it to the current one with `--repo`. `--days <n>` (default 30, `0` for all time) or `--since`/`--until` set the window.
+A per-cycle report is fine for "did this run go okay," but it doesn't answer "is the policy I set actually doing anything, across every repo, over the last month." `branchdiff stats` does — it aggregates across every repo branchdiff has touched by default, or scope it to the current one with `--repo`. `--days <n>` (default 30, `0` for all time) or `--since`/`--until` set the window. As of v2.0.1 there's also `--today` for the current calendar day — a `Today` chip sits next to `All` / `90d` / `30d` / `7d` on the dashboard, and `--today` mirrors it on the CLI (it can't be combined with `--days`/`--since`/`--until`).
 
 ```bash
 branchdiff stats           # opens a dashboard in the browser
@@ -164,6 +166,8 @@ branchdiff stats --share   # a markdown summary worth pasting into a PR or stand
 ```
 
 The text summary breaks down how many reviews you've run and how many are still open, comment/thread status, the GitHub vs. Bitbucket split, and — the part that matters here — the verdict breakdown your `--approve`/`--request-changes` policy actually produced: approved, changes requested, commented. That's the direct payoff of this whole config system: you set `"approve": 2` globally and `"approve": 3` for `payments-api` weeks ago; `branchdiff stats` is where you go to see whether that split held up in practice, not just trust that it did.
+
+As of v2.0.1 the dashboard itself grew two things worth knowing about. A **Configs** section browses the resolved config hierarchy for any launch directory — `defaults` → `auto` → per-repo → `exec/tool` — with a per-key table showing which tier actually won, the same answer `branchdiff config --dir` prints but clickable, with copy-path / copy-content / open-in-editor on each file. And every section of the dashboard — running instances, auto sessions, cron schedules, configs — carries its own **Refresh** button, alongside a global one, so you can re-pull a single section on demand instead of reloading the page. That matters for `auto`: leave the dashboard open, hit Refresh on Auto sessions after a cron fire, and watch the latest runs land without re-navigating.
 
 ---
 

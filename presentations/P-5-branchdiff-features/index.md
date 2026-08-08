@@ -108,7 +108,7 @@ original G1–G16 grouping. Nothing is dropped.
 | 3 | Comments & Review Surface | G3 comments · G4 viewed/stale/collapse state · G12 tours |
 | 4 | AI Review & Resolve | G8 agent · skills · resolve-with-verify |
 | 5 | Automatic PR Review | G9 `auto` · G10 worktrees · `--detach`/`auto cron` unattended scheduling |
-| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` usage dashboard |
+| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` dashboard (v2.0.1: Configs/Today/Refresh) |
 | 7 | Repo Exploration | G13 history/blame/tree/search/branches/show/graph/commit-detail |
 | 8 | Multi-Repo Auto Cycles | multi-repo `auto` · `--repo-paths`/depth-1 discovery · `--repo-concurrency` · `--keep-servers` · discovery consent · cycle report · session-death resilience |
 | — | (hub) Get Started | G15 cross-platform install · self-update |
@@ -207,7 +207,7 @@ on every feature slide — never describe an action without showing how to do it
   three-line windows" on refactor PRs; mouse-heavy; GitHub and Bitbucket differ.
 - **Solve:** one local page, whole file in place, identical on both forges.
 - **Features:** split/unified/full views, syntax highlight (Shiki), markdown
-  preview, 9 stacking sidebar filters, file-row status badges, right-click bulk
+  preview, 9 stacking sidebar filters (v2.0.1 adds a tenth — Resolved, green ✓ pill), file-row status badges, right-click bulk
   ops, collapse-all (keeps open threads), virtualized lists, vim keys (`j/k n/p
   u/s/f x r /`), auto-advance, behind-by indicator, swap.
 - **Assets:** `01-diff-unified`, `02-diff-split`, `03-diff-full`, `B-15/sidebar-filters-grid`.
@@ -229,10 +229,10 @@ on every feature slide — never describe an action without showing how to do it
 - **Solve:** tagged inline threads, persistent viewed/stale state, WYSIWYG
   comments, AI-generated code tours.
 - **Features:** `[must-fix]/[suggestion]/[nit]/[question]` tags, WYSIWYG Milkdown
-  editor, thread lifecycle (open/resolved/dismissed + replies), general comments
+  editor, thread lifecycle (open/resolved/dismissed + replies; v2.0.1: a green ✓ resolved-pill + a Resolved sidebar filter), general comments
   (one consolidated comment per review pass), viewed counter that survives
   force-pushes, FNV-1a stale detection, per-(pair+mode) collapse persistence,
-  working-tree (staged/unstaged) toggle, code tours.
+  working-tree (staged/unstaged) toggle, v2.0.1 committed-only branch-pair diff default (`--include-staged`/`--include-unstaged` opt-in), code tours.
 - **Assets:** `04-inline-comment`, `B-14/comment-tag-taxonomy`,
   `B-15/viewed-stale-state`, `B-15/sidebar-filters-grid`.
 
@@ -289,8 +289,8 @@ on every feature slide — never describe an action without showing how to do it
   draft/ready/edit), create PR, push-before-request-changes, approve-with-comments,
   `pr`/`sync`/`session`/`list`/`kill`/`info`/`doctor`/`update` CLI,
   `branchdiff stats` usage dashboard (`--repo` scope, `--json`/`--share`,
-  `--days`/`--since`/`--until` window) aggregating across every repo by
-  default, `export`/`import` portable session bundles (`--conflict
+  `--days`/`--since`/`--until`/`--today` window, Configs viewer + per-section Refresh) aggregating across every repo by
+  default, `config --json`/`--dir`/`sample --full` (v2.0.1), `export`/`import` portable session bundles (`--conflict
   merge|skip|overwrite`), shell completion, branch fetch/ff, stale-code
   refusal.
 - **Assets:** `B-13/90-second-flow`, `B-13/pr-lifecycle-groups`; code blocks.

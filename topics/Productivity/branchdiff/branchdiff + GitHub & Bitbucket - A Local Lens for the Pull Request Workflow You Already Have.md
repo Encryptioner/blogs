@@ -80,7 +80,7 @@ The dropdown header carries a **state dot** (green for open, purple for merged, 
 
 A status toast tells you what happened: `Pushed 3, skipped 1 duplicate, skipped 1 multi-reply thread`. Failures keep the local thread intact so you can fix the anchor and retry.
 
-**Pull PR comments into branchdiff.** Same dialog, **Pull from PR**. Existing review comments come down as local threads anchored to the same lines, with author and timestamp preserved. This is what makes branchdiff practical for re-review — open the PR locally on day three, pull the comments, see every thread inline, mark them resolved as the author addresses them, push the resolutions back.
+**Pull PR comments into branchdiff.** Same dialog, **Pull from PR**. Existing review comments come down as local threads anchored to the same lines, with author and timestamp preserved. This is what makes branchdiff practical for re-review — open the PR locally on day three, pull the comments, see every thread inline, mark them resolved as the author addresses them, push the resolutions back. As of v2.0.1 each file row carries a green ✓ pill for its resolved threads, and a **Resolved** sidebar filter jumps to the first one — so on a re-review you can tell at a glance which concerns the author has closed and which still need a look.
 
 Sync requires your local HEAD to match the PR head and your working tree to be clean. branchdiff surfaces both constraints in the dialog with a one-line explanation (`git pull --rebase`, `git stash`).
 
