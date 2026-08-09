@@ -171,6 +171,20 @@ The dashboard itself has two things worth knowing about. A **Configs** section b
 
 ---
 
+## Your own activity, across both forges
+
+`branchdiff stats` is also where you pull a report of *your own* pull-request activity across both GitHub and Bitbucket — the **Platform activity** button in the dashboard toolbar. It answers the "what have I actually been doing as a reviewer this month?" question without you tab-hopping through two forges and a spreadsheet.
+
+It is a query-builder, not an auto-load. You pick a date range (seeded from the dashboard's current window), toggle which platforms and which of four dimensions you want — **PRs authored**, **PRs approved/reviewed**, **commits pushed**, and **comments/reviews given** — then click **Fetch**. Nothing runs until you do, so a glance at one dimension costs only that one query. Each dimension carries a cost badge — *fast* (authored, approved, on by default), *medium* (commits), or *slow · per-PR walk* (comments, which has to fetch each PR's review history, so it starts unchecked) — so you can drop the expensive one when all you need is a tally. The two platforms fetch independently: one can come back with results while the other reports a missing credential or rate-limit inline, without aborting the other.
+
+Results open in a near-full-screen modal with a sticky filter bar — a repo filter and a search box, plus an **All / GitHub / Bitbucket** platform toggle that only appears when both platforms actually contributed data, since a single-platform report has nothing to switch between. Atop the results sits an **Insights** card that summarizes the whole report at a glance, scoped to exactly what you queried and to the toggle: at **All** it covers both platforms combined, and switching to one re-derives every figure for just that platform, with no re-fetch (both variants are computed up front). It surfaces the activity counts, the review-verdict breakdown, commits split by category with the top ticket IDs, your busiest day — and the one a raw tally hides: how many of your reviews and comments landed on *other people's PRs*, the collaboration signal that authored and reviewed work mix together. Each figure renders only for a dimension you actually checked, so an unchecked dimension reads as absent rather than as a misleading zero.
+
+A **By PR** rollup joins authored, reviewed, and commented per PR — so PRs you reviewed or commented on but did not author appear too — and each row carries a 💬 button to view that PR's comments inline: Bitbucket fetches them on demand (the automatic scan only covers PRs you authored or reviewed), while GitHub already has them in the report, so the count shows from the start and stays visible once known. Below it, the per-platform tables carry a **Verdict** column — approved, changes-requested, or commented, naming *who approved it instead* on changes-requested rows (Bitbucket pulls that from the PR's participants, GitHub fetches it for that set) — and a **Ticket** column that pulls each branch's ticket ID out of its name. **Copy all** exports the whole report as markdown, led by that combined summary; each platform section has its own **Copy** for just that slice, both confirming with an in-button ✓.
+
+Scope is your tracked repos — the ones you have run `branchdiff` in, surfaced so adding a repo is obvious; there is no separate registration step. `branchdiff stats` auto-opens the dashboard, reusing an already-running instance, or reach it from the **3-dot menu → Stats**, with `--no-open`, `--json`, and `--share` for scripting.
+
+---
+
 ## Where to stay skeptical
 
 **Config is a default, not a guarantee.** A CLI flag always overrides it — which is correct, but it also means a config file can lull you into assuming a policy is in force when someone (including past-you) typed a one-off flag that quietly won for that run.

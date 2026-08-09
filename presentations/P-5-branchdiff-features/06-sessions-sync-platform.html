@@ -266,9 +266,28 @@
     </div>
   </section>
 
-  <!-- 13 · BRANCH SYNC -->
+  <!-- 13 · PLATFORM ACTIVITY -->
+  <section class="slide" data-title="Your activity across both forges">
+    <div class="slide-num">13 · platform activity</div>
+    <h3 class="section">A report of <em>your own</em> review activity — GitHub + Bitbucket.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Platform activity modal.</b> From the Stats toolbar — pulls <em>your</em> cross-platform PR activity across <b>both GitHub and Bitbucket</b> (each independently) over a date range you choose.</li>
+        <li><b>Query-builder, not auto-load.</b> Pick a range, toggle platforms + dimensions, click <b>Fetch</b>. The fast dimensions (authored, approved) are checked by default; commits and comments are opt-in.</li>
+        <li><b>By PR rollup.</b> Authored + reviewed + commented joined per PR — so PRs you reviewed or commented on but didn't author appear too. Per-PR <span class="mono">💬</span> views comments inline (Bitbucket on demand, GitHub from the start).</li>
+        <li><b>Verdict + Ticket columns.</b> Per-platform tables carry a Verdict column (naming <em>who approved instead</em> on changes-requested rows) and a Ticket column that pulls each branch's ticket ID from its name.</li>
+        <li><b>Platform toggle, when it matters.</b> All / GitHub / Bitbucket — shown only when both platforms actually contributed data; switching re-derives every figure for one platform, no re-fetch.</li>
+        <li><b>Copy as markdown.</b> <span class="mono">Copy all</span> (led by the combined summary) or per-platform <span class="mono">Copy</span> — in-button ✓ confirms.</li>
+      </ul>
+      <div class="callout accent">
+        <b>Insights card, atop the results.</b> An at-a-glance summary scoped to your query and the toggle: activity counts, how many of your reviews &amp; comments landed on <em>other people's PRs</em> (the collaboration signal), the verdict breakdown, commits by category with the top ticket IDs, and your busiest day. Each figure renders only for a dimension you checked — unchecked reads as absent, not a misleading zero. <b>Scope = your tracked repos</b> (the ones you've run <span class="mono">branchdiff</span> in), surfaced so adding a repo is obvious.
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · BRANCH SYNC -->
   <section class="slide" data-title="Branch sync before comparison">
-    <div class="slide-num">13 · branch sync (G16)</div>
+    <div class="slide-num">14 · branch sync (G16)</div>
     <h3 class="section">Branches <em>fetched &amp; fast-forwarded</em> before the diff.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -290,9 +309,9 @@
     </div>
   </section>
 
-  <!-- 14 · BOUNDARIES -->
+  <!-- 15 · BOUNDARIES -->
   <section class="slide" data-title="Honest boundaries">
-    <div class="slide-num">14 · honest boundaries</div>
+    <div class="slide-num">15 · honest boundaries</div>
     <h3 class="section">What branchdiff <em>does not</em> do.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -307,9 +326,9 @@
     </div>
   </section>
 
-  <!-- 15 · RECAP -->
+  <!-- 16 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">15 · recap</div>
+    <div class="slide-num">16 · recap</div>
     <h3 class="section">Twenty tabs, collapsed to <em>one</em>.</h3>
     <p class="lead-p">Persistent sessions, two-way sync, the full PR lifecycle from a toolbar, and branches fetched before comparison — the entire review loop fits in one browser tab.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">
@@ -319,6 +338,7 @@
       <li>Push / pull / Sync All with per-thread sync badges and a persistent status bar.</li>
       <li>PR lifecycle from the toolbar: approve, request, merge (with strategy), close, reopen, draft, ready, edit.</li>
       <li>Full CLI — <span class="mono">pr</span>, <span class="mono">sync</span>, <span class="mono">session</span>, <span class="mono">list</span>, <span class="mono">killall</span> — plus shell completion.</li>
+      <li><b>Platform activity</b> — your own review activity across GitHub &amp; Bitbucket (authored, approved, commits, comments), copied out as markdown.</li>
       <li>Branches fetched &amp; fast-forwarded; stale-code review refused unless <span class="mono">--allow-stale</span>.</li>
     </ul>
     <div class="end-links">
@@ -336,7 +356,7 @@
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-15">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-16">
 </div>
 
 <div class="dk-help" id="helpOverlay">
