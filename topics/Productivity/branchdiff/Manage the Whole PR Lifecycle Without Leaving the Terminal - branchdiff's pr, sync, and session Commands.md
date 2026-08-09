@@ -1,16 +1,16 @@
 Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands
 
-Your Claude Code skill just finished a review pass. It read the diff, posted three `[must-fix]` comments and two `[suggestion]`s via `branchdiff agent comment`, and decided — based on your own gating rules — that the PR is clean enough to ship. Now what? Before v1.6.1, "now what" meant tabbing over to GitHub, finding the PR, clicking Approve, then clicking Merge. The agent that could read a 40-file diff and reason about severity tags could not press the one button that mattered.
+Your Claude Code skill just finished a review pass. It read the diff, posted three `[must-fix]` comments and two `[suggestion]`s via `branchdiff agent comment`, and decided — based on your own gating rules — that the PR is clean enough to ship. Now what? Without a terminal path for those last steps, "now what" means tabbing over to GitHub, finding the PR, clicking Approve, then clicking Merge — the agent that can read a 40-file diff and reason about severity tags cannot press the one button that matters.
 
 That gap is not cosmetic. It is the difference between "an AI that helps me review" and "an AI that can actually run a review-to-merge pipeline unattended." A script wired to a Claude Code skill, a CI job that wants to auto-merge dependency bumps once checks pass, an agent working through a queue of PRs overnight — none of that works if the last step requires a human with a mouse. The diff viewer, the comment API, the whole `branchdiff agent` surface was genuinely useful, but it stopped exactly at the point where the loop needed to close.
 
-branchdiff v1.6.1 closes it. Every mutation the browser UI can perform — approve, merge, close, reopen, mark ready, push comments to the remote, pull them back, manage sessions — now has a CLI command behind it. This post walks through the four command groups that make that possible: `pr`, `sync`, `session`, and four new `agent` subcommands for cleaning up comments an agent created earlier.
+branchdiff closes it. Every mutation the browser UI can perform — approve, merge, close, reopen, mark ready, push comments to the remote, pull them back, manage sessions — has a CLI command behind it. This post walks through the four command groups that make that possible: `pr`, `sync`, `session`, and four `agent` subcommands for cleaning up comments an agent created earlier.
 
 ---
 
 ## Why this gap mattered
 
-Before 1.6.1, `branchdiff agent` covered reading and commenting: `agent diff`, `agent comment`, `agent resolve`, `agent dismiss`, `agent reply`. Enough to run a full review pass headlessly. But the moment a review pass concluded "this is good, approve it" or "this is done, merge it," the pipeline hit a wall — those actions lived only in the browser. Same for comment sync: pushing local threads to the remote PR, or pulling remote comments into a local session, meant opening the sync dialog and clicking buttons.
+On the reviewing side, `branchdiff agent` covered reading and commenting: `agent diff`, `agent comment`, `agent resolve`, `agent dismiss`, `agent reply`. Enough to run a full review pass headlessly. But the moment a review pass concluded "this is good, approve it" or "this is done, merge it," the pipeline hit a wall — those actions lived only in the browser. Same for comment sync: pushing local threads to the remote PR, or pulling remote comments into a local session, meant opening the sync dialog and clicking buttons.
 
 For a human using branchdiff interactively, that was a minor inconvenience — you were probably in the browser anyway. For a script or an agent driving the whole thing, it was a hard stop. You could not write a shell script that reviews, decides, and merges. You could not point `branchdiff auto` (or a custom loop) at a queue of PRs and have it act on its own verdict. Every full-lifecycle workflow needed a human in the loop at the exact step that mattered most.
 
@@ -73,7 +73,7 @@ Pulled from PR (github:acme/api)
   New threads: 2  New replies: 0  Skipped: 5
 ```
 
-This is the CLI equivalent of the browser's Sync All button — before 1.6.1 that button was the only way to push an agent's freshly-posted comments to the actual PR, or to pull in what a human reviewer added on GitHub since your last local pass. Now both directions are one command, scriptable, plus `sync push-thread` for pushing just one thread without syncing everything else pending.
+This is the CLI equivalent of the browser's Sync All button — scriptable, so both directions are one command. A pass can push its freshly-posted comments to the actual PR, or pull in what a human reviewer added on GitHub since your last local pass. `sync push-thread` pushes just one thread without syncing everything else pending.
 
 ---
 

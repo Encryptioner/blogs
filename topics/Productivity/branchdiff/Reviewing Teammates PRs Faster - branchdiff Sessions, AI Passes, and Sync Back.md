@@ -40,7 +40,7 @@ Staleness uses an **FNV-1a hash of the file's diff signature** — content-based
 
 The state persists across sessions and machines via a stable **repo fingerprint** — branchdiff scans your remotes (upstream, then origin, then any other) to converge on a canonical ID across forks. `branchdiff info` prints the fingerprint and state-table size so you can audit what is being tracked.
 
-There is also a **commit detail page** (v1.5.0). Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button returns you to the branch comparison without losing your position.
+There is also a **commit detail page**. Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button returns you to the branch comparison without losing your position.
 
 ---
 
@@ -64,13 +64,13 @@ The sidebar has nine filter chips that stack with the search box. Each one answe
 
 Filters auto-hide when inapplicable — no `Staged` chip on a branch comparison, no `Commented` chip when nothing is commented yet. They stack with the search box, so *Filter → Stale + search "auth"* gives you exactly the auth files that changed since you last looked.
 
-As of v2.0.1 there is a tenth chip — **Resolved**. Files with a resolved thread (a local resolve, or one resolved on the PR) get a green ✓ pill on the row; click **Resolved** to jump to the first one. It earns its keep on a re-review, the exact moment you care which concerns the author has closed.
+There is a tenth chip — **Resolved**. Files with a resolved thread (a local resolve, or one resolved on the PR) get a green ✓ pill on the row; click **Resolved** to jump to the first one. It earns its keep on a re-review, the exact moment you care which concerns the author has closed.
 
 Two toolbar helpers work alongside the filters: **Collapse all** folds every file for a high-level pass; **Expand all** opens everything for a deep read. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.
 
 For working-tree reviews, the **staged / unstaged toggle** flips between `git diff --staged` and `git diff` without re-running the command. File rows show inline status badges — **S** (staged), **U** (unstaged), amber dot (stale), checkmark (viewed and current).
 
-Note the other direction: a *branch* comparison (`main..feature`) is **committed-only by default as of v2.0.1** — untracked and uncommitted files no longer leak into it. If you want them in, `--include-staged` / `--include-unstaged` on the root command opt back in (they seed the shareable URL and reach the review/resolve skills, but never `auto`).
+Note the other direction: a *branch* comparison (`main..feature`) is **committed-only by default** — untracked and uncommitted files do not leak into it. If you want them in, `--include-staged` / `--include-unstaged` on the root command opt back in (they seed the shareable URL and reach the review/resolve skills, but never `auto`).
 
 A typical second-pass workflow: *Filter → Stale*, re-read those files, mark viewed; *Filter → Unviewed*, finish those; *Filter → Commented*, sanity-check the threads. The PR shrinks from "38 files" to a list of seven that need attention right now.
 
@@ -82,9 +82,9 @@ Inline diffs fall apart when the change depends on context far above or below th
 
 - All hunks expanded in place inside the full file. You see the whole function, not three lines ripped out of context.
 - A **minimap on the right** marking added, removed, and modified regions. Scan a 1,000-line file in a glance and click straight to a change. The question "is there anywhere else this pattern appears?" becomes answerable in two seconds.
-- Inline review threads anchored to the same lines they live on in hunk view — comments do not disappear when you switch modes. (The `endLine` anchor was fixed in v1.5.0 to keep the two views consistent.)
+- Inline review threads anchored to the same lines they live on in hunk view — comments do not disappear when you switch modes. The `endLine` anchor keeps the two views consistent.
 
-For markdown files, v1.5.0 added a **Preview** toggle that renders both old and new sides as formatted markdown side-by-side. Documentation PRs become readable instead of a maze of `**`, `>`, and backtick noise.
+For markdown files, a **Preview** toggle renders both old and new sides as formatted markdown side-by-side. Documentation PRs become readable instead of a maze of `**`, `>`, and backtick noise.
 
 Full-file view + minimap together transform a "scrolling through hunks" review into a "reading the file with annotations" review. For refactor PRs — the kind where GitHub's hunk view gives you fifty disconnected three-line windows — it is a genuinely different activity.
 
@@ -110,7 +110,7 @@ For somebody else's PR I usually run two passes:
 
 For larger or riskier PRs I add **breaking-change review** or **dependency review**.
 
-Two v1.5.0 improvements make these passes less noisy: **constructive tone** (comments lead with the problem, not a judgment) and **nth-time review awareness** (resolved and dismissed threads are not re-raised unless there is new evidence).
+Two improvements make these passes less noisy: **constructive tone** (comments lead with the problem, not a judgment) and **nth-time review awareness** (resolved and dismissed threads are not re-raised unless there is new evidence).
 
 You read the AI's comments, decide which are real, dismiss the rest with reasons (`branchdiff agent dismiss <id> --reason "..."`), and keep the ones worth escalating. The AI is a first-pass filter — it lets you put your real attention on the parts that require understanding intent.
 

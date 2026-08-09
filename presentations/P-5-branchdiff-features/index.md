@@ -8,7 +8,7 @@ built from. Read this before adding or editing a deck.
 
 ## 1. Goal & audience
 
-Public-facing, step-by-step feature decks for **branchdiff** (v2.0.1), aimed at
+Public-facing, step-by-step feature decks for **branchdiff**, aimed at
 developers who review code on GitHub / Bitbucket. Each deck is a self-contained
 HTML file framed as **native problem → branchdiff solve**, with real UI
 screenshots and conceptual diagrams.
@@ -23,8 +23,8 @@ native PR workflow and showing how branchdiff removes it.
 | Decision | Choice | Why |
 |---|---|---|
 | Structure | Multiple **standalone** HTML decks (one per theme) + an `index.html` navigation hub | User wants modular, linkable decks — not one mega-deck |
-| Scope | **8 themed decks** curating all features through v2.0.0 | Public-friendly; not exhausting; every feature group maps to one deck |
-| Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current v2.0.0 UI; diagrams for flows that can't be screenshotted |
+| Scope | **8 themed decks** curating every feature group | Public-friendly; not exhausting; every feature group maps to one deck |
+| Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current UI; diagrams for flows that can't be screenshotted |
 | Visual identity | **GitHub-dark + neon mint** (matches a git tool's identity) | User pick |
 | CSS approach | **Self-contained custom CSS** (Style A architecture) recoloured to Style B palette | Robust through the raw-GitHub proxy — no Tailwind CDN dependency to fail; easy to template across decks |
 | Extensibility | Numbered files, data-driven hub, documented deck template | New feature ships → add one deck = one file + one hub entry |
@@ -95,11 +95,11 @@ proxy by the existing Token Economics deck.
 
 ---
 
-## 5. Feature → deck mapping (coverage through v2.0.1)
+## 5. Feature → deck mapping
 
 All 16 feature groups map to exactly one deck (install lives in the hub). Deck 8
-extends `auto` to multiple repos — new in v2.0.0, the only feature not in the
-original G1–G16 grouping. Nothing is dropped.
+extends `auto` to multiple repos — the one feature outside the original
+G1–G16 grouping. Nothing is dropped.
 
 | # | Deck | Feature groups covered |
 |---|---|---|
@@ -108,7 +108,7 @@ original G1–G16 grouping. Nothing is dropped.
 | 3 | Comments & Review Surface | G3 comments · G4 viewed/stale/collapse state · G12 tours |
 | 4 | AI Review & Resolve | G8 agent · skills · resolve-with-verify |
 | 5 | Automatic PR Review | G9 `auto` · G10 worktrees · `--detach`/`auto cron` unattended scheduling |
-| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` dashboard (v2.0.1: Configs/Today/Refresh) |
+| 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` dashboard |
 | 7 | Repo Exploration | G13 history/blame/tree/search/branches/show/graph/commit-detail |
 | 8 | Multi-Repo Auto Cycles | multi-repo `auto` · `--repo-paths`/depth-1 discovery · `--repo-concurrency` · `--keep-servers` · discovery consent · cycle report · session-death resilience |
 | — | (hub) Get Started | G15 cross-platform install · self-update |
@@ -207,7 +207,7 @@ on every feature slide — never describe an action without showing how to do it
   three-line windows" on refactor PRs; mouse-heavy; GitHub and Bitbucket differ.
 - **Solve:** one local page, whole file in place, identical on both forges.
 - **Features:** split/unified/full views, syntax highlight (Shiki), markdown
-  preview, 9 stacking sidebar filters (v2.0.1 adds a tenth — Resolved, green ✓ pill), file-row status badges, right-click bulk
+  preview, 10 stacking sidebar filters, file-row status badges, right-click bulk
   ops, collapse-all (keeps open threads), virtualized lists, vim keys (`j/k n/p
   u/s/f x r /`), auto-advance, behind-by indicator, swap.
 - **Assets:** `01-diff-unified`, `02-diff-split`, `03-diff-full`, `B-15/sidebar-filters-grid`.
@@ -229,10 +229,10 @@ on every feature slide — never describe an action without showing how to do it
 - **Solve:** tagged inline threads, persistent viewed/stale state, WYSIWYG
   comments, AI-generated code tours.
 - **Features:** `[must-fix]/[suggestion]/[nit]/[question]` tags, WYSIWYG Milkdown
-  editor, thread lifecycle (open/resolved/dismissed + replies; v2.0.1: a green ✓ resolved-pill + a Resolved sidebar filter), general comments
+  editor, thread lifecycle (open/resolved/dismissed + replies), general comments
   (one consolidated comment per review pass), viewed counter that survives
   force-pushes, FNV-1a stale detection, per-(pair+mode) collapse persistence,
-  working-tree (staged/unstaged) toggle, v2.0.1 committed-only branch-pair diff default (`--include-staged`/`--include-unstaged` opt-in), code tours.
+  working-tree (staged/unstaged) toggle, committed-only branch-pair diff default (`--include-staged`/`--include-unstaged` opt-in), code tours.
 - **Assets:** `04-inline-comment`, `B-14/comment-tag-taxonomy`,
   `B-15/viewed-stale-state`, `B-15/sidebar-filters-grid`.
 
@@ -260,8 +260,8 @@ on every feature slide — never describe an action without showing how to do it
   bot — run backgrounded or on a real schedule.
 - **Features:** `auto` watch/pick, `--review/--notify/--push`,
   `--tool/--exec`, `--skill`, `--parallel`, `--resolve`, deterministic
-  `--approve/--request-changes [level]` gate (severity levels 1-5; v2.0.1: a bare
-  sign-off — LGTM / done / +1 — no longer blocks approval, and a signed-off
+  `--approve/--request-changes [level]` gate (severity levels 1-5; a bare
+  sign-off — LGTM / done / +1 — does not block approval, and a signed-off
   human thread is resolved, not merely replied to),
   pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard),
@@ -271,8 +271,8 @@ on every feature slide — never describe an action without showing how to do it
   fires on a Mac, Unix-only) / `auto cron list` / `auto cron remove --id` / `auto stop
   --cron-id`**, config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
   per-repo, `defaults`/`auto` keys, CLI > repo > global precedence, `auto.exec`/
-  `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`),
-  and v2.0.1 named reviewer-error reasons (rate-limit / overload / billing /
+  `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`,
+  and named reviewer-error reasons (rate-limit / overload / billing /
   missing-key / timeout) with `--debug` stack traces logged to `~/.branchdiff/logs/`.
 - **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
 
@@ -290,7 +290,7 @@ on every feature slide — never describe an action without showing how to do it
   `pr`/`sync`/`session`/`list`/`kill`/`info`/`doctor`/`update` CLI,
   `branchdiff stats` usage dashboard (`--repo` scope, `--json`/`--share`,
   `--days`/`--since`/`--until`/`--today` window, Configs viewer + per-section Refresh) aggregating across every repo by
-  default, `config --json`/`--dir`/`sample --full` (v2.0.1), `export`/`import` portable session bundles (`--conflict
+  default, `config --json`/`--dir`/`sample --full`, `export`/`import` portable session bundles (`--conflict
   merge|skip|overwrite`), shell completion, branch fetch/ff, stale-code
   refusal.
 - **Assets:** `B-13/90-second-flow`, `B-13/pr-lifecycle-groups`; code blocks.

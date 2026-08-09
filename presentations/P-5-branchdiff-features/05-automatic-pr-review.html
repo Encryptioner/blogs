@@ -162,7 +162,7 @@
       </div>
       <div class="box solve">
         <h4>branchdiff deterministic gate</h4>
-        <p>Any open <span class="mono">[must-fix]</span> blocks approval — so does any open human-started thread, <em>except a bare sign-off</em>. As of v2.0.1 the gate recognizes an acknowledgement — <span class="mono">LGTM</span>, <span class="mono">done</span>, <span class="mono">+1</span> — and lets it through. The AI reconciles prior threads: it resolves its own, and resolves a human thread once that commenter has signed off; otherwise it only replies. The un-enabled side still gets a written recommendation.</p>
+        <p>Any open <span class="mono">[must-fix]</span> blocks approval — so does any open human-started thread, <em>except a bare sign-off</em>. The gate recognizes an acknowledgement — <span class="mono">LGTM</span>, <span class="mono">done</span>, <span class="mono">+1</span> — and lets it through. The AI reconciles prior threads: it resolves its own, and resolves a human thread once that commenter has signed off; otherwise it only replies. The un-enabled side still gets a written recommendation.</p>
       </div>
     </div>
   </section>
@@ -179,7 +179,7 @@
       <div class="stat"><div class="num">5</div><div class="label">any</div><div class="desc">every tag, untagged too</div></div>
     </div>
     <div class="callout accent" style="margin-top:18px">
-      <b>Human threads block — except a sign-off.</b> As of v2.0.1, a human <span class="mono">LGTM</span> / <span class="mono">+1</span> / "done" counts as an acknowledgement, not an open concern. Any real question or must-fix a person raised still holds the gate at every level; only the <em>AI-tagged</em> boundary moves with the level. <span class="mono">--approve 2</span> / <span class="mono">--request-changes 4</span> pick the level; both flags must agree if both are set.
+      <b>Human threads block — except a sign-off.</b> A human <span class="mono">LGTM</span> / <span class="mono">+1</span> / "done" counts as an acknowledgement, not an open concern. Any real question or must-fix a person raised still holds the gate at every level; only the <em>AI-tagged</em> boundary moves with the level. <span class="mono">--approve 2</span> / <span class="mono">--request-changes 4</span> pick the level; both flags must agree if both are set.
     </div>
     <div class="callout" style="margin-top:12px">
       <b>The run explains itself first.</b> Before <span class="mono">auto</span> or <span class="mono">review run</span> touches a PR, it prints what it's about to do — a "Using:" list of every flag you passed and a "Defaults in effect:" list for what didn't, including what the active level actually blocks.
@@ -376,11 +376,11 @@
       </div>
     </div>
     <div class="callout danger" style="margin-top:14px">
-      <b>Runs while you're not looking — that's the point, and the risk.</b> A bad prompt or a misconfigured <span class="mono">--exec</span> runs unattended too. As of v2.0.1 a failed review reports a <em>named</em> reason — rate-limit, overload, billing, missing API key, timeout — not an opaque error; <span class="mono">--debug</span> prints the full stack trace and keeps per-run logs in <span class="mono">~/.branchdiff/logs/</span>. Start with <span class="mono">--notify</span> on and check <span class="mono">auto attach</span> until you trust it.
+      <b>Runs while you're not looking — that's the point, and the risk.</b> A bad prompt or a misconfigured <span class="mono">--exec</span> runs unattended too. A failed review reports a <em>named</em> reason — rate-limit, overload, billing, missing API key, timeout — not an opaque error; <span class="mono">--debug</span> prints the full stack trace and keeps per-run logs in <span class="mono">~/.branchdiff/logs/</span>. Start with <span class="mono">--notify</span> on and check <span class="mono">auto attach</span> until you trust it.
     </div>
   </section>
 
-  <!-- 16 · SCHEDULING BACKEND (v2.0.1) -->
+  <!-- 16 · SCHEDULING BACKEND -->
   <section class="slide" data-title="Scheduling that actually fires">
     <div class="slide-num">16 · scheduling that fires</div>
     <h3 class="section">Scheduling that <em>actually fires</em> — launchd on macOS, cron on Linux.</h3>
@@ -390,7 +390,7 @@
         <p>macOS TCC / Full Disk Access quietly blocks <span class="mono">crontab</span> from launching terminal tools. The schedule is installed, the time arrives, nothing happens — no error, no log, just silence. "My bot stopped reviewing weeks ago" with zero clue why.</p>
       </div>
       <div class="box solve">
-        <h4>launchd LaunchAgent (v2.0.1)</h4>
+        <h4>launchd LaunchAgent</h4>
         <p>On macOS, <span class="mono">auto cron add</span> now writes a per-user <span class="mono">launchd</span> LaunchAgent instead of a crontab line — the same path the OS uses for its own daemons, so TCC lets it run. Linux keeps <span class="mono">cron</span>. Same <span class="mono">--start</span> / <span class="mono">--end</span>; branchdiff picks the backend from your OS.</p>
       </div>
     </div>
