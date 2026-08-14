@@ -1,27 +1,23 @@
-# Free, Offline Voice Dictation Anywhere — Driven From Your Phone Over VNC
+# Run Your Desk From the Couch — Free Voice Dictation + Remote Control, Set Up Once
 
 > Typing rations context. You compress the message, drop the caveat, skip the background — then spend three turns re-adding what you cut. Speaking removes that tax.
 
-Stanford puts dictation at roughly 3x typing speed, but the bigger win isn't speed. It's that you stop under-specifying. When talking costs nothing, you say the caveat instead of cutting it — whether that's a commit message, a Slack reply, a doc, an email, or a prompt to an AI agent like Claude Code. Prompting agents is one of the places this pays off fastest (context you'd normally trim is exactly what an agent needs), but it's one use case among many, not the point of the setup.
+A build's running upstairs. You're on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent that's mid-task, check whether the tests actually passed. None of that needs you to get up and sit back down at a desk. It needs your voice and a phone, pointed at a machine that's already on.
 
-So I went looking for a dictation setup with a specific bar: **free, fully offline** (no cloud dependency, no subscription), **system-wide** (works inside a terminal, not just chat boxes), and light on disk/RAM on an 8 GB-class machine. Below is what I run — on Mac and on Ubuntu — plus a setup I didn't expect to need: controlling the whole desktop from my phone over the local network, no cloud relay. That second half turned out useful for more than dictation — switching between running apps, checking a build log, replying to something without walking to the desk.
+That's the actual shape of this setup once it's running: **occasional, light touches on real work, from wherever you already are** — another room, the couch, bed, mid-chore. Not a full workstation replacement, not "work from anywhere all day." Just the ability to close the gap between *having a thought worth acting on* and *acting on it*, without that gap costing you a walk to the desk every time.
 
----
+This is also where AI-assisted work actually earns its keep. The boring part — typing out a careful prompt, re-explaining context you already have in your head, walking over just to type three words — is exactly the part worth deleting. What's left is the part that still needs you: judgment, taste, deciding what's worth saying and when to step in. Voice plus remote control doesn't automate that away — it just removes the friction between deciding and doing, so you spend your attention on the decision, not the mechanics of delivering it.
 
-## Picking a tool
+**The setup cost is a weekend, once. The payoff doesn't expire.** Everything below is free, runs offline, and — once wired — needs nothing further from you: no subscription to keep paying, no cloud account to manage, no model to retrain. Set it up on a Saturday, and every day after that, the couch is a valid place to get something done.
 
-| Tool | Free tier | Offline model | macOS | Ubuntu |
-|---|---|---|---|---|
-| superwhisper | Free (tiny/base, 3 modes cap); Pro $8.49/mo unlocks large-v3 | Yes | Native | No |
-| **Handy** | 100% free, MIT, no tiers | whisper.cpp + Parakeet, unlimited | Native | Native |
-| VoiceInk | $25–49 one-time (GPLv3, buildable free) | Local Whisper | Native | No |
-| Whispering | Free OSS; local via Speaches/whisper.cpp | Yes | Yes | Yes |
-| OpenWhispr | Free local; cloud tier adds paid quota | whisper.cpp + Parakeet | Yes | Yes |
-| Wispr Flow | ~2,000 words/week free | **No offline mode** | Yes | No |
+## What it actually looks like
 
-**[Handy](https://github.com/cjpais/Handy)** won: MIT-licensed, no model or mode caps, no account, runs on both machines I actually use (Mac daily, Ubuntu for a home box), and pastes into any focused app — including a terminal, which was the whole point.
+- **Mid-rest, an AI agent needs a nudge.** Tap the phone, say "looks good, continue" or "stop, redo the auth part" — it lands as a real keypress in the real terminal, same as if you'd walked over and typed it.
+- **A build's running, you want to know without getting up.** Pull up the phone, glance at the terminal over the mirrored screen, done. No SSH session to remember, no separate monitoring app.
+- **A reply is worth sending now, not in twenty minutes.** Dictate it — into Slack, an email, a commit message — from wherever you're sitting, at roughly 3x typing speed, and without the usual tax of compressing the thought to make typing it bearable.
+- **You're doing something else entirely** — cooking, stretching, half-watching something — and a stray thought about the code is worth capturing before it's gone. Say it. It's text on the screen before you've even sat back down.
 
-One naming gotcha worth flagging up front: `apt search handy` on Ubuntu surfaces `libhandy-1-0`/`gir1.2-handy-1` first — that's an unrelated GTK widget library, same name, different project. The tool here always comes from `github.com/cjpais/Handy` releases directly.
+Two tools make this work, both free and offline: **[Handy](https://github.com/cjpais/Handy)** for the voice-to-text part (dictation lands in any focused app, terminal included), and a small **phone-as-remote-control** rig (VNC + a mic relay) for reaching the desktop itself from another room. The rest of this post is how each piece gets wired — once.
 
 ---
 
@@ -398,6 +394,23 @@ DroidCam's phone app stops streaming on its own once the client disconnects.
 Full chain confirmed working over LAN: bVNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly.
 
 The setup is more moving parts than a typical dictation write-up — a phone-mic relay and a remote desktop protocol is a lot of infrastructure for a keyboard shortcut. But each piece is free, each piece is offline, and what it buys is a full second input surface for the desktop: dictate into anything — a commit message, a Slack reply, a doc, an AI agent prompt — or just drive the machine outright, switch apps, run a shortcut, check on something, all from whatever's in your pocket, without a subscription and without a cloud service listening in.
+
+---
+
+## Appendix: other dictation tools considered
+
+Handy won on a specific bar — free, fully offline, no account, no mode caps, works in a terminal. For reference, what else was on the table:
+
+| Tool | Free tier | Offline model | macOS | Ubuntu |
+|---|---|---|---|---|
+| superwhisper | Free (tiny/base, 3 modes cap); Pro $8.49/mo unlocks large-v3 | Yes | Native | No |
+| **Handy** | 100% free, MIT, no tiers | whisper.cpp + Parakeet, unlimited | Native | Native |
+| VoiceInk | $25–49 one-time (GPLv3, buildable free) | Local Whisper | Native | No |
+| Whispering | Free OSS; local via Speaches/whisper.cpp | Yes | Yes | Yes |
+| OpenWhispr | Free local; cloud tier adds paid quota | whisper.cpp + Parakeet | Yes | Yes |
+| Wispr Flow | ~2,000 words/week free | **No offline mode** | Yes | No |
+
+One naming gotcha: `apt search handy` on Ubuntu surfaces `libhandy-1-0`/`gir1.2-handy-1` first — an unrelated GTK widget library, same name, different project. The tool here always comes from `github.com/cjpais/Handy` releases directly.
 
 ---
 

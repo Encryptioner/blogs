@@ -18,7 +18,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./topics/Productivity/Claude%20Code/Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
 - [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent](./topics/Productivity/Claude%20Code/Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
 - [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
-- [Free, Offline Voice Dictation Anywhere - Driven From Your Phone Over VNC](./topics/Productivity/Free%2C%20Offline%20Voice%20Dictation%20Anywhere%20-%20Driven%20From%20Your%20Phone%20Over%20VNC.md)
+- [Run Your Desk From the Couch - Free Voice Dictation + Remote Control, Set Up Once](./topics/Productivity/Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Voice%20Dictation%20%2B%20Remote%20Control%2C%20Set%20Up%20Once.md)
 
 ##### branchdiff
 - [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
