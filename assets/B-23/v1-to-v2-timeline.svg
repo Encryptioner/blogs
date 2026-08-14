@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="580" viewBox="0 0 1400 580" font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif">
+  <rect width="1400" height="580" fill="#0D1117"/>
+
+  <!-- header -->
+  <text x="60" y="56" fill="#E6EDF3" font-size="28" font-weight="800">Four months, <tspan fill="#00E3A8">twenty-one releases</tspan>: one diff command → a self-hosted review bot.</text>
+
+  <!-- era bands -->
+  <rect x="90" y="280" width="880" height="46" rx="8" fill="#00E3A8" opacity="0.07"/>
+  <text x="530" y="308" text-anchor="middle" fill="#00E3A8" font-size="13" font-weight="700" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">v1 — a local review tool</text>
+  <rect x="1010" y="280" width="300" height="46" rx="8" fill="#BC8CFF" opacity="0.10"/>
+  <text x="1160" y="308" text-anchor="middle" fill="#BC8CFF" font-size="13" font-weight="700" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">v2 — an automated bot</text>
+
+  <!-- main timeline line -->
+  <line x1="90" y1="303" x2="1310" y2="303" stroke="#30363D" stroke-width="0" />
+  <line x1="120" y1="303" x2="1000" y2="303" stroke="#00E3A8" stroke-width="3" opacity="0.5"/>
+  <line x1="1010" y1="303" x2="1290" y2="303" stroke="#BC8CFF" stroke-width="3" opacity="0.6"/>
+
+  <!-- month labels -->
+  <text x="120" y="372" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">APR</text>
+  <text x="430" y="372" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">MAY</text>
+  <text x="700" y="372" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">JUN</text>
+  <text x="970" y="372" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">JUL</text>
+  <text x="1190" y="372" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">AUG</text>
+
+  <!-- milestones: alternating above/below -->
+  <!-- 1 Apr 10 init (above) -->
+  <g>
+    <circle cx="120" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="120" y1="296" x2="120" y2="220" stroke="#30363D" stroke-width="1.5"/>
+    <text x="120" y="206" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Apr 10</text>
+    <text x="120" y="186" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">init</text>
+    <text x="120" y="168" text-anchor="middle" fill="#6E7681" font-size="11">proof of concept</text>
+  </g>
+
+  <!-- 2 Apr 17 v1.0.0 (below) -->
+  <g>
+    <circle cx="210" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="210" y1="310" x2="210" y2="410" stroke="#30363D" stroke-width="1.5"/>
+    <text x="210" y="404" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Apr 17</text>
+    <text x="210" y="424" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.0.0</text>
+    <text x="210" y="442" text-anchor="middle" fill="#6E7681" font-size="11">on npm</text>
+  </g>
+
+  <!-- 3 Apr 22 v1.1.0 (above) -->
+  <g>
+    <circle cx="300" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="300" y1="296" x2="300" y2="220" stroke="#30363D" stroke-width="1.5"/>
+    <text x="300" y="206" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Apr 22</text>
+    <text x="300" y="186" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.1.0</text>
+    <text x="300" y="168" text-anchor="middle" fill="#6E7681" font-size="11">AI review + Bitbucket</text>
+  </g>
+
+  <!-- 4 May 5 v1.4.0 (below) -->
+  <g>
+    <circle cx="430" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="430" y1="310" x2="430" y2="410" stroke="#30363D" stroke-width="1.5"/>
+    <text x="430" y="404" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">May 5</text>
+    <text x="430" y="424" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.4.0</text>
+    <text x="430" y="442" text-anchor="middle" fill="#6E7681" font-size="11">6 install methods</text>
+  </g>
+
+  <!-- 5 May 8 v1.5.0 (above) -->
+  <g>
+    <circle cx="500" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="500" y1="296" x2="500" y2="220" stroke="#30363D" stroke-width="1.5"/>
+    <text x="500" y="206" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">May 8</text>
+    <text x="500" y="186" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.5.0</text>
+    <text x="500" y="168" text-anchor="middle" fill="#6E7681" font-size="11">PR lifecycle</text>
+  </g>
+
+  <!-- 6 May 13 v1.6.0 (below) -->
+  <g>
+    <circle cx="570" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="570" y1="310" x2="570" y2="410" stroke="#30363D" stroke-width="1.5"/>
+    <text x="570" y="404" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">May 13</text>
+    <text x="570" y="424" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.6.0</text>
+    <text x="570" y="442" text-anchor="middle" fill="#6E7681" font-size="11">background mode</text>
+  </g>
+
+  <!-- 7 Jun 1 v1.6.1 (above) -->
+  <g>
+    <circle cx="700" cy="303" r="7" fill="#00E3A8"/>
+    <line x1="700" y1="296" x2="700" y2="220" stroke="#30363D" stroke-width="1.5"/>
+    <text x="700" y="206" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Jun 1</text>
+    <text x="700" y="186" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v1.6.1</text>
+    <text x="700" y="168" text-anchor="middle" fill="#6E7681" font-size="11">pr / sync / session</text>
+  </g>
+
+  <!-- 8 Aug 5 v2.0.0 — THE milestone (below, big) -->
+  <g>
+    <circle cx="1080" cy="303" r="13" fill="#BC8CFF"/>
+    <circle cx="1080" cy="303" r="22" fill="none" stroke="#BC8CFF" stroke-width="1.5" opacity="0.5"/>
+    <line x1="1080" y1="316" x2="1080" y2="410" stroke="#BC8CFF" stroke-width="1.5"/>
+    <text x="1080" y="404" text-anchor="middle" fill="#BC8CFF" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Aug 5</text>
+    <text x="1080" y="426" text-anchor="middle" fill="#E6EDF3" font-size="16" font-weight="800">v2.0.0</text>
+    <text x="1080" y="446" text-anchor="middle" fill="#BC8CFF" font-size="12" font-weight="700">auto · multi-repo</text>
+    <text x="1080" y="464" text-anchor="middle" fill="#8B949E" font-size="11">cron · stats · worktree</text>
+  </g>
+
+  <!-- 9 Aug 12 v2.1.0 (above) -->
+  <g>
+    <circle cx="1220" cy="303" r="7" fill="#BC8CFF"/>
+    <line x1="1220" y1="296" x2="1220" y2="220" stroke="#30363D" stroke-width="1.5"/>
+    <text x="1220" y="206" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Aug 12</text>
+    <text x="1220" y="186" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v2.1.0</text>
+    <text x="1220" y="168" text-anchor="middle" fill="#6E7681" font-size="11">launchd · severity gate</text>
+  </g>
+
+  <!-- 10 Aug 13 v2.1.1 (below) -->
+  <g>
+    <circle cx="1290" cy="303" r="7" fill="#BC8CFF"/>
+    <line x1="1290" y1="310" x2="1290" y2="410" stroke="#30363D" stroke-width="1.5"/>
+    <text x="1290" y="404" text-anchor="middle" fill="#8B949E" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Aug 13</text>
+    <text x="1290" y="424" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700">v2.1.1</text>
+    <text x="1290" y="442" text-anchor="middle" fill="#6E7681" font-size="11">PATH self-heal</text>
+  </g>
+
+  <!-- callout arrow to v2.0.0 -->
+  <text x="1080" y="510" text-anchor="middle" fill="#6E7681" font-size="13" font-style="italic">the leap: from reviewing one PR to reviewing a directory of repos unattended</text>
+</svg>

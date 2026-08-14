@@ -26,6 +26,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Build Your Own CodeRabbit With branchdiff auto - Unattended AI PR Review, On Your Terms](./topics/Productivity/branchdiff/Build%20Your%20Own%20CodeRabbit%20With%20branchdiff%20auto%20-%20Unattended%20AI%20PR%20Review%2C%20On%20Your%20Terms.md)
 - [Configure Once, Review Everywhere - branchdiff's Config System and Multi-Repo auto](./topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md)
 - [Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands](./topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md)
+- [How branchdiff Grew Up - One Diff Tool's Journey From a Proof of Concept to a Self-Hosted Review Bot](./topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md)
 
 #### Software Business
 - [The Complete Guide to Software Business Models: How Tech Companies Actually Make Money](./topics/Software%20Business/The%20Complete%20Guide%20to%20Software%20Business%20Models:%20How%20Tech%20Companies%20Actually%20Make%20Money.md)
@@ -50,6 +51,8 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Many Accounts, Many Providers, One Harness](./presentations/P-4-many-accounts-many-providers/index.md)
 - [Branchdiff Features](./presentations/P-5-branchdiff-features/index.html)
 - [Domain-Driven Design](./presentations/P-6-domain-driven-design/index.html)
+- [Local Whisper — A Private AI Chatbot That Lives in Your Browser](./presentations/P-7-local-whisper/index.html)
+- [How branchdiff Grew Up — The Build Story](./presentations/P-8-branchdiff-journey/index.html)
 
 
 ## Links

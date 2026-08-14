@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif">
+  <rect width="1200" height="720" fill="#0D1117"/>
+  <!-- header -->
+  <text x="60" y="62" fill="#E6EDF3" font-size="30" font-weight="800">git diff compares <tspan fill="#FF7B72">commit paths</tspan>. branchdiff compares <tspan fill="#00E3A8">content</tspan>.</text>
+  <text x="60" y="94" fill="#8B949E" font-size="16">Two branches can hold identical bytes yet still produce a phantom diff — because they got there by different routes.</text>
+
+  <!-- branch lane labels -->
+  <text x="60" y="178" fill="#8B949E" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace" letter-spacing="1">main</text>
+  <text x="60" y="318" fill="#8B949E" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace" letter-spacing="1">feat</text>
+
+  <!-- main lane commits A B C D -->
+  <g>
+    <!-- line -->
+    <line x1="120" y1="210" x2="760" y2="210" stroke="#30363D" stroke-width="2"/>
+    <!-- commit circles -->
+    <circle cx="140" cy="210" r="14" fill="#161B22" stroke="#6E7681" stroke-width="2"/>
+    <text x="140" y="215" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">A</text>
+    <circle cx="300" cy="210" r="14" fill="#161B22" stroke="#6E7681" stroke-width="2"/>
+    <text x="300" y="215" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">B</text>
+    <circle cx="460" cy="210" r="14" fill="#161B22" stroke="#6E7681" stroke-width="2"/>
+    <text x="460" y="215" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">C</text>
+    <circle cx="620" cy="210" r="14" fill="#161B22" stroke="#6E7681" stroke-width="2"/>
+    <text x="620" y="215" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">D</text>
+    <!-- content tag -->
+    <rect x="780" y="186" width="340" height="48" rx="8" fill="#0A0E14" stroke="#30363D"/>
+    <text x="950" y="216" text-anchor="middle" fill="#00E3A8" font-size="14" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">file.js = "hello world"</text>
+  </g>
+
+  <!-- feat lane commits A X Y -->
+  <g>
+    <line x1="120" y1="350" x2="500" y2="350" stroke="#30363D" stroke-width="2"/>
+    <circle cx="140" cy="350" r="14" fill="#161B22" stroke="#6E7681" stroke-width="2"/>
+    <text x="140" y="355" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">A</text>
+    <circle cx="300" cy="350" r="14" fill="#161B22" stroke="#BC8CFF" stroke-width="2"/>
+    <text x="300" y="355" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">X</text>
+    <circle cx="460" cy="350" r="14" fill="#161B22" stroke="#BC8CFF" stroke-width="2"/>
+    <text x="460" y="355" text-anchor="middle" fill="#E6EDF3" font-size="13" font-weight="700" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">Y</text>
+    <!-- dashed divergence indicator up to A -->
+    <rect x="780" y="326" width="340" height="48" rx="8" fill="#0A0E14" stroke="#30363D"/>
+    <text x="950" y="356" text-anchor="middle" fill="#00E3A8" font-size="14" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">file.js = "hello world"</text>
+  </g>
+
+  <!-- same content note -->
+  <text x="950" y="404" text-anchor="middle" fill="#6E7681" font-size="13">identical bytes · same SHA-1 blob hash</text>
+
+  <!-- divider -->
+  <line x1="60" y1="448" x2="1140" y2="448" stroke="#21262D" stroke-width="1"/>
+
+  <!-- outcome cards -->
+  <!-- git diff (danger) -->
+  <g>
+    <rect x="60" y="486" width="520" height="180" rx="14" fill="#161B22" stroke="#FF7B72" stroke-width="1.5"/>
+    <text x="84" y="522" fill="#FF7B72" font-size="12" font-weight="700" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">GIT DIFF MAIN..FEAT</text>
+    <text x="84" y="566" fill="#E6EDF3" font-size="26" font-weight="800">shows a diff</text>
+    <text x="84" y="600" fill="#8B949E" font-size="14">History diverged (A→B→C→D vs A→X→Y),</text>
+    <text x="84" y="622" fill="#8B949E" font-size="14">so Git reports a change — a phantom diff.</text>
+    <text x="84" y="650" fill="#6E7681" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">compares commit ancestry</text>
+  </g>
+
+  <!-- branchdiff (accent) -->
+  <g>
+    <rect x="620" y="486" width="520" height="180" rx="14" fill="#0D1117" stroke="#00E3A8" stroke-width="1.5"/>
+    <rect x="620" y="486" width="520" height="180" rx="14" fill="#00E3A8" opacity="0.06"/>
+    <text x="644" y="522" fill="#00E3A8" font-size="12" font-weight="700" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">BRANCHDIFF MAIN FEAT</text>
+    <text x="644" y="566" fill="#E6EDF3" font-size="26" font-weight="800">no diff — <tspan fill="#00E3A8">correct</tspan></text>
+    <text x="644" y="600" fill="#8B949E" font-size="14">Same blob hash on both tips, so the</text>
+    <text x="644" y="622" fill="#8B949E" font-size="14">content is identical. Nothing to review.</text>
+    <text x="644" y="650" fill="#6E7681" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">compares blob hashes (O(n) on files)</text>
+  </g>
+</svg>

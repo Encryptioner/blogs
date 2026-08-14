@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif">
+  <rect width="1280" height="820" fill="#0D1117"/>
+
+  <!-- ===== TOP: THE BUG ===== -->
+  <text x="60" y="56" fill="#FF7B72" font-size="13" font-weight="700" letter-spacing="3" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">THE BUG</text>
+  <text x="60" y="88" fill="#E6EDF3" font-size="26" font-weight="800">A review for PR #2124 lands on PR #2125.</text>
+
+  <!-- Session A (left) -->
+  <g>
+    <rect x="60" y="130" width="250" height="150" rx="12" fill="#161B22" stroke="#30363D"/>
+    <text x="185" y="160" text-anchor="middle" fill="#8B949E" font-size="11" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">SESSION A</text>
+    <text x="185" y="190" text-anchor="middle" fill="#E6EDF3" font-size="22" font-weight="800">PR #2124</text>
+    <text x="185" y="216" text-anchor="middle" fill="#00E3A8" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">port 5391</text>
+    <text x="185" y="248" text-anchor="middle" fill="#6E7681" font-size="12">browser tab polls</text>
+    <text x="185" y="266" text-anchor="middle" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">/api/info every few s</text>
+  </g>
+
+  <!-- Session B (right) -->
+  <g>
+    <rect x="970" y="130" width="250" height="150" rx="12" fill="#161B22" stroke="#30363D"/>
+    <text x="1095" y="160" text-anchor="middle" fill="#8B949E" font-size="11" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">SESSION B</text>
+    <text x="1095" y="190" text-anchor="middle" fill="#E6EDF3" font-size="22" font-weight="800">PR #2125</text>
+    <text x="1095" y="216" text-anchor="middle" fill="#00E3A8" font-size="13" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">port 5392</text>
+    <text x="1095" y="248" text-anchor="middle" fill="#6E7681" font-size="12">browser tab polls</text>
+    <text x="1095" y="266" text-anchor="middle" fill="#6E7681" font-size="12" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">/api/info every few s</text>
+  </g>
+
+  <!-- Central pointer file -->
+  <g>
+    <rect x="465" y="140" width="350" height="130" rx="12" fill="#0A0E14" stroke="#FF7B72" stroke-width="1.5"/>
+    <text x="640" y="172" text-anchor="middle" fill="#FF7B72" font-size="12" font-weight="700" letter-spacing="2" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">SHARED POINTER FILE</text>
+    <text x="640" y="202" text-anchor="middle" fill="#E6EDF3" font-size="15" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">current-session</text>
+    <text x="640" y="226" text-anchor="middle" fill="#8B949E" font-size="12">one entry, keyed by repo root</text>
+    <text x="640" y="252" text-anchor="middle" fill="#FF7B72" font-size="12">← rewritten on EVERY poll →</text>
+  </g>
+
+  <!-- poll arrows -->
+  <defs>
+    <marker id="arrowR" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#FF7B72"/></marker>
+    <marker id="arrowM" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#00E3A8"/></marker>
+  </defs>
+  <path d="M 310 175 C 380 175, 400 175, 460 175" fill="none" stroke="#FF7B72" stroke-width="2" marker-end="url(#arrowR)"/>
+  <path d="M 970 175 C 900 175, 830 175, 820 175" fill="none" stroke="#FF7B72" stroke-width="2" marker-end="url(#arrowR)"/>
+
+  <!-- AI review reads pointer -> wrong PR -->
+  <g>
+    <rect x="430" y="320" width="420" height="86" rx="12" fill="#161B22" stroke="#30363D"/>
+    <text x="640" y="350" text-anchor="middle" fill="#E6EDF3" font-size="15" font-weight="700">AI review starts for #2124</text>
+    <text x="640" y="378" text-anchor="middle" fill="#8B949E" font-size="13">reads the pointer to learn its identity → pointer now says #2125</text>
+  </g>
+  <path d="M 640 235 L 640 316" fill="none" stroke="#FF7B72" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowR)"/>
+  <path d="M 850 363 C 950 363, 980 363, 1010 285" fill="none" stroke="#FF7B72" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrowR)"/>
+  <text x="980" y="430" text-anchor="middle" fill="#FF7B72" font-size="14" font-weight="700">comments post to the WRONG pull request</text>
+
+  <!-- divider -->
+  <line x1="60" y1="470" x2="1220" y2="470" stroke="#21262D" stroke-width="1"/>
+
+  <!-- ===== BOTTOM: THE FIX ===== -->
+  <text x="60" y="510" fill="#00E3A8" font-size="13" font-weight="700" letter-spacing="3" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">THE FIX</text>
+  <text x="60" y="542" fill="#E6EDF3" font-size="26" font-weight="800">Stop the flip. Pin the reviewer's identity. One chokepoint.</text>
+
+  <!-- three fix steps -->
+  <g>
+    <rect x="60" y="576" width="370" height="190" rx="12" fill="#0D1117" stroke="#00E3A8" stroke-width="1.5"/>
+    <rect x="60" y="576" width="370" height="190" rx="12" fill="#00E3A8" opacity="0.06"/>
+    <circle cx="98" cy="612" r="16" fill="#00E3A8"/>
+    <text x="98" y="618" text-anchor="middle" fill="#031b14" font-size="16" font-weight="800">1</text>
+    <text x="128" y="618" fill="#E6EDF3" font-size="16" font-weight="700">Stop writing the pointer</text>
+    <text x="84" y="656" fill="#8B949E" font-size="13">The status-poll routes stop</text>
+    <text x="84" y="676" fill="#8B949E" font-size="13">rewriting the pointer. The polls</text>
+    <text x="84" y="696" fill="#8B949E" font-size="13"><tspan fill="#FF7B72">were</tspan> the flip — cut the write,</text>
+    <text x="84" y="716" fill="#8B949E" font-size="13">kill the race.</text>
+  </g>
+
+  <g>
+    <rect x="455" y="576" width="370" height="190" rx="12" fill="#0D1117" stroke="#00E3A8" stroke-width="1.5"/>
+    <rect x="455" y="576" width="370" height="190" rx="12" fill="#00E3A8" opacity="0.06"/>
+    <circle cx="493" cy="612" r="16" fill="#00E3A8"/>
+    <text x="493" y="618" text-anchor="middle" fill="#031b14" font-size="16" font-weight="800">2</text>
+    <text x="523" y="618" fill="#E6EDF3" font-size="16" font-weight="700">Pin identity via env</text>
+    <text x="479" y="656" fill="#8B949E" font-size="13">The reviewer is spawned with an</text>
+    <text x="479" y="676" fill="#8B949E" font-size="13">explicit session id pinned through</text>
+    <text x="479" y="696" fill="#8B949E" font-size="13">the environment. It checks that pin</text>
+    <text x="479" y="716" fill="#8B949E" font-size="13">before ever reading the pointer.</text>
+    <rect x="479" y="730" width="240" height="22" rx="5" fill="#0A0E14" stroke="#30363D"/>
+    <text x="599" y="746" text-anchor="middle" fill="#00E3A8" font-size="11" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">BRANCHDIFF_SESSION_ID=2124</text>
+  </g>
+
+  <g>
+    <rect x="850" y="576" width="370" height="190" rx="12" fill="#0D1117" stroke="#00E3A8" stroke-width="1.5"/>
+    <rect x="850" y="576" width="370" height="190" rx="12" fill="#00E3A8" opacity="0.06"/>
+    <circle cx="888" cy="612" r="16" fill="#00E3A8"/>
+    <text x="888" y="618" text-anchor="middle" fill="#031b14" font-size="16" font-weight="800">3</text>
+    <text x="918" y="618" fill="#E6EDF3" font-size="16" font-weight="700">One chokepoint, no guessing</text>
+    <text x="874" y="656" fill="#8B949E" font-size="13">Every command resolves "which</text>
+    <text x="874" y="676" fill="#8B949E" font-size="13">session am I" through a single path</text>
+    <text x="874" y="696" fill="#8B949E" font-size="13">that refuses to guess. No scattered</text>
+    <text x="874" y="716" fill="#8B949E" font-size="13">reads of the pointer from anywhere.</text>
+  </g>
+
+  <text x="640" y="800" text-anchor="middle" fill="#6E7681" font-size="14" font-style="italic">explicit identity beats ambient context</text>
+</svg>
