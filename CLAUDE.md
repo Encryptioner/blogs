@@ -42,19 +42,39 @@ Branches follow the pattern: `B-{number}/task/{topic}/{brief-description}`
 
 ## Common Workflows
 
+### Listing files — update these for every new blog/deck
+The most common slip is registering content in one index and forgetting the others. When adding or renaming content, update **every** applicable listing:
+
+| File | What lives here |
+|------|-----------------|
+| `INDEX.md` | Master numbered list — `## Blogs` (every new blog gets the next `B-NN`) and `## Presentations` (every new deck gets the next `P-N`) |
+| `README.md` | Topic-grouped blog links under `## Topics`, plus an entry under `## Presentations` |
+| `presentations/index.html` | The deck gallery hub — add one `.card` per new deck in the right topic group, and bump the `· N decks` count in the topbar to match the card count |
+| `presentations/docs/PUBLIC_LINKS.md` | Canonical public URL per deck (`## P-N — Title`) plus its companion blog line. HTML decks use the raw-content proxy URL; markdown decks/blogs use the GitHub blob URL. **This file is the one most often forgotten.** |
+
+When in doubt, grep for the previous deck (e.g. `P-7`) — every file it appears in is a file the new deck must also touch.
+
 ### Adding a New Blog Post
 1. Determine the next blog number from INDEX.md
-2. Create a new branch: `B-{number}/task/{topic}/{slug}`
+2. Create a new branch: `B-{number}/task/{topic}/{slug}` (for presentation/doc work, stay on the current branch unless told otherwise)
 3. Write the blog in the appropriate `topics/{category}/` directory
 4. Create `assets/B-{number}/` folder for any images or supporting files
-5. Update INDEX.md with the new numbered entry
-6. Update README.md with the new link under the appropriate topic section
-7. Commit and create a PR to master
+5. Register the blog in every applicable listing (see table above): at minimum `INDEX.md` (`## Blogs`) and `README.md` (topic section). If it has a companion deck, also add its line under that deck in `presentations/docs/PUBLIC_LINKS.md`.
+6. Commit and create a PR to master
+
+### Adding a New Presentation Deck
+1. Determine the next deck number (`P-N`) from INDEX.md (`## Presentations`)
+2. Stay on the current branch unless told otherwise
+3. Create the deck under `presentations/P-N-{slug}/` — HTML deck → `index.html`, markdown deck → `index.md`. HTML decks MUST: load `deck.js`/CSS from jsDelivr (never `raw.githubusercontent.com` — MIME/nosniff blocks it), include a favicon, and let `deck.js` wire the `.fig img` lightbox via event delegation (never add inline `onclick="openLightbox(this)"` — it throws, the function is closure-local).
+4. Create `assets/B-{number}/` if the deck or its companion blog needs images.
+5. Register the deck in **every** listing (see table above): `INDEX.md` (`## Presentations`), `README.md` (`## Presentations`), `presentations/index.html` (a `.card` + bump the deck count), and `presentations/docs/PUBLIC_LINKS.md` (a `## P-N — Title` section with the deck URL + companion blog line).
+6. Commit and create a PR to master
 
 ### Updating Existing Content
 - Blog posts may have multiple versions (v1, v2) as indicated in filenames
 - When creating revised versions, keep previous versions for reference
-- Update both INDEX.md and README.md if the title changes
+- If a title changes, update **every** listing that names it — `INDEX.md`, `README.md`, `presentations/docs/PUBLIC_LINKS.md`, and any deck card text in `presentations/index.html`
+- A version claim (e.g. the P-5 hub "through vX" badge) is a *coverage* signal, not a "latest tag" counter — bump it only when a new version's features actually land in a deck
 
 ### Publishing Platforms
 Content from this repository is published to:
