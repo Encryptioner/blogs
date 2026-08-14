@@ -287,6 +287,12 @@ Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, 
 
 They're not special bVNC buttons — they're just the ordinary **Enter** and **Backspace** keys on Android's own soft keyboard, same as any other key you tap. bVNC's extra-keys toolbar (the icon strip you open from the in-session toolbar) exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows — because you can't reach those any other way from touch. Enter and Backspace are already on the standard keyboard, so there's nothing extra to add: type into the focused field/terminal and use them like you would in any Android app.
 
+### Rebind the dictation hotkey for phone use
+
+The default hotkey (`Option+Space` on Mac, whatever you set on Ubuntu) is fine at a physical keyboard, but it's the *worst* shape for VNC: it's a modifier combo, which means arming a toggle button and then tapping a second key every single time you want to dictate — two taps instead of one, on a touchscreen. Handy's hotkey is fully rebindable in **Settings → Shortcut** — click the field, press whatever you want it to be, done. For phone use, pick a **single key with no modifier**: `End`, `Insert`, `Home`, or `Page Up`/`Page Down` all work well — they're plain keys on bVNC's extra-keys toolbar (or the soft keyboard itself, depending on client), so triggering dictation is one tap, not an arm-then-tap sequence. Avoid anything that isn't a standard key a mobile soft keyboard or extra-keys row can actually send — media keys and vendor-specific function keys often just don't reach the desktop over VNC at all.
+
+This is a separate setting from the OS-level shortcut-conflict fixes above (Spotlight on Mac, Wayland's single-key restrictions on Ubuntu) — those are about the hotkey not colliding with something else or firing reliably at the OS level; this is about picking a hotkey that's actually *convenient* to fire with a thumb.
+
 One thing this setup depends on getting right: **Handy has to be in toggle mode, not push-to-talk.** A VNC soft keyboard sends every key as an instant press+release — it physically cannot *hold* a key down. In push-to-talk mode, Handy sees the tap, flickers its recording indicator for a split second, and stops before anything is captured. Switch Handy's recording style to toggle (press once to start, press again to stop and transcribe) and single taps from the phone work exactly like a physical hold-and-release would.
 
 **Editing text in a terminal** (faster than arrow-key nudging on touch): standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
@@ -386,6 +392,20 @@ chmod +x ~/bin/dictation-remote-stop.sh
 ```
 
 DroidCam's phone app stops streaming on its own once the client disconnects.
+
+### Common real-life scenarios
+
+| Scenario | What to do |
+|---|---|
+| Starting the day | x11vnc is already running (autostart) — just start DroidCam (script above), then connect bVNC. |
+| Done for now / stepping away | Run the stop script. Leave x11vnc running — it's fine indefinitely, low overhead — just stop DroidCam so it's not holding your phone's mic and battery for nothing. |
+| Need the desktop mic back quickly (e.g. a call) | `pactl set-default-source <desktop-mic>` — instant, no need to stop DroidCam first. |
+| WiFi drops and reconnects | bVNC: just reconnect — `-shared` means a dead old connection won't block the new one. DroidCam: the client process usually needs a manual restart — rerun the start command. |
+| Phone's IP changed (DHCP re-lease) | Check the new IP on the DroidCam app screen, kill the `dc` tmux session, reconnect with the new IP. |
+| Long idle session, phone screen off | Android's battery optimization can throttle or kill a backgrounded app's mic stream over time — exclude DroidCam from battery optimization if you're leaving this running for hours; for a quick check-in it won't matter. |
+| Desktop reboots or loses power | x11vnc's autostart only fires **after graphical login** — if it reboots to a lock screen, nothing's listening yet, and there's no way to VNC in before that first login happens. Someone has to log in locally once after a reboot. |
+| Away from home / different WiFi | Nothing to do — x11vnc is firewalled to your home subnet, so it's simply unreachable from outside it. That's the intended behavior, not a setting to flip. |
+| Quick "is this actually working" check | `pgrep -x x11vnc && pactl list sources short \| grep Loopback` — both should return something, the source line should say `RUNNING`. |
 
 ---
 
