@@ -335,8 +335,8 @@ A standalone gallery page (same visual style) that:
   branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- **Version coverage signal:** a `v2.0.1` badge in the topbar (the `.ver` class)
-  plus a hero line — "Decks cover branchdiff through v2.0.1 — multi-repo auto,
+- **Version coverage signal:** a `v2.1.0` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v2.1.0 — multi-repo auto,
   detached server review, launchd-on-macOS / cron-on-Linux unattended runs,
   config file support, severity-gated approve, skip-PRs-by-size, a usage-stats
   dashboard with a Configs viewer, named reviewer-error reasons,
