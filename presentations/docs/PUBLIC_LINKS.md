@@ -71,3 +71,8 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
 
 - HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-7-local-whisper/index.html
 - Blog: _none yet_ (private-chat / in-browser LLM topic has no companion post)
+
+## P-8 — How branchdiff Grew Up
+
+- HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-8-branchdiff-journey/index.html
+- Blog (B-23): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md
