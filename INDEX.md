@@ -26,6 +26,7 @@
 21. Productivity: [Configure Once, Review Everywhere - branchdiff's Config System and Multi-Repo auto](./topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md)
 22. Productivity: [Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands](./topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md)
 23. Productivity: [How branchdiff Grew Up - One Diff Tool's Journey From a Proof of Concept to a Self-Hosted Review Bot](./topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md)
+24. Productivity: [Free, Offline Voice Dictation Anywhere - Driven From Your Phone Over VNC](./topics/Productivity/Free%2C%20Offline%20Voice%20Dictation%20Anywhere%20-%20Driven%20From%20Your%20Phone%20Over%20VNC.md)
 
 ## Presentations
 0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)

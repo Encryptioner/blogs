@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="560" fill="#ffffff"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#111827">Phone-Driven Dictation &amp; Remote Control — Ubuntu</text>
+  <text x="490" y="56" text-anchor="middle" font-size="13" fill="#6b7280">Everything stays on the local WiFi/LAN — no cloud relay, nothing leaves the network</text>
+
+  <!-- Phone panel -->
+  <rect x="30" y="90" width="270" height="420" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="165" y="122" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Android Phone</text>
+
+  <rect x="55" y="150" width="220" height="90" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="165" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">bVNC</text>
+  <text x="165" y="196" text-anchor="middle" font-size="11.5" fill="#1e40af">touch → mouse clicks,</text>
+  <text x="165" y="212" text-anchor="middle" font-size="11.5" fill="#1e40af">soft keyboard → keystrokes</text>
+
+  <rect x="55" y="270" width="220" height="90" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="165" y="296" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">DroidCam (Classic)</text>
+  <text x="165" y="316" text-anchor="middle" font-size="11.5" fill="#047857">phone mic → audio</text>
+  <text x="165" y="332" text-anchor="middle" font-size="11.5" fill="#047857">stream over WiFi</text>
+
+  <rect x="55" y="400" width="220" height="80" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="165" y="425" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">Same WiFi / LAN</text>
+  <text x="165" y="443" text-anchor="middle" font-size="11" fill="#6b7280">password ≠ VNC password</text>
+  <text x="165" y="459" text-anchor="middle" font-size="11" fill="#6b7280">switching WiFi is fine</text>
+
+  <!-- Arrows crossing -->
+  <line x1="300" y1="195" x2="405" y2="195" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <text x="352" y="185" text-anchor="middle" font-size="10.5" fill="#2563eb">VNC :5900</text>
+
+  <line x1="300" y1="315" x2="405" y2="315" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="352" y="305" text-anchor="middle" font-size="10.5" fill="#16a34a">port 4747</text>
+
+  <!-- Desktop panel -->
+  <rect x="410" y="90" width="540" height="420" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="680" y="122" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Ubuntu Desktop (X11)</text>
+
+  <!-- x11vnc -->
+  <rect x="435" y="150" width="230" height="100" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="550" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">x11vnc</text>
+  <text x="550" y="196" text-anchor="middle" font-size="11" fill="#1e40af">injects real X11 keyboard/</text>
+  <text x="550" y="211" text-anchor="middle" font-size="11" fill="#1e40af">mouse events + shares screen</text>
+  <text x="550" y="230" text-anchor="middle" font-size="10.5" fill="#3b82f6">-shared -repeat -auth guess</text>
+
+  <!-- tmux -->
+  <rect x="695" y="150" width="230" height="100" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="810" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">tmux session</text>
+  <text x="810" y="196" text-anchor="middle" font-size="11" fill="#92400e">all terminals in one window,</text>
+  <text x="810" y="211" text-anchor="middle" font-size="11" fill="#92400e">switch panes by keystroke</text>
+  <text x="810" y="230" text-anchor="middle" font-size="10.5" fill="#b45309">Ctrl+b, then number</text>
+
+  <line x1="550" y1="250" x2="550" y2="280" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <line x1="810" y1="250" x2="810" y2="280" stroke="#d97706" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- global keyboard input row -->
+  <rect x="435" y="285" width="490" height="60" rx="10" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="680" y="308" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">Desktop input stack — real keypresses reach every app</text>
+  <text x="680" y="326" text-anchor="middle" font-size="11" fill="#6b7280">GUI windows · terminals · Handy's global hotkey listener</text>
+
+  <line x1="680" y1="345" x2="680" y2="375" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <!-- Handy -->
+  <rect x="435" y="380" width="230" height="100" rx="10" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+  <text x="550" y="406" text-anchor="middle" font-size="14" font-weight="700" fill="#581c87">Handy (toggle mode)</text>
+  <text x="550" y="426" text-anchor="middle" font-size="11" fill="#6b21a8">hotkey tap → record →</text>
+  <text x="550" y="441" text-anchor="middle" font-size="11" fill="#6b21a8">tap again → paste text</text>
+  <text x="550" y="460" text-anchor="middle" font-size="10.5" fill="#7e22ce">Parakeet / Whisper, offline</text>
+
+  <!-- PulseAudio -->
+  <rect x="695" y="380" width="230" height="100" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="810" y="406" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">PulseAudio source</text>
+  <text x="810" y="426" text-anchor="middle" font-size="11" fill="#047857">alsa_input.hw_Loopback_1_0</text>
+  <text x="810" y="441" text-anchor="middle" font-size="11" fill="#047857">16 kHz mono — set as default</text>
+  <text x="810" y="460" text-anchor="middle" font-size="10.5" fill="#059669">device 1 capture, not device 0</text>
+
+  <line x1="695" y1="430" x2="670" y2="430" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="682" y="420" text-anchor="middle" font-size="9.5" fill="#16a34a" transform="rotate(0 682 420)">mic</text>
+
+  <text x="680" y="505" text-anchor="middle" font-size="11" fill="#9ca3af">blue = VNC control path   ·   green = phone-mic audio path   ·   amber = terminal switching</text>
+</svg>
