@@ -96,13 +96,7 @@ This part started as a convenience for dictation and turned into a general-purpo
   <sub>Two independent paths over the same LAN: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
 </div>
 
-**A note on scope**: everything from here to "Daily use" below is the **Ubuntu** setup — that's the machine it was actually built and tested on, end to end. macOS has the pieces to do the same job, untested so far:
-
-- **Screen sharing / remote control**: macOS's built-in Screen Sharing (`System Settings → General → Sharing → Screen Sharing`) speaks the same VNC protocol x11vnc does — a phone VNC client should be able to view/control a Mac with zero extra install, no x11vnc equivalent needed.
-- **Phone mic, without the DroidCam/PulseAudio-loopback dance below**: Continuity Camera can already route an iPhone's mic into a Mac as a normal system input device natively — no Android-style ALSA loopback wiring, no wrong-device mirror bug to chase, because macOS treats it as a first-class audio input out of the box.
-- **Dictation app**: same Handy install as the macOS section above — nothing changes there.
-
-None of those three have been run end-to-end and verified the way the rest of this section was — treat them as the likely shape of a macOS equivalent, not a tested recipe. This section gets a real macOS walkthrough once it's actually been built and broken on a Mac the same way the Ubuntu instructions below were.
+**A note on scope**: everything from here to "Daily use" below is the **Ubuntu** setup — that's the machine it was actually built and tested on, end to end. The macOS equivalent has its own section further down ("Remote control from a phone (macOS)") — same three jobs, and the Mac ships with the biggest piece preinstalled.
 
 **Why plain SSH isn't enough on its own**: Handy has no always-listening mode — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop's own input stack (X11 here). An SSH text session never reaches that hook. VNC's remote keyboard/mouse *does* synthesize real input events on the desktop, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would.
 
@@ -251,6 +245,51 @@ tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permane
 
 ---
 
+## Remote control from a phone (macOS — Screen Sharing + phone mic)
+
+Same three jobs as the Ubuntu rig — see the screen, drive the keyboard, feed the phone's mic in — but the Mac ships with the biggest piece already installed, so this is mostly a matter of turning things on. Where the Ubuntu section above was built and broken end to end, this one is grounded in Apple's own documentation and DroidCam's published platform support, not (yet) a full phone-in-hand shake-down — where something is secondhand, it says so.
+
+### Screen sharing: one toggle, no x11vnc equivalent needed
+
+macOS's built-in Screen Sharing speaks VNC, so the same phone clients that reach x11vnc reach a Mac:
+
+1. **System Settings → General → Sharing → Screen Sharing** — flip it on.
+2. For a *third-party* client (bVNC, RealVNC — anything not Apple's own Screen Sharing app), click the ⓘ next to Screen Sharing and enable **"VNC viewers may control screen with password"**, then set that password. Without it, macOS expects Apple's own authentication handshake and most phone clients fail to connect at all.
+3. Connect from the phone to `<mac-lan-ip>:5900`, password = the VNC password from step 2. Same separate-from-WiFi-password logic as x11vnc's.
+
+Or skip the GUI for step 1: `sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist` — but step 2 has no equally clean CLI path, so most of this toggle lives in System Settings either way. There's also a CLI for the whole thing (`.../ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -setvncpw <pw> -restart -agent -privs -all`), but on Sequoia it sets privileges and the password while **refusing to actually open the service** — it prints *"Screen Sharing or Remote Management must be enabled from System Settings or via MDM"* and the port stays closed until you flip the GUI toggle once. Count on ending in System Settings regardless.
+
+Two auth behaviors worth knowing before a phone client rejects a correct-looking password:
+
+- **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a DES challenge-response capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password.
+- **macOS serves two auth types side by side**: Mac account auth (a username + your Mac login password, Apple's ARD-style handshake) *and* the legacy VNC password. A client looping on "enter VNC credentials" is often answering the wrong one — the server offers both, and which one you get depends on the client's negotiation. Note Screen Sharing and Remote Management each have their **own** VNC-password setting; only the one for the service you actually enabled is consulted.
+- **Client choice matters on macOS, tested live**: **bVNC negotiates Apple's DH-based handshake against a Mac and fails even with the correct password stored** (it pops a username+password dialog and rejects both credential sets — there's no security-type override in its UI to force legacy VNC). **RealVNC Viewer** connects with the plain VNC password, username blank. So: bVNC for the Ubuntu host, RealVNC Viewer for the Mac host — each box keeps one saved entry and the working client for it. If you want to verify the stored password server-side without a phone, a ~40-line Python script speaking the RFB DES challenge-response against `127.0.0.1:5900` will tell you `ACCEPTED`/`REJECTED` per candidate password — worth doing before blaming the client.
+
+What you *don't* need, relative to the Ubuntu section: no display-number hunting (`who`, `:0` vs `:1`), no `-auth guess` Xauthority chase, no `.desktop` autostart file, no `-shared`/`-repeat` flag tuning — Apple's server handles reconnects and key repeat correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu autostart can't do that (x11vnc only starts after a graphical login).
+
+Two macOS-specific caveats, secondhand but worth knowing before you debug blind:
+
+- **Sequoia has been rough on third-party VNC clients** — reports of non-Apple clients failing to connect or authenticate where Apple's own Screen Sharing app works, and of screen-recording/share permissions demanding reauthorization roughly monthly. If the phone client won't connect, first try Apple's Screen Sharing app from another Mac (or iTeleport/RealVNC's latest build) to isolate whether it's the server toggle or the client.
+- **Firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
+
+### Phone mic: two routes, one of them native
+
+Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
+
+- **iPhone (the clean path)**: Continuity makes the iPhone's mic show up as a plain input device on the Mac — **System Settings → Sound → Input → iPhone Microphone** once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup.
+- **Android (the awkward path)**: DroidCam publishes its standalone client for **Windows and Linux only** — there is no macOS DroidCam client, so the PulseAudio recipe above does not port. The documented macOS route is the [DroidCam OBS plugin](https://droidcam.app/obs/), whose virtual output installs "DroidCam Audio" as a system audio device — audio-only mic use system-wide is plausible but unverified here; if you only need mic (not camera), the OBS-plugin path is the thing to try first, not a reason to abandon the setup.
+
+Switching phone ↔ desktop mic is the same one-step move as Ubuntu's `pactl set-default-source`, just via **System Settings → Sound → Input** (or the Control Center sound module) — no commands needed.
+
+### What carries over unchanged
+
+- **Handy**: identical install and settings as the macOS section up top. The toggle-mode requirement is *more* important here, not less — the Mac's VNC keyboard also sends instant press+release, so push-to-talk still can't work from a phone.
+- **Hotkey rebind**: same advice — a single modifier-less key (`End`, `Insert`, `Page Up`) beats a combo on a soft keyboard, and the Spotlight/`Option+Space` conflict fix from the install section already handles the OS side.
+- **tmux**: nothing Mac-specific, but the reasoning transfers fully — switching tmux windows by keystroke beats alt-tabbing between GUI terminal windows by touch, on any OS.
+- **Readline editing, modifier toggles, tap/long-press/drag gestures**: VNC behavior, not OS behavior — everything in "Using the phone once connected" below works the same against a Mac, with GNOME's hot corner swapped for macOS's own hot corners (System Settings → Desktop & Dock → Hot Corner, e.g. top-left → Mission Control) and `Super+A` swapped for `Cmd+Tab`.
+
+---
+
 ## Using the phone once connected
 
 On the phone, any VNC client works — **bVNC** on Android, VNC Viewer/RealVNC on iOS. Connect to `<ubuntu-lan-ip>:5900`, password is the one from `x11vnc -storepasswd` — a separate password from your WiFi, tied to this x11vnc install, unaffected by switching networks.
@@ -297,7 +336,23 @@ One thing this setup depends on getting right: **Handy has to be in toggle mode,
 
 **Editing text in a terminal** (faster than arrow-key nudging on touch): standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
 
-**Mouse gestures** (bVNC and similar): tap = left-click, long-press = right-click, drag = click-and-drag.
+**Mouse gestures** (bVNC): tap = left-click, drag = click-and-drag. But **right-click is not a plain long-press** — that's the one gesture people assume and get wrong. See below.
+
+### Right-click / opening an application's options menu (bVNC)
+
+To right-click something — a dock/taskbar icon, the desktop, a file — and get its context/options menu:
+
+1. **Press and hold** one finger on the target (keep it down).
+2. **Tap anywhere else** on the screen with a second finger.
+3. Lift both — the right-click fires where the first finger sits, and the menu opens.
+
+That hold-then-second-finger-tap gesture is bVNC's documented right-click in its default input modes (hold and *swipe* instead of tapping and you get a right-drag). Alternatives, in order of usefulness:
+
+- **Single-Handed input mode**: long-press the target and a small panel pops up with a dedicated **right** button — tap it, lift, menu opens. The one-handed option; note long-press means *left-drag* in the other modes, it's only the chooser trigger here.
+- **Touchpad-style modes**: gesture conventions shift to "one finger = left-click, two fingers together = right-click, three = middle-click."
+- **Bluetooth mouse**: connect one and the actual right button just works.
+
+Gestures aren't gated behind bVNC Pro — same input handling in the free version. Full per-mode reference lives in-app: Menu → More → Input Mode Help.
 
 ---
 
@@ -411,9 +466,33 @@ DroidCam's phone app stops streaming on its own once the client disconnects.
 
 ## Where this landed
 
-Full chain confirmed working over LAN: bVNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly.
+Full chain confirmed working over LAN: bVNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. The macOS walkthrough above is documentation-grounded rather than battle-tested — the pieces exist and the iPhone mic route is native, but it hasn't been run end-to-end the way the Ubuntu chain has. Server side verified live on Sequoia: Screen Sharing answering on 5900 with an RFB handshake, VNC-password quirks included above.
 
 The setup is more moving parts than a typical dictation write-up — a phone-mic relay and a remote desktop protocol is a lot of infrastructure for a keyboard shortcut. But each piece is free, each piece is offline, and what it buys is a full second input surface for the desktop: dictate into anything — a commit message, a Slack reply, a doc, an AI agent prompt — or just drive the machine outright, switch apps, run a shortcut, check on something, all from whatever's in your pocket, without a subscription and without a cloud service listening in.
+
+---
+
+## Tool info, licenses, and security
+
+Every tool in this post, checked against primary sources — the repo's actual LICENSE file, not its README claim; CVE databases; and the vendor's own privacy policy. Two verdicts matter more than the rest and are called out below the table.
+
+| Tool | What it is / link | Publisher | License (verified) | Open source | CVE history | Verdict |
+|---|---|---|---|---|---|---|
+| [Handy](https://github.com/cjpais/Handy) | Dictation (macOS/Ubuntu) | CJ Pais (solo) | MIT (name/logo excepted) | ✅ | None found | Acceptable — active (v0.9.5, Aug 2026), fully offline, no telemetry found; young solo-maintained project, no third-party audit |
+| [tmux](https://github.com/tmux/tmux) | Terminal multiplexer | Nicholas Marriott et al. | ISC | ✅ | 1 real CVE (CVE-2020-27347, fixed in 3.1c); a 2022 one was disputed and rejected by MITRE | **Publicly trusted** — 20-year track record, no network surface |
+| [x11vnc](https://github.com/LibVNC/x11vnc) | VNC server (Ubuntu) | LibVNC org | GPL | ✅ | Several (2018–2020, incl. CVE-2020-29074) — all addressed by 0.9.17 | Acceptable — actively maintained; use TLS/SSH on untrusted LANs (see below) |
+| [bVNC](https://github.com/iiordanov/remote-desktop-clients) | VNC client (Android) | Iordan Iordanov | GPL-3.0 | ✅ (free = same code as Pro) | None specific; bundles libvncclient which has 2026 decoder CVEs (client-side, malicious-server scenario) | Acceptable — mature; SSH/TLS tunneling built in |
+| [DroidCam](https://droidcam.app/) | Phone mic/camera → desktop | Dev47Apps | GPL-2.0 **Linux client only** — Android/desktop apps closed | ⚠️ partial | None found (weak evidence — closed source has no audit surface) | **Concerns** — see below |
+| [AudioRelay](https://audiorelay.net/) | Phone mic → desktop (macOS fallback) | Asapha Halifa (solo, France) | Closed | ❌ | None found (weak evidence) | **Concerns** — see below |
+| [BlackHole](https://existential.audio/) | Virtual audio device (macOS) | Existential Audio Inc. | GPL-3.0 source (official installers proprietary; name trademarked) | ✅ source | None found; DriverKit userspace driver, no kext, no telemetry, no network code | **Publicly trusted** — active (v0.7.1); installers signed + notarized |
+| [switchaudio-osx](https://github.com/deweller/switchaudio-osx) | CLI default-device switcher (macOS) | deweller/Honza Bambas | MIT | ✅ | None found | Acceptable — dormant since 2023 but a tiny no-network C CLI still packaged in homebrew-core; dormancy is a smell, not a finding |
+
+**The two findings worth acting on:**
+
+- **DroidCam's WiFi stream is plaintext with no authentication** — anyone on the same network can connect to the stream ([their own long-open issue #158](https://github.com/dev47apps/droidcam/issues/158)). AudioRelay is closed-source with a heavier-than-expected telemetry stack (Firebase Analytics, PostHog, Crashlytics/Sentry, advertising IDs, phone-state permission on Android per its [privacy policy](https://www.iubenda.com/privacy-policy/31266111)), and while its streams are designed to go LAN-direct, **stream encryption is officially undocumented** — an AES-256-GCM claim circulates from a developer comment but appears nowhere in official docs. Both tools are fine on a **trusted home LAN**; neither should touch a shared/office/public network. DroidCam's USB mode sidesteps the WiFi exposure entirely.
+- **Legacy VNC passwords are weak by protocol** — the classic VNC auth this rig uses (x11vnc `-usepw`, macOS "VNC viewers may control screen with password") is a DES challenge-response **capped at 8 characters**. On a firewalled home LAN that's an acceptable trade; anywhere else, tunnel VNC through SSH (bVNC supports SSH tunnels natively) or use x11vnc's TLS/VeNCrypt options — and never port-forward 5900.
+
+**Install-channel integrity**: on macOS, Homebrew casks pin a SHA-256 for every download and fail closed on mismatch — but the bits come from vendor CDNs (`dl.audiorelay.net`, `existential.audio`), so the checksum guarantees integrity against the cask snapshot, not the vendor's server hygiene. Locally installed apps verified: Handy and AudioRelay both carry notarized Developer IDs and pass `codesign --verify --deep --strict`.
 
 ---
 
@@ -426,7 +505,7 @@ Handy won on a specific bar — free, fully offline, no account, no mode caps, w
 | superwhisper | Free (tiny/base, 3 modes cap); Pro $8.49/mo unlocks large-v3 | Yes | Native | No |
 | **Handy** | 100% free, MIT, no tiers | whisper.cpp + Parakeet, unlimited | Native | Native |
 | VoiceInk | $25–49 one-time (GPLv3, buildable free) | Local Whisper | Native | No |
-| Whispering | Free OSS; local via Speaches/whisper.cpp | Yes | Yes | Yes |
+| [Epicenter](https://github.com/epicenter-so/epicenter) (formerly Whispering) | Free OSS; local via Speaches/whisper.cpp | Yes (AGPL-3.0 apps / MIT toolkit pkgs) | Yes | Yes |
 | OpenWhispr | Free local; cloud tier adds paid quota | whisper.cpp + Parakeet | Yes | Yes |
 | Wispr Flow | ~2,000 words/week free | **No offline mode** | Yes | No |
 
