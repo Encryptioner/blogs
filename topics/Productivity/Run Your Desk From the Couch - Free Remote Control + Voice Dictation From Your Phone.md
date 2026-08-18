@@ -51,7 +51,7 @@ Two tools make this work, both free: a **VNC remote-control rig** (built from wh
 
 ## The route this post takes
 
-1. **Part 1 — Remote control from the phone.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, typing with your normal mobile keyboard (Gboard included), and a tmux cheat sheet for thumb-friendly terminals.
+1. **Part 1 — Remote control from the phone.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, typing with your normal mobile keyboard, and a tmux cheat sheet for thumb-friendly terminals.
 2. **Part 2 — Voice dictation.** Handy on both OSes (models, hotkey tuning, the Wayland question), plus wiring the phone's mic in as a system input: DroidCam + PulseAudio loopback on Ubuntu, AudioRelay + BlackHole (or an iPhone's Continuity mic) on macOS. Start/stop scripts and troubleshooting close it out.
 
 Read Part 1 fully, then *your* machine's subsection in Part 2 — skip the other OS wherever you like; each route is self-contained.
@@ -85,7 +85,7 @@ Both halves are standard: macOS and Ubuntu can each serve VNC with either built-
 The Mac ships with the VNC server — this is mostly a matter of turning it on. This route was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on port 5900, a phone client driving the screen, everything below marked "tested live" came off that machine.
 
 <div align="center">
-  <img src="../../assets/B-24/control-path-macos.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to a Mac. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into macOS's built-in Screen Sharing server, which injects real mouse and keyboard events into the desktop input stack — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical. Gboard commits send as keystrokes; bVNC cannot connect to a Mac (Apple-DH handshake only)."/>
+  <img src="../../assets/B-24/control-path-macos.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to a Mac. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into macOS's built-in Screen Sharing server, which injects real mouse and keyboard events into the desktop input stack — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical. Keyboard commits — typing, glide input, voice typing — send as keystrokes; bVNC cannot connect to a Mac (Apple-DH handshake only)."/>
   <br/>
   <sub>The macOS control path — the server is already installed; one toggle and a VNC password turn it on.</sub>
 </div>
@@ -267,19 +267,19 @@ Faster than arrow-key nudging on touch, works on both machines: standard readlin
 
 ### Typing on the desktop with your phone keyboard
 
-The soft keyboard that appears when you tap the keyboard icon is your phone's **normal keyboard app** — Gboard, Samsung Keyboard, SwiftKey, whatever you already use. Nothing new to learn for the typing itself, and everything the keyboard app is good at carries over, because VNC just receives whatever the keyboard commits and sends it as real keystrokes:
+The soft keyboard that appears when you tap the keyboard icon is your phone's **normal keyboard app** — whatever you already use, nothing new installed. Everything the keyboard app is good at carries over, because VNC just receives whatever the keyboard commits and sends it as real keystrokes:
 
 - **Glide typing / swipe input** — drag through the letters, same as texting.
 - **Autocorrect and next-word prediction** — actively helpful in chat and email apps on the desktop.
 - **Long-press for numbers and symbols** — long-press the top-row letters, same as anywhere.
 - **Clipboard** — copy on the phone (from anywhere), paste into the desktop app with the keyboard's paste button. Copy on the desktop, read it on the phone.
-- **Multilingual typing** — Gboard's per-language or multi-language modes work as usual; typing Bangla or any other language into a desktop app needs no desktop-side setup beyond the app accepting text.
+- **Multilingual typing** — your keyboard's per-language or multi-language modes work as usual; typing Bangla or any other language into a desktop app needs no desktop-side setup beyond the app accepting text.
 - **One-handed / floating mode** — shrink the keyboard to a thumb-zone corner for couch use.
 
 Two cautions from the terminal-shaped parts of this rig:
 
-- **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Keep Gboard's per-app settings in mind (Settings → System → Languages & input → Gboard, or long-press the comma key for quick toggles) — disable suggestions/autocorrect when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
-- **The keyboard's voice-typing button is the wrong tool here.** Gboard's mic dictates through *Google's cloud speech* — the opposite of this rig's offline promise — and whether its committed text even reaches the desktop depends on the VNC client's keyboard plumbing (untested here; IME-committed text is not always sent as key events). Part 2 exists precisely to do this properly: the phone's mic streaming to the desktop, transcribed **locally** by Handy, landing in any app — no cloud, no per-app keyboard behavior to fight.
+- **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Your keyboard app's settings (its own toolbar, or Settings → System → Languages & input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
+- **Voice typing works — mind where it transcribes.** Any keyboard with voice-typing support works over VNC (tested live): the keyboard's speech engine does the transcribing, and the committed text arrives as keystrokes like any other typing. The catch isn't injection — it's that most keyboards dictate through their maker's cloud speech service, the opposite of this rig's offline promise. Part 2 exists for the local version: the phone's mic streaming to the desktop, transcribed **locally** by Handy, landing in any app — no cloud in the loop.
 
 ### tmux, if you've never used it
 
@@ -642,7 +642,7 @@ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resourc
 
 ## Where this landed
 
-Full chain confirmed working over LAN: VNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access — RealVNC Viewer against the Mac end to end, bVNC as the long-standing Ubuntu daily driver), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode, and on the Mac the Android mic route (AudioRelay → BlackHole) delivering clean speech with a full Handy dictation round-trip — toggle hotkey tapped from the phone's key panel, spoken sentence, transcription landing in the focused app. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. Two pieces remain honestly untested: the iPhone Continuity route, and RealVNC Viewer against x11vnc specifically (same standard VNC auth as the Mac path, verified there — confirm on your own phone before relying on it, or use bVNC on Ubuntu, which is proven).
+Full chain confirmed working over LAN: VNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access — RealVNC Viewer against both the Mac and the Ubuntu box end to end, bVNC as the long-standing Ubuntu alternative), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode, and on the Mac the Android mic route (AudioRelay → BlackHole) delivering clean speech with a full Handy dictation round-trip — toggle hotkey tapped from the phone's key panel, spoken sentence, transcription landing in the focused app. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. One piece remains honestly untested: the iPhone Continuity route.
 
 The setup is more moving parts than a typical dictation write-up — a phone-mic relay and a remote desktop protocol is a lot of infrastructure for a keyboard shortcut. But each piece is free, each piece is offline, and what it buys is a full second input surface for the desktop: drive the machine outright, dictate into anything — a commit message, a Slack reply, a doc, an AI agent prompt — all from whatever's in your pocket, without a subscription and without a cloud service listening in.
 
