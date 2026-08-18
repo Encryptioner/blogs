@@ -80,15 +80,15 @@ VNC is a mirror plus a hand: the phone sees the actual desktop, and every tap an
 
 Both halves are standard: macOS and Ubuntu can each serve VNC with either built-in or one-command-free tooling, and any standards-compliant client can connect. That's why one phone app is enough for both machines.
 
-<div align="center">
-  <img src="../../assets/B-24/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, tmux, and any global hotkey listener all respond as if the inputs were physical."/>
-  <br/>
-  <sub>Part 1 in one picture: the phone's taps and keystrokes become real desktop input. No audio, no dictation — just control.</sub>
-</div>
-
 ## The macOS machine: Screen Sharing, already installed
 
 The Mac ships with the VNC server — this is mostly a matter of turning it on. This route was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on port 5900, a phone client driving the screen, everything below marked "tested live" came off that machine.
+
+<div align="center">
+  <img src="../../assets/B-24/control-path-macos.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to a Mac. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into macOS's built-in Screen Sharing server, which injects real mouse and keyboard events into the desktop input stack — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical. Gboard commits send as keystrokes; bVNC cannot connect to a Mac (Apple-DH handshake only)."/>
+  <br/>
+  <sub>The macOS control path — the server is already installed; one toggle and a VNC password turn it on.</sub>
+</div>
 
 1. **System Settings → General → Sharing → Screen Sharing** — flip it on. Keep it plain Screen Sharing: if **Remote Management** is the enabled one instead, legacy-VNC clients get served the login window even while you're logged in, and typing into that over VNC drops focus (tested live — Remote Management off, Screen Sharing on, and the phone landed straight on the desktop; logging in over VNC works too, for the after-reboot case).
 2. For a *third-party* client (RealVNC Viewer — anything not Apple's own Screen Sharing app), click the ⓘ next to Screen Sharing and enable **"VNC viewers may control screen with password"**, then set that password. Without it, macOS expects Apple's own authentication handshake and most phone clients fail to connect at all.
@@ -124,6 +124,12 @@ Session realities (tested across a reboot): everything server-side comes back af
 ## The Ubuntu machine: x11vnc
 
 x11vnc shares and drives the **existing** desktop session — the one you're actually logged into, with your apps already open — rather than spawning a fresh virtual one. It's in the standard repos:
+
+<div align="center">
+  <img src="../../assets/B-24/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, tmux, and any global hotkey listener all respond as if the inputs were physical."/>
+  <br/>
+  <sub>The Ubuntu control path — x11vnc turns the desktop session you're already logged into into a VNC server.</sub>
+</div>
 
 ```bash
 sudo apt install -y x11vnc tmux
@@ -319,12 +325,6 @@ That's the control half done: the phone can see and drive either machine. But ev
 
 Typing on a phone is fine for a sentence. For a paragraph — a prompt for an AI agent, a code-review reply, a commit message with actual context — it's the bottleneck. This part removes it: **speak, and the words land in whatever desktop app is focused**, transcribed locally, offline, by [Handy](https://github.com/cjpais/Handy).
 
-<div align="center">
-  <img src="../../assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer and DroidCam connects over local WiFi to an Ubuntu desktop. The VNC client's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, tmux, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
-  <br/>
-  <sub>The Ubuntu rig: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
-</div>
-
 Two facts about Handy shape everything below:
 
 - **Handy has no always-listening mode** — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop's own input stack. This is the second reason the rig is VNC-based, not SSH-based: VNC's remote keyboard *does* synthesize real input events, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would. (Part 1's "global hotkeys" note is the generic version of this rule.)
@@ -408,6 +408,12 @@ Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — i
 ## Ubuntu mic relay: DroidCam + PulseAudio loopback
 
 The mic half of the Ubuntu rig: **DroidCam** (Android app + Linux client) streams the phone's mic over WiFi into a virtual PulseAudio source. Since Handy just follows the system default input device, setting that virtual source as default *is* the entire integration.
+
+<div align="center">
+  <img src="../../assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer and DroidCam connects over local WiFi to an Ubuntu desktop. The VNC client's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, tmux, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
+  <br/>
+  <sub>The Ubuntu rig: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
+</div>
 
 `droidcam` is **not** an apt package — it ships its own installer from dev47apps.com. Keep it in a separate command from apt installs: bundling a real package name with a nonexistent one fails the *whole* `apt install` transaction atomically.
 

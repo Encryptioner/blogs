@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="560" fill="#ffffff"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#111827">Remote Control From the Phone — macOS</text>
+  <text x="490" y="56" text-anchor="middle" font-size="13" fill="#6b7280">Part 1 in one picture: taps and keystrokes become real desktop input — no audio, no dictation, just control</text>
+
+  <!-- Phone panel -->
+  <rect x="30" y="90" width="270" height="420" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="165" y="122" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Android Phone</text>
+
+  <rect x="55" y="150" width="220" height="100" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="165" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">RealVNC Viewer</text>
+  <text x="165" y="196" text-anchor="middle" font-size="11.5" fill="#1e40af">shows the desktop,</text>
+  <text x="165" y="212" text-anchor="middle" font-size="11.5" fill="#1e40af">sends taps + keys</text>
+  <text x="165" y="233" text-anchor="middle" font-size="10.5" fill="#3b82f6">username blank, VNC password</text>
+
+  <rect x="55" y="280" width="220" height="90" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="165" y="305" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">Your normal keyboard app</text>
+  <text x="165" y="324" text-anchor="middle" font-size="11" fill="#6b7280">Gboard / Samsung / SwiftKey —</text>
+  <text x="165" y="340" text-anchor="middle" font-size="11" fill="#6b7280">glide typing, clipboard, autocorrect</text>
+  <text x="165" y="356" text-anchor="middle" font-size="11" fill="#6b7280">all work; commits send as keystrokes</text>
+
+  <rect x="55" y="400" width="220" height="80" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="165" y="425" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">bVNC — doesn't work here</text>
+  <text x="165" y="443" text-anchor="middle" font-size="11" fill="#6b7280">Apple-DH handshake only —</text>
+  <text x="165" y="459" text-anchor="middle" font-size="11" fill="#6b7280">fine against Ubuntu, not a Mac</text>
+
+  <!-- Arrows crossing -->
+  <line x1="300" y1="195" x2="405" y2="195" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <text x="352" y="185" text-anchor="middle" font-size="10.5" fill="#2563eb">VNC :5900</text>
+  <text x="352" y="215" text-anchor="middle" font-size="10" fill="#6b7280">home WiFi/LAN</text>
+
+  <!-- Desktop panel -->
+  <rect x="410" y="90" width="540" height="420" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="680" y="122" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Mac (macOS)</text>
+
+  <!-- Screen Sharing -->
+  <rect x="435" y="150" width="230" height="100" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="550" y="176" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e3a8a">Screen Sharing (built-in)</text>
+  <text x="550" y="196" text-anchor="middle" font-size="11" fill="#1e40af">one toggle in System Settings —</text>
+  <text x="550" y="211" text-anchor="middle" font-size="11" fill="#1e40af">"VNC viewers may control screen</text>
+  <text x="550" y="230" text-anchor="middle" font-size="10.5" fill="#3b82f6">with password" (8-char cap)</text>
+
+  <!-- input stack -->
+  <rect x="435" y="290" width="230" height="90" rx="10" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="550" y="315" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4c1d95">Desktop input stack</text>
+  <text x="550" y="335" text-anchor="middle" font-size="11" fill="#5b21b6">events arrive identical to</text>
+  <text x="550" y="351" text-anchor="middle" font-size="11" fill="#5b21b6">physical keyboard/mouse —</text>
+  <text x="550" y="367" text-anchor="middle" font-size="11" fill="#5b21b6">apps can't tell the difference</text>
+
+  <line x1="550" y1="250" x2="550" y2="285" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="560" y="272" font-size="10.5" fill="#2563eb">real input events</text>
+
+  <!-- consumers -->
+  <rect x="695" y="150" width="230" height="100" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="810" y="176" text-anchor="middle" font-size="13.5" font-weight="700" fill="#92400e">GUI apps</text>
+  <text x="810" y="196" text-anchor="middle" font-size="11" fill="#92400e">browser, editor, chat —</text>
+  <text x="810" y="211" text-anchor="middle" font-size="11" fill="#92400e">click, scroll, type as usual</text>
+  <text x="810" y="230" text-anchor="middle" font-size="10.5" fill="#b45309">multi-display = one wide canvas</text>
+
+  <rect x="695" y="290" width="230" height="100" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="810" y="316" text-anchor="middle" font-size="13.5" font-weight="700" fill="#92400e">Terminals</text>
+  <text x="810" y="336" text-anchor="middle" font-size="11" fill="#92400e">same real keystrokes —</text>
+  <text x="810" y="352" text-anchor="middle" font-size="11" fill="#92400e">check builds, nudge agents</text>
+  <text x="810" y="370" text-anchor="middle" font-size="10.5" fill="#b45309">tmux optional, not required</text>
+
+  <rect x="560" y="420" width="365" height="70" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="742" y="445" text-anchor="middle" font-size="12.5" font-weight="700" fill="#065f46">Global hotkey listeners</text>
+  <text x="742" y="464" text-anchor="middle" font-size="11" fill="#047857">any shortcut fires from the phone — the hook dictation (Part 2) hangs on</text>
+
+  <line x1="665" y1="335" x2="700" y2="335" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrowPurple)"/>
+  <line x1="665" y1="200" x2="700" y2="200" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrowPurple)"/>
+  <line x1="550" y1="380" x2="700" y2="440" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,4"/>
+
+  <text x="490" y="540" text-anchor="middle" font-size="11" fill="#9ca3af">Everything stays on the local network — no cloud relay, no account, nothing leaves the LAN</text>
+</svg>
