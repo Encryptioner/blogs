@@ -17,18 +17,47 @@ This is also where AI-assisted work actually earns its keep. The boring part —
 - **A reply is worth sending now, not in twenty minutes.** Dictate it — into Slack, an email, a commit message — from wherever you're sitting, at roughly 3x typing speed, and without the usual tax of compressing the thought to make typing it bearable.
 - **You're doing something else entirely** — cooking, stretching, half-watching something — and a stray thought about the code is worth capturing before it's gone. Say it. It's text on the screen before you've even sat back down.
 
-Two tools make this work, both free and offline: **[Handy](https://github.com/cjpais/Handy)** for the voice-to-text part (dictation lands in any focused app, terminal included), and a small **phone-as-remote-control** rig (VNC + a mic relay) for reaching the desktop itself from another room. The rest of this post is how each piece gets wired — once.
+Two tools make this work, both free and offline: **[Handy](https://github.com/cjpais/Handy)** for the voice-to-text part (dictation lands in any focused app, terminal included), and a small **phone-as-remote-control** rig (VNC + a mic relay) for reaching the desktop itself from another room. How each piece gets wired — once — is the rest of this post; the next section maps the route.
 
 ---
 
-## macOS install
+## The route this post takes
+
+Four parts, in the order they're meant to be read:
+
+1. **Part 1 — Handy, the dictation engine.** Install it *on the desk* and tune the model and hotkey. macOS and Ubuntu each get their own subsection; nothing remote happens here yet.
+2. **Part 2 — The Ubuntu rig.** Turn the phone into a screen + keyboard + mic for the Ubuntu machine: `x11vnc` shares and drives the session, **bVNC** is the phone client, DroidCam carries the phone's mic in as a system input, tmux keeps terminals thumb-friendly. Troubleshooting and the daily-use scripts live at the end of this part.
+3. **Part 3 — The macOS rig.** The same three jobs, built from what the Mac already ships: built-in **Screen Sharing**, **RealVNC Viewer** on the phone, AudioRelay → BlackHole for the mic — or an iPhone's Continuity mic, no extra apps at all. Includes troubleshooting and stop/start/teardown.
+4. **Part 4 — Driving either rig from the phone.** Modifier-key toggles, the hotkey choice that matters on a touchscreen, gestures. This is VNC-client behavior, not OS behavior — one section serves both rigs.
+
+Read Part 1, then *your* machine's part, then Part 4 — and skip the other rig entirely; each one is self-contained.
+
+One split worth stating before anything else, because it's the classic confusion: **bVNC belongs to the Ubuntu rig, RealVNC Viewer to the macOS rig.** bVNC can't negotiate a Mac's authentication handshake (there's no security-type override in its UI), so it never connects to a Mac — and RealVNC isn't needed on Ubuntu. One box, one client, one saved entry:
+
+| The job | Ubuntu rig (Part 2) | macOS rig (Part 3) |
+|---|---|---|
+| Share + control the screen | x11vnc | built-in Screen Sharing |
+| Phone VNC client | **bVNC** (Android) | **RealVNC Viewer** (Android) |
+| Phone mic → system input | DroidCam + PulseAudio loopback | AudioRelay + BlackHole — or iPhone Continuity mic |
+| Switch default input | `pactl set-default-source` | `SwitchAudioSource -t input -s …` or Sound settings |
+| Terminals by keystroke | tmux | tmux — same reasoning, no Mac-specific parts |
+
+Security and license notes for every tool close the post.
+
+---
+
+## Part 1 — Handy: the dictation engine (macOS and Ubuntu)
+
+Handy runs natively on both macOS and Ubuntu — same app, same models, same settings structure. Set it up at the desk first; everything remote later depends on it working locally.
+
+### macOS — install
 
 - Official Homebrew cask: `brew install --cask handy` — confirmed it's maintained in the `homebrew-cask` repo itself, not a third-party tap, before running it.
 - The app bundle is small, ~40 MB, before any model download.
 - First launch asks for two one-time OS permissions (Microphone, Accessibility) — click-through, no config editing.
 - It works system-wide by design: hold the shortcut, speak, release, text pastes wherever the cursor currently is. Terminal included.
 
-### Model choice: multilingual (English + Bangla)
+### macOS — model choice: multilingual (English + Bangla)
 
 Handy's default model, Parakeet, only covers 25 European languages — no Bangla yet (an open feature request, unresolved). Whisper covers Bangla among 99 languages, from a single multilingual model file — no swapping per language, it detects (or can be pinned to) whichever one you're speaking.
 
@@ -37,19 +66,17 @@ Handy's default model, Parakeet, only covers 25 European languages — no Bangla
 
 Two decoding concepts worth knowing if you're picking a model yourself: **transcribe vs translate** — transcribe outputs the language you spoke, translate always outputs English regardless of input (skips a separate translation step, but Handy doesn't expose a UI toggle for it yet). And **auto-detect vs pinned language** — auto-detect guesses per clip (Whisper only; Parakeet-family models don't detect at all and silently default to English), pinning skips that step for speed and avoids misdetection on short clips.
 
-### Speed fix: switch to a streaming model
+### macOS — speed fix: switch to a streaming model
 
 Whisper Medium (picked for Bangla) felt slow for everyday English dictation. Handy added streaming model support in v0.9.0 — **Parakeet Unified EN (0.6B)** is the streaming-capable engine, now Handy's recommended default: English-only, ~160ms latency, live preview while you're still speaking. Set that as the daily driver, and switch to Whisper Medium/Large only for the occasional Bangla session — same one-click swap, no reinstall.
 
-### Tuning that mattered
+### macOS — tuning that mattered
 
 - **Custom vocabulary**: Settings → Advanced → Transcription → Custom Words — a `misheard → corrected` pair list for names and jargon the model gets wrong (e.g. "nerd devs" → "NerdDevs"). For cleanup beyond a fixed word list, Experimental → Post-Processing runs a second AI pass over the transcript, at the cost of a bit more latency.
 - **RAM**: idle process measured **~823 MB RSS** with a model resident in memory. Noticeable if you keep it always-on on an 8 GB machine — Settings → Advanced → Unload Model frees that after a configurable idle timeout, at the cost of first-word latency on the next dictation.
 - **Shortcut conflict**: default `Option+Space` clashed with Spotlight's own binding. Switched to Right Option held alone (not a macOS system action by itself, no collision). Alternative that's popular in Handy's own docs: hold `Fn`, with System Settings → Keyboard → "Press Globe key to…" → *Do Nothing* so its default tap-action doesn't also fire.
 
----
-
-## Ubuntu install
+### Ubuntu — install, and the Wayland question
 
 Check the session type first — the Wayland notes below only apply if you're actually on Wayland:
 
@@ -59,7 +86,7 @@ echo $XDG_SESSION_TYPE   # "x11" or "wayland"
 
 On Ubuntu 22.04 GNOME, logging in via the **"Ubuntu on Xorg"** option (still offered at the login screen) gives X11, and Handy needs none of the tuning below under X11 — it worked out of the box.
 
-### Install (`.deb`, works on both X11 and Wayland)
+#### Install (`.deb`, works on both X11 and Wayland)
 
 ```bash
 curl -fL -o /tmp/Handy_amd64.deb \
@@ -71,7 +98,7 @@ Swap `amd64` for `arm64` on ARM; `.rpm` and `.AppImage` builds are published too
 
 **Gotcha**: `apt` downloads/verifies as the unprivileged `_apt` user, which needs execute permission on every directory in the file's path. A `.deb` sitting in a locked-down tmp dir (e.g. `chmod 700`) fails with `couldn't be accessed by user '_apt'` even though the file itself is readable. Fix is downloading into a world-traversable path like `/tmp`, not loosening the original directory's permissions.
 
-### If you're on Wayland (GNOME default, 22.04+)
+#### If you're on Wayland (GNOME default, 22.04+)
 
 Wayland breaks Handy's default paste/typing out of the box, with known fixes:
 
@@ -86,19 +113,19 @@ Model choice carries over unchanged: Parakeet Unified EN as the daily default, W
 
 ---
 
-## Remote control from a phone (Ubuntu — VNC + tmux + phone mic)
+## Part 2 — The Ubuntu rig: x11vnc + bVNC + DroidCam
 
 This part started as a convenience for dictation and turned into a general-purpose remote desktop: full mouse/keyboard control of the machine from the phone — switching between running apps, checking on a long build, dismissing a notification, replying to something — with dictation through the *phone's* mic as one capability riding on top, all over the local network, no cloud relay.
 
 <div align="center">
-  <img src="../../assets/B-24/architecture.png" alt="Diagram: Android phone running bVNC and DroidCam connects over local WiFi to an Ubuntu desktop. bVNC's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, tmux, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
+  <img src="../../assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running bVNC and DroidCam connects over local WiFi to an Ubuntu desktop. bVNC's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, tmux, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
   <br/>
   <sub>Two independent paths over the same LAN: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
 </div>
 
-**A note on scope**: everything from here to "Daily use" below is the **Ubuntu** setup — that's the machine it was actually built and tested on, end to end. The macOS equivalent has its own section further down ("Remote control from a phone (macOS)") — same three jobs, and the Mac ships with the biggest piece preinstalled.
+### Why plain SSH isn't enough
 
-**Why plain SSH isn't enough on its own**: Handy has no always-listening mode — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop's own input stack (X11 here). An SSH text session never reaches that hook. VNC's remote keyboard/mouse *does* synthesize real input events on the desktop, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would.
+Handy has no always-listening mode — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop's own input stack (X11 here). An SSH text session never reaches that hook. VNC's remote keyboard/mouse *does* synthesize real input events on the desktop, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would. (The macOS rig in Part 3 uses VNC for exactly the same reason.)
 
 Handy also has no in-app microphone picker — it just uses whatever the OS default input device is. That's what makes swapping in the phone's mic possible without touching a single Handy setting.
 
@@ -243,162 +270,9 @@ Scrolling by typing `Ctrl+b [` on a touch keyboard is annoying — turn on mouse
 tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permanently
 ```
 
----
+That's the whole server side. Troubleshooting and the daily-use scripts follow — then Part 4 covers the phone-side skills, most of which apply to both rigs.
 
-## Remote control from a phone (macOS — Screen Sharing + phone mic)
-
-Same three jobs as the Ubuntu rig — see the screen, drive the keyboard, feed the phone's mic in — but the Mac ships with the biggest piece already installed, so this is mostly a matter of turning things on. This section was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on 5900, a phone client driving the screen, and the phone's mic arriving as a real system input — everything marked "tested live" below came off that machine. The two pieces that remain secondhand (the Sequoia client-friction reports, the iPhone Continuity route) say so.
-
-### Screen sharing: one toggle, no x11vnc equivalent needed
-
-macOS's built-in Screen Sharing speaks VNC, so the phone clients that reach x11vnc mostly reach a Mac — with one tested exception (bVNC), covered in the auth notes below:
-
-1. **System Settings → General → Sharing → Screen Sharing** — flip it on. Keep it plain Screen Sharing: if **Remote Management** is the enabled one instead, legacy-VNC clients get served the login window even while you're logged in, and typing into that over VNC drops focus (tested live — Remote Management off, Screen Sharing on, and the phone landed straight on the desktop; logging in over VNC works too, for the after-reboot case).
-2. For a *third-party* client (bVNC, RealVNC — anything not Apple's own Screen Sharing app), click the ⓘ next to Screen Sharing and enable **"VNC viewers may control screen with password"**, then set that password. Without it, macOS expects Apple's own authentication handshake and most phone clients fail to connect at all.
-3. Connect from the phone to `<mac-lan-ip>:5900`, password = the VNC password from step 2. Same separate-from-WiFi-password logic as x11vnc's.
-
-Or skip the GUI for step 1: `sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist` — but step 2 has no equally clean CLI path, so most of this toggle lives in System Settings either way. There's also a CLI for the whole thing (`.../ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -setvncpw <pw> -restart -agent -privs -all`), but on Sequoia it sets privileges and the password while **refusing to actually open the service** — it prints *"Screen Sharing or Remote Management must be enabled from System Settings or via MDM"* and the port stays closed until you flip the GUI toggle once. Count on ending in System Settings regardless.
-
-Two auth behaviors worth knowing before a phone client rejects a correct-looking password:
-
-- **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a DES challenge-response capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password.
-- **macOS serves two auth types side by side**: Mac account auth (a username + your Mac login password, Apple's ARD-style handshake) *and* the legacy VNC password. A client looping on "enter VNC credentials" is often answering the wrong one — the server offers both, and which one you get depends on the client's negotiation. Note Screen Sharing and Remote Management each have their **own** VNC-password setting; only the one for the service you actually enabled is consulted.
-- **Client choice matters on macOS, tested live**: **bVNC negotiates Apple's DH-based handshake against a Mac and fails even with the correct password stored** (it pops a username+password dialog and rejects both credential sets — there's no security-type override in its UI to force legacy VNC). **RealVNC Viewer** connects with the plain VNC password, username blank. So: bVNC for the Ubuntu host, RealVNC Viewer for the Mac host — each box keeps one saved entry and the working client for it. If you want to verify the stored password server-side without a phone, a ~40-line Python script speaking the RFB DES challenge-response against `127.0.0.1:5900` will tell you `ACCEPTED`/`REJECTED` per candidate password — worth doing before blaming the client.
-
-What you *don't* need, relative to the Ubuntu section: no display-number hunting (`who`, `:0` vs `:1`), no `-auth guess` Xauthority chase, no `.desktop` autostart file, no `-shared`/`-repeat` flag tuning — Apple's server handles reconnects and key repeat correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu autostart can't do that (x11vnc only starts after a graphical login).
-
-Two caveats worth knowing before you debug blind:
-
-- **Much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in step 1**, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if the phone client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client.
-- **The lock screen is the other trap** — when the Mac auto-locks, the VNC view becomes a login window whose password field keeps dropping focus under phone-client keystrokes. Unlock at the Mac's own keyboard once, and for couch use set **System Settings → Lock Screen → Require password…** to a long interval so sessions don't lock under you mid-dictation.
-- **Firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
-
-### Phone mic: two routes, one of them native
-
-Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
-
-- **iPhone (the clean path)**: Continuity makes the iPhone's mic show up as a plain input device on the Mac — **System Settings → Sound → Input → iPhone Microphone** once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup.
-- **Android (the tested path — AudioRelay + BlackHole)**: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn't port. What works instead, tested end to end: **[AudioRelay](https://audiorelay.net/)** on the phone in **Microphone** mode streams over WiFi to the AudioRelay app on the Mac; point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it, the same trick as Ubuntu's PulseAudio loopback. The BlackHole hop exists because macOS has no loopback module: an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input. Gotchas hit live: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id. Verified with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
-
-**Switching input devices** — the move you'll make daily, so here it is precisely. The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay), `MacBook Air Microphone` (or your Mac's model name) is the built-in one.
-
-- **GUI**: **System Settings → Sound → Input** → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest "is anything hearing me" check there is. Note Control Center's sound module switches *output* (speakers) only — input always lives in Sound settings, and mixing the two up is the classic "Handy stopped hearing me" cause.
-- **CLI**: the `pactl set-default-source` equivalent is `SwitchAudioSource -t input -s "BlackHole 2ch"` (and `-s "MacBook Air Microphone"` to come back). `-c -t input` prints the current device, `-a -t input` lists them all.
-
-### What carries over unchanged
-
-- **Handy**: identical install and settings as the macOS section up top. The toggle-mode requirement is *more* important here, not less — the Mac's VNC keyboard also sends instant press+release, so push-to-talk still can't work from a phone.
-- **Hotkey rebind**: same advice — a single modifier-less key beats a combo on a soft keyboard, and the Spotlight/`Option+Space` conflict fix from the install section already handles the OS side. Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — it's `Fn`+`→`, and Handy registers the *keysym*, so `Fn`+`→` at the desk and `End` in the client's key panel both trigger it. And don't pick a bare *modifier* like right-Option just because it's comfy locally — VNC soft keyboards can't send side-specific modifiers, so it will never fire from the phone.
-- **tmux**: nothing Mac-specific, but the reasoning transfers fully — switching tmux windows by keystroke beats alt-tabbing between GUI terminal windows by touch, on any OS.
-- **Readline editing, modifier toggles, tap/long-press/drag gestures**: VNC behavior, not OS behavior — everything in "Using the phone once connected" below works the same against a Mac, with GNOME's hot corner swapped for macOS's own hot corners (System Settings → Desktop & Dock → Hot Corner, e.g. top-left → Mission Control) and `Super+A` swapped for `Cmd+Tab`.
-
-### Session realities on macOS (tested across a reboot)
-
-- **Everything server-side comes back after a reboot** — Screen Sharing, the AudioRelay player, Handy, and the BlackHole default-input setting all survived a full shutdown. The phone side does not: reopen AudioRelay → Microphone → Start each session.
-- **The Mac's LAN IP can re-lease** — ours moved between `.148` and `.196` on one reboot. If the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0` and edit the entry, or give the Mac a DHCP reservation in the router.
-- **Multiple displays arrive as one wide canvas** — pinch out in the client and pan; VNC has no per-monitor concept, so both screens sit side by side in a single framebuffer.
-
-### Stopping, resuming, and removing it all (macOS)
-
-**Stop for the evening.** The one step people get wrong (we did): switch the **input**, not just the speakers. Quitting AudioRelay and putting output back to `MacBook Air Speakers` still leaves the *input* on BlackHole — which now delivers silence, so dictation mysteriously "stops hearing you" while everything looks configured.
-
-1. Phone: stop the AudioRelay mic stream; close RealVNC.
-2. Mac: `SwitchAudioSource -t input -s "MacBook Air Microphone"` — or System Settings → Sound → Input; either way, it's the *input* side.
-3. Optional: quit AudioRelay from its **menu-bar icon** — closing the window only hides it, the app keeps running.
-4. Optional: System Settings → General → Sharing → Screen Sharing → off, if you don't want port 5900 open while nobody's using it.
-
-**Start again** (post-setup, takes ~30 seconds):
-
-1. Mac: AudioRelay open — the menu-bar icon is enough; use **Connect by address** if the phone doesn't auto-appear.
-2. Phone: AudioRelay → **Microphone → Start**.
-3. Mac: `SwitchAudioSource -t input -s "BlackHole 2ch"`.
-4. Phone: RealVNC → connect to the Mac's IP (recheck with `ipconfig getifaddr en0` if the Mac rebooted — DHCP moves it).
-5. Focus a text field → `End` → speak → `End`.
-
-**Remove everything** (full teardown):
-
-```bash
-SwitchAudioSource -t input -s "MacBook Air Microphone"   # input off BlackHole FIRST
-brew uninstall --cask blackhole-2ch audiorelay            # virtual device + player app
-sudo killall coreaudiod                                   # flush the stale device entry
-brew uninstall switchaudio-osx                            # optional CLI helper
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
-  -deactivate -stop                                       # VNC server off
-# ...then System Settings → General → Sharing → Screen Sharing → OFF
-#   (the GUI toggle is authoritative on Sequoia — confirm it flipped)
-# Handy: quit it, remove from Login Items, or `brew uninstall --cask handy`
-#   its recordings/history live in ~/Library/Application Support/com.pais.handy
-```
-
----
-
-## Using the phone once connected
-
-On the phone, any VNC client works — **bVNC** on Android, VNC Viewer/RealVNC on iOS. Connect to `<ubuntu-lan-ip>:5900`, password is the one from `x11vnc -storepasswd` — a separate password from your WiFi, tied to this x11vnc install, unaffected by switching networks.
-
-VNC just mirrors real mouse and keyboard input — there's no VNC-specific "select an app" step, it behaves exactly like sitting at the desktop:
-
-- **Focus a window**: tap it directly in the mirrored screen — a real click.
-- **Type**: tap the field to focus it, tap the keyboard icon to bring up the phone's soft keyboard. Everything typed sends as real keystrokes — no special "VNC mode."
-- **Modifier combos** (Ctrl+key, Alt+key — including Handy's own hotkey): use the client's extra-keys toolbar, the row of dedicated `Ctrl`/`Alt`/`Shift`/`Esc`/`Tab` buttons you tap to hold, then tap the other key.
-
-### Switching between applications
-
-Three ways, in the order actually worth trying on a phone:
-
-- **GNOME hot corner (no keys needed at all)**: tap the very top-left pixel of the mirrored screen, just under where "Activities" would show. GNOME opens the overview with every open window as a thumbnail — tap the one you want. This is the one to reach for first: it needs no modifier key, works even if your VNC client's extra-keys toolbar doesn't expose `Tab` (some builds don't), and is one tap instead of a hold-plus-tap combo.
-- **Alt+Tab, if your client has both keys**: hold `Alt` and tap `Tab` from the extra-keys toolbar to cycle, same as at a physical keyboard — same toggle-then-tap mechanism as the `Super+A` example above. Falls back to the hot corner if `Tab` isn't in your toolbar's default row.
-- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Keep everything inside one tmux session instead and switch panes/windows by keystroke (`Ctrl+b` + number, see the cheat sheet above) — this is why tmux is one of the three pieces of this setup, not just a convenience.
-
-All three are the same underlying trick as dictation: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
-
-### Multi-key shortcuts, e.g. `Super+A`
-
-A touchscreen can't physically hold two keys down at once, so bVNC's extra-keys toolbar buttons don't work like a normal press-and-release key — they're **toggles**. Tapping a modifier arms it (it stays visually pressed/highlighted); tapping the next key sends both together as one combo, and the modifier releases automatically right after.
-
-To fire `Super+A` (or any modifier combo — `Ctrl+Shift+T`, `Alt+F4`):
-
-1. Open the extra-keys toolbar (the keyboard/gear icon in bVNC's in-session toolbar).
-2. Tap the **Super**/**Win** key icon (labeled `Super`, `Win`, or shown as a ⊞-style icon depending on client version) — it stays highlighted, armed.
-3. Tap `A` on the soft keyboard — the combo fires as `Super+A`, and Super releases on its own.
-
-Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, then tap the letter key, and all three go through together. If the client's default extra-keys row doesn't show a Super/Win button, check its settings for a toolbar/keys customization option before assuming the key isn't supported — most VNC clients that expose Ctrl/Alt as toggles expose Super the same way.
-
-### Where's the Enter/Backspace key in bVNC?
-
-They're not special bVNC buttons — they're just the ordinary **Enter** and **Backspace** keys on Android's own soft keyboard, same as any other key you tap. bVNC's extra-keys toolbar (the icon strip you open from the in-session toolbar) exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows — because you can't reach those any other way from touch. Enter and Backspace are already on the standard keyboard, so there's nothing extra to add: type into the focused field/terminal and use them like you would in any Android app.
-
-### Rebind the dictation hotkey for phone use
-
-The default hotkey (`Option+Space` on Mac, whatever you set on Ubuntu) is fine at a physical keyboard, but it's the *worst* shape for VNC: it's a modifier combo, which means arming a toggle button and then tapping a second key every single time you want to dictate — two taps instead of one, on a touchscreen. Handy's hotkey is fully rebindable in **Settings → Shortcut** — click the field, press whatever you want it to be, done. For phone use, pick a **single key with no modifier**: `End`, `Insert`, `Home`, or `Page Up`/`Page Down` all work well — they're plain keys on bVNC's extra-keys toolbar (or the soft keyboard itself, depending on client), so triggering dictation is one tap, not an arm-then-tap sequence. Avoid anything that isn't a standard key a mobile soft keyboard or extra-keys row can actually send — media keys and vendor-specific function keys often just don't reach the desktop over VNC at all.
-
-This is a separate setting from the OS-level shortcut-conflict fixes above (Spotlight on Mac, Wayland's single-key restrictions on Ubuntu) — those are about the hotkey not colliding with something else or firing reliably at the OS level; this is about picking a hotkey that's actually *convenient* to fire with a thumb.
-
-One thing this setup depends on getting right: **Handy has to be in toggle mode, not push-to-talk.** A VNC soft keyboard sends every key as an instant press+release — it physically cannot *hold* a key down. In push-to-talk mode, Handy sees the tap, flickers its recording indicator for a split second, and stops before anything is captured. Switch Handy's recording style to toggle (press once to start, press again to stop and transcribe) and single taps from the phone work exactly like a physical hold-and-release would.
-
-**Editing text in a terminal** (faster than arrow-key nudging on touch): standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
-
-**Mouse gestures** (bVNC): tap = left-click, drag = click-and-drag. But **right-click is not a plain long-press** — that's the one gesture people assume and get wrong. See below.
-
-### Right-click / opening an application's options menu (bVNC)
-
-To right-click something — a dock/taskbar icon, the desktop, a file — and get its context/options menu:
-
-1. **Press and hold** one finger on the target (keep it down).
-2. **Tap anywhere else** on the screen with a second finger.
-3. Lift both — the right-click fires where the first finger sits, and the menu opens.
-
-That hold-then-second-finger-tap gesture is bVNC's documented right-click in its default input modes (hold and *swipe* instead of tapping and you get a right-drag). Alternatives, in order of usefulness:
-
-- **Single-Handed input mode**: long-press the target and a small panel pops up with a dedicated **right** button — tap it, lift, menu opens. The one-handed option; note long-press means *left-drag* in the other modes, it's only the chooser trigger here.
-- **Touchpad-style modes**: gesture conventions shift to "one finger = left-click, two fingers together = right-click, three = middle-click."
-- **Bluetooth mouse**: connect one and the actual right button just works.
-
-Gestures aren't gated behind bVNC Pro — same input handling in the free version. Full per-mode reference lives in-app: Menu → More → Input Mode Help.
-
----
-
-## Troubleshooting
+### Ubuntu troubleshooting
 
 **"Connection refused"** — port 5900 has nothing listening, x11vnc either never started or died on launch:
 
@@ -416,9 +290,7 @@ If it's still refused after that: check `ufw status verbose` actually shows the 
 
 **"Busy with another client" right after restarting droidcam**: the phone holds the old connection open for a few seconds after the desktop client is killed. Kill it, wait ~5s, reconnect.
 
----
-
-## Daily use
+### Daily use on Ubuntu
 
 Everything below assumes x11vnc autostarts at login and the corrected PulseAudio source is already in `default.pa` — only DroidCam needs a manual start each session. Rather than retyping the two commands every time, save them as a script:
 
@@ -490,7 +362,7 @@ chmod +x ~/bin/dictation-remote-stop.sh
 
 DroidCam's phone app stops streaming on its own once the client disconnects.
 
-### Common real-life scenarios
+#### Common real-life scenarios
 
 | Scenario | What to do |
 |---|---|
@@ -503,6 +375,182 @@ DroidCam's phone app stops streaming on its own once the client disconnects.
 | Desktop reboots or loses power | x11vnc's autostart only fires **after graphical login** — if it reboots to a lock screen, nothing's listening yet, and there's no way to VNC in before that first login happens. Someone has to log in locally once after a reboot. |
 | Away from home / different WiFi | Nothing to do — x11vnc is firewalled to your home subnet, so it's simply unreachable from outside it. That's the intended behavior, not a setting to flip. |
 | Quick "is this actually working" check | `pgrep -x x11vnc && pactl list sources short \| grep Loopback` — both should return something, the source line should say `RUNNING`. |
+
+---
+
+## Part 3 — The macOS rig: Screen Sharing + RealVNC Viewer + AudioRelay
+
+Same three jobs as the Ubuntu rig — see the screen, drive the keyboard, feed the phone's mic in — but the Mac ships with the biggest piece already installed, so this is mostly a matter of turning things on. This part was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on 5900, a phone client driving the screen, and the phone's mic arriving as a real system input — everything marked "tested live" below came off that machine. The two pieces that remain secondhand (the Sequoia client-friction reports, the iPhone Continuity route) say so.
+
+<div align="center">
+  <img src="../../assets/B-24/architecture-macos.png" alt="Diagram: Android phone running RealVNC Viewer and AudioRelay connects over local WiFi to a Mac. RealVNC's touch and key panel send real mouse/keyboard events to macOS's built-in Screen Sharing (VNC port 5900), which feeds the desktop input stack that GUI apps, terminals, and Handy's global hotkey listener all sit on. AudioRelay streams the phone mic over WiFi into the AudioRelay Mac app, whose output plays into the BlackHole 2ch virtual device; BlackHole's far end appears as a normal input device, set as the default in Sound settings so Handy transcribes from it."/>
+  <br/>
+  <sub>Same two paths as the Ubuntu rig: VNC carries control (blue), AudioRelay carries audio (green) — Handy just follows the default input.</sub>
+</div>
+
+### Screen sharing: one toggle, no x11vnc equivalent needed
+
+macOS's built-in Screen Sharing speaks VNC, so the phone clients that reach x11vnc mostly reach a Mac — with one tested exception (bVNC), covered in the auth notes below:
+
+1. **System Settings → General → Sharing → Screen Sharing** — flip it on. Keep it plain Screen Sharing: if **Remote Management** is the enabled one instead, legacy-VNC clients get served the login window even while you're logged in, and typing into that over VNC drops focus (tested live — Remote Management off, Screen Sharing on, and the phone landed straight on the desktop; logging in over VNC works too, for the after-reboot case).
+2. For a *third-party* client (bVNC, RealVNC — anything not Apple's own Screen Sharing app), click the ⓘ next to Screen Sharing and enable **"VNC viewers may control screen with password"**, then set that password. Without it, macOS expects Apple's own authentication handshake and most phone clients fail to connect at all.
+3. Connect from the phone to `<mac-lan-ip>:5900`, password = the VNC password from step 2. Same separate-from-WiFi-password logic as x11vnc's.
+
+Or skip the GUI for step 1: `sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist` — but step 2 has no equally clean CLI path, so most of this toggle lives in System Settings either way. There's also a CLI for the whole thing (`.../ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -setvncpw <pw> -restart -agent -privs -all`), but on Sequoia it sets privileges and the password while **refusing to actually open the service** — it prints *"Screen Sharing or Remote Management must be enabled from System Settings or via MDM"* and the port stays closed until you flip the GUI toggle once. Count on ending in System Settings regardless.
+
+Two auth behaviors worth knowing before a phone client rejects a correct-looking password:
+
+- **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a DES challenge-response capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password.
+- **macOS serves two auth types side by side**: Mac account auth (a username + your Mac login password, Apple's ARD-style handshake) *and* the legacy VNC password. A client looping on "enter VNC credentials" is often answering the wrong one — the server offers both, and which one you get depends on the client's negotiation. Note Screen Sharing and Remote Management each have their **own** VNC-password setting; only the one for the service you actually enabled is consulted.
+- **Client choice matters on macOS, tested live**: **bVNC negotiates Apple's DH-based handshake against a Mac and fails even with the correct password stored** (it pops a username+password dialog and rejects both credential sets — there's no security-type override in its UI to force legacy VNC). **RealVNC Viewer** connects with the plain VNC password, username blank. So: bVNC for the Ubuntu host, RealVNC Viewer for the Mac host — each box keeps one saved entry and the working client for it. If you want to verify the stored password server-side without a phone, a ~40-line Python script speaking the RFB DES challenge-response against `127.0.0.1:5900` will tell you `ACCEPTED`/`REJECTED` per candidate password — worth doing before blaming the client.
+
+What you *don't* need, relative to Part 2: no display-number hunting (`who`, `:0` vs `:1`), no `-auth guess` Xauthority chase, no `.desktop` autostart file, no `-shared`/`-repeat` flag tuning — Apple's server handles reconnects and key repeat correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu autostart can't do that (x11vnc only starts after a graphical login).
+
+Two caveats worth knowing before you debug blind:
+
+- **Much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in step 1**, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if the phone client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client.
+- **The lock screen is the other trap** — when the Mac auto-locks, the VNC view becomes a login window whose password field keeps dropping focus under phone-client keystrokes. Unlock at the Mac's own keyboard once, and for couch use set **System Settings → Lock Screen → Require password…** to a long interval so sessions don't lock under you mid-dictation.
+- **Firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
+
+### Phone mic: two routes, one of them native
+
+Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
+
+- **iPhone (the clean path)**: Continuity makes the iPhone's mic show up as a plain input device on the Mac — **System Settings → Sound → Input → iPhone Microphone** once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup.
+- **Android (the tested path — AudioRelay + BlackHole)**: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn't port. What works instead, tested end to end: **[AudioRelay](https://audiorelay.net/)** on the phone in **Microphone** mode streams over WiFi to the AudioRelay app on the Mac; point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it, the same trick as Ubuntu's PulseAudio loopback. The BlackHole hop exists because macOS has no loopback module: an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input. Gotchas hit live: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id. Verified with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
+
+### Switching input devices — the move you'll make daily
+
+The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay), `MacBook Air Microphone` (or your Mac's model name) is the built-in one.
+
+- **GUI**: **System Settings → Sound → Input** → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest "is anything hearing me" check there is. Note Control Center's sound module switches *output* (speakers) only — input always lives in Sound settings, and mixing the two up is the classic "Handy stopped hearing me" cause.
+- **CLI**: the `pactl set-default-source` equivalent is `SwitchAudioSource -t input -s "BlackHole 2ch"` (and `-s "MacBook Air Microphone"` to come back). `-c -t input` prints the current device, `-a -t input` lists them all.
+
+### What carries over from Part 1
+
+- **Handy**: identical install and settings as Part 1's macOS subsection. The toggle-mode requirement is *more* important here, not less — the Mac's VNC keyboard also sends instant press+release, so push-to-talk still can't work from a phone.
+- **Hotkey rebind**: same advice — a single modifier-less key beats a combo on a soft keyboard, and the Spotlight/`Option+Space` conflict fix from Part 1 already handles the OS side. Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — it's `Fn`+`→`, and Handy registers the *keysym*, so `Fn`+`→` at the desk and `End` in the client's key panel both trigger it. And don't pick a bare *modifier* like right-Option just because it's comfy locally — VNC soft keyboards can't send side-specific modifiers, so it will never fire from the phone.
+- **tmux**: nothing Mac-specific, but the reasoning transfers fully — switching tmux windows by keystroke beats alt-tabbing between GUI terminal windows by touch, on any OS (cheat sheet in Part 2).
+- **Readline editing, modifier toggles, tap/long-press/drag gestures**: VNC behavior, not OS behavior — everything in Part 4 below works the same against a Mac, with GNOME's hot corner swapped for macOS's own hot corners (System Settings → Desktop & Dock → Hot Corner, e.g. top-left → Mission Control) and `Super+A` swapped for `Cmd+Tab`.
+
+### Session realities on macOS (tested across a reboot)
+
+- **Everything server-side comes back after a reboot** — Screen Sharing, the AudioRelay player, Handy, and the BlackHole default-input setting all survived a full shutdown. The phone side does not: reopen AudioRelay → Microphone → Start each session.
+- **The Mac's LAN IP can re-lease** — ours moved between `.148` and `.196` on one reboot. If the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0` and edit the entry, or give the Mac a DHCP reservation in the router.
+- **Multiple displays arrive as one wide canvas** — pinch out in the client and pan; VNC has no per-monitor concept, so both screens sit side by side in a single framebuffer.
+
+### macOS troubleshooting quick reference
+
+- **Phone won't connect** — check in order: the Mac's IP (`ipconfig getifaddr en0` — DHCP moves it), the password (first 8 characters — legacy VNC truncates), and that **Screen Sharing**, not Remote Management, is the enabled service.
+- **Phone sees a login window you can't type into** — either Remote Management is serving legacy clients the login window (switch to plain Screen Sharing), or the Mac auto-locked (unlock at the Mac once; lengthen Lock Screen's "Require password").
+- **Dictation went silent** — the input is still on BlackHole with no stream behind it. Switch the input back to the built-in mic, or restart the phone's AudioRelay stream (Microphone → Start).
+- **Suspect the stored password** — the RFB DES challenge-response script from the auth notes above answers ACCEPTED/REJECTED without touching the phone.
+
+### Stopping, resuming, and removing it all
+
+**Stop for the evening.** The one step people get wrong (we did): switch the **input**, not just the speakers. Quitting AudioRelay and putting output back to `MacBook Air Speakers` still leaves the *input* on BlackHole — which now delivers silence, so dictation mysteriously "stops hearing you" while everything looks configured.
+
+1. Phone: stop the AudioRelay mic stream; close RealVNC.
+2. Mac: `SwitchAudioSource -t input -s "MacBook Air Microphone"` — or System Settings → Sound, Input; either way, it's the *input* side.
+3. Optional: quit AudioRelay from its **menu-bar icon** — closing the window only hides it, the app keeps running.
+4. Optional: System Settings → General → Sharing → Screen Sharing → off, if you don't want port 5900 open while nobody's using it.
+
+**Start again** (post-setup, takes ~30 seconds):
+
+1. Mac: AudioRelay open — the menu-bar icon is enough; use **Connect by address** if the phone doesn't auto-appear.
+2. Phone: AudioRelay → **Microphone → Start**.
+3. Mac: `SwitchAudioSource -t input -s "BlackHole 2ch"`.
+4. Phone: RealVNC → connect to the Mac's IP (recheck with `ipconfig getifaddr en0` if the Mac rebooted — DHCP moves it).
+5. Focus a text field → `End` → speak → `End`.
+
+**Remove everything** (full teardown):
+
+```bash
+SwitchAudioSource -t input -s "MacBook Air Microphone"   # input off BlackHole FIRST
+brew uninstall --cask blackhole-2ch audiorelay            # virtual device + player app
+sudo killall coreaudiod                                   # flush the stale device entry
+brew uninstall switchaudio-osx                            # optional CLI helper
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+  -deactivate -stop                                       # VNC server off
+# ...then System Settings → General → Sharing → Screen Sharing → OFF
+#   (the GUI toggle is authoritative on Sequoia — confirm it flipped)
+# Handy: quit it, remove from Login Items, or `brew uninstall --cask handy`
+#   its recordings/history live in ~/Library/Application Support/com.pais.handy
+```
+
+---
+
+## Part 4 — Driving either rig from the phone
+
+Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu rig and the macOS rig. Client-specific bits are labeled. The connection details for each rig, in one place:
+
+| | Ubuntu rig (Part 2) | macOS rig (Part 3) |
+|---|---|---|
+| Client | **bVNC** (Android) | **RealVNC Viewer** (Android) |
+| Address | `<ubuntu-lan-ip>:5900` | `<mac-lan-ip>:5900` |
+| Password | the `x11vnc -storepasswd` one | the 8-character VNC password from Part 3 |
+
+Both passwords are separate from your WiFi password and unaffected by switching networks — phone and desktop just need to be on the *same* network at connection time, whichever one that is. (On iOS, RealVNC's VNC Viewer app is the equivalent client for either rig.)
+
+VNC just mirrors real mouse and keyboard input — there's no VNC-specific "select an app" step, it behaves exactly like sitting at the desktop:
+
+- **Focus a window**: tap it directly in the mirrored screen — a real click.
+- **Type**: tap the field to focus it, tap the keyboard icon to bring up the phone's soft keyboard. Everything typed sends as real keystrokes — no special "VNC mode."
+- **Modifier combos** (Ctrl+key, Alt+key, Cmd+key — including Handy's own hotkey): use the client's extra-keys toolbar, the row of dedicated `Ctrl`/`Alt`/`Shift`/`Esc`/`Tab` buttons you tap to hold, then tap the other key.
+
+### Switching between applications
+
+Three ways, in the order actually worth trying on a phone:
+
+- **The desktop's hot corner (no keys needed at all)**: on GNOME, tap the very top-left pixel of the mirrored screen, just under where "Activities" would show — the overview opens with every open window as a thumbnail; tap the one you want. macOS has the same feature: System Settings → Desktop & Dock → Hot Corner (e.g. top-left → Mission Control). This is the one to reach for first: it needs no modifier key, works even if your VNC client's extra-keys toolbar doesn't expose `Tab` (some builds don't), and is one tap instead of a hold-plus-tap combo.
+- **Alt+Tab / Cmd+Tab, if your client has both keys**: hold `Alt` (or `Cmd` on the Mac rig) and tap `Tab` from the extra-keys toolbar to cycle, same as at a physical keyboard — same toggle-then-tap mechanism as the multi-key shortcuts below. Falls back to the hot corner if `Tab` isn't in your toolbar's default row.
+- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Keep everything inside one tmux session instead and switch panes/windows by keystroke (`Ctrl+b` + number, see the cheat sheet in Part 2) — this is why tmux is one of the three pieces of the Ubuntu setup, not just a convenience. Works identically on the Mac.
+
+All three are the same underlying trick as dictation: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
+
+### Multi-key shortcuts, e.g. `Super+A`
+
+A touchscreen can't physically hold two keys down at once, so the extra-keys toolbar buttons don't work like a normal press-and-release key — they're **toggles**. Tapping a modifier arms it (it stays visually pressed/highlighted); tapping the next key sends both together as one combo, and the modifier releases automatically right after.
+
+To fire `Super+A` (or any modifier combo — `Ctrl+Shift+T`, `Alt+F4`, `Cmd+Q` on the Mac rig):
+
+1. Open the extra-keys toolbar (the keyboard/gear icon in the client's in-session toolbar).
+2. Tap the **Super**/**Win**/**Cmd** key icon (labeled `Super`, `Win`, `Cmd`, or shown as a ⊞-style icon depending on client) — it stays highlighted, armed.
+3. Tap `A` on the soft keyboard — the combo fires as `Super+A`, and the modifier releases on its own.
+
+Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, then tap the letter key, and all three go through together. If the client's default extra-keys row doesn't show a Super/Win button, check its settings for a toolbar/keys customization option before assuming the key isn't supported — most VNC clients that expose Ctrl/Alt as toggles expose Super the same way.
+
+### bVNC only: where's the Enter/Backspace key?
+
+They're not special bVNC buttons — they're just the ordinary **Enter** and **Backspace** keys on Android's own soft keyboard, same as any other key you tap. bVNC's extra-keys toolbar (the icon strip you open from the in-session toolbar) exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows — because you can't reach those any other way from touch. Enter and Backspace are already on the standard keyboard, so there's nothing extra to add: type into the focused field/terminal and use them like you would in any Android app.
+
+### Rebind the dictation hotkey for phone use
+
+The default hotkey (`Option+Space` on Mac, whatever you set on Ubuntu) is fine at a physical keyboard, but it's the *worst* shape for VNC: it's a modifier combo, which means arming a toggle button and then tapping a second key every single time you want to dictate — two taps instead of one, on a touchscreen. Handy's hotkey is fully rebindable in **Settings → Shortcut** — click the field, press whatever you want it to be, done. For phone use, pick a **single key with no modifier**: `End`, `Insert`, `Home`, or `Page Up`/`Page Down` all work well — they're plain keys on the extra-keys toolbar (or the soft keyboard itself, depending on client), so triggering dictation is one tap, not an arm-then-tap sequence. Avoid anything that isn't a standard key a mobile soft keyboard or extra-keys row can actually send — media keys and vendor-specific function keys often just don't reach the desktop over VNC at all.
+
+This is a separate setting from the OS-level shortcut-conflict fixes in Part 1 (Spotlight on Mac, Wayland's single-key restrictions on Ubuntu) — those are about the hotkey not colliding with something else or firing reliably at the OS level; this is about picking a hotkey that's actually *convenient* to fire with a thumb.
+
+One thing this setup depends on getting right: **Handy has to be in toggle mode, not push-to-talk.** A VNC soft keyboard sends every key as an instant press+release — it physically cannot *hold* a key down. In push-to-talk mode, Handy sees the tap, flickers its recording indicator for a split second, and stops before anything is captured. Switch Handy's recording style to toggle (press once to start, press again to stop and transcribe) and single taps from the phone work exactly like a physical hold-and-release would.
+
+**Editing text in a terminal** (faster than arrow-key nudging on touch, works on both rigs): standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
+
+### bVNC only: right-click / opening an application's options menu
+
+**Mouse gestures** (bVNC): tap = left-click, drag = click-and-drag. But **right-click is not a plain long-press** — that's the one gesture people assume and get wrong.
+
+To right-click something — a dock/taskbar icon, the desktop, a file — and get its context/options menu:
+
+1. **Press and hold** one finger on the target (keep it down).
+2. **Tap anywhere else** on the screen with a second finger.
+3. Lift both — the right-click fires where the first finger sits, and the menu opens.
+
+That hold-then-second-finger-tap gesture is bVNC's documented right-click in its default input modes (hold and *swipe* instead of tapping and you get a right-drag). Alternatives, in order of usefulness:
+
+- **Single-Handed input mode**: long-press the target and a small panel pops up with a dedicated **right** button — tap it, lift, menu opens. The one-handed option; note long-press means *left-drag* in the other modes, it's only the chooser trigger here.
+- **Touchpad-style modes**: gesture conventions shift to "one finger = left-click, two fingers together = right-click, three = middle-click."
+- **Bluetooth mouse**: connect one and the actual right button just works.
+
+Gestures aren't gated behind bVNC Pro — same input handling in the free version. Full per-mode reference lives in-app: Menu → More → Input Mode Help. (RealVNC Viewer exposes its own mouse mode for this — the gestures above are bVNC's.)
 
 ---
 
