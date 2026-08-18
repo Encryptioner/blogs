@@ -24,6 +24,7 @@ tmp/
 
 # Misc
 *.tgz
+local/
 .playwright-mcp
 
 # Knowledge graph tools (generated output + platform-specific configs)

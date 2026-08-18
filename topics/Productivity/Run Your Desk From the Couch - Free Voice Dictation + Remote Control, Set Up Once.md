@@ -247,13 +247,13 @@ tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permane
 
 ## Remote control from a phone (macOS — Screen Sharing + phone mic)
 
-Same three jobs as the Ubuntu rig — see the screen, drive the keyboard, feed the phone's mic in — but the Mac ships with the biggest piece already installed, so this is mostly a matter of turning things on. Where the Ubuntu section above was built and broken end to end, this one is grounded in Apple's own documentation and DroidCam's published platform support, not (yet) a full phone-in-hand shake-down — where something is secondhand, it says so.
+Same three jobs as the Ubuntu rig — see the screen, drive the keyboard, feed the phone's mic in — but the Mac ships with the biggest piece already installed, so this is mostly a matter of turning things on. This section was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on 5900, a phone client driving the screen, and the phone's mic arriving as a real system input — everything marked "tested live" below came off that machine. The two pieces that remain secondhand (the Sequoia client-friction reports, the iPhone Continuity route) say so.
 
 ### Screen sharing: one toggle, no x11vnc equivalent needed
 
-macOS's built-in Screen Sharing speaks VNC, so the same phone clients that reach x11vnc reach a Mac:
+macOS's built-in Screen Sharing speaks VNC, so the phone clients that reach x11vnc mostly reach a Mac — with one tested exception (bVNC), covered in the auth notes below:
 
-1. **System Settings → General → Sharing → Screen Sharing** — flip it on.
+1. **System Settings → General → Sharing → Screen Sharing** — flip it on. Keep it plain Screen Sharing: if **Remote Management** is the enabled one instead, legacy-VNC clients get served the login window even while you're logged in, and typing into that over VNC drops focus (tested live — Remote Management off, Screen Sharing on, and the phone landed straight on the desktop; logging in over VNC works too, for the after-reboot case).
 2. For a *third-party* client (bVNC, RealVNC — anything not Apple's own Screen Sharing app), click the ⓘ next to Screen Sharing and enable **"VNC viewers may control screen with password"**, then set that password. Without it, macOS expects Apple's own authentication handshake and most phone clients fail to connect at all.
 3. Connect from the phone to `<mac-lan-ip>:5900`, password = the VNC password from step 2. Same separate-from-WiFi-password logic as x11vnc's.
 
@@ -267,9 +267,10 @@ Two auth behaviors worth knowing before a phone client rejects a correct-looking
 
 What you *don't* need, relative to the Ubuntu section: no display-number hunting (`who`, `:0` vs `:1`), no `-auth guess` Xauthority chase, no `.desktop` autostart file, no `-shared`/`-repeat` flag tuning — Apple's server handles reconnects and key repeat correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu autostart can't do that (x11vnc only starts after a graphical login).
 
-Two macOS-specific caveats, secondhand but worth knowing before you debug blind:
+Two caveats worth knowing before you debug blind:
 
-- **Sequoia has been rough on third-party VNC clients** — reports of non-Apple clients failing to connect or authenticate where Apple's own Screen Sharing app works, and of screen-recording/share permissions demanding reauthorization roughly monthly. If the phone client won't connect, first try Apple's Screen Sharing app from another Mac (or iTeleport/RealVNC's latest build) to isolate whether it's the server toggle or the client.
+- **Much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in step 1**, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if the phone client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client.
+- **The lock screen is the other trap** — when the Mac auto-locks, the VNC view becomes a login window whose password field keeps dropping focus under phone-client keystrokes. Unlock at the Mac's own keyboard once, and for couch use set **System Settings → Lock Screen → Require password…** to a long interval so sessions don't lock under you mid-dictation.
 - **Firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
 
 ### Phone mic: two routes, one of them native
@@ -277,16 +278,57 @@ Two macOS-specific caveats, secondhand but worth knowing before you debug blind:
 Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
 
 - **iPhone (the clean path)**: Continuity makes the iPhone's mic show up as a plain input device on the Mac — **System Settings → Sound → Input → iPhone Microphone** once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup.
-- **Android (the awkward path)**: DroidCam publishes its standalone client for **Windows and Linux only** — there is no macOS DroidCam client, so the PulseAudio recipe above does not port. The documented macOS route is the [DroidCam OBS plugin](https://droidcam.app/obs/), whose virtual output installs "DroidCam Audio" as a system audio device — audio-only mic use system-wide is plausible but unverified here; if you only need mic (not camera), the OBS-plugin path is the thing to try first, not a reason to abandon the setup.
+- **Android (the tested path — AudioRelay + BlackHole)**: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn't port. What works instead, tested end to end: **[AudioRelay](https://audiorelay.net/)** on the phone in **Microphone** mode streams over WiFi to the AudioRelay app on the Mac; point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it, the same trick as Ubuntu's PulseAudio loopback. The BlackHole hop exists because macOS has no loopback module: an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input. Gotchas hit live: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id. Verified with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
 
-Switching phone ↔ desktop mic is the same one-step move as Ubuntu's `pactl set-default-source`, just via **System Settings → Sound → Input** (or the Control Center sound module) — no commands needed.
+**Switching input devices** — the move you'll make daily, so here it is precisely. The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay), `MacBook Air Microphone` (or your Mac's model name) is the built-in one.
+
+- **GUI**: **System Settings → Sound → Input** → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest "is anything hearing me" check there is. Note Control Center's sound module switches *output* (speakers) only — input always lives in Sound settings, and mixing the two up is the classic "Handy stopped hearing me" cause.
+- **CLI**: the `pactl set-default-source` equivalent is `SwitchAudioSource -t input -s "BlackHole 2ch"` (and `-s "MacBook Air Microphone"` to come back). `-c -t input` prints the current device, `-a -t input` lists them all.
 
 ### What carries over unchanged
 
 - **Handy**: identical install and settings as the macOS section up top. The toggle-mode requirement is *more* important here, not less — the Mac's VNC keyboard also sends instant press+release, so push-to-talk still can't work from a phone.
-- **Hotkey rebind**: same advice — a single modifier-less key (`End`, `Insert`, `Page Up`) beats a combo on a soft keyboard, and the Spotlight/`Option+Space` conflict fix from the install section already handles the OS side.
+- **Hotkey rebind**: same advice — a single modifier-less key beats a combo on a soft keyboard, and the Spotlight/`Option+Space` conflict fix from the install section already handles the OS side. Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — it's `Fn`+`→`, and Handy registers the *keysym*, so `Fn`+`→` at the desk and `End` in the client's key panel both trigger it. And don't pick a bare *modifier* like right-Option just because it's comfy locally — VNC soft keyboards can't send side-specific modifiers, so it will never fire from the phone.
 - **tmux**: nothing Mac-specific, but the reasoning transfers fully — switching tmux windows by keystroke beats alt-tabbing between GUI terminal windows by touch, on any OS.
 - **Readline editing, modifier toggles, tap/long-press/drag gestures**: VNC behavior, not OS behavior — everything in "Using the phone once connected" below works the same against a Mac, with GNOME's hot corner swapped for macOS's own hot corners (System Settings → Desktop & Dock → Hot Corner, e.g. top-left → Mission Control) and `Super+A` swapped for `Cmd+Tab`.
+
+### Session realities on macOS (tested across a reboot)
+
+- **Everything server-side comes back after a reboot** — Screen Sharing, the AudioRelay player, Handy, and the BlackHole default-input setting all survived a full shutdown. The phone side does not: reopen AudioRelay → Microphone → Start each session.
+- **The Mac's LAN IP can re-lease** — ours moved between `.148` and `.196` on one reboot. If the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0` and edit the entry, or give the Mac a DHCP reservation in the router.
+- **Multiple displays arrive as one wide canvas** — pinch out in the client and pan; VNC has no per-monitor concept, so both screens sit side by side in a single framebuffer.
+
+### Stopping, resuming, and removing it all (macOS)
+
+**Stop for the evening.** The one step people get wrong (we did): switch the **input**, not just the speakers. Quitting AudioRelay and putting output back to `MacBook Air Speakers` still leaves the *input* on BlackHole — which now delivers silence, so dictation mysteriously "stops hearing you" while everything looks configured.
+
+1. Phone: stop the AudioRelay mic stream; close RealVNC.
+2. Mac: `SwitchAudioSource -t input -s "MacBook Air Microphone"` — or System Settings → Sound → Input; either way, it's the *input* side.
+3. Optional: quit AudioRelay from its **menu-bar icon** — closing the window only hides it, the app keeps running.
+4. Optional: System Settings → General → Sharing → Screen Sharing → off, if you don't want port 5900 open while nobody's using it.
+
+**Start again** (post-setup, takes ~30 seconds):
+
+1. Mac: AudioRelay open — the menu-bar icon is enough; use **Connect by address** if the phone doesn't auto-appear.
+2. Phone: AudioRelay → **Microphone → Start**.
+3. Mac: `SwitchAudioSource -t input -s "BlackHole 2ch"`.
+4. Phone: RealVNC → connect to the Mac's IP (recheck with `ipconfig getifaddr en0` if the Mac rebooted — DHCP moves it).
+5. Focus a text field → `End` → speak → `End`.
+
+**Remove everything** (full teardown):
+
+```bash
+SwitchAudioSource -t input -s "MacBook Air Microphone"   # input off BlackHole FIRST
+brew uninstall --cask blackhole-2ch audiorelay            # virtual device + player app
+sudo killall coreaudiod                                   # flush the stale device entry
+brew uninstall switchaudio-osx                            # optional CLI helper
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+  -deactivate -stop                                       # VNC server off
+# ...then System Settings → General → Sharing → Screen Sharing → OFF
+#   (the GUI toggle is authoritative on Sequoia — confirm it flipped)
+# Handy: quit it, remove from Login Items, or `brew uninstall --cask handy`
+#   its recordings/history live in ~/Library/Application Support/com.pais.handy
+```
 
 ---
 
@@ -466,7 +508,7 @@ DroidCam's phone app stops streaming on its own once the client disconnects.
 
 ## Where this landed
 
-Full chain confirmed working over LAN: bVNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. The macOS walkthrough above is documentation-grounded rather than battle-tested — the pieces exist and the iPhone mic route is native, but it hasn't been run end-to-end the way the Ubuntu chain has. Server side verified live on Sequoia: Screen Sharing answering on 5900 with an RFB handshake, VNC-password quirks included above.
+Full chain confirmed working over LAN: bVNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. The macOS walkthrough was shaken down live end to end on the same phone: RealVNC Viewer driving the Mac from across the room, the Android mic route (AudioRelay → BlackHole) delivering clean speech into the default input, and a full Handy dictation round-trip — toggle hotkey tapped from the phone's key panel, spoken sentence, transcription landing in the focused app. The iPhone Continuity route is the one piece still untested here.
 
 The setup is more moving parts than a typical dictation write-up — a phone-mic relay and a remote desktop protocol is a lot of infrastructure for a keyboard shortcut. But each piece is free, each piece is offline, and what it buys is a full second input surface for the desktop: dictate into anything — a commit message, a Slack reply, a doc, an AI agent prompt — or just drive the machine outright, switch apps, run a shortcut, check on something, all from whatever's in your pocket, without a subscription and without a cloud service listening in.
 
@@ -483,7 +525,7 @@ Every tool in this post, checked against primary sources — the repo's actual L
 | [x11vnc](https://github.com/LibVNC/x11vnc) | VNC server (Ubuntu) | LibVNC org | GPL | ✅ | Several (2018–2020, incl. CVE-2020-29074) — all addressed by 0.9.17 | Acceptable — actively maintained; use TLS/SSH on untrusted LANs (see below) |
 | [bVNC](https://github.com/iiordanov/remote-desktop-clients) | VNC client (Android) | Iordan Iordanov | GPL-3.0 | ✅ (free = same code as Pro) | None specific; bundles libvncclient which has 2026 decoder CVEs (client-side, malicious-server scenario) | Acceptable — mature; SSH/TLS tunneling built in |
 | [DroidCam](https://droidcam.app/) | Phone mic/camera → desktop | Dev47Apps | GPL-2.0 **Linux client only** — Android/desktop apps closed | ⚠️ partial | None found (weak evidence — closed source has no audit surface) | **Concerns** — see below |
-| [AudioRelay](https://audiorelay.net/) | Phone mic → desktop (macOS fallback) | Asapha Halifa (solo, France) | Closed | ❌ | None found (weak evidence) | **Concerns** — see below |
+| [AudioRelay](https://audiorelay.net/) | Phone mic → desktop (the macOS Android route) | Asapha Halifa (solo, France) | Closed | ❌ | None found (weak evidence) | **Concerns** — see below |
 | [BlackHole](https://existential.audio/) | Virtual audio device (macOS) | Existential Audio Inc. | GPL-3.0 source (official installers proprietary; name trademarked) | ✅ source | None found; DriverKit userspace driver, no kext, no telemetry, no network code | **Publicly trusted** — active (v0.7.1); installers signed + notarized |
 | [switchaudio-osx](https://github.com/deweller/switchaudio-osx) | CLI default-device switcher (macOS) | deweller/Honza Bambas | MIT | ✅ | None found | Acceptable — dormant since 2023 but a tiny no-network C CLI still packaged in homebrew-core; dormancy is a smell, not a finding |
 
