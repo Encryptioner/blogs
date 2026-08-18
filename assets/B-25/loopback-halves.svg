@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#d97706"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="560" fill="#ffffff"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#111827">The Loopback Cable — and Its Two Halves</text>
+  <text x="490" y="56" text-anchor="middle" font-size="13" fill="#6b7280">Part 4: why hw:Loopback,1,0 carries the phone and the udev auto-source captures silence</text>
+
+  <!-- DroidCam client -->
+  <rect x="30" y="150" width="220" height="100" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="140" y="178" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">DroidCam client</text>
+  <text x="140" y="198" text-anchor="middle" font-size="11" fill="#047857">receives the phone-mic</text>
+  <text x="140" y="214" text-anchor="middle" font-size="11" fill="#047857">stream over the network,</text>
+  <text x="140" y="233" text-anchor="middle" font-size="10.5" fill="#059669">plays it into the cable</text>
+
+  <!-- Loopback cable: two halves -->
+  <rect x="330" y="120" width="150" height="160" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="405" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#374151">device 0</text>
+  <text x="405" y="170" text-anchor="middle" font-size="10.5" fill="#6b7280">playback ← DroidCam</text>
+  <text x="405" y="188" text-anchor="middle" font-size="10.5" fill="#6b7280">capture → desktop's</text>
+  <text x="405" y="204" text-anchor="middle" font-size="10.5" fill="#6b7280">own audio (monitor)</text>
+
+  <rect x="500" y="120" width="150" height="160" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="575" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#374151">device 1</text>
+  <text x="575" y="170" text-anchor="middle" font-size="10.5" fill="#6b7280">capture → the phone</text>
+  <text x="575" y="188" text-anchor="middle" font-size="10.5" fill="#6b7280">(what an external</text>
+  <text x="575" y="204" text-anchor="middle" font-size="10.5" fill="#6b7280">stream sounds like)</text>
+
+  <line x1="480" y1="200" x2="500" y2="200" stroke="#16a34a" stroke-width="3"/>
+  <text x="490" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#16a34a">snd_aloop — one cable, two ends</text>
+
+  <line x1="250" y1="200" x2="330" y2="200" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="290" y="190" text-anchor="middle" font-size="10" fill="#16a34a">audio in</text>
+
+  <!-- Right half path: device1 capture → PulseAudio → Handy -->
+  <line x1="650" y1="200" x2="720" y2="200" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrowPurple)"/>
+
+  <rect x="720" y="150" width="230" height="100" rx="10" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="835" y="178" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4c1d95">PulseAudio source</text>
+  <text x="835" y="198" text-anchor="middle" font-size="11" fill="#5b21b6">alsa_input.hw_Loopback_1_0</text>
+  <text x="835" y="216" text-anchor="middle" font-size="11" fill="#5b21b6">loaded via module-alsa-source,</text>
+  <text x="835" y="234" text-anchor="middle" font-size="10.5" fill="#7e22ce">set as default input</text>
+
+  <line x1="835" y1="250" x2="835" y2="290" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrowPurple)"/>
+
+  <rect x="720" y="295" width="230" height="80" rx="10" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="835" y="322" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4c1d95">Handy</text>
+  <text x="835" y="342" text-anchor="middle" font-size="11" fill="#5b21b6">follows the default input —</text>
+  <text x="835" y="358" text-anchor="middle" font-size="11" fill="#5b21b6">transcribes the phone, offline</text>
+
+  <!-- Wrong half: udev auto-source -->
+  <line x1="405" y1="280" x2="405" y2="360" stroke="#d97706" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#arrowAmber)"/>
+
+  <rect x="290" y="365" width="380" height="100" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="480" y="392" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">udev auto-source — the wrong half</text>
+  <text x="480" y="412" text-anchor="middle" font-size="11" fill="#92400e">alsa_input.platform-snd_aloop.0.analog-stereo</text>
+  <text x="480" y="430" text-anchor="middle" font-size="11" fill="#92400e">captures device 0 — the desktop's own playback,</text>
+  <text x="480" y="448" text-anchor="middle" font-size="11" fill="#92400e">not the phone: looks valid, records silence</text>
+
+  <text x="490" y="520" text-anchor="middle" font-size="11.5" fill="#374151">The two capture sides are not interchangeable — capture from the end the stream enters</text>
+  <text x="490" y="540" text-anchor="middle" font-size="11" fill="#9ca3af">macOS has no loopback module, which is the entire reason the BlackHole hop exists there</text>
+</svg>
