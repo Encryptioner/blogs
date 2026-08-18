@@ -201,6 +201,8 @@ Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected
 
 (On iOS, RealVNC's VNC Viewer app is the equivalent client for either machine.)
 
+**Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the troubleshooting tables above are ordered by likelihood; start at the top.
+
 ## Driving the desktop from the phone
 
 Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu machine and the Mac. Client-specific bits are labeled. The connection details, in one place:
@@ -308,6 +310,8 @@ Any app that listens for a global hotkey (launcher, dictation engine, window man
 - **Keep port 5900 LAN-scoped.** `ufw allow from <your-subnet> to any port 5900` on Ubuntu; on macOS the firewall already permits Screen Sharing — and on *both*, the rule that matters is at the router: never port-forward 5900 to the internet. If you ever need in from outside your LAN, that's a VPN job (see the roadmap below), not a port-forward job.
 - **VNC passwords are weak by protocol.** Classic VNC auth is a DES challenge-response **capped at 8 characters** — both servers in this post use it. On a firewalled home LAN that's an acceptable trade; anywhere shared, tunnel VNC through SSH (bVNC supports SSH tunnels natively) or use x11vnc's TLS/VeNCrypt options.
 - **No cloud in the control path.** RealVNC Viewer connects direct, machine-to-machine; nothing in Part 1 routes through or requires anyone's servers.
+
+That's the control half done: the phone can see and drive either machine. But every input so far has been thumb-typed — and thumbs are the bottleneck this rig exists to remove. Part 2 replaces them with the phone's microphone.
 
 ---
 
@@ -508,7 +512,7 @@ Open the Classic DroidCam app on the phone *before* running it. The script's own
 pactl list sources short | grep Loopback   # want: alsa_input.hw_Loopback_1_0 ... 16000Hz ... RUNNING
 ```
 
-**Dictate**: connect from the phone's VNC client → focus a text field → tap Handy's hotkey (toggle: tap to start, tap to stop) → speak into the phone → tap again → text pastes at the cursor.
+**Dictate**: connect from the phone's VNC client → focus a text field → tap Handy's hotkey (toggle: tap to start, tap to stop) → speak into the phone → tap again → text pastes at the cursor. That sequence is the whole post delivered — voice in your hand, words on the desktop, and not one byte of it through anyone's cloud.
 
 **Switch mic, phone ↔ desktop** — both exist as PulseAudio sources side by side; Handy just uses whichever is currently default:
 
@@ -545,7 +549,12 @@ DroidCam's phone app stops streaming on its own once the client disconnects.
 Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
 
 - **iPhone (the clean path)**: Continuity makes the iPhone's mic show up as a plain input device on the Mac — **System Settings → Sound → Input → iPhone Microphone** once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup. (The one piece of this post still untested here.)
-- **Android (the tested path — AudioRelay + BlackHole)**: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn't port. What works instead, tested end to end: **[AudioRelay](https://audiorelay.net/)** on the phone in **Microphone** mode streams over WiFi to the AudioRelay app on the Mac; point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it, the same trick as Ubuntu's PulseAudio loopback. The BlackHole hop exists because macOS has no loopback module: an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input. Gotchas hit live: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id. Verified with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
+- **Android (the tested path — AudioRelay + BlackHole)**: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn't port. What works instead, tested end to end:
+  - **[AudioRelay](https://audiorelay.net/)** on the phone in **Microphone** mode streams over WiFi to the AudioRelay app on the Mac.
+  - Point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it: the same trick as Ubuntu's PulseAudio loopback.
+  - **Why the BlackHole hop exists at all**: macOS has no loopback module — an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input.
+  - **Gotchas hit live**: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id.
+  - **Verified** with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
 
 <div align="center">
   <img src="../../assets/B-24/architecture-macos.png" alt="Diagram: Android phone running RealVNC Viewer and AudioRelay connects over local WiFi to a Mac. RealVNC's touch and key panel send real mouse/keyboard events to macOS's built-in Screen Sharing (VNC port 5900), which feeds the desktop input stack that GUI apps, terminals, and Handy's global hotkey listener all sit on. AudioRelay streams the phone mic over WiFi into the AudioRelay Mac app, whose output plays into the BlackHole 2ch virtual device; BlackHole's far end appears as a normal input device, set as the default in Sound settings so Handy transcribes from it."/>

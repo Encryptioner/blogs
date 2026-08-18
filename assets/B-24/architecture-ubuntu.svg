@@ -18,9 +18,10 @@
   <text x="165" y="122" text-anchor="middle" font-size="16" font-weight="700" fill="#111827">Android Phone</text>
 
   <rect x="55" y="150" width="220" height="90" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="165" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">bVNC</text>
+  <text x="165" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">RealVNC Viewer</text>
   <text x="165" y="196" text-anchor="middle" font-size="11.5" fill="#1e40af">touch → mouse clicks,</text>
   <text x="165" y="212" text-anchor="middle" font-size="11.5" fill="#1e40af">soft keyboard → keystrokes</text>
+  <text x="165" y="230" text-anchor="middle" font-size="10.5" fill="#6b7280">(bVNC works here too — Ubuntu only)</text>
 
   <rect x="55" y="270" width="220" height="90" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
   <text x="165" y="296" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">DroidCam (Classic)</text>
