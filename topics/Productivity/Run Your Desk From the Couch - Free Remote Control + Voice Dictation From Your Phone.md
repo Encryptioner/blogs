@@ -650,10 +650,12 @@ The setup is more moving parts than a typical dictation write-up — a phone-mic
 
 ## Where this goes next
 
-Part 1 and Part 2 both live on one constraint: **phone and desktop on the same network.** That's the right scope for a couch rig — but it's not the end of the road. Two follow-ups are planned:
+Part 1 and Part 2 both live on one constraint: **phone and desktop on the same network.** That's the right scope for a couch rig — but it's not the end of the road. Both follow-ups now live in one post:
 
-- **Off the LAN.** Same rig, different network layer: a mesh VPN (Tailscale-shaped) puts the phone and desktop on a shared private network wherever either physically is, with no port ever opened to the internet. VNC, the mic relay, and every skill from this post carry over unchanged — only the IP addresses change shape.
-- **The deep dive.** For the curious: what's actually on the wire. The RFB protocol a VNC session speaks, how x11vnc injects events into X11, what an ALSA loopback *is* such that the wrong half is silent, why 16 kHz mono is the phone-mic format, and where the real security boundaries sit.
+- **Off the LAN (Part 3).** Same rig, different network layer: a mesh VPN (Tailscale-shaped) puts the phone and desktop on a shared private network wherever either physically is, with no port ever opened to the internet. VNC, the mic relay, and every skill from this post carry over unchanged — only the IP addresses change shape.
+- **The deep dive (Part 4).** For the curious: what's actually on the wire. The RFB protocol a VNC session speaks, how x11vnc injects events into X11, what an ALSA loopback *is* such that the wrong half is silent, why 16 kHz mono is the phone-mic format, and where the real security boundaries sit.
+
+→ [**Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet**](./Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md) has both.
 
 ---
 

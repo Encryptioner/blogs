@@ -59,6 +59,12 @@ The properties that matter for this rig:
 
 **The honest trade-off:** the LAN-only rig was "no cloud dependency" in the strictest sense. Tailscale adds a third-party *coordination* service — its control plane handles identity and connection setup. In the common direct-connection case, no VNC pixels and no dictation audio ever touch Tailscale's servers; in the relay-fallback case their servers carry it, encrypted, unreadable in transit. If that trade-off ever stops being acceptable, [Headscale](https://github.com/juanfont/headscale) — the self-hosted, open-source control-plane replacement — is a documented exit that keeps everything else identical.
 
+<div align="center">
+  <img src="../../assets/B-25/internet-path.png" alt="Diagram: an Android phone on café WiFi or mobile data and a desktop at home behind a router, each running Tailscale with a permanent 100.x.y.z tailnet address. RealVNC Viewer targets the desktop's tailnet IP on port 5900; the DroidCam app streams the mic to the desktop's tailnet IP on port 4747. A direct WireGuard tunnel (the common case) connects the two peers end-to-end encrypted; when no direct path can be punched, traffic falls back to a DERP relay that carries ciphertext only. No router ports are opened."/>
+  <br/>
+  <sub>Part 3 in one picture: the tailnet replaces "same WiFi" — x11vnc and DroidCam keep believing they're on a LAN.</sub>
+</div>
+
 ### On the desktop
 
 Ubuntu and macOS both get the same one-liner or installer:
@@ -177,6 +183,12 @@ macOS runs the same play with different plumbing: Screen Sharing injects events 
 Part 2 told you the fix (`hw:Loopback,1,0`, not the udev auto-source) without the full picture. Here it is.
 
 An **ALSA loopback** device (`snd_aloop`) is a virtual cable with **two ends**: device `0` and device `1`, each with a playback side and a capture side. Whatever is played into one end's playback side comes out the other end's capture side. The ends are not interchangeable — they're opposite sides of the same pipe:
+
+<div align="center">
+  <img src="../../assets/B-25/loopback-halves.png" alt="Diagram: the DroidCam client plays the incoming phone-mic stream into the snd_aloop cable's device 0 playback side; it emerges from device 1's capture side, which PulseAudio exposes as alsa_input.hw_Loopback_1_0 via module-alsa-source — set as default input so Handy transcribes it. A separate udev auto-source (alsa_input.platform-snd_aloop.0.analog-stereo) captures device 0 instead — the desktop's own playback — so it looks valid but records silence."/>
+  <br/>
+  <sub>The wrong-half bug in one picture: both capture sides look like microphones; only device 1 is wired to the phone.</sub>
+</div>
 
 - **Device 0 capture** is what a local app would hear from the system (the "monitor the desktop's output" end).
 - **Device 1 capture** is the far end of an external stream *into* the machine — where DroidCam's audio from the phone is written.

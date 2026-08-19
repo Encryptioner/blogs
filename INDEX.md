@@ -27,6 +27,7 @@
 22. Productivity: [Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands](./topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md)
 23. Productivity: [How branchdiff Grew Up - One Diff Tool's Journey From a Proof of Concept to a Self-Hosted Review Bot](./topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md)
 24. Productivity: [Run Your Desk From the Couch - Free Remote Control + Voice Dictation From Your Phone](./topics/Productivity/Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md)
+25. Productivity: [Run Your Desk From Anywhere - Free Remote Control + Voice Dictation Over the Internet](./topics/Productivity/Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md)
 
 ## Presentations
 0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)
