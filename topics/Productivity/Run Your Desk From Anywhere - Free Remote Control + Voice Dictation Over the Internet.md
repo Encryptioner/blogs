@@ -1,13 +1,15 @@
 # Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet
 
-[Part 1](./Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md) of this series got the rig working: the phone drives the desktop over VNC, the phone's mic feeds a local dictation engine, everything stays on the home WiFi. This is the sequel, and it answers the question that shows up the moment you actually taste that setup:
+[Part 1](./Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md) of this series got the rig working: the phone drives the desktop over VNC, the phone's mic feeds a local dictation engine, everything stays on the home WiFi. This post takes the leash off. Same phone, same desktop, same free tools — now working from a coffee shop, a hotel room, or the back seat of a cab on mobile data, with nothing exposed to the open internet and nothing added to the bill. If you've ever wanted to nudge a build running at home, or dictate a reply into your desktop's inbox, from wherever you actually are, this is that setup, built and verified live.
 
 > *"Wait — this only works on my WiFi. What if I'm at a coffee shop? What if the desktop is at home and I'm not?"*
 
-Two parts, same rule as before — everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. Still untested here: the macOS side of the tailnet and the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
+That's the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:
 
 1. **Part 3 — Off the LAN.** Why "just port-forward 5900" is the wrong answer (and often an impossible one), what a mesh VPN actually does, and the Tailscale build that swaps every LAN IP in the Part 1–2 rig for a tailnet IP — x11vnc, ufw, DroidCam, RealVNC Viewer all unchanged in shape.
 2. **Part 4 — The deep dive.** How the rig actually works under the hood: the RFB protocol and why the VNC password stops at 8 characters, why VNC input triggers global hotkeys when an SSH session can't, the two halves of an ALSA loopback device, and what WireGuard/NAT traversal is doing in Part 3.
+
+Same rule as the rest of the series: everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. Still untested here: the macOS side of the tailnet and the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
 
 ---
 
@@ -148,6 +150,8 @@ play /tmp/mic-check.wav   # or: sox /tmp/mic-check.wav -n stat
 
 Flat amplitude or garble = the transport is degrading audio; check `tailscale status` for a relayed path, try again somewhere with better signal, and file the result.
 
+**A lighter-weight alternative worth naming:** all of the above exists to keep speech-to-text *local* — Handy runs the model on the desktop's own CPU/GPU, audio never leaves your two devices. If that's not a requirement for you, most phone keyboards (Gboard, SwiftKey, Samsung Keyboard) already have a mic button that dictates straight into any focused text field — including the VNC viewer's own on-screen keyboard, no rig required. The trade-off is the whole point of mentioning it here: that convenience is near-universally a **cloud service** — the keyboard streams your voice to Google/Microsoft/Samsung's servers for transcription, not local. Fine for most people, most of the time; just not "no network dependency," which is what Parts 1–2's Handy setup bought you. Pick based on what you're dictating and who you trust with it.
+
 ## Security recap for Part 3
 
 - The VNC port is now reachable from **wherever your phone is** — the tailnet replaces "same WiFi" as the trust boundary. Keep the tailnet small: personal Tailscale plans allow a limited number of users and devices; use them for your devices only, not as a shared VPN for acquaintances.
@@ -230,6 +234,12 @@ The internet build adds one more layer to trace, and its mental model is small:
 - **WireGuard** is the encryption: each pair of tailnet devices shares cryptographic keys; traffic between them is a sealed UDP envelope no relay can open.
 - **NAT traversal** is the connection problem: both endpoints are (usually) behind NATs that reject unsolicited inbound packets. Tailscale's coordination plane tells each side what the other's observable address:port is, and the two sides simultaneously send packets *at each other* — each side's outbound packet opens the pinhole in its own NAT that the other's inbound packets then slip through. That's "direct connection," and it's the common case.
 - **DERP** is the fallback for when no pinhole works (symmetric NAT on both ends, hostile firewalls): encrypted packets relayed through Tailscale's servers. Slower — an extra hop, and hop distance matters — but the payload stays end-to-end encrypted, so the relay is a post office, not a listener.
+
+<div align="center">
+  <img src="../../assets/B-25/nat-hole-punching.png" alt="Message sequence diagram: peer A and peer B each contact a rendezvous server S first; S tells each peer the other's observed address; A and B then send packets directly at each other so each side's outbound packet opens a pinhole in its own NAT for the other's reply to slip through, establishing a direct A-to-B path without S in the loop."/>
+  <br/>
+  <sub>The generic version of the same trick Tailscale's coordination plane runs before falling back to DERP. (<a href="https://commons.wikimedia.org/wiki/File:UDP_hole_punching.png">Chumpih</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, via Wikimedia Commons)</sub>
+</div>
 
 You can see which path you're on: `tailscale status` on the desktop prints, per peer, `direct` or `relay "..."` — worth checking once when you set up, because it explains the latency you feel.
 
