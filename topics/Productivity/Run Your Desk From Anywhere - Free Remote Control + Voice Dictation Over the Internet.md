@@ -4,7 +4,7 @@
 
 > *"Wait — this only works on my WiFi. What if I'm at a coffee shop? What if the desktop is at home and I'm not?"*
 
-Two parts, same rule as before — everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. This post's internet path (Part 3) is designed but **not yet run live end-to-end**; the internals (Part 4) are documented from the working rig itself.
+Two parts, same rule as before — everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. Still untested here: the macOS side of the tailnet and the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
 
 1. **Part 3 — Off the LAN.** Why "just port-forward 5900" is the wrong answer (and often an impossible one), what a mesh VPN actually does, and the Tailscale build that swaps every LAN IP in the Part 1–2 rig for a tailnet IP — x11vnc, ufw, DroidCam, RealVNC Viewer all unchanged in shape.
 2. **Part 4 — The deep dive.** How the rig actually works under the hood: the RFB protocol and why the VNC password stops at 8 characters, why VNC input triggers global hotkeys when an SSH session can't, the two halves of an ALSA loopback device, and what WireGuard/NAT traversal is doing in Part 3.
@@ -130,13 +130,15 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 
 The one-line summary: **Part 3 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, two edited IPs.
 
-## Dictation over the internet: the one genuine unknown
+## Dictation over the internet: tested from cellular
 
-VNC-over-Tailscale is screen data, already latency-tolerant for "read and tap" use. The dictation audio path is the piece with a real open question — flagged honestly because it has **not yet been run live from an off-LAN network**:
+The audio path was the piece with a genuine unknown — LAN latency is single-digit milliseconds, and dictation over a real internet path had never been exercised here. It has now, end to end: phone on **mobile data** (WiFi off), DroidCam streaming to the desktop's tailnet IP, audio captured from the rig's usual `16 kHz` virtual source.
 
-- On LAN, DroidCam's audio path is single-digit-millisecond. Over the internet — WireGuard-relayed, worst case through DERP, with real-world jitter and packet loss — round-trip behavior is simply not the same environment.
-- For dictation-shaped use (record a few seconds, then transcribe), a one-time buffering delay before audio arrives is probably tolerable. The untested part is sustained jitter: does the audio thread buffer and recover gracefully, or glitch and garble? The LAN rig never exercised that path.
-- **When you verify it, verify the audio, not just the connection.** Connecting is not the test. Re-run Part 2's sanity check from the off-LAN network — record from the virtual source and check it's non-silent, clean audio:
+- **Connection quality**: `tailscale ping` to the phone answered in ~66 ms on a **direct** WireGuard path — not even the DERP relay was needed on a carrier network.
+- **Audio quality**: the capture came back non-silent with speech-level amplitudes — clean enough to transcribe, with no perceptible buffering delay for dictation-shaped use (speak a sentence, then transcribe).
+- **What's still honest to say**: this was one session on one carrier. Sustained use on a congested network is where jitter would show up — and if dictation ever turns garbled off-LAN, check `tailscale status` first: a fallback to `relay "..."` plus packet loss is the transport degrading, not the rig breaking.
+
+**When you verify it on your networks, verify the audio, not just the connection.** "It connected" is not the test. Re-run Part 2's sanity check from the off-LAN network — record from the virtual source and check it's non-silent, clean audio:
 
 ```bash
 parecord --device=alsa_input.hw_Loopback_1_0 --file-format=wav /tmp/mic-check.wav
@@ -144,7 +146,7 @@ parecord --device=alsa_input.hw_Loopback_1_0 --file-format=wav /tmp/mic-check.wa
 play /tmp/mic-check.wav   # or: sox /tmp/mic-check.wav -n stat
 ```
 
-Flat amplitude or garble = the relay path is degrading audio; fall back to LAN dictation and file the result. This test is quick enough to run once from any coffee shop.
+Flat amplitude or garble = the transport is degrading audio; check `tailscale status` for a relayed path, try again somewhere with better signal, and file the result.
 
 ## Security recap for Part 3
 
@@ -270,4 +272,4 @@ The progression is deliberate: each part removed exactly one constraint — *the
 
 ---
 
-*Built and documented from a real, working rig. Parts 1–2 verified live on it; Part 3's end-to-end internet path is specified here but marked where live verification is still pending — run the checks in "Dictation over the internet" before trusting it away from home.*
+*Built and documented from a real, working rig. Parts 1–2 verified live on it; Part 3 verified live from a phone on mobile data — VNC control and mic audio both, over a direct WireGuard path. The macOS tailnet route and the escape-hatch alternatives remain designs until run; the checks in "Dictation over the internet" are how to verify them.*

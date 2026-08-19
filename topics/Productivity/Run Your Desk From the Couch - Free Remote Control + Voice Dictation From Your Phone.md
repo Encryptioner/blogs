@@ -581,6 +581,8 @@ The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay)
 
 - **"Busy with another client" right after restarting droidcam**: the phone holds the old connection open for a few seconds after the desktop client is killed. Kill it, wait ~5s, reconnect.
 - **Dictation transcribes nothing / Handy "hears silence"**: check the source is the *right* one and actually running — `pactl list sources short | grep Loopback` should end in `RUNNING` at 16000Hz. If it's the udev auto-created source (`alsa_input.platform-snd_aloop.0.analog-stereo`), that's the wrong-half bug above — apply the `load-module` fix.
+- **Source exists, droidcam is connected and streaming, but `parecord` captures literally 0 samples** (hit live): the `module-alsa-source` was loaded when no client was streaming and froze a `2ch 44100Hz` spec — the loopback pair refuses mismatched channels, so the source opens, "runs," and delivers nothing. Fix: while `droidcam-cli` is streaming, `pactl unload-module <its-index>` then reload `pactl load-module module-alsa-source device=hw:Loopback,1,0` — the fresh module negotiates `1ch 16000Hz` and audio appears immediately. (A source named `hw_Loopback_1_0.2` means two modules collided — unload the stale one, reload once.) Raw `arecord -D hw:2,1,0 -f S16_LE -c 1 -r 16000` is the bypass check that proves the cable itself is fine.
+- **droidcam-cli dies with `Audio connection reset`**: the desktop–network path is fine; the phone app's audio server isn't up. Open DroidCam and leave it in the foreground on its start screen, make sure its audio/mic toggle is on, and set the app's battery use to Unrestricted — Android will kill a backgrounded mic stream. Same symptom on WiFi and tailnet = app-side, not network.
 
 **macOS:**
 
