@@ -65,6 +65,18 @@ The properties that matter for this rig:
   <sub>Part 3 in one picture: the tailnet replaces "same WiFi" — x11vnc and DroidCam keep believing they're on a LAN.</sub>
 </div>
 
+### Is Tailscale safe to trust?
+
+This deserves its own answer, not a hand-wave — the rig's VNC password would be one tailnet membership away from the desktop. The case, from [Tailscale's own security documentation](https://tailscale.com/security) and its public record:
+
+- **The crypto is WireGuard's, not a home-rolled protocol.** Peer-reviewed, formally verified primitives (Curve25519 key exchange, ChaCha20-Poly1305); traffic is end-to-end encrypted between *your two devices only*. Private keys never leave the device they belong to — the coordination server only ever exchanges public keys, so neither Tailscale Inc nor their relays can decrypt what flows between your phone and desktop. Relay fallback carries ciphertext, by construction.
+- **The parts that touch your data are open source.** Every client (Linux, macOS, Android, iOS, Windows) and even the DERP relay server code are on GitHub — auditable and forkable. The closed piece is the coordination/control plane, which sees metadata (which nodes exist, who connects to whom), never payloads.
+- **Professionally audited, repeatedly.** Recurring third-party security reviews by [Latacora](https://www.latacora.com/), SOC 2 Type II certified, public security bulletins when issues surface — the disclosure pattern you want to see, not silence.
+- **Publicly used at serious scale.** Millions of daily users across personal and enterprise tailnets; named customers include Duolingo, Instacart, Retool, Mercury, and Mercari. A two-device hobby rig is the smallest possible use of infrastructure battle-tested far beyond it.
+- **The account side is defensible by default.** SSO/MFA on your identity provider, per-device approval, ACLs, and tailnet lock (pin which devices may join). The 8-character VNC password is no longer your outer wall — the tailnet is, and it's a modern one.
+
+The remaining honest caveat is the one from the trade-off above: coordination is a third-party closed service. If that ever bothers you, Headscale swaps it for your own server and nothing else changes.
+
 ### On the desktop
 
 Ubuntu and macOS both get the same one-liner or installer:
@@ -247,7 +259,7 @@ The progression is deliberate: each part removed exactly one constraint — *the
 
 | Tool | Role | License / cost |
 |---|---|---|
-| [Tailscale](https://tailscale.com/) | Mesh VPN (Part 3) | Free personal plan; open clients ([Android](https://github.com/tailscale/tailscale-android), [iOS](https://github.com/tailscale/tailscale-ios), [macOS/CLI](https://github.com/tailscale/tailscale)); coordination service is closed |
+| [Tailscale](https://tailscale.com/) | Mesh VPN (Part 3) | Free personal plan; open clients ([Android](https://github.com/tailscale/tailscale-android), [iOS](https://github.com/tailscale/tailscale-ios), [macOS/CLI](https://github.com/tailscale/tailscale)); coordination service is closed; WireGuard end-to-end, SOC 2 Type II |
 | [Headscale](https://github.com/juanfont/headscale) | Self-hosted control plane (escape hatch) | Open source, BSD-3 |
 | [x11vnc](https://github.com/LibVNC/x11vnc) | VNC server, Ubuntu | GPL-2.0 |
 | macOS Screen Sharing | VNC server, macOS | Built-in |
