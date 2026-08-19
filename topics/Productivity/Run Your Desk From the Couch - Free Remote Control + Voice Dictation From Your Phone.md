@@ -98,7 +98,7 @@ Or skip the GUI for step 1: `sudo launchctl load -w /System/Library/LaunchDaemon
 
 Three auth behaviors worth knowing before a phone client rejects a correct-looking password:
 
-- **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a DES challenge-response capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password.
+- **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a [DES challenge-response](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2) capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password. (Part 4 of this series opens up the mechanism, for the curious.)
 - **macOS serves two auth types side by side**: Mac account auth (a username + your Mac login password, Apple's ARD-style handshake) *and* the legacy VNC password. A client looping on "enter VNC credentials" is often answering the wrong one — the server offers both, and which one you get depends on the client's negotiation. Note Screen Sharing and Remote Management each have their **own** VNC-password setting; only the one for the service you actually enabled is consulted.
 - **Client choice matters — tested live.** **RealVNC Viewer** connects with the plain VNC password, username blank. **bVNC** (another popular Android client) fails against a Mac — see the troubleshooting table just below.
 
@@ -657,6 +657,7 @@ Part 1 and Part 2 both live on one constraint: **phone and desktop on the same n
 - **Off the LAN (Part 3).** Same rig, different network layer: a mesh VPN (Tailscale-shaped) puts the phone and desktop on a shared private network wherever either physically is, with no port ever opened to the internet. VNC, the mic relay, and every skill from this post carry over unchanged — only the IP addresses change shape.
 - **The deep dive (Part 4).** For the curious: what's actually on the wire. The RFB protocol a VNC session speaks, how x11vnc injects events into X11, what an ALSA loopback *is* such that the wrong half is silent, why 16 kHz mono is the phone-mic format, and where the real security boundaries sit.
 
+<!-- CROSS-POST NOTE: this links to Part 3–4's file in-repo. When publishing this post standalone on another platform, point it at Part 3–4's live URL there instead. -->
 → [**Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet**](./Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md) has both.
 
 ---

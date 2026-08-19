@@ -1,5 +1,6 @@
 # Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet
 
+<!-- CROSS-POST NOTE: this links to Part 1's file in-repo. When publishing this post standalone on another platform, point it at Part 1's live URL there instead. -->
 [Part 1](./Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md) of this series got the rig working: the phone drives the desktop over VNC, the phone's mic feeds a local dictation engine, everything stays on the home WiFi. This post takes the leash off. Same phone, same desktop, same free tools — now working from a coffee shop, a hotel room, or the back seat of a cab on mobile data, with nothing exposed to the open internet and nothing added to the bill. If you've ever wanted to nudge a build running at home, or dictate a reply into your desktop's inbox, from wherever you actually are, this is that setup, built and verified live.
 
 > *"Wait — this only works on my WiFi. What if I'm at a coffee shop? What if the desktop is at home and I'm not?"*
@@ -11,6 +12,27 @@ That's the question Part 1 leaves hanging. This post answers it in two parts, th
 
 Same rule as the rest of the series: everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. Still untested here: the macOS side of the tailnet and the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
 
+## Topic flow
+
+One map of where this post goes — skim this, then jump to what you need:
+
+```
+PART 3 — OFF THE LAN (the build)             PART 4 — DEEP DIVE (the why)
+────────────────────────────────────         ──────────────────────────────────────────
+The port-forward check, and why it fails      RFB protocol + the 8-char password cap
+ (CGNAT)                                      Why VNC hotkeys fire and SSH can't (XTEST)
+Why raw VNC-over-internet is still wrong      ALSA loopback halves + the silence bug
+Candidate approaches, compared                What Handy does with the audio
+Tailscale: what it is, why it's trustworthy   WireGuard, NAT traversal, and DERP
+Desktop + phone setup (one firewall rule)     Failure-mode map (symptom → layer → check)
+What changes vs. Parts 1–2 (a table)
+Dictation tested live, off-LAN
+Security recap + escape hatches
+────────────────────────────────────         ──────────────────────────────────────────
+        Read Part 3 to get it running off the LAN; read Part 4 when something
+        breaks and you want to know *why*, or you just like knowing how things work.
+```
+
 ---
 
 # Part 3 — Off the LAN: the same rig over the internet
@@ -21,7 +43,7 @@ The traditional answer to "reach my home machine from outside" is: open the rout
 
 1. Open the router admin panel (usually `192.168.1.1` or `192.168.0.1` — your gateway address) and note its **WAN IP**.
 2. From the desktop, ask the internet what IP it sees: `curl ifconfig.me`.
-3. Compare. **Same address** → your connection has a real public IP; port-forwarding is at least *possible*. **Different address**, or the router's WAN IP somewhere in `100.64.0.0`–`100.127.255.255` → you're behind **CGNAT** (Carrier-Grade NAT): your router's "public" side is itself a private address inside your ISP's shared NAT layer. Inbound port-forwards simply won't route to you — no router configuration changes that, because the NAT layer that drops the traffic belongs to the ISP, not you.
+3. Compare. **Same address** → your connection has a real public IP; port-forwarding is at least *possible*. **Different address**, or the router's WAN IP somewhere in `100.64.0.0`–`100.127.255.255` → you're behind [**CGNAT**](https://datatracker.ietf.org/doc/html/rfc6598) (Carrier-Grade NAT): your router's "public" side is itself a private address inside your ISP's shared NAT layer. Inbound port-forwards simply won't route to you — no router configuration changes that, because the NAT layer that drops the traffic belongs to the ISP, not you.
 
 CGNAT is now standard on many fiber and 5G home connections, which is exactly why "just forward the port" advice from 2010 blog posts fails silently today: everything on your side is configured correctly, and the packets still never arrive.
 
@@ -173,19 +195,19 @@ Part 1–2 said "trust me, taps become real keystrokes" and "trust me, the wrong
 
 ## The wire protocol: RFB, and the 8-character password
 
-VNC speaks **RFB** (Remote Framebuffer). A session is a short fixed conversation, and knowing its shape explains several behaviors you met in Part 1 without explanation:
+VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Framebuffer). A session is a short fixed conversation, and knowing its shape explains several behaviors you met in Part 1 without explanation:
 
 1. **Version handshake** — client and server exchange `RFB 003.008`-style strings and agree on a version.
 2. **Security negotiation** — the server lists the auth types it will accept; the client picks one. This is where macOS offers *two at once* — Mac-account (Apple's ARD-style handshake) and the legacy VNC password — and where a client that can only speak one of them (bVNC picking Apple's DH handshake and failing to complete it) dies with a rejected-correct-password loop. It negotiated the wrong door, not the wrong key.
 3. **Auth, then framebuffer negotiation** — pixel format, encodings, and from there a stream of framebuffer updates (server → client) and pointer/key events (client → server).
 
-The 8-character cap: classic VNC authentication is a **DES challenge-response**. The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's not a bug in either — it's the protocol wearing its age on its sleeve.
+The 8-character cap: classic VNC authentication is a [**DES challenge-response**](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2). The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's not a bug in either — it's the protocol wearing its age on its sleeve.
 
 ## Why VNC triggers hotkeys when SSH can't
 
 Part 1's rule was: "global hotkeys fire from the phone." Here's the mechanism underneath.
 
-When the phone's keyboard commits text, RealVNC Viewer sends RFB key events. On the desktop, x11vnc turns those into calls to **XTEST** — the X11 extension written for automated testing that injects input at the *server* level, upstream of any application. XTEST-synthesized events enter the X server's input stream and are dispatched exactly like events from the physical keyboard driver: same keycodes, same grabs, same global hotkey listeners.
+When the phone's keyboard commits text, RealVNC Viewer sends RFB key events. On the desktop, x11vnc turns those into calls to [**XTEST**](https://www.x.org/releases/X11R7.7/doc/xextproto/xtest.html) — the X11 extension written for automated testing that injects input at the *server* level, upstream of any application. XTEST-synthesized events enter the X server's input stream and are dispatched exactly like events from the physical keyboard driver: same keycodes, same grabs, same global hotkey listeners.
 
 That's the whole trick the rig rests on:
 
@@ -200,7 +222,7 @@ macOS runs the same play with different plumbing: Screen Sharing injects events 
 
 Part 2 told you the fix (`hw:Loopback,1,0`, not the udev auto-source) without the full picture. Here it is.
 
-An **ALSA loopback** device (`snd_aloop`) is a virtual cable with **two ends**: device `0` and device `1`, each with a playback side and a capture side. Whatever is played into one end's playback side comes out the other end's capture side. The ends are not interchangeable — they're opposite sides of the same pipe:
+An [**ALSA loopback**](https://www.kernel.org/doc/html/latest/sound/cards/aloop.html) device (`snd_aloop`) is a virtual cable with **two ends**: device `0` and device `1`, each with a playback side and a capture side. Whatever is played into one end's playback side comes out the other end's capture side. The ends are not interchangeable — they're opposite sides of the same pipe:
 
 <div align="center">
   <img src="../../assets/B-25/loopback-halves.png" alt="Diagram: the DroidCam client plays the incoming phone-mic stream into the snd_aloop cable's device 0 playback side; it emerges from device 1's capture side, which PulseAudio exposes as alsa_input.hw_Loopback_1_0 via module-alsa-source — set as default input so Handy transcribes it. A separate udev auto-source (alsa_input.platform-snd_aloop.0.analog-stereo) captures device 0 instead — the desktop's own playback — so it looks valid but records silence."/>
@@ -231,9 +253,9 @@ Once the phone is the system default input, Handy's job is the same as with any 
 
 The internet build adds one more layer to trace, and its mental model is small:
 
-- **WireGuard** is the encryption: each pair of tailnet devices shares cryptographic keys; traffic between them is a sealed UDP envelope no relay can open.
+- [**WireGuard**](https://www.wireguard.com/) is the encryption: each pair of tailnet devices shares cryptographic keys; traffic between them is a sealed UDP envelope no relay can open.
 - **NAT traversal** is the connection problem: both endpoints are (usually) behind NATs that reject unsolicited inbound packets. Tailscale's coordination plane tells each side what the other's observable address:port is, and the two sides simultaneously send packets *at each other* — each side's outbound packet opens the pinhole in its own NAT that the other's inbound packets then slip through. That's "direct connection," and it's the common case.
-- **DERP** is the fallback for when no pinhole works (symmetric NAT on both ends, hostile firewalls): encrypted packets relayed through Tailscale's servers. Slower — an extra hop, and hop distance matters — but the payload stays end-to-end encrypted, so the relay is a post office, not a listener.
+- [**DERP**](https://tailscale.com/blog/how-tailscale-works#encrypted-tcp-relays-derp) is the fallback for when no pinhole works (symmetric NAT on both ends, hostile firewalls): encrypted packets relayed through Tailscale's servers. Slower — an extra hop, and hop distance matters — but the payload stays end-to-end encrypted, so the relay is a post office, not a listener.
 
 <div align="center">
   <img src="../../assets/B-25/nat-hole-punching.png" alt="Message sequence diagram: peer A and peer B each contact a rendezvous server S first; S tells each peer the other's observed address; A and B then send packets directly at each other so each side's outbound packet opens a pinhole in its own NAT for the other's reply to slip through, establishing a direct A-to-B path without S in the loop."/>
@@ -260,8 +282,8 @@ Symptoms → layer, so a broken rig debugs in the right order:
 
 # Where the series lands
 
-- **Part 1** (B-24): control — the phone drives the desktop over VNC, both macOS and Ubuntu, one client app.
-- **Part 2** (B-24): dictation — the phone's mic becomes the desktop's input, Handy transcribes locally, any app receives the text.
+- **Part 1**: control — the phone drives the desktop over VNC, both macOS and Ubuntu, one client app.
+- **Part 2**: dictation — the phone's mic becomes the desktop's input, Handy transcribes locally, any app receives the text.
 - **Part 3** (this post): reach — the same rig works from any network, via a mesh VPN, with no port ever exposed to the internet.
 - **Part 4** (this post): understanding — RFB and the 8-char password, XTEST and why hotkeys fire, loopback halves and the silence bug, WireGuard's envelopes and pinholes.
 
@@ -283,3 +305,25 @@ The progression is deliberate: each part removed exactly one constraint — *the
 ---
 
 *Built and documented from a real, working rig. Parts 1–2 verified live on it; Part 3 verified live from a phone on mobile data — VNC control and mic audio both, over a direct WireGuard path. The macOS tailnet route and the escape-hatch alternatives remain designs until run; the checks in "Dictation over the internet" are how to verify them.*
+
+---
+
+## New here? Start from Part 1
+
+This post assumes the rig from Parts 1–2 — the phone driving the desktop over VNC on the home WiFi, with local voice dictation wired in. If any of that is unfamiliar, that's where to start:
+
+<!-- CROSS-POST NOTE: this links to Part 1's file in-repo. When publishing this post standalone on another platform, point it at Part 1's live URL there instead. -->
+→ [**Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone**](./Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md)
+
+---
+
+## Let's Connect
+
+Thank you for the time — genuinely. If you try any of this, I'd rather hear what broke than what worked:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
