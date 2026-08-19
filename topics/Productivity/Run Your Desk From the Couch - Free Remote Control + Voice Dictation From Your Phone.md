@@ -15,7 +15,7 @@ This post has two parts, in that order:
 
 ## Topic flow
 
-One map of where this post goes — skim this, then jump to what you need:
+Each Part below splits in two: **build it** — read straight through, in order — then **Reference**, where the troubleshooting tables, gotchas, and security notes live. Skip straight to Reference when something breaks; skip it entirely on a first read.
 
 ```
 PART 1 — REMOTE CONTROL (set up first)      PART 2 — VOICE DICTATION (builds on Part 1)
@@ -25,17 +25,15 @@ Why VNC, not SSH                            Handy — the dictation engine (macO
  └─ Ubuntu machine: x11vnc                    ├─ Ubuntu mic relay: DroidCam + loopback
 Phone client: RealVNC Viewer (one app,        └─ macOS mic relay: AudioRelay + BlackHole
  both machines; bVNC optional for Ubuntu)       (or an iPhone's Continuity mic)
-Driving the desktop: gestures, modifiers,   Scripts, troubleshooting, teardown
- tmux cheat sheet
-Typing with your normal phone keyboard
-Security recap
+Driving the desktop: gestures, modifiers,   Reference — troubleshooting, daily
+ tmux cheat sheet                            scenarios, teardown
+Reference — troubleshooting & security
 ────────────────────────────────────        ──────────────────────────────────────────
              └──► WHAT'S NEXT: same rig off the home network (Part 3) + how it all
                   works inside — protocols on the wire (Part 4)
 ```
 
-Each machine's route is self-contained — read Part 1 fully, then your own OS's
-subsections in Part 2, and skip the other OS wherever you like.
+Read Part 1 fully, then your own OS's subsections in Part 2, and skip the other OS wherever you like — each machine's route is self-contained.
 
 ## What it actually looks like
 
@@ -100,26 +98,9 @@ Three auth behaviors worth knowing before a phone client rejects a correct-looki
 
 - **The VNC password is effectively 8 characters.** System Settings happily accepts a longer one, but legacy VNC auth is a [DES challenge-response](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2) capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password. (Part 4 of this series opens up the mechanism, for the curious.)
 - **macOS serves two auth types side by side**: Mac account auth (a username + your Mac login password, Apple's ARD-style handshake) *and* the legacy VNC password. A client looping on "enter VNC credentials" is often answering the wrong one — the server offers both, and which one you get depends on the client's negotiation. Note Screen Sharing and Remote Management each have their **own** VNC-password setting; only the one for the service you actually enabled is consulted.
-- **Client choice matters — tested live.** **RealVNC Viewer** connects with the plain VNC password, username blank. **bVNC** (another popular Android client) fails against a Mac — see the troubleshooting table just below.
-
-### If the phone client won't connect (macOS troubleshooting)
-
-Every failure below was either hit live on this rig or traced to a documented server behavior — check symptoms in order:
-
-| Symptom | Cause | Fix |
-|---|---|---|
-| **bVNC pops a username+password dialog and rejects both credential sets**, even with the correct VNC password stored | bVNC negotiates macOS's DH-based (Apple ARD) handshake and can't complete it — its UI has **no security-type override** to force classic VNC auth. This is a bVNC limitation on Mac, not a misconfiguration | Use **RealVNC Viewer** against the Mac (plain VNC password, username blank). bVNC remains a perfectly good **option for the Ubuntu machine** — keep it there if you like it, just don't use it for macOS |
-| Client loops on "enter VNC credentials" with a password you know is right | One of the two auth types being served (Mac-account vs VNC-password) is being answered with the wrong credential — or the password is longer than 8 characters and got silently truncated (DES cap) | Enter the **VNC password**, username blank; if longer than 8 chars, the first 8 are the real password |
-| Nothing can connect at all | "VNC viewers may control screen with password" never enabled — macOS is waiting for Apple's own auth | Enable it via the ⓘ next to Screen Sharing (step 2 above), set the password, retry |
-| Connects but lands on the **login window** instead of your desktop; typing into it drops focus | **Remote Management** is the enabled service, not plain Screen Sharing — legacy-VNC clients get served the login window under Remote Management (tested live) | System Settings → General → Sharing → disable Remote Management, enable **Screen Sharing**; reconnect and you land on the desktop |
-| Worked yesterday, won't connect today (after a reboot) | The Mac's LAN IP re-leased to a different address | Recheck with `ipconfig getifaddr en0`, update the saved entry — or set a DHCP reservation in the router |
-| VNC view freezes/blank after the Mac sits idle | The Mac auto-locked; the lock screen's password field fights phone-client keystrokes for focus | Unlock once at the Mac's keyboard; for couch sessions set Lock Screen → "Require password…" to a long interval |
+- **Client choice matters — tested live.** **RealVNC Viewer** connects with the plain VNC password, username blank. **bVNC** (another popular Android client) fails against a Mac — see the troubleshooting table in the Reference section below.
 
 What you *don't* need, relative to Ubuntu below: no display-number hunting, no Xauthority chase, no autostart file, no reconnect/key-repeat flag tuning — Apple's server handles those correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu route can't do that (x11vnc only starts after a graphical login).
-
-Two closing notes on the macOS side. First, much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in the table above, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly here through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if a client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client. Second, **firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
-
-Session realities (tested across a reboot): everything server-side comes back after a restart, but the Mac's LAN IP can re-lease (ours changed on one reboot — if the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0`, or give the Mac a DHCP reservation in the router). And multiple displays arrive as one wide canvas — pinch out in the client and pan; VNC has no per-monitor concept.
 
 ## The Ubuntu machine: x11vnc
 
@@ -173,29 +154,13 @@ X-GNOME-Autostart-enabled=true
 
 One consequence of the after-login design: if the machine reboots (or loses power) and sits at a lock screen, nothing's listening yet — someone has to log in locally once before the phone can reach it. The Mac's Screen Sharing doesn't have that limitation; this is the one thing it does better.
 
-### If the phone won't connect
-
-**"Connection refused"** — port 5900 has nothing listening, x11vnc either never started or died on launch:
-
-```bash
-pgrep -af x11vnc     # nothing = not running
-ss -tln | grep 5900  # nothing = nothing listening
-```
-
-If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output (`tmux capture-pane -p -t <session>` if it's not currently on screen). The two causes that hit here:
-
-- **Wrong display number.** `-display :0` failed with an Xauthority error on a session that was actually `:1`. Check with `who` (`<user>  :1  <date>` — the number after the colon) from a terminal that's part of the actual graphical session, not an unrelated SSH shell.
-- **Xauthority not at the default path.** Modern GNOME/gdm often keeps it at `/run/user/<uid>/gdm/Xauthority` instead of `~/.Xauthority`. `-auth guess` finds it automatically; the explicit fallback is `-auth /run/user/<uid>/gdm/Xauthority`.
-
-If it's still refused after that: check `ufw status verbose` actually shows the port-5900 rule as active, confirm phone and desktop are on the *same* WiFi (not a guest network or mobile data), and re-check the desktop's LAN IP hasn't drifted from a DHCP re-lease (`ip -4 -o addr show scope global`).
-
 ## The phone client: RealVNC Viewer (one app, both machines)
 
 **[RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/)** (free on Android and iOS) is the client this post standardizes on, for one reason that matters more than any feature list: **it speaks the classic VNC authentication that both servers above serve**, so the same app — the same UI, the same gestures, the same saved-entries list — drives the Mac and the Ubuntu box. Two entries, one muscle memory. On the Mac side that's live-tested end to end; against x11vnc it's the same standard handshake (the one `x11vnc -storepasswd` sets), so it connects the same way — and if your phone-side app ever refuses, the fallback below is proven on Ubuntu.
 
 Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected ecosystem (account, device list, "connect from anywhere"). None of that is needed here — the Viewer app connects **directly**, machine-to-machine over your LAN, with no account and nothing routed through anyone's cloud. Don't sign in; just add an address and connect. The same company's download page markets a comparison table implying classic direct connections to third-party servers are unsupported — the Mac test above (direct LAN, third-party… well, Apple's server, plain VNC password) says otherwise, and that's the configuration this post uses.
 
-**bVNC — the optional Ubuntu-only alternative.** Before standardizing on RealVNC Viewer, this rig ran on [bVNC](https://github.com/iiordanov/remote-desktop-clients) (free, GPL, Android), and it's a solid client against x11vnc — every Ubuntu-side behavior in this post was verified through it. It stays a fine choice if you prefer its gesture modes, or want free built-in SSH tunneling. Two reasons it's demoted to optional: it **cannot** connect to the Mac (the DH-handshake failure above — no security-type override in its UI), and its right-click needs a learned two-finger gesture rather than RealVNC's dedicated mouse mode. If you use one phone for both machines, one client that reaches both beats two clients to remember.
+**bVNC — the optional Ubuntu-only alternative.** Before standardizing on RealVNC Viewer, this rig ran on [bVNC](https://github.com/iiordanov/remote-desktop-clients) (free, GPL, Android), and it's a solid client against x11vnc — every Ubuntu-side behavior in this post was verified through it. It stays a fine choice if you prefer its gesture modes, or want free built-in SSH tunneling. Two reasons it's demoted to optional: it **cannot** connect to the Mac (the DH-handshake failure covered in Reference below — no security-type override in its UI), and its right-click needs a learned two-finger gesture rather than RealVNC's dedicated mouse mode. If you use one phone for both machines, one client that reaches both beats two clients to remember.
 
 | | RealVNC Viewer | bVNC (optional) |
 |---|---|---|
@@ -207,7 +172,7 @@ Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected
 
 (On iOS, RealVNC's VNC Viewer app is the equivalent client for either machine.)
 
-**Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the troubleshooting tables above are ordered by likelihood; start at the top.
+**Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the Reference section's troubleshooting tables are ordered by likelihood; start at the top.
 
 ## Driving the desktop from the phone
 
@@ -311,7 +276,44 @@ tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permane
 
 Any app that listens for a global hotkey (launcher, dictation engine, window manager action) can be triggered from the phone — VNC delivers the key to the desktop's real input stack, and the listener fires. The practical rule for *which* hotkey to pick for phone use: a **single key with no modifier** (`End`, `Insert`, `Home`, `Page Up/Down`) beats any combo, because a combo means arming a toggle button and then tapping a second key — two taps instead of one, every single time. Part 2 applies exactly this rule to Handy's dictation hotkey.
 
-## Part 1 security recap
+## Part 1 — Reference: troubleshooting & security
+
+Everything above gets the phone driving either machine. What follows is what to check when a step doesn't behave, plus the security notes for Part 1 — read now, or bookmark it for later.
+
+### If the phone client won't connect (macOS)
+
+Every failure below was either hit live on this rig or traced to a documented server behavior — check symptoms in order:
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| **bVNC pops a username+password dialog and rejects both credential sets**, even with the correct VNC password stored | bVNC negotiates macOS's DH-based (Apple ARD) handshake and can't complete it — its UI has **no security-type override** to force classic VNC auth. This is a bVNC limitation on Mac, not a misconfiguration | Use **RealVNC Viewer** against the Mac (plain VNC password, username blank). bVNC remains a perfectly good **option for the Ubuntu machine** — keep it there if you like it, just don't use it for macOS |
+| Client loops on "enter VNC credentials" with a password you know is right | One of the two auth types being served (Mac-account vs VNC-password) is being answered with the wrong credential — or the password is longer than 8 characters and got silently truncated (DES cap) | Enter the **VNC password**, username blank; if longer than 8 chars, the first 8 are the real password |
+| Nothing can connect at all | "VNC viewers may control screen with password" never enabled — macOS is waiting for Apple's own auth | Enable it via the ⓘ next to Screen Sharing (step 2 in the macOS setup above), set the password, retry |
+| Connects but lands on the **login window** instead of your desktop; typing into it drops focus | **Remote Management** is the enabled service, not plain Screen Sharing — legacy-VNC clients get served the login window under Remote Management (tested live) | System Settings → General → Sharing → disable Remote Management, enable **Screen Sharing**; reconnect and you land on the desktop |
+| Worked yesterday, won't connect today (after a reboot) | The Mac's LAN IP re-leased to a different address | Recheck with `ipconfig getifaddr en0`, update the saved entry — or set a DHCP reservation in the router |
+| VNC view freezes/blank after the Mac sits idle | The Mac auto-locked; the lock screen's password field fights phone-client keystrokes for focus | Unlock once at the Mac's keyboard; for couch sessions set Lock Screen → "Require password…" to a long interval |
+
+Two closing notes on the macOS side. First, much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in the table above, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly here through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if a client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client. Second, **firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
+
+Session realities (tested across a reboot): everything server-side comes back after a restart, but the Mac's LAN IP can re-lease (ours changed on one reboot — if the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0`, or give the Mac a DHCP reservation in the router). And multiple displays arrive as one wide canvas — pinch out in the client and pan; VNC has no per-monitor concept.
+
+### If the phone won't connect (Ubuntu)
+
+**"Connection refused"** — port 5900 has nothing listening, x11vnc either never started or died on launch:
+
+```bash
+pgrep -af x11vnc     # nothing = not running
+ss -tln | grep 5900  # nothing = nothing listening
+```
+
+If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output (`tmux capture-pane -p -t <session>` if it's not currently on screen). The two causes that hit here:
+
+- **Wrong display number.** `-display :0` failed with an Xauthority error on a session that was actually `:1`. Check with `who` (`<user>  :1  <date>` — the number after the colon) from a terminal that's part of the actual graphical session, not an unrelated SSH shell.
+- **Xauthority not at the default path.** Modern GNOME/gdm often keeps it at `/run/user/<uid>/gdm/Xauthority` instead of `~/.Xauthority`. `-auth guess` finds it automatically; the explicit fallback is `-auth /run/user/<uid>/gdm/Xauthority`.
+
+If it's still refused after that: check `ufw status verbose` actually shows the port-5900 rule as active, confirm phone and desktop are on the *same* WiFi (not a guest network or mobile data), and re-check the desktop's LAN IP hasn't drifted from a DHCP re-lease (`ip -4 -o addr show scope global`).
+
+### Part 1 security recap
 
 - **Keep port 5900 LAN-scoped.** `ufw allow from <your-subnet> to any port 5900` on Ubuntu; on macOS the firewall already permits Screen Sharing — and on *both*, the rule that matters is at the router: never port-forward 5900 to the internet. If you ever need in from outside your LAN, that's a VPN job (see the roadmap below), not a port-forward job.
 - **VNC passwords are weak by protocol.** Classic VNC auth is a DES challenge-response **capped at 8 characters** — both servers in this post use it. On a firewalled home LAN that's an acceptable trade; anywhere shared, tunnel VNC through SSH (bVNC supports SSH tunnels natively) or use x11vnc's TLS/VeNCrypt options.
@@ -550,7 +552,7 @@ chmod +x ~/bin/dictation-remote-stop.sh
 
 DroidCam's phone app stops streaming on its own once the client disconnects.
 
-### macOS mic relay: AudioRelay + BlackHole, or an iPhone
+## macOS mic relay: AudioRelay + BlackHole, or an iPhone
 
 Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
 
@@ -560,7 +562,7 @@ Handy's limitation is the same on both OSes — it uses whatever the system defa
   - Point that app's output at **[BlackHole 2ch](https://existential.audio/)** — a free virtual audio device, `brew install --cask blackhole-2ch` — and BlackHole's far end shows up as a normal *input* device. Set it as the default input and Handy follows it: the same trick as Ubuntu's PulseAudio loopback.
   - **Why the BlackHole hop exists at all**: macOS has no loopback module — an app receiving audio can only *play* it into an output device, and BlackHole is the virtual output whose other end is a recordable input.
   - **Gotchas hit live**: the audio setup (output device) lives in the **Player** panel for the connected stream — if the phone doesn't auto-appear in the Mac app, **Connect by address** with the phone's IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after `sudo killall coreaudiod` post-install; and if you script the input switch, `SwitchAudioSource -t input -s "BlackHole 2ch"` (from `brew install switchaudio-osx`) is the `pactl set-default-source` equivalent — note `-s` takes the device *name*, `-i` takes a numeric id.
-  - **Verified** with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the security section below before running it anywhere beyond a home LAN.
+  - **Verified** with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the Reference section below before running it anywhere beyond a home LAN.
 
 <div align="center">
   <img src="../../assets/B-24/architecture-macos.png" alt="Diagram: Android phone running RealVNC Viewer and AudioRelay connects over local WiFi to a Mac. RealVNC's touch and key panel send real mouse/keyboard events to macOS's built-in Screen Sharing (VNC port 5900), which feeds the desktop input stack that GUI apps, terminals, and Handy's global hotkey listener all sit on. AudioRelay streams the phone mic over WiFi into the AudioRelay Mac app, whose output plays into the BlackHole 2ch virtual device; BlackHole's far end appears as a normal input device, set as the default in Sound settings so Handy transcribes from it."/>
@@ -574,6 +576,10 @@ The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay)
 
 - **GUI**: **System Settings → Sound → Input** → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest "is anything hearing me" check there is. Note Control Center's sound module switches *output* (speakers) only — input always lives in Sound settings, and mixing the two up is the classic "Handy stopped hearing me" cause.
 - **CLI**: the `pactl set-default-source` equivalent is `SwitchAudioSource -t input -s "BlackHole 2ch"` (and `-s "MacBook Air Microphone"` to come back). `-c -t input` prints the current device, `-a -t input` lists them all.
+
+## Part 2 — Reference: troubleshooting, daily scenarios & teardown
+
+The setup above is a one-time build. What follows is what to check when dictation goes quiet, the day-to-day scenario table, and how to stop or remove it all — none of it needed on a first pass, all of it worth bookmarking.
 
 ### Dictation troubleshooting quick reference
 

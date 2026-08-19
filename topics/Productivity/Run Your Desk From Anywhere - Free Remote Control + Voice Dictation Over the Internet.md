@@ -14,7 +14,7 @@ Same rule as the rest of the series: everything claimed here is either verified 
 
 ## Topic flow
 
-One map of where this post goes — skim this, then jump to what you need:
+Same shape as Part 1–2: each Part builds straight through, then closes with a **Reference** block — the security recap, escape hatches, and failure-mode table live there, not interrupting the build.
 
 ```
 PART 3 — OFF THE LAN (the build)             PART 4 — DEEP DIVE (the why)
@@ -24,10 +24,10 @@ The port-forward check, and why it fails      RFB protocol + the 8-char password
 Why raw VNC-over-internet is still wrong      ALSA loopback halves + the silence bug
 Candidate approaches, compared                What Handy does with the audio
 Tailscale: what it is, why it's trustworthy   WireGuard, NAT traversal, and DERP
-Desktop + phone setup (one firewall rule)     Failure-mode map (symptom → layer → check)
-What changes vs. Parts 1–2 (a table)
+Desktop + phone setup (one firewall rule)     Reference — failure-mode map
+What changes vs. Parts 1–2 (a table)           (symptom → layer → check)
 Dictation tested live, off-LAN
-Security recap + escape hatches
+Reference — security recap & escape hatches
 ────────────────────────────────────         ──────────────────────────────────────────
         Read Part 3 to get it running off the LAN; read Part 4 when something
         breaks and you want to know *why*, or you just like knowing how things work.
@@ -69,7 +69,7 @@ So the real goal was never "forward port 5900." It's this:
 | Cloudflare Tunnel | Low-medium | Free tier | Yes — `cloudflared` runs outbound | No inbound port, but traffic transits Cloudflare's edge |
 | Port forward + DDNS | Low *if* CGNAT check passes | Free | **No** — the one CGNAT kills outright | Yes, directly — the whole point of the approach |
 
-The rest of Part 3 builds the first row. The alternatives get a short honest treatment at the end ("Escape hatches") — they're worth knowing even if you never need them.
+The rest of Part 3 builds the first row. The alternatives get a short honest treatment in the Reference section below ("Escape hatches") — worth knowing even if you never need them.
 
 ## Tailscale: what it is and why it fits
 
@@ -174,14 +174,18 @@ Flat amplitude or garble = the transport is degrading audio; check `tailscale st
 
 **A lighter-weight alternative worth naming:** all of the above exists to keep speech-to-text *local* — Handy runs the model on the desktop's own CPU/GPU, audio never leaves your two devices. If that's not a requirement for you, most phone keyboards (Gboard, SwiftKey, Samsung Keyboard) already have a mic button that dictates straight into any focused text field — including the VNC viewer's own on-screen keyboard, no rig required. The trade-off is the whole point of mentioning it here: that convenience is near-universally a **cloud service** — the keyboard streams your voice to Google/Microsoft/Samsung's servers for transcription, not local. Fine for most people, most of the time; just not "no network dependency," which is what Parts 1–2's Handy setup bought you. Pick based on what you're dictating and who you trust with it.
 
-## Security recap for Part 3
+## Part 3 — Reference: security recap & escape hatches
+
+The build above is everything needed to run off the LAN. What follows is what to keep in mind about the trust boundary, and where to look if Tailscale ever isn't the right fit.
+
+### Security recap
 
 - The VNC port is now reachable from **wherever your phone is** — the tailnet replaces "same WiFi" as the trust boundary. Keep the tailnet small: personal Tailscale plans allow a limited number of users and devices; use them for your devices only, not as a shared VPN for acquaintances.
 - Tailscale's **ACLs** can pin it further: phone may talk to desktop on 5900/4747, nothing else, nobody else. Locking a two-device tailnet down to exactly two rules is an afternoon's reading, not a project.
 - Still true from Part 1: VNC auth is one shared password. Over the tailnet that's acceptable to many people — an attacker needs tailnet membership *first*, which means your Tailscale account, which has MFA and device approval. Layered, the 8-character cap stops being the outer wall.
 - And the classic still applies: **never** port-forward 5900 on the router to "make Tailscale unnecessary." You'd be re-opening exactly what Part 3 closed.
 
-## Escape hatches: if Tailscale ever isn't the answer
+### Escape hatches: if Tailscale ever isn't the answer
 
 - **SSH reverse tunnel to a VPS** — the fallback that removes the VPN vendor entirely: `ssh -R 5900:localhost:5900 -R 4747:localhost:4747 user@your-vps` (or a persistent `autossh`/systemd unit). Outbound-only, so CGNAT is irrelevant; the phone dials the VPS. Costs a VPS (~$4–6/mo or free tier), needs key-only SSH and careful `GatewayPorts`, and adds a box you must keep alive.
 - **Headscale** — self-hosted Tailscale control plane, same clients, your server, your rules. The "nothing outside my control" property, at the price of running the coordination layer yourself.
@@ -265,9 +269,9 @@ The internet build adds one more layer to trace, and its mental model is small:
 
 You can see which path you're on: `tailscale status` on the desktop prints, per peer, `direct` or `relay "..."` — worth checking once when you set up, because it explains the latency you feel.
 
-## Failure-mode map
+## Part 4 — Reference: failure-mode map
 
-Symptoms → layer, so a broken rig debugs in the right order:
+The mechanics above explain *why* the rig works. This table is for when it doesn't — symptom to layer, so a broken rig debugs in the right order instead of by guesswork:
 
 | Symptom | Suspect layer | Check |
 |---|---|---|
