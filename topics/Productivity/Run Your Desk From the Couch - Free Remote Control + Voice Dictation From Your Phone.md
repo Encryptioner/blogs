@@ -240,6 +240,42 @@ The four things you'll do a hundred times from the couch, in one place. Modifier
 
 The pair worth memorizing: **`Ctrl+C` stops a program, `Ctrl+D` ends the shell.** C is "interrupt what's running," D is "I'm leaving" — and neither ever touches the VNC session itself.
 
+More of the everyday, grouped by who's holding the phone — every row uses the same three mechanics already covered (modifier toggles, the extra-keys row, touch gestures), just combined:
+
+**If you're developing:**
+
+| Action | From the phone |
+|---|---|
+| Copy / paste in a terminal | Select in pointer mode, then `Ctrl+Shift+C` / `Ctrl+Shift+V` — the terminal is the one app that needs the Shift; everywhere else plain `Ctrl+C`/`Ctrl+V` |
+| Reopen a browser tab you closed by accident | `Ctrl+Shift+T` — the same three-tap combo as "new terminal tab," but in the browser it resurrects the dead tab |
+| New / close browser tab | `Ctrl+T` / `Ctrl+W` |
+| Jump to the address bar (or type a file path) | `Ctrl+L` — browser address bar, and GNOME Terminal's "type a path" prompt |
+| Run the last command again | `↑` from the extra-keys row, then Enter — no modifier needed |
+| Search shell history by fragment | `Ctrl+R`, type a fragment of the command, Enter |
+| Close the focused app window | `Alt+F4` (Linux) / `Cmd+Q` (Mac) |
+| Lock the screen when you walk away | `Super+L` (GNOME) / `Ctrl+Cmd+Q` (Mac) — client stays connected |
+
+**If you're exploring the machine:**
+
+| Action | From the phone |
+|---|---|
+| Middle-click paste (Linux's best-kept secret) | Needs a third button: Bluetooth mouse middle button, or bVNC's touchpad mode (three fingers) |
+| Zoom the remote screen | Pinch — client-side zoom, sharp on a phone's high-DPI panel, touches nothing on the desktop |
+| Scroll a terminal | Two-finger swipe (with tmux mouse mode on) |
+| Move a window | Touch mode: drag its title bar like a real finger would |
+| Dismiss a dialog / cancel a popup | `Esc` from the extra-keys row — one tap, no modifiers |
+
+**If you're just using the computer:**
+
+| Action | From the phone |
+|---|---|
+| Passwords | The phone keyboard's **autofill** — your password manager fills straight into the desktop login field, nothing to type |
+| Emoji into a desktop chat | The phone keyboard's own emoji panel — arrives as real keystrokes, no desktop setup |
+| Play / pause video | `Space` — a key the phone keyboard already has |
+| Long text (URLs, messages) | Copy on the phone, paste with the keyboard's paste button — or dictate it (mic button, sections below) |
+
+That's the quiet point of the whole rig: if the phone's keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.
+
 ### Editing text in a terminal
 
 Faster than arrow-key nudging on touch, works on both machines: standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
