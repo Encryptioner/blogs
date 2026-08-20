@@ -56,6 +56,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Domain-Driven Design](./presentations/P-6-domain-driven-design/index.html)
 - [Local Whisper — A Private AI Chatbot That Lives in Your Browser](./presentations/P-7-local-whisper/index.html)
 - [How branchdiff Grew Up — The Build Story](./presentations/P-8-branchdiff-journey/index.html)
+- [Your Desk in Your Pocket — Remote Control for Mac & Ubuntu](./presentations/P-9-desk-in-your-pocket/index.html)
 
 
 ## Links

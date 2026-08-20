@@ -40,3 +40,4 @@
 6. Software Architecture: [Domain-Driven Design](./presentations/P-6-domain-driven-design/index.html)
 7. Point Solution: [Local Whisper — A Private AI Chatbot That Lives in Your Browser](./presentations/P-7-local-whisper/index.html)
 8. Productivity: [How branchdiff Grew Up — The Build Story](./presentations/P-8-branchdiff-journey/index.html)
+9. Productivity: [Your Desk in Your Pocket — Remote Control for Mac & Ubuntu](./presentations/P-9-desk-in-your-pocket/index.html)

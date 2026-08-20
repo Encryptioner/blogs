@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Desk in Your Pocket · 09 — Remote Control for Mac &amp; Ubuntu</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>📱</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+<style>
+:root{
+  --bg:#0A0D14;
+  --surface:#111624;
+  --elevated:#161D30;
+  --border:#242E47;
+  --border-light:#33405F;
+  --text:#E9EDF6;
+  --muted:#9BA6BF;
+  --dim:#657089;
+  --accent:#5B9DFF;            /* control-path blue — VNC / the rig */
+  --accent-2:#8FBAFF;
+  --accent-soft:rgba(91,157,255,.12);
+  --accent-glow:rgba(91,157,255,.30);
+  --violet:#A78BFA;            /* mechanism — input stack, protocol internals */
+  --violet-soft:rgba(167,139,250,.10);
+  --mint:#34D399;              /* verified live / direct path */
+  --mint-soft:rgba(52,211,153,.10);
+  --danger:#FF7B72;
+  --info:#7DB8FF;
+  --warn:#F2CC60;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ambient background blobs */
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.18}
+.ambient .b1{width:620px;height:620px;background:var(--accent);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--violet);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:5vh 6vw 9vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.slide-num .deep{color:var(--warn)}
+h1.title{font-weight:800;font-size:clamp(2.6rem,6vw,5rem);line-height:1.02;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--mint)}
+h2.subtitle{font-weight:400;font-size:clamp(1.2rem,2vw,1.7rem);color:var(--muted);line-height:1.5;margin-bottom:26px;max-width:60ch}
+h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.12;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--mint)}
+
+p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6}
+.muted{color:var(--muted)}
+.dim{color:var(--dim)}
+.accent{color:var(--accent)}
+.violet{color:var(--violet)}
+.mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* bullet lists */
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+/* numbered steps */
+ol.steps{list-style:none;counter-reset:step;margin:14px 0}
+ol.steps li{counter-increment:step;position:relative;padding-left:44px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ol.steps li::before{content:counter(step);position:absolute;left:0;top:2px;width:28px;height:28px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
+ol.steps li strong{color:var(--accent-2);font-weight:600}
+
+/* checklist */
+.checklist{list-style:none;margin:14px 0}
+.checklist li{position:relative;padding-left:34px;margin-bottom:11px;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.45;color:var(--text)}
+.checklist li::before{content:'';position:absolute;left:0;top:3px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:5px;top:7px;width:8px;height:4px;border-left:1.5px solid var(--mint);border-bottom:1.5px solid var(--mint);transform:rotate(-45deg);opacity:.7}
+.checklist li strong{color:var(--mint)}
+
+/* callout cards */
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(91,157,255,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.accent strong{color:var(--accent)}
+.callout.mint{border-color:rgba(52,211,153,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))}
+.callout.mint strong{color:var(--mint)}
+.callout.danger{border-color:rgba(255,123,114,.28);background:linear-gradient(135deg,rgba(255,123,114,.06),var(--elevated))}
+.callout.danger strong{color:var(--danger)}
+.callout.warn{border-color:rgba(242,204,96,.28);background:linear-gradient(135deg,rgba(242,204,96,.06),var(--elevated))}
+.callout.warn strong{color:var(--warn)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block}
+.callout.danger .label{color:var(--danger)}
+.callout.mint .label{color:var(--mint)}
+.callout.warn .label{color:var(--warn)}
+
+/* vs / boxes */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,123,114,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(52,211,153,.30)} .box.good h4{color:var(--mint)}
+.box.warn{border-color:rgba(242,204,96,.30)} .box.warn h4{color:var(--warn)}
+.box p{font-size:clamp(.95rem,1.15vw,1.1rem);color:var(--muted);line-height:1.5;margin:0}
+.box p+p{margin-top:8px}
+
+/* columns */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.mode.violet h4{color:var(--violet)}
+.mode p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+/* stat row */
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:140px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num.mint{color:var(--mint)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* code block */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--text);margin:14px 0;line-height:1.7;white-space:pre}
+.code-block .c{color:var(--dim)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--mint)}
+.code-block .f{color:var(--info)}
+
+/* comparison table */
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1.05vw,1rem)}
+thead th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--accent)}
+tbody th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(52,211,153,.32)}
+.tag.bad{color:var(--danger);border-color:rgba(255,123,114,.32)}
+.tag.warn{color:var(--warn);border-color:rgba(242,204,96,.32)}
+
+/* figures — diagrams (click for lightbox, wired by deck.js) */
+.fig{margin:16px auto;text-align:center;max-width:980px;cursor:zoom-in}
+.fig img{max-width:100%;max-height:50vh;object-fit:contain;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 16px 44px -20px rgba(0,0,0,.65);padding:6px}
+.fig-caption{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim);margin-top:9px;letter-spacing:.02em}
+.fig-caption b{color:var(--muted);font-weight:600}
+
+/* pipeline */
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:28px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.78rem,.95vw,.9rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--accent);font-size:22px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){
+  .pipeline{flex-direction:column;align-items:stretch}
+  .pipeline .parr{transform:rotate(90deg);padding:8px 0}
+}
+
+/* hero */
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(91,157,255,.32);border-radius:30px;background:var(--accent-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pill .dot.mint{background:var(--mint)}
+.pill .dot.violet{background:var(--violet)}
+.pill .dot.warn{background:var(--warn)}
+.hero-meta{margin-top:auto;padding-top:34px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.hero-meta .hook{font-family:'JetBrains Mono',monospace;font-size:.92rem;color:var(--accent)}
+.hero-meta .hook a{color:var(--accent);text-decoration:underline}
+
+/* end links */
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--accent);color:#0A0D14;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--accent-glow);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
+
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero" data-title="Your Desk in Your Pocket">
+    <span class="badge"><span class="dot"></span> Deck 09 · the remote-control rig</span>
+    <h1 class="title">Your desk, in your <em>pocket</em>.</h1>
+    <h2 class="subtitle">A phone as a real screen + keyboard + mouse for your <b>Mac</b> and <b>Ubuntu</b> box — on the home WiFi, or from a coffee shop three cities away. Built from what the OS already ships, one free app, and (only when you leave the LAN) one mesh VPN. <b>$0, no cloud in the control path, no ports opened to the internet.</b></h2>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span> macOS Screen Sharing</span>
+      <span class="pill"><span class="dot"></span> x11vnc</span>
+      <span class="pill"><span class="dot mint"></span> RealVNC Viewer</span>
+      <span class="pill"><span class="dot violet"></span> Tailscale / WireGuard</span>
+      <span class="pill"><span class="dot warn"></span> verified live</span>
+    </div>
+    <div class="hero-meta">
+      <span class="hook">the gap between a thought and acting on it shouldn't cost a walk to the desk — or a flight home</span>
+      <span class="hook"><a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md" target="_blank" rel="noopener">read the full post ↗</a></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE FOUR MOMENTS -->
+  <section class="slide" data-title="The four moments">
+    <div class="slide-num">02 · the itch</div>
+    <h3 class="section">Four moments, one shape: <em>act now, from where you are</em>.</h3>
+    <p class="lead">Not a workstation replacement. Occasional, light touches on real work — the couch, bed, a café on mobile data.</p>
+    <div class="vs">
+      <div class="box good">
+        <h4>🛋️ Mid-rest, an agent needs a nudge</h4>
+        <p>Tap the phone, type <span class="mono">"looks good, continue"</span> — it lands as a real keypress in the real terminal, same as if you'd walked over.</p>
+      </div>
+      <div class="box good">
+        <h4>🔨 A build is running upstairs</h4>
+        <p>Pull up the phone, glance at the mirrored terminal. No SSH session to remember, no monitoring app.</p>
+      </div>
+      <div class="box good">
+        <h4>💬 A reply is worth sending now</h4>
+        <p>Glide typing, autocorrect, clipboard — your normal phone keyboard, typing into Slack, email, a commit message.</p>
+      </div>
+      <div class="box good">
+        <h4>✈️ Another city entirely</h4>
+        <p>Café WiFi, hotel Ethernet, mobile hotspot — the same saved entry still reaches home, through an encrypted tunnel, zero router ports opened.</p>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num">2</div><div class="label">servers, mostly pre-installed</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">phone app, both machines</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">mesh VPN — only off the LAN</div></div>
+      <div class="stat"><div class="num mint">$0</div><div class="label">no subscription, ever</div></div>
+    </div>
+  </section>
+
+  <!-- 3 · THE ROUTE -->
+  <section class="slide" data-title="The route: three parts">
+    <div class="slide-num">03 · the route</div>
+    <h3 class="section">Three parts. Each removes <em>exactly one constraint</em>.</h3>
+    <p class="lead">Set up in order — everything after Part 1 builds on Part 1 and never rebuilds it.</p>
+    <div class="pipeline">
+      <div class="step">
+        <div class="ico">📶</div>
+        <h5>PART 1 · SAME NETWORK</h5>
+        <p>Phone drives the desktop over home WiFi. macOS toggle + one x11vnc command + one client app. <b>Running today.</b></p>
+      </div>
+      <div class="parr">──►</div>
+      <div class="step">
+        <div class="ico">🌍</div>
+        <h5>PART 2 · THE INTERNET</h5>
+        <p>Same rig from anywhere, nothing exposed, nothing added to the bill. A <b>re-addressing</b>, not a rebuild.</p>
+      </div>
+      <div class="parr">──►</div>
+      <div class="step">
+        <div class="ico">⚙️</div>
+        <h5>PART 3 · DEEP DIVE</h5>
+        <p>What's on the wire: RFB, the 8-char password cap, why VNC fires hotkeys when SSH can't, NAT hole-punching.</p>
+      </div>
+    </div>
+    <div class="callout accent"><b>The one table worth internalizing:</b> the same phone app drives both machines — <span class="mono">RealVNC Viewer</span>, one saved entry per box (<span class="mono">&lt;ip&gt;:5900</span>), each with its own VNC password. Two entries, one muscle memory.</div>
+    <div class="foot">Setup cost: a weekend, once. The payoff doesn't expire.</div>
+  </section>
+
+  <!-- 4 · WHY VNC NOT SSH -->
+  <section class="slide" data-title="Why VNC, not SSH">
+    <div class="slide-num">04 · part 1 — the foundation</div>
+    <h3 class="section">SSH can't do this job. VNC is a <em>mirror plus a hand</em>.</h3>
+    <div class="vs">
+      <div class="box bad">
+        <h4>SSH — a parallel door into the basement</h4>
+        <p>Drops you into a <b>new text shell</b>. Can't see the desktop you left running, can't click anything, can't type into open apps, can't fire global hotkeys.</p>
+        <p>Bytes → one process's stdin. As far as the OS's input system is concerned, no keyboard was touched.</p>
+      </div>
+      <div class="box good">
+        <h4>VNC — the actual desktop, actual input</h4>
+        <p>Phone sees <b>your apps, your windows, exactly as left</b>. Every tap and keystroke is injected as a <b>real input event</b> — indistinguishable from sitting at the keyboard.</p>
+        <p>Switch apps, run shortcuts, check a build, drag a slider — all through the same mechanism you'd use in person.</p>
+      </div>
+    </div>
+    <div class="callout mint"><span class="label">the property everything rests on</span>Real input events → <b>every app and every hotkey listener</b> responds. That single property is why a phone can fire <span class="mono">Super+A</span>, use the hot corner, and dictate a commit message — and why the rig is VNC-based, not SSH-based. (Mechanism, with gears visible: slide 15.)</div>
+    <div class="foot">Both halves are standard: each OS serves VNC with built-in or one-command tooling, so any standards-compliant client connects.</div>
+  </section>
+
+  <!-- 5 · MACOS SERVER -->
+  <section class="slide" data-title="macOS: the server is already installed">
+    <div class="slide-num">05 · part 1 — macOS</div>
+    <h3 class="section">The Mac ships the VNC server. <em>Turn it on</em>.</h3>
+    <ol class="steps">
+      <li><strong>System Settings → General → Sharing → Screen Sharing</strong> — on. Keep it <em>plain Screen Sharing</em>: if Remote Management is the enabled one instead, legacy-VNC clients get served the login window and typing into it drops focus. <span class="muted">(Tested live: RM off, SS on → the phone landed straight on the desktop.)</span></li>
+      <li><strong>ⓘ next to Screen Sharing → "VNC viewers may control screen with password"</strong> — set that password. Without it, macOS waits for Apple's own auth handshake and most phone clients fail to connect at all.</li>
+      <li><strong>Connect from the phone</strong> to <span class="mono">&lt;mac-lan-ip&gt;:5900</span> — the VNC password, <b>username blank</b> (tested live, RealVNC Viewer).</li>
+    </ol>
+    <div class="callout warn"><span class="label">three auth behaviors, before a client rejects a correct password</span>
+      <b>① The VNC password is effectively 8 characters</b> — DES challenge-response cap; the first 8 chars <i>are</i> the password. <b>② Two auth types are served side by side</b> — Mac-account (ARD) + legacy VNC password; a client looping on "enter credentials" answered the wrong door. <b>③ CLI gotcha:</b> the <span class="mono">kickstart</span> one-liner sets the password but on Sequoia <i>refuses to open the service</i> — count on ending in System Settings.</div>
+    <div class="fig">
+      <img src="../../assets/B-26/control-path-macos.png" alt="Android phone running RealVNC Viewer connects over home WiFi to a Mac: VNC over port 5900 into macOS Screen Sharing, which injects real mouse and keyboard events into the desktop input stack" loading="lazy">
+      <div class="fig-caption">The macOS control path — server pre-installed; <b>one toggle + a VNC password</b> and every app, terminal, and global-hotkey listener responds as if you typed it. Click to zoom.</div>
+    </div>
+    <div class="foot">Bonus over Ubuntu: Screen Sharing is a system daemon that serves the login window too — VNC in and log in remotely after a reboot.</div>
+  </section>
+
+  <!-- 6 · UBUNTU SERVER -->
+  <section class="slide" data-title="Ubuntu: x11vnc">
+    <div class="slide-num">06 · part 1 — Ubuntu</div>
+    <h3 class="section">Ubuntu: <em>one package</em>, one command, running.</h3>
+    <p class="lead">x11vnc shares and drives the <b>existing</b> desktop session — your logged-in apps, not a fresh virtual one.</p>
+    <div class="code-block"><span class="prompt">$</span> sudo apt install -y x11vnc tmux
+<span class="c"># find the real display number first:  who   →  "&lt;user&gt;  :N  &lt;date&gt;"</span>
+<span class="prompt">$</span> tmux new -s vnc
+<span class="prompt">$</span> x11vnc -display :&lt;N&gt; -auth guess -usepw -shared -repeat -forever</div>
+    <div class="fig">
+      <img src="../../assets/B-26/control-path-ubuntu.png" alt="Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop: VNC over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session" loading="lazy">
+      <div class="fig-caption">The Ubuntu control path — x11vnc turns <b>the session you're already logged into</b> into the server. Click to zoom.</div>
+    </div>
+    <div class="callout"><b>Persist it:</b> drop a <span class="mono">.desktop</span> file in <span class="mono">~/.config/autostart/</span> — starts once per graphical login, the earliest point a display exists. Consequence: after a power cut, someone must log in locally once before the phone can reach it. <span class="muted">(The Mac serves its login window; Ubuntu can't — the one thing the Mac does better here.)</span></div>
+    <div class="foot">Firewall, LAN-scoped: sudo ufw allow from &lt;your-subnet&gt; to any port 5900 — never expose it further.</div>
+  </section>
+
+  <!-- 7 · FLAGS THAT BITE -->
+  <section class="slide" data-title="x11vnc flags that bite">
+    <div class="slide-num">07 · part 1 — gotchas worth money</div>
+    <h3 class="section">Four flags, each earned by a <em>real failure</em>.</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Flag</th><th>What breaks without it</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">-shared</span> <span class="tag warn">default: off</span></td><td>Exactly one client at a time. A stale half-open connection from a WiFi blip makes every reconnect fail with <span class="mono">refusing new client … Not shared &amp; existing client</span> until you restart the server.</td></tr>
+          <tr><td><span class="mono">-repeat</span> <span class="tag warn">default: off</span></td><td>x11vnc turns <b>X autorepeat off</b> while a client keyboard is active (its log says so). A held arrow key does nothing beyond the first tap — one character per touch, forever.</td></tr>
+          <tr><td><span class="mono">-auth guess</span></td><td>Modern GNOME/gdm keeps the Xauthority cookie at <span class="mono">/run/user/&lt;uid&gt;/gdm/Xauthority</span>, not <span class="mono">~/.Xauthority</span>. Hardcoding the default = silent auth failure on launch.</td></tr>
+          <tr><td><span class="mono">-localhost=no</span> <span class="tag bad">not real</span></td><td>Passing <span class="mono">=no</span> gets rejected as unrecognized. LAN access is the <b>default</b> when you omit the flag entirely — <span class="mono">-localhost</span> alone <i>restricts</i> to loopback.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn"><span class="label">the debugging habit</span>x11vnc <b>fails fast and drops to a clean-looking prompt</b> — "crashed instantly" looks identical to "idle and fine". Always read the output (<span class="mono">tmux capture-pane -p -t vnc</span>), and check with <span class="mono">pgrep -af x11vnc</span> + <span class="mono">ss -tln | grep 5900</span>.</div>
+    <div class="foot">The VNC password (x11vnc -storepasswd) is separate from the WiFi password: it decides who can drive the desktop, not who joins the network.</div>
+  </section>
+
+  <!-- 8 · PHONE CLIENT -->
+  <section class="slide" data-title="One phone app, two machines">
+    <div class="slide-num">08 · part 1 — the client</div>
+    <h3 class="section">RealVNC Viewer: <em>one app</em>, both machines, no cloud.</h3>
+    <p class="lead">Standardized on for one reason that beats any feature list: <b>it speaks the classic VNC auth both servers serve</b> — same app, same gestures, same saved-entries list. Two entries, one muscle memory.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th class="hl">Ubuntu box</th><th class="hl">macOS box</th></tr></thead>
+        <tbody>
+          <tr><th>client</th><td>RealVNC Viewer</td><td>RealVNC Viewer — same app</td></tr>
+          <tr><th>address</th><td class="hl">&lt;ubuntu-lan-ip&gt;:5900</td><td class="hl">&lt;mac-lan-ip&gt;:5900</td></tr>
+          <tr><th>password</th><td>the <span class="mono">-storepasswd</span> one</td><td>the 8-char VNC password</td></tr>
+          <tr><th>terminals</th><td>tmux</td><td>tmux — same reasoning</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout accent"><span class="label">where the line sits — read this before signing in</span>RealVNC the <i>company</i> sells a cloud ecosystem (accounts, device lists, "connect from anywhere"). <b>None of it is needed.</b> The Viewer connects <b>direct</b>, machine-to-machine over your LAN — no account, nothing routed through anyone's cloud. Don't sign in; add an address and connect.</div>
+    <div class="callout"><b>Voice typing comes along for free</b> (tested live): the soft keyboard is your <i>normal</i> keyboard app — tap the mic, speak, and the transcription arrives as committed keystrokes in whatever's focused. Honest trade-off: phone keyboards dictate through their maker's cloud speech service — free and zero-setup, <b>not offline</b>. Know which way it cuts before dictating anything sensitive.</div>
+    <div class="foot">First win to chase: connect, tap anywhere → the real cursor moves. If it does, the rig works; everything left is technique.</div>
+  </section>
+
+  <!-- 9 · DRIVING BY THUMB -->
+  <section class="slide" data-title="Driving the desktop by thumb">
+    <div class="slide-num">09 · part 1 — technique</div>
+    <h3 class="section">Thumb technique: <em>fewer taps, every time</em>.</h3>
+    <ul class="bullets">
+      <li><strong>Switch apps → the hot corner first.</strong> <span class="muted">Tap the top-left pixel (GNOME) or a configured macOS hot corner → window overview → tap. No modifier key, one tap — and immune to clients whose toolbar lacks <span class="mono">Tab</span>.</span></li>
+      <li><strong>Modifier keys are toggles, not holds.</strong> <span class="muted">A touchscreen can't chord. Tap <span class="mono">Super</span> in the extra-keys toolbar (stays armed) → tap <span class="mono">A</span> → the combo fires and the modifier auto-releases. Stack them: <span class="mono">Ctrl</span>, <span class="mono">Shift</span>, then the key.</span></li>
+      <li><strong>Right-click → pointer mode or long-press;</strong> right-click-heavy sessions: pair a Bluetooth mouse, its real right button just works. <span class="muted">Enter/Backspace are just the phone keyboard's own keys.</span></li>
+      <li><strong>Edit terminal lines by binding, not by arrows:</strong> <span class="mono">Ctrl+A / Ctrl+E</span> line start/end, <span class="mono">Ctrl+W</span> delete word, <span class="mono">Ctrl+U</span> clear to cursor — readline works over VNC exactly like locally.</li>
+      <li><strong>Live in one tmux session</strong> — switch terminals by keystroke (<span class="mono">Ctrl+b</span> then number) instead of hunting window thumbnails. <span class="mono">set -g mouse on</span> makes the client's two-finger swipe scroll panes directly.</li>
+      <li><strong>Pick single-key global hotkeys</strong> (<span class="mono">End</span>, <span class="mono">Insert</span>, <span class="mono">Page Up/Down</span>) for phone use — any combo costs an extra arming tap, every single time.</li>
+    </ul>
+    <div class="callout danger"><span class="label">two cautions from the terminal-shaped parts</span><b>Autocorrect + terminals don't mix</b> — it will "fix" flags, paths, and git subcommands; keystrokes arrive already corrected, no desktop-side guard. And <b>voice typing lands wherever the cursor is</b> — check the focused window before you speak.</div>
+    <div class="foot">All of this is client behavior — identical against the Mac and the Ubuntu box.</div>
+  </section>
+
+  <!-- 10 · PART 1 TRIAGE -->
+  <section class="slide" data-title="Part 1 triage table">
+    <div class="slide-num">10 · part 1 — reference</div>
+    <h3 class="section">When it breaks: <em>symptom → fix</em>, by likelihood.</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Cause → Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Loops on "enter VNC credentials" (Mac)</td><td>Wrong auth door answered, or password &gt; 8 chars silently truncated → enter the <b>VNC password, username blank</b>; first 8 chars are the real password</td></tr>
+          <tr><td>Nothing connects at all (Mac)</td><td>"VNC viewers may control screen with password" never enabled → enable via ⓘ, set password, retry</td></tr>
+          <tr><td>Lands on the <b>login window</b>, typing drops focus</td><td><b>Remote Management</b> is the enabled service, not plain Screen Sharing → swap them; reconnect lands on the desktop</td></tr>
+          <tr><td>"Connection refused" (Ubuntu)</td><td>Nothing listening: <span class="mono">pgrep -af x11vnc</span> / <span class="mono">ss -tln | grep 5900</span> → re-run and <b>read the output</b>: wrong display number (<span class="mono">who</span>) or Xauth path (<span class="mono">-auth guess</span>)</td></tr>
+          <tr><td>Worked yesterday, dead today</td><td>DHCP re-leased the LAN IP → <span class="mono">ipconfig getifaddr en0</span> (Mac) / <span class="mono">ip -4 -o addr</span> (Ubuntu), update the saved entry — or set a router DHCP reservation</td></tr>
+          <tr><td>View freezes after idle (Mac)</td><td>Auto-lock screen fights phone keystrokes for focus → unlock once locally; lengthen "Require password…" for couch sessions</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout danger"><span class="label">part 1 security recap</span>Keep 5900 <b>LAN-scoped</b> (ufw subnet rule on Ubuntu; the Mac firewall already permits Screen Sharing). Classic VNC auth is a <b>DES challenge-response capped at 8 chars</b> — acceptable behind a firewalled LAN, never exposed raw. And <b>never port-forward 5900</b>, on either OS. Needing in from outside is a VPN job — that's Part 2.</div>
+  </section>
+
+  <!-- 11 · PART 2 OPENER: CGNAT -->
+  <section class="slide" data-title="The port-forward illusion">
+    <div class="slide-num">11 · part 2 — over the internet</div>
+    <h3 class="section">"Just port-forward 5900" — <em>check if that's even possible</em>.</h3>
+    <p class="lead">The 2010 advice fails silently on a large share of modern connections. Five minutes tells you which side you're on:</p>
+    <div class="code-block"><span class="c"># 1 — router admin panel: note its WAN IP</span>
+<span class="c"># 2 — ask the internet what IP your desktop is seen as</span>
+<span class="prompt">$</span> curl ifconfig.me
+<span class="c"># 3 — compare:</span>
+<span class="c">#     same address      → real public IP; port-forwarding is possible</span>
+<span class="c">#     different address, or WAN IP inside 100.64.0.0/10</span>
+<span class="c">#                      → CGNAT: the ISP's shared NAT drops inbound —</span>
+<span class="c">#                        no router config changes that, ever</span></div>
+    <div class="callout warn"><b>CGNAT is standard now</b> on many fiber and 5G home connections — your router's "public" side is itself a private address inside the ISP's NAT layer. Everything on your side can be configured perfectly and the packets still never arrive.</div>
+    <div class="callout danger"><span class="label">and even with a clean check — don't, not raw VNC</span>① Classic VNC auth is a <b>single shared password</b> — no usernames, no rate limiting, no 2FA, no lockout. ② <b>5900 is a top-tier scan target</b> — internet-wide scanners probe an open port within hours, each probe a guess against an 8-char-effective secret. ③ A correct guess <b>drives the desktop</b> — a full remote session, as if they sat down at your keyboard.</div>
+    <div class="callout mint"><b>The real goal:</b> put phone and desktop on the same private network no matter where either physically is — and let VNC keep believing it's on a LAN, exactly like Part 1.</div>
+  </section>
+
+  <!-- 12 · TAILSCALE -->
+  <section class="slide" data-title="Tailscale: a re-addressing">
+    <div class="slide-num">12 · part 2 — the mesh VPN</div>
+    <h3 class="section">Tailscale: the tailnet replaces <em>"same WiFi"</em>.</h3>
+    <p class="lead">A mesh VPN built on WireGuard. Install, log into one account — every device gets a <b>permanent private <span class="mono">100.x.y.z</span></b> that never changes when the device moves networks. Café laptop, cellular phone, home desktop: one switch in your living room.</p>
+    <div class="fig">
+      <img src="../../assets/B-26/internet-path.png" alt="Phone on café WiFi and desktop at home, each with a permanent 100.x.y.z tailnet address; RealVNC Viewer targets the tailnet IP on 5900; direct WireGuard tunnel end-to-end encrypted, DERP relay fallback carrying ciphertext only; no router ports opened" loading="lazy">
+      <div class="fig-caption">Part 2 in one picture — <b>a networking-layer swap</b>; the rig's software never learns a VPN exists. Click to zoom.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Piece</th><th>Part 1 (LAN)</th><th class="hl">Part 2 (internet)</th></tr></thead>
+        <tbody>
+          <tr><th>x11vnc / Screen Sharing</th><td>running</td><td><b>unchanged</b></td></tr>
+          <tr><th>port / password / phone app</th><td>5900 · set · Viewer</td><td><b>unchanged</b></td></tr>
+          <tr><th>address the phone dials</th><td>LAN IP, can re-lease</td><td class="hl"><b>tailnet IP — permanent</b></td></tr>
+          <tr><th>ufw rule (Ubuntu)</th><td><span class="mono">allow from 192.168.x.0/24</span></td><td class="hl"><span class="mono">allow from 100.64.0.0/10</span> — or just the phone's tailnet IP</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout accent"><b>Two new apps, one firewall rule, one edited IP.</b> Part 2 is a re-addressing, not a rebuild. <span class="muted">(That <span class="mono">100.64.0.0/10</span> is CGNAT space by spec — deliberately unroutable on the public internet, so tailnet traffic can't collide with anything real.)</span></div>
+  </section>
+
+  <!-- 13 · TRUST + VERIFIED -->
+  <section class="slide" data-title="Trust, and verified from cellular">
+    <div class="slide-num">13 · part 2 — trust + receipts</div>
+    <h3 class="section">Can you trust it? <em>Here's the case — and the receipts</em>.</h3>
+    <div class="three-col">
+      <div class="mode"><span class="tech">the crypto</span><h4>WireGuard's, not home-rolled</h4><p>Formally verified primitives (Curve25519, ChaCha20-Poly1305), end-to-end between <b>your two devices only</b>. Private keys never leave the device; the coordination server exchanges public keys — relays carry ciphertext, by construction.</p></div>
+      <div class="mode"><span class="tech">the code</span><h4>Data-touching parts are open</h4><p>Every client (Linux, macOS, Android, iOS, Windows) and even the DERP relay code are on GitHub. The closed piece — coordination — sees metadata, never payloads.</p></div>
+      <div class="mode"><span class="tech">the record</span><h4>Audited, at scale, exit-able</h4><p>Recurring third-party audits (Latacora), SOC 2 Type II, public bulletins. Millions of daily users. If the coordination trade-off ever stops being acceptable: <b>Headscale</b> — self-hosted control plane, same clients, nothing else changes.</p></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num mint">mobile data</div><div class="label">WiFi off, live session</div></div>
+      <div class="stat"><div class="num mint">direct</div><div class="label">wireguard path — no relay needed</div></div>
+      <div class="stat"><div class="num mint">~66 ms</div><div class="label">tailscale ping, phone ↔ desktop</div></div>
+    </div>
+    <div class="callout mint"><span class="label">verified from cellular — and how to verify on yours</span>Screen updated, taps and keystrokes landed, every Part 1 skill carried over — on a carrier network, direct path. <b>Verify the interaction, not the connection:</b> connect, hit the hot corner, open a terminal, type a line, fire a <span class="mono">Ctrl+key</span> combo. Anything stuttery → check <span class="mono">tailscale status</span> for <span class="mono">relay</span> + packet loss — that's transport degrading, not the rig breaking.</div>
+    <div class="foot">Still honest: one session, one carrier; the macOS side of the tailnet route and the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel) remain untested on this rig.</div>
+  </section>
+
+  <!-- 14 · RFB HANDSHAKE -->
+  <section class="slide" data-title="Deep dive: RFB + the 8-char cap">
+    <div class="slide-num">14 · <span class="deep">part 3</span> — the wire protocol</div>
+    <h3 class="section">RFB: the whole session is <em>this conversation</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-26/rfb-handshake.png" alt="Sequence diagram of the RFB handshake: version exchange, security negotiation where macOS serves two auth types at once, DES challenge-response where the password is the DES key, then framebuffer updates and pointer/key events" loading="lazy">
+      <div class="fig-caption">RFC 6143 — <b>step 3 is where the 8-character cap lives.</b> Click to zoom.</div>
+    </div>
+    <div class="callout violet" style="border-color:rgba(167,139,250,.30);background:linear-gradient(135deg,var(--violet-soft),var(--elevated))"><span class="label" style="color:var(--violet)">the 8-char cap, mechanically</span>Classic VNC auth is a <b>DES challenge-response</b>: the server sends a 16-byte challenge; the client encrypts it with DES using <b>the password itself as the key</b> — and <b>DES keys are 8 bytes</b>. Whatever you type past character 8 never enters the computation. Every classic-auth implementation inherits it: macOS's Screen Sharing password and x11vnc's <span class="mono">-rfbauth</span> file alike. Not a bug in either — the protocol wearing its age on its sleeve.</div>
+    <div class="foot">Security negotiation is also why macOS can serve two doors at once (Mac-account ARD + legacy VNC) — a client that negotiates the wrong one dies with a rejected-correct-password loop.</div>
+  </section>
+
+  <!-- 15 · XTEST VS SSH -->
+  <section class="slide" data-title="Why VNC fires hotkeys, SSH can't">
+    <div class="slide-num">15 · <span class="deep">part 3</span> — input injection</div>
+    <h3 class="section">Same keystroke, two doors: <em>X server vs stdin</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-26/input-injection.png" alt="VNC key events reach x11vnc, which calls the XTEST extension to inject input at the X server level — same keycodes, same grabs as the physical keyboard driver, so terminals, the window manager, and global hotkey hooks all respond. SSH delivers bytes to one process's stdin — no keyboard event as far as the OS is concerned" loading="lazy">
+      <div class="fig-caption"><b>XTEST</b> — the X11 extension built for test automation, injecting at the <i>server</i> level, upstream of every app. Click to zoom.</div>
+    </div>
+    <ul class="bullets">
+      <li><strong>XTEST-synthesized events enter the X server's input stream</strong> <span class="muted">and are dispatched exactly like the physical keyboard driver's: same keycodes, same grabs, same global hotkey listeners.</span></li>
+      <li><strong>So: terminals see keystrokes, the window manager sees combos, every hotkey hook sees a real key event</strong> <span class="muted">— launchers, screenshot tools, <span class="mono">Super</span>-shaped shortcuts, all from the phone.</span></li>
+      <li><strong>SSH delivers bytes to one process's stdin.</strong> <span class="muted">No window manager, no listeners, no GUI — nothing about an SSH keystroke is a keyboard event as far as the OS is concerned.</span></li>
+      <li><strong>macOS runs the same play, different plumbing:</strong> <span class="muted">Screen Sharing injects through the window server's event path — equivalent to a physical event to every listener (verified live: shortcuts fired from the phone exactly as from the keyboard).</span></li>
+    </ul>
+  </section>
+
+  <!-- 16 · NAT TRAVERSAL -->
+  <section class="slide" data-title="NAT hole-punching + DERP">
+    <div class="slide-num">16 · <span class="deep">part 3</span> — finding each other</div>
+    <h3 class="section">Two firewalled devices, one <em>simultaneous handshake</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-26/nat-hole-punching.png" alt="Rendezvous sequence: both peers contact the server outbound; each learns the other's observed address; both send at each other simultaneously so each side's outbound packet opens a pinhole in its own NAT for the other's packets to slip through" loading="lazy">
+      <div class="fig-caption">The generic rendezvous trick Tailscale's coordination plane runs <b>before falling back to DERP</b>. Click to zoom.</div>
+    </div>
+    <div class="three-col">
+      <div class="mode violet"><span class="tech">the envelope</span><h4>WireGuard</h4><p>Each device pair shares keys; traffic is a sealed UDP envelope <b>no relay can open</b>.</p></div>
+      <div class="mode violet"><span class="tech">the connection problem</span><h4>NAT traversal</h4><p>Coordination tells each side the other's <span class="mono">addr:port</span>; both send <b>at each other simultaneously</b> — each outbound packet opens the pinhole its own NAT, and the other's packets slip through. The common case: direct.</p></div>
+      <div class="mode violet"><span class="tech">the fallback</span><h4>DERP relay</h4><p>Symmetric NAT on both ends, hostile firewalls → encrypted packets relayed through Tailscale's servers. Slower by a hop, but <b>still ciphertext — a post office, not a listener</b>.</p></div>
+    </div>
+    <div class="foot">See which path you're on: tailscale status prints, per peer, "direct" or "relay …" — check once at setup; it explains the latency you feel.</div>
+  </section>
+
+  <!-- 17 · FAILURE-MODE MAP -->
+  <section class="slide" data-title="The failure-mode map">
+    <div class="slide-num">17 · <span class="deep">part 3</span> — reference</div>
+    <h3 class="section">The failure-mode map: <em>symptom → layer → check</em>.</h3>
+    <p class="lead">The mechanics explain why the rig works; this table makes a broken rig debug in the right order — not by guesswork.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Suspect layer</th><th class="hl">Check</th></tr></thead>
+        <tbody>
+          <tr><td>Can't connect at all (off-LAN)</td><td><span class="tag">tailnet</span></td><td><span class="mono">tailscale status</span> on both — each online, seeing the other? Then <span class="mono">tailscale ping &lt;ip&gt;</span></td></tr>
+          <tr><td>Tailnet up, VNC refuses</td><td><span class="tag">firewall / server</span></td><td>x11vnc running? ufw covers <span class="mono">100.64.0.0/10</span>? ping works but 5900 times out = firewall</td></tr>
+          <tr><td>VNC connects, password rejected</td><td><span class="tag">auth</span></td><td>8-char DES cap (first 8 are real); Mac: VNC password, username blank</td></tr>
+          <tr><td>Connects, input feels laggy (off-LAN)</td><td><span class="tag">transport</span></td><td><span class="mono">tailscale status</span> — relayed instead of direct? relay + loss = transport, not the rig</td></tr>
+          <tr><td>Everything connects, nothing types</td><td><span class="tag">client</span></td><td>Does the client send key events for IME commits? RealVNC Viewer does (tested) — a client that injects nothing won't; try its key panel</td></tr>
+          <tr><td>Works on LAN, never off-LAN</td><td><span class="tag">membership</span></td><td>Both devices in the <i>same</i> tailnet? Phone's VPN toggle actually on? (Android kills VPNs quietly — check the key icon)</td></tr>
+          <tr><td>Ubuntu dead after a power cut</td><td><span class="tag">autostart</span></td><td>x11vnc starts only after graphical login — someone logs in locally once (the Mac serves its login window; Ubuntu can't)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 18 · RECAP -->
+  <section class="slide hero" data-title="Where this landed">
+    <div class="slide-num">18 · where this landed</div>
+    <h3 class="section">A full second seat at the desk, <em>from the couch or another city</em>.</h3>
+    <ul class="checklist" style="max-width:72ch">
+      <li><b>Verified live:</b> RealVNC Viewer against the Mac end to end — window switching, multi-key shortcuts, full keyboard incl. voice typing, through reboots and IP re-leases.</li>
+      <li><b>Verified off-LAN:</b> phone on mobile data, direct WireGuard path through the tailnet, ~66 ms — every Part 1 skill carried over unchanged.</li>
+      <li><b>Same standard handshake against x11vnc</b> on Ubuntu — one app, two entries.</li>
+      <li><b>Honestly untested on this rig:</b> the macOS side of the tailnet route; the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel).</li>
+      <li><b>The rig stays deliberately small:</b> 2 servers you mostly already have + 1 phone app + 1 mesh VPN only when you leave the LAN. No subscription, no cloud in the control path, no ports opened to the internet.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md" target="_blank" rel="noopener">↗ Read the full 3-part guide (B-26)</a>
+      <a class="ghost" href="https://datatracker.ietf.org/doc/html/rfc6143" target="_blank" rel="noopener">↗ RFC 6143 — the RFB protocol</a>
+      <a class="ghost" href="https://tailscale.com/blog/how-tailscale-works" target="_blank" rel="noopener">↗ How Tailscale works — NAT traversal &amp; DERP</a>
+      <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+    <div class="foot">Tools: macOS Screen Sharing (built-in) · x11vnc (GPL-2.0) · RealVNC Viewer (free, direct mode) · Tailscale (free personal, WireGuard E2E) · tmux (ISC)</div>
+  </section>
+
+</div>
+
+<!-- lightbox + overlays -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-18">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click diagram</td><td>Zoom (lightbox)</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.dk-help,.dk-goto,.fig,.callout,table,.code-block,.vs,.box,.three-col,.mode,.stat-row,.pipeline,.table-wrap,.end-links,.foot',
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+</body>
+</html>

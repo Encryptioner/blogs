@@ -76,3 +76,8 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
 
 - HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-8-branchdiff-journey/index.html
 - Blog (B-23): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md
+
+## P-9 — Your Desk in Your Pocket
+
+- HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-9-desk-in-your-pocket/index.html
+- Blog (B-26): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md
