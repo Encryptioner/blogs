@@ -276,10 +276,11 @@ Every failure below was either hit live on this rig or traced to a documented se
 | Nothing can connect at all | "VNC viewers may control screen with password" never enabled — macOS is waiting for Apple's own auth | Enable it via the ⓘ next to Screen Sharing (step 2 in the macOS setup above), set the password, retry |
 | Connects but lands on the **login window** instead of your desktop; typing into it drops focus | **Remote Management** is the enabled service, not plain Screen Sharing — legacy-VNC clients get served the login window under Remote Management (tested live) | System Settings → General → Sharing → disable Remote Management, enable **Screen Sharing**; reconnect and you land on the desktop |
 | Worked yesterday, won't connect today (after a reboot) | The Mac's LAN IP re-leased to a different address | Recheck with `ipconfig getifaddr en0`, update the saved entry — or set a DHCP reservation in the router |
+| **Times out** — "but I'm on the same WiFi" | Traffic never arrived: phone silently off the LAN, router guest/AP isolation, or a VPN on the phone — not a Mac-side failure | Check the phone's WiFi details page (SSID + gateway match the router); watch `log stream --predicate 'process == "screensharingd"' --info` while tapping Connect — nothing logged = it never arrived. **"Refused"** = arrived, nothing listening → the server rows above |
 | VNC view freezes/blank after the Mac sits idle | The Mac auto-locked; the lock screen's password field fights phone-client keystrokes for focus | Unlock once at the Mac's keyboard; for couch sessions set Lock Screen → "Require password…" to a long interval |
 | Client rejects the correct password, non-RealVNC app | Not every Android/iOS client can complete classic VNC auth against a Mac — some negotiate Apple's DH handshake and fail it with no override | Standardize on **RealVNC Viewer** (tested live against a Mac); verify the two auth-type behaviors above before blaming the password |
 
-Two closing notes on the macOS side. First, much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in the table above, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly here through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if a client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client. Second, **firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever.
+Two closing notes on the macOS side. First, much of the "Sequoia is rough on third-party VNC clients" chatter traces back to the Remote Management behavior in the table above, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly here through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if a client won't connect, first try Apple's own Screen Sharing app from another Mac to isolate server-toggle vs client. Second, **firewall**: macOS's application firewall allows the signed system Screen Sharing service through by default — no `ufw`-style rule to add. The LAN-only hygiene advice still applies: don't port-forward 5900 out of your router, ever. Third: the timeout-vs-refused split from the Ubuntu section below applies to the Mac unchanged — "refused" is the server rows in this table, "timed out" is the phone's network path — and the Mac's ten-second instrument is `log stream --predicate 'process == "screensharingd"' --info`, watched live while you tap Connect (it's the unified-log equivalent of Ubuntu's `journalctl` watch: silence = the traffic never arrived).
 
 Session realities (tested across a reboot): everything server-side comes back after a restart, but the Mac's LAN IP can re-lease (ours changed on one reboot — if the saved phone entry stops connecting, recheck with `ipconfig getifaddr en0`, or give the Mac a DHCP reservation in the router). And multiple displays arrive as one wide canvas — pinch out in the client and pan; VNC has no per-monitor concept.
 
@@ -536,8 +537,8 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 | Symptom | Suspect layer | Check |
 |---|---|---|
 | Phone can't connect to desktop at all (off-LAN) | Tailnet | `tailscale status` on both devices — is each online and showing the other? Then `tailscale ping <desktop-tailnet-ip>` |
-| Same WiFi, correct IP, still times out (on-LAN) | Phone network path | Watch live: `journalctl --user -f \| grep -i x11vnc` while tapping Connect — nothing logged = traffic never arrived: phone's WiFi details (SSID + gateway match the router?), router AP/client isolation, or a VPN on the phone. `Got connection` + auth failure = password, not network |
-| Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? `tailscale ping` works but 5900 times out = firewall |
+| Same WiFi, correct IP, still times out (on-LAN) | Phone network path | Watch live while tapping Connect: `journalctl --user -f \| grep -i x11vnc` (Ubuntu) / `log stream --predicate 'process == "screensharingd"'` (Mac) — nothing logged = traffic never arrived: phone's WiFi details (SSID + gateway match the router?), router AP/client isolation, or a VPN on the phone. `Got connection` + auth failure = password, not network |
+| Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? (Mac: `sudo lsof -iTCP:5900 -sTCP:LISTEN` — empty = Screen Sharing off.) `tailscale ping` works but 5900 times out = firewall |
 | VNC connects, password rejected | Auth | 8-character DES cap (first 8 are real); Mac: VNC password, username blank |
 | Screen connects but input feels laggy (off-LAN) | Transport | `tailscale status` — relayed instead of direct? Relayed + packet loss = transport, not the rig |
 | Everything connects, nothing types | Client keyboard plumbing | Does the client send key events for text (IME commits)? RealVNC Viewer does (tested live); a client that injects nothing won't — try its key panel |
@@ -565,6 +566,12 @@ Explicit variant, showing which interface carries which (interface names vary pe
 ip -4 -o addr show scope global
 ```
 
+On a Mac, the one-glance version is even shorter:
+
+```bash
+ipconfig getifaddr en0    # Wi-Fi IP, nothing else; empty = not on Wi-Fi (desktop Macs: try en1)
+```
+
 ### 2. Tailscale side
 
 ```bash
@@ -581,7 +588,13 @@ pgrep -af x11vnc     # expect: x11vnc -display :N -auth guess ... -shared -repea
 ss -tln | grep 5900  # expect: LISTEN 0.0.0.0:5900
 ```
 
-Empty on either = the server side is down — re-login graphically (autostart fires on login) or start it in a tmux session.
+On a Mac, the server is `screensharingd` — one command answers both questions:
+
+```bash
+sudo lsof -iTCP:5900 -sTCP:LISTEN   # expect: screensharingd LISTEN
+```
+
+Empty on either = the server side is down — Ubuntu: re-login graphically (autostart fires on login) or start it in a tmux session; Mac: System Settings → General → Sharing → Screen Sharing got flipped off — flip it back on (and re-check the "VNC viewers may control screen with password" setting).
 
 ### 4. What the phone should dial
 
@@ -595,7 +608,8 @@ Rule of thumb: **just use the Tailscale address always** — it works on the sam
 ### 5. Watch it live while the phone retries
 
 ```bash
-journalctl --user -f | grep -i x11vnc
+journalctl --user -f | grep -i x11vnc        # Ubuntu
+log stream --predicate 'process == "screensharingd"' --info   # Mac — same read
 ```
 
 Run it, hit Connect on the phone, read the outcome: **nothing appears** → traffic isn't arriving (Tailscale off, wrong address, wrong WiFi, firewall — steps 1, 2, 4) · **"Got connection" then auth failure** → connection is fine, wrong password · **phone says "refused"** → right network, wrong IP — the LAN IP changed.
@@ -615,7 +629,7 @@ Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry 
 |---|---|---|
 | **The connection timed out** | Packets never arrived: Tailscale off on the phone, wrong network, AP isolation, or firewall | Check the phone's Tailscale/WiFi details (SSID + gateway), verify the address |
 | **Connection refused** | Network reachable, but no server at that address — almost always a stale LAN IP | Re-check current IPs (step 1); prefer the Tailscale IP |
-| **Authentication failed / wrong password** | Connection fine, VNC password mismatch | Re-enter it, or reset on the desk: `x11vnc -storepasswd` (then restart the server) |
+| **Authentication failed / wrong password** | Connection fine, VNC password mismatch | Re-enter it, or reset on the desk: `x11vnc -storepasswd` then restart (Ubuntu); System Settings → General → Sharing → Screen Sharing ⓘ (Mac) |
 
 ---
 
