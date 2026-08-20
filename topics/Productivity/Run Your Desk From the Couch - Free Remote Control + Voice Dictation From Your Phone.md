@@ -160,13 +160,13 @@ One consequence of the after-login design: if the machine reboots (or loses powe
 
 Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected ecosystem (account, device list, "connect from anywhere"). None of that is needed here — the Viewer app connects **directly**, machine-to-machine over your LAN, with no account and nothing routed through anyone's cloud. Don't sign in; just add an address and connect. The same company's download page markets a comparison table implying classic direct connections to third-party servers are unsupported — the Mac test above (direct LAN, third-party… well, Apple's server, plain VNC password) says otherwise, and that's the configuration this post uses.
 
-**bVNC — the optional Ubuntu-only alternative.** Before standardizing on RealVNC Viewer, this rig ran on [bVNC](https://github.com/iiordanov/remote-desktop-clients) (free, GPL, Android), and it's a solid client against x11vnc — every Ubuntu-side behavior in this post was verified through it. It stays a fine choice if you prefer its gesture modes, or want free built-in SSH tunneling. Two reasons it's demoted to optional: it **cannot** connect to the Mac (the DH-handshake failure covered in Reference below — no security-type override in its UI), and its right-click needs a learned two-finger gesture rather than RealVNC's dedicated mouse mode. If you use one phone for both machines, one client that reaches both beats two clients to remember.
+**bVNC — the optional Ubuntu-only alternative.** Before standardizing on RealVNC Viewer, this rig ran on [bVNC](https://github.com/iiordanov/remote-desktop-clients) (free, GPL, Android), and it's a solid client against x11vnc — every Ubuntu-side behavior in this post was verified through it. It stays a fine choice if you prefer its gesture modes, or want free built-in SSH tunneling. Two reasons it's demoted to optional: it **cannot** connect to the Mac (the DH-handshake failure covered in Reference below — no security-type override in its UI), and its right-click is a hold-plus-second-finger-tap rather than RealVNC's plain two-finger tap. If you use one phone for both machines, one client that reaches both beats two clients to remember.
 
 | | RealVNC Viewer | bVNC (optional) |
 |---|---|---|
 | Connects to Ubuntu (x11vnc) | ✅ standard VNC auth | ✅ tested daily driver |
 | Connects to macOS (Screen Sharing) | ✅ live-tested | ❌ DH-handshake failure |
-| Right-click | dedicated mouse mode | hold + second-finger tap (learnable) |
+| Right-click | tap with two fingers | hold + second-finger tap (learnable) |
 | Account / cloud anything | not needed — direct connect | none |
 | Extras | — | SSH/TLS tunneling built in, GPL |
 
@@ -216,7 +216,7 @@ Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, 
 
 ### Right-click, and where Enter/Backspace live
 
-**Right-click** in RealVNC Viewer: switch the session to its mouse-pointer mode (in-session toolbar), and a real right-button tap works — plus most builds offer a long-press as right-click in touch mode. In **bVNC** it's the one gesture people assume and get wrong — right-click is *not* a plain long-press:
+**Right-click** in RealVNC Viewer: **tap with two fingers at once**. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and **double-tap + hold + drag** = select text or drag-and-drop. ([RealVNC's gesture reference](https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device).) In **bVNC** it's the one gesture people assume and get wrong — right-click is *not* a plain long-press:
 
 1. **Press and hold** one finger on the target (keep it down).
 2. **Tap anywhere else** on the screen with a second finger.
@@ -233,7 +233,7 @@ The four things you'll do a hundred times from the couch, in one place. Modifier
 | Everyday action | RealVNC Viewer | bVNC |
 |---|---|---|
 | **Open a new terminal tab** on the desktop | `Ctrl+Shift+T` (Ubuntu's GNOME Terminal): tap Ctrl, tap Shift, tap T. Mac Terminal: `Cmd+T` — Super toggle, then T | Same keys, same arm-then-tap — its Ctrl/Shift buttons work identically |
-| **Right-click** | Mouse-pointer mode + right-button tap, or long-press in touch mode | Hold one finger, tap with a second — the full guide is the section above |
+| **Right-click** | Tap with two fingers at once | Hold one finger, tap with a second — the full guide is the section above |
 | **Stop a running command (`Ctrl+C`)** | Tap **Ctrl** in the extra-keys row, tap `c` → sends `Ctrl+C`, which **interrupts the foreground process**. It closes nothing — not the tab, not the session | Identical: Ctrl toggle in its keys row, then `c` |
 | **Close the tab / end the shell** | `exit`, or `Ctrl+D` (Ctrl toggle + `d`) — the thing people wrongly reach for `Ctrl+C` to do. Different key, different job | Same |
 | **Done — end the phone session** | Disconnect from the toolbar; the desktop keeps running. In tmux, detach first (`Ctrl+b` then `d`) so reattach lands where you left | Same |
@@ -246,7 +246,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 | Action | From the phone |
 |---|---|
-| Copy / paste in a terminal | Select in pointer mode, then `Ctrl+Shift+C` / `Ctrl+Shift+V` — the terminal is the one app that needs the Shift; everywhere else plain `Ctrl+C`/`Ctrl+V` |
+| Copy / paste in a terminal | Double-tap, hold the second tap, drag to select, then `Ctrl+Shift+C` / `Ctrl+Shift+V` — the terminal is the one app that needs the Shift; everywhere else plain `Ctrl+C`/`Ctrl+V` |
 | Reopen a browser tab you closed by accident | `Ctrl+Shift+T` — the same three-tap combo as "new terminal tab," but in the browser it resurrects the dead tab |
 | New / close browser tab | `Ctrl+T` / `Ctrl+W` |
 | Jump to the address bar (or type a file path) | `Ctrl+L` — browser address bar, and GNOME Terminal's "type a path" prompt |
@@ -259,7 +259,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 | Action | From the phone |
 |---|---|
-| Middle-click paste (Linux's best-kept secret) | Needs a third button: Bluetooth mouse middle button, or bVNC's touchpad mode (three fingers) |
+| Middle-click paste (Linux's best-kept secret) | Tap with three fingers at once — RealVNC's native middle click (or a Bluetooth mouse's middle button) |
 | Zoom the remote screen | Pinch — client-side zoom, sharp on a phone's high-DPI panel, touches nothing on the desktop |
 | Scroll a terminal | Two-finger swipe (with tmux mouse mode on) |
 | Move a window | Touch mode: drag its title bar like a real finger would |

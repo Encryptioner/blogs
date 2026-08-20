@@ -207,7 +207,7 @@ Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, 
 
 ### Right-click, and where Enter/Backspace live
 
-**Right-click** in RealVNC Viewer: switch the session to its mouse-pointer mode (in-session toolbar), and a real right-button tap works — plus most builds offer a long-press as right-click in touch mode. If you're doing anything right-click-heavy, a **Bluetooth mouse** pairs to the phone and its actual right button just works.
+**Right-click** in RealVNC Viewer: **tap with two fingers at once**. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and **double-tap + hold + drag** = select text or drag-and-drop. ([RealVNC's gesture reference](https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device).) If you're doing anything right-click-heavy, a **Bluetooth mouse** pairs to the phone and its actual right button just works.
 
 **Enter and Backspace** — not special VNC buttons, just the ordinary keys on Android's own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows.
 
@@ -218,7 +218,7 @@ The four things you'll do a hundred times, in one place. Modifier mechanics are 
 | Everyday action | How, from the phone |
 |---|---|
 | **Open a new terminal tab** on the desktop | Same combo as at the desk: `Ctrl+Shift+T` (Ubuntu's GNOME Terminal) — tap Ctrl, tap Shift, tap T. Mac Terminal: `Cmd+T` (Super toggle, then T). Inside tmux it's one modifier instead: `Ctrl+b` then `c` — a new window, the "tab" that survives disconnects |
-| **Right-click** | Mouse-pointer mode + right-button tap, or long-press in touch mode (section above) |
+| **Right-click** | Tap with two fingers at once (section above) |
 | **Stop a running command (`Ctrl+C`)** | Tap **Ctrl** in the extra-keys row (it arms, stays highlighted), tap `c` → sends `Ctrl+C`, which **interrupts the foreground process**. It closes nothing — not the tab, not the session |
 | **Close the tab / end the shell** | `exit`, or `Ctrl+D` (Ctrl toggle + `d`) — the thing people wrongly reach for `Ctrl+C` to do. Different key, different job |
 | **Done — end the phone session** | Just disconnect from the toolbar; everything keeps running on the desktop. In tmux, detach first — `Ctrl+b` then `d` — and the next session's `tmux attach` lands exactly where you left off |
@@ -231,7 +231,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 | Action | From the phone |
 |---|---|
-| Copy / paste in a terminal | Select in pointer mode, then `Ctrl+Shift+C` / `Ctrl+Shift+V` — the terminal is the one app that needs the Shift; everywhere else plain `Ctrl+C`/`Ctrl+V` |
+| Copy / paste in a terminal | Double-tap, hold the second tap, drag to select, then `Ctrl+Shift+C` / `Ctrl+Shift+V` — the terminal is the one app that needs the Shift; everywhere else plain `Ctrl+C`/`Ctrl+V` |
 | Reopen a browser tab you closed by accident | `Ctrl+Shift+T` — the same three-tap combo as "new terminal tab," but in the browser it resurrects the dead tab |
 | New / close browser tab | `Ctrl+T` / `Ctrl+W` |
 | Jump to the address bar (or type a file path) | `Ctrl+L` — browser address bar, and GNOME Terminal's "type a path" prompt |
@@ -244,7 +244,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 | Action | From the phone |
 |---|---|
-| Middle-click paste (Linux's best-kept secret) | Needs a third button: Bluetooth mouse middle button, or bVNC's touchpad mode (three fingers) |
+| Middle-click paste (Linux's best-kept secret) | Tap with three fingers at once — RealVNC's native middle click (or a Bluetooth mouse's middle button) |
 | Zoom the remote screen | Pinch — client-side zoom, sharp on a phone's high-DPI panel, touches nothing on the desktop |
 | Scroll a terminal | Two-finger swipe (with tmux mouse mode on) |
 | Move a window | Touch mode: drag its title bar like a real finger would |
