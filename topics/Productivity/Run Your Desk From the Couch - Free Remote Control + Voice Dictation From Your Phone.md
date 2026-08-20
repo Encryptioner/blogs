@@ -226,6 +226,20 @@ That hold-then-second-finger-tap gesture is bVNC's documented right-click in its
 
 **Enter and Backspace** — not special VNC buttons, just the ordinary keys on Android's own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows.
 
+### The everyday actions: new tab, Ctrl+C, close — both clients
+
+The four things you'll do a hundred times from the couch, in one place. Modifier mechanics in **both** clients are the toggles from the multi-key section above — tap the modifier, it arms, tap the key, the combo fires — so only the gestures differ:
+
+| Everyday action | RealVNC Viewer | bVNC |
+|---|---|---|
+| **Open a new terminal tab** on the desktop | `Ctrl+Shift+T` (Ubuntu's GNOME Terminal): tap Ctrl, tap Shift, tap T. Mac Terminal: `Cmd+T` — Super toggle, then T | Same keys, same arm-then-tap — its Ctrl/Shift buttons work identically |
+| **Right-click** | Mouse-pointer mode + right-button tap, or long-press in touch mode | Hold one finger, tap with a second — the full guide is the section above |
+| **Stop a running command (`Ctrl+C`)** | Tap **Ctrl** in the extra-keys row, tap `c` → sends `Ctrl+C`, which **interrupts the foreground process**. It closes nothing — not the tab, not the session | Identical: Ctrl toggle in its keys row, then `c` |
+| **Close the tab / end the shell** | `exit`, or `Ctrl+D` (Ctrl toggle + `d`) — the thing people wrongly reach for `Ctrl+C` to do. Different key, different job | Same |
+| **Done — end the phone session** | Disconnect from the toolbar; the desktop keeps running. In tmux, detach first (`Ctrl+b` then `d`) so reattach lands where you left | Same |
+
+The pair worth memorizing: **`Ctrl+C` stops a program, `Ctrl+D` ends the shell.** C is "interrupt what's running," D is "I'm leaving" — and neither ever touches the VNC session itself.
+
 ### Editing text in a terminal
 
 Faster than arrow-key nudging on touch, works on both machines: standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
