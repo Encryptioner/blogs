@@ -275,7 +275,7 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 
 | Symptom | Suspect layer | Check |
 |---|---|---|
-| Phone can't connect to desktop at all | Tailnet | `tailscale status` both devices — is each online and showing the other? Then `tailscale ping <desktop-tailnet-ip>` |
+| Phone can't connect to desktop at all | Tailnet | `tailscale status` both devices — is each online and showing the other? Then `tailscale ping <desktop-tailnet-ip>`. A phone showing "offline" is usually its Tailscale app killed by Android battery optimization — reopen it and exclude it from optimization |
 | Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? `tailscale ping` works but 5900 times out = firewall |
 | VNC connects, password rejected | Auth | 8-character DES cap (first 8 are real); Mac: VNC password, username blank |
 | Control works, dictation silent | Audio wiring | `pactl list sources short` — is `hw_Loopback_1_0` there and RUNNING? Wrong-half source present = Part 4's loopback bug |

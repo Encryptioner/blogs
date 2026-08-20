@@ -297,7 +297,21 @@ If it's not running, re-run it and actually read what it prints. x11vnc fails fa
 - **Wrong display number.** `-display :0` failed with an Xauthority error on a session that was actually `:1`. Check with `who` (`<user>  :1  <date>` — the number after the colon) from a terminal that's part of the actual graphical session, not an unrelated SSH shell.
 - **Xauthority not at the default path.** Modern GNOME/gdm often keeps it at `/run/user/<uid>/gdm/Xauthority` instead of `~/.Xauthority`. `-auth guess` finds it automatically; the explicit fallback is `-auth /run/user/<uid>/gdm/Xauthority`.
 
-If it's still refused after that: check `ufw status verbose` actually shows the port-5900 rule as active, confirm phone and desktop are on the *same* WiFi (not a guest network or mobile data), and re-check the desktop's LAN IP hasn't drifted from a DHCP re-lease (`ip -4 -o addr show scope global`).
+If it's still refused after that: check `ufw status verbose` actually shows the port-5900 rule as active, and re-check the desktop's LAN IP hasn't drifted from a DHCP re-lease. The one-glance version of that check is `hostname -I` — every IPv4 on one line; ignore the `172.x.x.x` ones (Docker and virtual-machine bridges) and read the `192.168.x.x` or `10.x.x.x` one.
+
+**A timeout is a different animal than "refused" — and the phone's exact error text tells you which you have.** "Refused" means the phone's packets *reached* the desk and nothing was listening — the server-side territory above. "Timed out" means the packets never arrived at all, which is almost always phone-side or network-side:
+
+- **The phone isn't actually on the same network.** Check the phone's WiFi details page, not just the icon: the SSID must match, and the *gateway* should be your router's LAN address (ours is `192.168.68.1`). A mismatched gateway — or a silent fallback to mobile data — puts the phone on a different path entirely.
+- **Guest network or AP/client isolation.** Many routers isolate guests (and sometimes a separate 2.4 GHz network) from main-network devices: both phones connect to "the WiFi," neither can see the other. If the router admin panel calls it AP isolation, client isolation, or guest access, that's the switch to check.
+- **A VPN running on the phone** can intercept or route away LAN traffic — turn it off for the LAN path (you only need it for the Part 2 path).
+
+**The instrument that settles all of it in ten seconds** — watch the server log live while you tap Connect on the phone:
+
+```bash
+journalctl --user -f | grep -i x11vnc
+```
+
+Nothing appears while the phone churns = traffic isn't arriving — work the list above. `Got connection from client <ip>` followed by an auth failure = the network is fine, it's the password. A connection that appears and instantly drops = server-side — read what it prints (the `-shared` lockout in the flags section above looks exactly like this).
 
 ### Part 1 security recap
 
@@ -522,12 +536,86 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 | Symptom | Suspect layer | Check |
 |---|---|---|
 | Phone can't connect to desktop at all (off-LAN) | Tailnet | `tailscale status` on both devices — is each online and showing the other? Then `tailscale ping <desktop-tailnet-ip>` |
+| Same WiFi, correct IP, still times out (on-LAN) | Phone network path | Watch live: `journalctl --user -f \| grep -i x11vnc` while tapping Connect — nothing logged = traffic never arrived: phone's WiFi details (SSID + gateway match the router?), router AP/client isolation, or a VPN on the phone. `Got connection` + auth failure = password, not network |
 | Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? `tailscale ping` works but 5900 times out = firewall |
 | VNC connects, password rejected | Auth | 8-character DES cap (first 8 are real); Mac: VNC password, username blank |
 | Screen connects but input feels laggy (off-LAN) | Transport | `tailscale status` — relayed instead of direct? Relayed + packet loss = transport, not the rig |
 | Everything connects, nothing types | Client keyboard plumbing | Does the client send key events for text (IME commits)? RealVNC Viewer does (tested live); a client that injects nothing won't — try its key panel |
 | Works on LAN, never off-LAN | Tailnet membership | Both devices logged into the *same* tailnet? Phone's Tailscale toggle actually on? (Android kills VPNs quietly — check the key icon) |
 | Ubuntu unreachable after a power cut | x11vnc autostart | x11vnc starts only after graphical login — someone must log in locally once (the Mac serves its login window over VNC; Ubuntu can't) |
+
+---
+
+## Quick start after first setup
+
+The setup above happens once. This is the 30-second checklist for every session after — or for any "suddenly won't connect" moment. Run these on the desk.
+
+### 1. Find the desk's addresses
+
+```bash
+hostname -I
+# All IPv4s on one line. Ignore 172.x.x.x (Docker/VM bridges). You want:
+#   LAN:       192.168.x.x or 10.x.x.x   <- changes sometimes (DHCP)
+#   Tailscale: 100.x.x.x                 <- never changes
+```
+
+Explicit variant, showing which interface carries which (interface names vary per machine — don't memorize them):
+
+```bash
+ip -4 -o addr show scope global
+```
+
+### 2. Tailscale side
+
+```bash
+tailscale ip -4      # the desk's permanent address — what the phone should dial
+tailscale status     # every tailnet device + its IP; the phone's line must NOT say "offline"
+```
+
+A phone showing `offline, last seen …` = its Tailscale VPN is off (Android's battery optimization kills it quietly) — nothing off-LAN will connect until it's back on.
+
+### 3. Is the server up?
+
+```bash
+pgrep -af x11vnc     # expect: x11vnc -display :N -auth guess ... -shared -repeat -forever
+ss -tln | grep 5900  # expect: LISTEN 0.0.0.0:5900
+```
+
+Empty on either = the server side is down — re-login graphically (autostart fires on login) or start it in a tmux session.
+
+### 4. What the phone should dial
+
+| Situation | Address in RealVNC Viewer |
+|---|---|
+| Phone on the **same WiFi** as the desk | `<lan-ip>:5900` (e.g. `192.168.1.42:5900` — example only) |
+| Anywhere else (cellular, other WiFi) | `<tailscale-ip>:5900` |
+
+Rule of thumb: **just use the Tailscale address always** — it works on the same WiFi too, and it never changes.
+
+### 5. Watch it live while the phone retries
+
+```bash
+journalctl --user -f | grep -i x11vnc
+```
+
+Run it, hit Connect on the phone, read the outcome: **nothing appears** → traffic isn't arriving (Tailscale off, wrong address, wrong WiFi, firewall — steps 1, 2, 4) · **"Got connection" then auth failure** → connection is fine, wrong password · **phone says "refused"** → right network, wrong IP — the LAN IP changed.
+
+### 6. Why the LAN IP drifts, and the fix
+
+The router hands out LAN IPs by DHCP — after a router reboot or lease expiry the desk can get a new one, and the phone's saved entry keeps dialing the old address. Two permanent fixes:
+
+1. **DHCP reservation** in the router settings ("always give this MAC this IP") — pins the LAN IP.
+2. **Use the Tailscale IP** — it never changes, and works from anywhere, not just home WiFi.
+
+Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry and this whole class of breakage disappears.
+
+### 7. Phone error text → cause
+
+| Phone shows | Meaning | Fix |
+|---|---|---|
+| **The connection timed out** | Packets never arrived: Tailscale off on the phone, wrong network, AP isolation, or firewall | Check the phone's Tailscale/WiFi details (SSID + gateway), verify the address |
+| **Connection refused** | Network reachable, but no server at that address — almost always a stale LAN IP | Re-check current IPs (step 1); prefer the Tailscale IP |
+| **Authentication failed / wrong password** | Connection fine, VNC password mismatch | Re-enter it, or reset on the desk: `x11vnc -storepasswd` (then restart the server) |
 
 ---
 
