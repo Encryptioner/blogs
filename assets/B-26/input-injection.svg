@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="560" fill="#ffffff"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#111827">Same Keystroke, Two Doors — Why VNC Fires Hotkeys and SSH Can't</text>
+  <text x="490" y="56" text-anchor="middle" font-size="13" fill="#6b7280">VNC injects input at the X server level, upstream of every app; SSH hands bytes to one process's stdin</text>
+
+  <!-- ===== LEFT: VNC path ===== -->
+  <rect x="30" y="85" width="440" height="400" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="55" y="105" width="390" height="32" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="250" y="126" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e3a8a">VNC path — a real input event</text>
+
+  <rect x="55" y="158" width="390" height="52" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="250" y="180" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">VNC client sends RFB key event</text>
+  <text x="250" y="198" text-anchor="middle" font-size="10.5" fill="#3b82f6">"the A key went down, the A key came up"</text>
+
+  <line x1="250" y1="210" x2="250" y2="235" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <rect x="55" y="238" width="390" height="62" rx="10" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="250" y="260" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">x11vnc calls XTEST</text>
+  <text x="250" y="278" text-anchor="middle" font-size="10.5" fill="#5b21b6">the X11 extension built for test automation —</text>
+  <text x="250" y="292" text-anchor="middle" font-size="10.5" fill="#5b21b6">injects input at the X server level</text>
+
+  <line x1="250" y1="300" x2="250" y2="325" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+  <rect x="55" y="328" width="390" height="62" rx="10" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="250" y="350" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">X server input stream</text>
+  <text x="250" y="368" text-anchor="middle" font-size="10.5" fill="#5b21b6">same keycodes, same grabs as the physical</text>
+  <text x="250" y="382" text-anchor="middle" font-size="10.5" fill="#5b21b6">keyboard driver — nothing distinguishes them</text>
+
+  <line x1="250" y1="390" x2="250" y2="412" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+  <rect x="55" y="415" width="390" height="52" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="250" y="437" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">everything sees a keyboard event</text>
+  <text x="250" y="455" text-anchor="middle" font-size="10.5" fill="#047857">terminals · window manager (Super+A) · global hotkey hooks</text>
+
+  <!-- ===== RIGHT: SSH path ===== -->
+  <rect x="510" y="85" width="440" height="400" rx="16" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="535" y="105" width="390" height="32" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="730" y="126" text-anchor="middle" font-size="13.5" font-weight="700" fill="#991b1b">SSH path — just bytes</text>
+
+  <rect x="535" y="158" width="390" height="52" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="730" y="180" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">SSH client sends bytes</text>
+  <text x="730" y="198" text-anchor="middle" font-size="10.5" fill="#b91c1c">"a" — a character, not a key event</text>
+
+  <line x1="730" y1="210" x2="730" y2="235" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <rect x="535" y="238" width="390" height="62" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="730" y="260" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">delivered to one process's stdin</text>
+  <text x="730" y="278" text-anchor="middle" font-size="10.5" fill="#b91c1c">the shell you're attached to —</text>
+  <text x="730" y="292" text-anchor="middle" font-size="10.5" fill="#b91c1c">and nothing else, ever</text>
+
+  <line x1="730" y1="300" x2="730" y2="325" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+  <rect x="535" y="328" width="390" height="62" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="730" y="350" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">no X server involvement</text>
+  <text x="730" y="368" text-anchor="middle" font-size="10.5" fill="#6b7280">as far as the OS's input system is</text>
+  <text x="730" y="382" text-anchor="middle" font-size="10.5" fill="#6b7280">concerned, no keyboard was touched</text>
+
+  <line x1="730" y1="390" x2="730" y2="412" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#arrowRed)"/>
+
+  <rect x="535" y="415" width="390" height="52" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="730" y="437" text-anchor="middle" font-size="11.5" font-weight="700" fill="#374151">one text shell — no GUI, no window manager,</text>
+  <text x="730" y="455" text-anchor="middle" font-size="10.5" fill="#6b7280">no global hotkeys, no desktop shortcuts</text>
+
+  <text x="490" y="520" text-anchor="middle" font-size="12" font-weight="700" fill="#111827">macOS runs the same play with different plumbing:</text>
+  <text x="490" y="538" text-anchor="middle" font-size="11" fill="#6b7280">Screen Sharing injects through the window server's event path — equivalent to a physical event to every listener</text>
+</svg>

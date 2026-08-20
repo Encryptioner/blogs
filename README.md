@@ -20,6 +20,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Token Economics: Better Results, Fewer Tokens](./topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md)
 - [Run Your Desk From the Couch - Free Remote Control + Voice Dictation From Your Phone](./topics/Productivity/Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md)
 - [Run Your Desk From Anywhere - Free Remote Control + Voice Dictation Over the Internet](./topics/Productivity/Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md)
+- [Your Desk in Your Pocket - Free Remote Control for Mac & Ubuntu, Same Room or Anywhere on Earth](./topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md)
 
 ##### branchdiff
 - [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)

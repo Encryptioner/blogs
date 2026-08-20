@@ -28,6 +28,7 @@
 23. Productivity: [How branchdiff Grew Up - One Diff Tool's Journey From a Proof of Concept to a Self-Hosted Review Bot](./topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md)
 24. Productivity: [Run Your Desk From the Couch - Free Remote Control + Voice Dictation From Your Phone](./topics/Productivity/Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md)
 25. Productivity: [Run Your Desk From Anywhere - Free Remote Control + Voice Dictation Over the Internet](./topics/Productivity/Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md)
+26. Productivity: [Your Desk in Your Pocket - Free Remote Control for Mac & Ubuntu, Same Room or Anywhere on Earth](./topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md)
 
 ## Presentations
 0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)
