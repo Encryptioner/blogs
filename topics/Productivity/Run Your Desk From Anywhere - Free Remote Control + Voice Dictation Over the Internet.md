@@ -10,7 +10,7 @@ That's the question Part 1 leaves hanging. This post answers it in two parts, th
 1. **Part 3 — Off the LAN.** Why "just port-forward 5900" is the wrong answer (and often an impossible one), what a mesh VPN actually does, and the Tailscale build that swaps every LAN IP in the Part 1–2 rig for a tailnet IP — x11vnc, ufw, DroidCam, RealVNC Viewer all unchanged in shape.
 2. **Part 4 — The deep dive.** How the rig actually works under the hood: the RFB protocol and why the VNC password stops at 8 characters, why VNC input triggers global hotkeys when an SSH session can't, the two halves of an ALSA loopback device, and what WireGuard/NAT traversal is doing in Part 3.
 
-Same rule as the rest of the series: everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. Still untested here: the macOS side of the tailnet and the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
+Same rule as the rest of the series: everything claimed here is either verified live on the actual rig or explicitly marked as not-yet-tested. Part 3 was run live end-to-end for this post: a phone on **mobile data** (not home WiFi) drove the desktop over VNC and streamed its mic into the rig's dictation source, both through the tailnet, on a direct WireGuard path. The macOS side of the tailnet has since been run live too — the rig Mac joined the tailnet, and a phone on mobile data drove it over VNC through the **DERP relay fallback** (no direct path punchable on that carrier round: ~125 ms, a hint of cursor lag, fully usable) — the first time in the series the relay path of Part 4's theory was observed working. Still untested here: the escape-hatch alternatives. Part 4's internals are documented from the working rig itself.
 
 ## Topic flow
 
@@ -25,7 +25,9 @@ Why raw VNC-over-internet is still wrong      ALSA loopback halves + the silence
 Candidate approaches, compared                What Handy does with the audio
 Tailscale: what it is, why it's trustworthy   WireGuard, NAT traversal, and DERP
 Desktop + phone setup (one firewall rule)     Reference — failure-mode map
-What changes vs. Parts 1–2 (a table)           (symptom → layer → check)
+The ten-second reachability check (nc)        (symptom → layer → check)
+The daily loop: start · check · stop
+What changes vs. Parts 1–2 (a table)
 Dictation tested live, off-LAN
 Reference — security recap & escape hatches
 ────────────────────────────────────         ──────────────────────────────────────────
@@ -113,7 +115,7 @@ sudo tailscale up
 tailscale ip -4   # note this: the desktop's permanent 100.x.y.z address
 ```
 
-macOS: install from the Mac App Store or `brew install --cask tailscale` (or `brew install tailscale` for the CLI variant), log in from the menu-bar app, read the address from the menu bar or `tailscale ip -4`.
+macOS: install from the Mac App Store or `brew install --cask tailscale` (or `brew install tailscale` for the CLI variant), log in from the menu-bar app, read the address from the menu bar or `tailscale ip -4`. If the Sign in button does nothing — it happens — the check section below has the CLI login that prints the URL instead.
 
 Then one firewall change. The Part 1 rule was LAN-scoped:
 
@@ -138,6 +140,74 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 1. Install **Tailscale** from the Play Store, log into the same account, toggle it on. Read the phone's tailnet IP from the app (or the admin console).
 2. **RealVNC Viewer**: edit the saved connection, point it at the desktop's **tailnet IP** instead of the LAN IP. Port still 5900 (or implied). Same VNC password. (bVNC on the Ubuntu machine: same swap.)
 3. **DroidCam** app: no change on the phone side — the *desktop* client is what points at the phone. Update `droidcam-cli -a <phone-tailnet-ip> 4747` to use the phone's tailnet IP (mind the flag order gotcha from Part 2 — `-a` before the address).
+
+## The ten-second check: is the desktop actually reachable?
+
+Setup done, phone somewhere else — before blaming the client app, run the ladder. It's the same on both OSes; only the port-probe tool differs, and on the Mac that tool is `nc`, because **macOS dropped `telnet` years ago** — every "just telnet to the port" troubleshooting guide predates that. `nc -vz` is the built-in replacement:
+
+1. **Both ends on the tailnet?** `tailscale status` — each device should list the other as online. (An "offline" phone is usually Android's battery optimization having killed the app again — same culprit as Part 3's failure table.)
+2. **Path alive?** `tailscale ping <peer-ip>` — answers in milliseconds on a direct path, or reports that it's relaying.
+3. **Port open?** From any tailnet machine:
+
+```bash
+nc -vz <desktop-tailnet-ip> 5900
+# Connection to 100.x.y.z port 5900 [tcp/rfb] succeeded!
+```
+
+That one line gives you the same refused-vs-timeout split Part 1 taught you to read off the phone's error text — now from a terminal, on any end. **Instant `Connection refused`** = the packets arrived and nothing was listening: the server is off (the lifecycle below turns it on). **Silence** = the path died: give it a deadline — `-G 3` on macOS, `-w 3` on Linux — and a timeout means tailnet or firewall, not the server. And when you want protocol-level proof it's really VNC answering rather than any open socket, read the server's opening line of the RFB handshake:
+
+```bash
+(sleep 1; printf '\n') | nc -G 3 <desktop-tailnet-ip> 5900 | head -c 12
+# RFB 003.889
+```
+
+(That `.889` is Apple's variant-version flourish — plain `003.008` from x11vnc; Part 4 opens up the handshake it begins.)
+
+### The Mac's on/off lifecycle: headless once the password exists
+
+Part 1 turned Screen Sharing on through System Settings because Sequoia insists on the GUI for the *first* enable and the VNC password. After that one visit, the whole lifecycle is two sudo lines — both verified live on the rig Mac for this post, port checked with `nc` either way:
+
+```bash
+sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist    # on
+sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist  # off
+```
+
+The `-w` writes the choice into launchd's persistent state — on stays on across reboots, off stays off. `load`, and a second later `nc -vz 127.0.0.1 5900` says `succeeded`; `unload`, and it says `Connection refused`. Leaving for a week and want nothing listening? `unload`. Back? `load` and connect. No residue either way — the "remove entirely" version is Part 1's teardown plus `brew uninstall --cask tailscale` (or quit the app and drag it out of `/Applications`; the device entry can then be deleted from Tailscale's admin console).
+
+Tailscale's own run/stop is symmetric: disconnect from the menu bar and the Mac drops off the tailnet — unreachable from the phone, nothing to uninstall. One install-time gotcha verified here: if the app's **Sign in** button does nothing (it can silently fail to hand the URL to the browser), the CLI prints it instead — the GUI binary doubles as the CLI:
+
+```bash
+/Applications/Tailscale.app/Contents/MacOS/Tailscale login   # prints the auth URL
+```
+
+## The daily loop: start, check, stop
+
+Everything above was one-time. Day to day, the internet rig is *nothing to type* — Tailscale runs as a system service on both desktops, x11vnc autostarts at graphical login, the Mac's launchd state persists, the ufw rule persists. The commands below are the only ones left in your week, and only when you deliberately turned something off or something feels wrong.
+
+**Start** (only if you unloaded the Mac's server — otherwise it's already on, reboot or not):
+
+```bash
+sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist
+nc -vz <mac-tailnet-ip> 5900        # → succeeded: serving
+```
+
+Then the phone: Tailscale toggle → RealVNC → the saved tailnet entry.
+
+**Check** (the ten-second ladder from above, compressed):
+
+```bash
+tailscale status                    # both online? direct or relay "…"?
+tailscale ping <peer-ip>            # path latency
+nc -vz <desktop-tailnet-ip> 5900    # refused = server off · timeout = path · succeeded = good
+```
+
+**Stop** (done for the day, or heading out): phone disconnects, Tailscale toggle off (battery), and if you want nothing listening on the Mac:
+
+```bash
+sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist
+```
+
+Ubuntu has no daily start/stop at all — server, VPN, and firewall all persist; Part 2's stop script covers the audio side, which is the one piece genuinely worth stopping daily (it holds the phone's mic and battery). The Mac's `launchctl` pair is the only on/off in the whole internet rig, and both directions are a single line that survives reboots.
 
 ## What changes, what doesn't
 
@@ -276,7 +346,7 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 | Symptom | Suspect layer | Check |
 |---|---|---|
 | Phone can't connect to desktop at all | Tailnet | `tailscale status` both devices — is each online and showing the other? Then `tailscale ping <desktop-tailnet-ip>`. A phone showing "offline" is usually its Tailscale app killed by Android battery optimization — reopen it and exclude it from optimization |
-| Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? (Mac: `sudo lsof -iTCP:5900 -sTCP:LISTEN` — empty = Screen Sharing off.) `tailscale ping` works but 5900 times out = firewall |
+| Tailnet up, VNC refuses | Firewall / server | Is x11vnc running? Does the ufw rule cover `100.64.0.0/10`? (Mac: `nc -vz <tailnet-ip> 5900` — *refused* = Screen Sharing off, `launchctl load -w` turns it on; *timeout* = firewall/path. `sudo lsof -iTCP:5900 -sTCP:LISTEN` works too.) `tailscale ping` works but 5900 times out = firewall |
 | VNC connects, password rejected | Auth | 8-character DES cap (first 8 are real); Mac: VNC password, username blank |
 | Control works, dictation silent | Audio wiring | `pactl list sources short` — is `hw_Loopback_1_0` there and RUNNING? Wrong-half source present = Part 4's loopback bug |
 | Dictation garbled only off-LAN | Transport | `tailscale status` — relayed? Re-run the `parecord`/`sox stat` audio check, not just "did it connect" |
@@ -308,7 +378,7 @@ The progression is deliberate: each part removed exactly one constraint — *the
 
 ---
 
-*Built and documented from a real, working rig. Parts 1–2 verified live on it; Part 3 verified live from a phone on mobile data — VNC control and mic audio both, over a direct WireGuard path. The macOS tailnet route and the escape-hatch alternatives remain designs until run; the checks in "Dictation over the internet" are how to verify them.*
+*Built and documented from a real, working rig. Parts 1–2 verified live on it; Part 3 verified live from a phone on mobile data — VNC control and mic audio both, over a direct WireGuard path on Ubuntu, and VNC control over the Mac's tailnet route via the DERP relay (the encrypted fallback doing exactly its job). The escape-hatch alternatives remain designs until run; the checks in "Dictation over the internet" and the ten-second check are how to verify them.*
 
 ---
 

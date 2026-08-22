@@ -672,9 +672,9 @@ The setup above is a one-time build. What follows is what to check when dictatio
 1. Phone: stop the AudioRelay mic stream; close RealVNC.
 2. Mac: `SwitchAudioSource -t input -s "MacBook Air Microphone"` — or System Settings → Sound, Input; either way, it's the *input* side.
 3. Optional: quit AudioRelay from its **menu-bar icon** — closing the window only hides it, the app keeps running.
-4. Optional: System Settings → General → Sharing → Screen Sharing → off, if you don't want port 5900 open while nobody's using it.
+4. Optional: close port 5900 while nobody's using it — `sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist` (verified live on Sequoia; the System Settings → General → Sharing toggle does the same thing). Stays off across reboots until you load it again.
 
-**Start again** (post-setup, takes ~30 seconds):
+**Start again** (post-setup, takes ~30 seconds; prefix `sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist` if you closed 5900 the night before):
 
 1. Mac: AudioRelay open — the menu-bar icon is enough; use **Connect by address** if the phone doesn't auto-appear.
 2. Phone: AudioRelay → **Microphone → Start**.
@@ -689,10 +689,9 @@ SwitchAudioSource -t input -s "MacBook Air Microphone"   # input off BlackHole F
 brew uninstall --cask blackhole-2ch audiorelay            # virtual device + player app
 sudo killall coreaudiod                                   # flush the stale device entry
 brew uninstall switchaudio-osx                            # optional CLI helper
-sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
-  -deactivate -stop                                       # VNC server off
-# ...then System Settings → General → Sharing → Screen Sharing → OFF
-#   (the GUI toggle is authoritative on Sequoia — confirm it flipped)
+sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist  # VNC server off, stays off
+#   (equivalent: System Settings → General → Sharing → Screen Sharing → OFF —
+#    the GUI toggle is authoritative; confirm it flipped)
 # Handy: quit it, remove from Login Items, or `brew uninstall --cask handy`
 #   its recordings/history live in ~/Library/Application Support/com.pais.handy
 ```

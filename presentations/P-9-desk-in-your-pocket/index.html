@@ -497,8 +497,8 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
       <div class="stat"><div class="num mint">direct</div><div class="label">wireguard path — no relay needed</div></div>
       <div class="stat"><div class="num mint">~66 ms</div><div class="label">tailscale ping, phone ↔ desktop</div></div>
     </div>
-    <div class="callout mint"><span class="label">verified from cellular — and how to verify on yours</span>Screen updated, taps and keystrokes landed, every Part 1 skill carried over — on a carrier network, direct path. <b>Verify the interaction, not the connection:</b> connect, hit the hot corner, open a terminal, type a line, fire a <span class="mono">Ctrl+key</span> combo. Anything stuttery → check <span class="mono">tailscale status</span> for <span class="mono">relay</span> + packet loss — that's transport degrading, not the rig breaking.</div>
-    <div class="foot">Still honest: one session, one carrier; the macOS side of the tailnet route and the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel) remain untested on this rig.</div>
+    <div class="callout mint"><span class="label">verified from cellular — and how to verify on yours</span>Screen updated, taps and keystrokes landed, every Part 1 skill carried over — on a carrier network, direct path. <b>Verify the interaction, not the connection:</b> connect, hit the hot corner, open a terminal, type a line, fire a <span class="mono">Ctrl+key</span> combo. Anything stuttery → check <span class="mono">tailscale status</span> for <span class="mono">relay</span> + packet loss — that's transport degrading, not the rig breaking. From any tailnet machine, the ten-second port check: <span class="mono">nc -vz &lt;desktop-ip&gt; 5900</span> (no <span class="mono">telnet</span> on macOS) — instant "refused" = server off, silence = path.</div>
+    <div class="foot">The Mac route has since run live from cellular too — via the <b>DERP relay</b> (no punchable direct path that round, ~125 ms, VNC-usable): the encrypted fallback of the deep-dive slides, observed working. Still honest: the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel) remain untested on this rig.</div>
   </section>
 
   <!-- 14 · RFB HANDSHAKE -->
@@ -567,15 +567,29 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     </div>
   </section>
 
-  <!-- 18 · RECAP -->
+  <!-- 18 · DAILY LOOP -->
+  <section class="slide" data-title="The daily loop">
+    <div class="slide-num">18 · post-setup — the daily loop</div>
+    <h3 class="section">After setup: <em>nothing to type</em> — until you want it off, or it feels off.</h3>
+    <p class="lead">Tailscale runs as a service, x11vnc autostarts at login, the Mac's launchd state and the ufw rule persist across reboots. These are the only commands left in your week:</p>
+    <div class="three-col">
+      <div class="mode"><span class="tech">start · only if you unloaded</span><h4>Mac server on</h4><p><span class="mono">sudo launchctl load -w …/com.apple.screensharing.plist</span> → confirm <span class="mono">nc -vz &lt;mac-ip&gt; 5900</span> says <b>succeeded</b>. Phone: Tailscale toggle → RealVNC saved entry.</p></div>
+      <div class="mode"><span class="tech">check · ten seconds</span><h4>Me or the rig?</h4><p><span class="mono">tailscale status</span> — online? direct or <span class="mono">relay</span>?<br><span class="mono">tailscale ping &lt;ip&gt;</span> — path latency<br><span class="mono">nc -vz &lt;ip&gt; 5900</span> — <b>refused</b> = server off · <b>timeout</b> = path · <b>succeeded</b> = go <span class="muted">(no <span class="mono">telnet</span> on macOS — <span class="mono">nc</span> is the built-in)</span></p></div>
+      <div class="mode"><span class="tech">stop · done for the day</span><h4>Close the port</h4><p>Phone: disconnect, Tailscale off (battery). Mac: <span class="mono">sudo launchctl unload -w …/com.apple.screensharing.plist</span> — both directions one line, both survive reboots.</p></div>
+    </div>
+    <div class="callout accent"><b>Ubuntu has no daily anything</b> — server, VPN, and firewall all persist (Part 2's stop script handles the audio side, the one piece worth stopping daily: it holds the phone's mic and battery). The Mac's <span class="mono">launchctl</span> pair is the only on/off in the whole internet rig.</div>
+  </section>
+
+  <!-- 19 · RECAP -->
   <section class="slide hero" data-title="Where this landed">
-    <div class="slide-num">18 · where this landed</div>
+    <div class="slide-num">19 · where this landed</div>
     <h3 class="section">A full second seat at the desk, <em>from the couch or another city</em>.</h3>
     <ul class="checklist" style="max-width:72ch">
       <li><b>Verified live:</b> RealVNC Viewer against the Mac end to end — window switching, multi-key shortcuts, full keyboard incl. voice typing, through reboots and IP re-leases.</li>
       <li><b>Verified off-LAN:</b> phone on mobile data, direct WireGuard path through the tailnet, ~66 ms — every Part 1 skill carried over unchanged.</li>
+      <li><b>Verified on the Mac's internet route too:</b> tailnet joined, phone on cellular drove it over VNC through the <b>DERP relay</b> (~125 ms — the encrypted fallback, observed live), with the headless <span class="mono">launchctl</span> on/off and the <span class="mono">nc</span> port check proven on Sequoia.</li>
       <li><b>Same standard handshake against x11vnc</b> on Ubuntu — one app, two entries.</li>
-      <li><b>Honestly untested on this rig:</b> the macOS side of the tailnet route; the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel).</li>
+      <li><b>Honestly untested on this rig:</b> the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel).</li>
       <li><b>The rig stays deliberately small:</b> 2 servers you mostly already have + 1 phone app + 1 mesh VPN only when you leave the LAN. No subscription, no cloud in the control path, no ports opened to the internet.</li>
     </ul>
     <div class="end-links">
@@ -596,7 +610,7 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-18">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-19">
 </div>
 
 <div class="dk-help" id="helpOverlay">
