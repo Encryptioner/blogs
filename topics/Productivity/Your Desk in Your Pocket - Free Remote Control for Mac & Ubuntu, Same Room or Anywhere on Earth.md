@@ -165,6 +165,14 @@ Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected
 
 **Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the Reference section's troubleshooting tables are ordered by likelihood; start at the top.
 
+### One session, multiple monitors
+
+If the desktop has more than one display, nothing changes on the phone side: the VNC session mirrors **the whole desktop, both monitors side by side**, as one wide screen. Swipe/pan across to move between them, pinch out to see both at once, pinch in to work one monitor at full zoom — the monitors are just regions of one mirrored framebuffer. Verified live from the phone (a browser on one monitor, a terminal on the other, both driven in the same session):
+
+<img src="../../assets/B-26/realvnc-multi-screen-android.jpg" alt="Android phone in landscape running RealVNC Viewer, driving a dual-monitor desktop: a browser with a document on the left monitor and a terminal on the right monitor, both visible side by side in the single VNC session" style="max-width:100%;border:1px solid #242E47;border-radius:12px;"/>
+
+Works identically against both machines — the Mac's Screen Sharing serves all attached displays, and x11vnc serves the entire X session (`:0` spans whatever monitors it spans). One practical note: at phone scale a two-monitor desktop is wide, so the pan-and-pinch rhythm from the gestures section below is the everyday motion, not a workaround.
+
 ## Driving the desktop from the phone
 
 Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu machine and the Mac. The connection details, in one place:
@@ -210,6 +218,18 @@ Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, 
 **Right-click** in RealVNC Viewer: **tap with two fingers at once**. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and **double-tap + hold + drag** = select text or drag-and-drop. ([RealVNC's gesture reference](https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device).) If you're doing anything right-click-heavy, a **Bluetooth mouse** pairs to the phone and its actual right button just works.
 
 **Enter and Backspace** — not special VNC buttons, just the ordinary keys on Android's own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows.
+
+### Scrolling — the most common gesture of all
+
+You'll scroll more than you'll click. **Two fingers swiped up/down sends real mouse-wheel events** — so anything that scrolls at the desk scrolls from the phone, identically on the Mac and Ubuntu: web pages, chat logs, file lists, code editors. There's no VNC-specific scroll mode to enable; the two-finger swipe *is* the wheel.
+
+The one place it needs help is the terminal, and only because terminals handle wheels oddly at the desk too:
+
+- **Inside tmux**: `set -g mouse on` (already in the cheat sheet below) makes the wheel scroll panes directly — this is the fix that matters, because tmux is where a phone-driven terminal lives.
+- **Plain GUI terminal, Ubuntu**: the wheel scrolls the terminal's own scrollback in GNOME Terminal as usual — two-finger swipe works out of the box.
+- **Plain Terminal on the Mac**: same — the wheel drives the window's scrollback natively.
+
+If a two-finger swipe ever pans the *view* instead of scrolling the *app*, you're zoomed out or in touch-drag mode — pinch back to 100% (or tap once to re-center the cursor) and the wheel behavior returns. And on a multi-monitor desktop, remember the two-finger swipe doubles as the pan across monitors when zoomed out.
 
 ### The everyday actions: new tab, Ctrl+C, close
 

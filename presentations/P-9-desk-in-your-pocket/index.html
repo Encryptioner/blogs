@@ -402,20 +402,15 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
   </section>
 
   <!-- 07 · PHONE CLIENT -->
-  <section class="slide" data-title="One app, both machines, no cloud">
+  <section class="slide compact" data-title="One app, both machines, no cloud">
     <div class="slide-num">07 · part 1 — the phone</div>
     <h3 class="section">The phone half: <em>one app, no account</em>.</h3>
     <p class="lead"><span class="mono">RealVNC Viewer</span>, free. Standardized on for one reason that beats any feature list: <b>it speaks the classic VNC auth both servers serve</b> — same app, same gestures, same saved list for the Mac and the Ubuntu box.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th></th><th class="hl">Ubuntu box</th><th class="hl">macOS box</th></tr></thead>
-        <tbody>
-          <tr><th>address</th><td class="hl">&lt;ubuntu-ip&gt;:5900</td><td class="hl">&lt;mac-ip&gt;:5900</td></tr>
-          <tr><th>password</th><td>the <span class="mono">-storepasswd</span> one</td><td>the VNC password</td></tr>
-        </tbody>
-      </table>
+    <div class="fig">
+      <img src="../../assets/B-26/realvnc-multi-screen-android.jpg" alt="Android phone in landscape running RealVNC Viewer, driving a dual-monitor desktop: browser on the left monitor, terminal on the right — both in one VNC session" loading="lazy">
+      <div class="fig-caption">Verified live: a dual-monitor desktop, <b>both screens in one session</b> — swipe to pan between them, pinch to zoom. Same story on the Mac and Ubuntu. Click to zoom.</div>
     </div>
-    <div class="callout accent"><span class="label">read this before signing in</span>RealVNC the <i>company</i> sells a cloud ecosystem — accounts, device lists, "connect from anywhere". <b>None of it is needed.</b> The Viewer connects <b>direct</b>, machine-to-machine. Don't sign in; add an address and connect.</div>
+    <div class="callout accent"><span class="label">read this before signing in</span>RealVNC the <i>company</i> sells a cloud ecosystem — accounts, device lists, "connect from anywhere". <b>None of it is needed.</b> The Viewer connects <b>direct</b>, machine-to-machine. Don't sign in; add an address, connect: <span class="mono">&lt;ip&gt;:5900</span> + its VNC password.</div>
     <div class="foot">First win to chase: connect, tap anywhere → the real cursor moves. If it does, the rig works; everything left is technique.</div>
   </section>
 
@@ -443,7 +438,8 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     <div class="slide-num">09 · part 1 — gestures</div>
     <h3 class="section">Your fingers are the mouse: <em>taps are clicks</em>.</h3>
     <ul class="bullets">
-      <li><strong>One finger = left click. Two fingers at once = right-click.</strong> <span class="muted">Three = middle click; two-finger drag = scroll; double-tap-hold-drag = select text.</span></li>
+      <li><strong>One finger = left click. Two fingers at once = right-click.</strong> <span class="muted">Three = middle click; double-tap-hold-drag = select text.</span></li>
+      <li><strong>Scroll = two-finger swipe — a real wheel event.</strong> <span class="muted">Pages, lists, editors scroll natively on both OSes; terminal scrollback works out of the box, tmux needs <span class="mono">set -g mouse on</span>.</span></li>
       <li><strong>Modifier keys are toggles, not holds.</strong> <span class="muted">A touchscreen can't chord. Tap <span class="mono">Ctrl</span> in the toolbar (stays armed) → tap the key → the combo fires and releases. Stack <span class="mono">Ctrl</span>, <span class="mono">Shift</span>, then the key.</span></li>
       <li><strong>Switch apps via the hot corner first.</strong> <span class="muted">Tap the top-left pixel (GNOME) or a macOS hot corner → window overview → tap. One tap, no modifier.</span></li>
       <li><strong>Right-click-heavy session? Pair a Bluetooth mouse</strong> — its real right button just works. <span class="muted"><a href="https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device" target="_blank" rel="noopener">Gesture reference ↗</a>. Same plays in bVNC; its right-click is hold + second-finger tap.</span></li>
