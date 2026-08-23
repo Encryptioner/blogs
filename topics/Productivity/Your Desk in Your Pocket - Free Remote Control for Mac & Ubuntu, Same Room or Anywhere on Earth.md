@@ -500,7 +500,7 @@ The one-line summary: **Part 2 is a re-addressing, not a rebuild.** Two new apps
 
 The off-LAN control path isn't theory here — it was run live end to end: a phone on **mobile data** (WiFi off) drove the desktop over VNC through the tailnet, on a **direct** WireGuard path. `tailscale ping` to the phone answered in ~66 ms — not even the relay was needed on a carrier network. Screen updated, taps and keystrokes landed, everything from Part 1's skill set carried over unchanged.
 
-**What's still honest to say:** that was one session on one carrier, and the macOS side of the tailnet route remains untested on this rig (it's the same client and same protocol, but "should work" and "verified" are different claims — the checks below are how to convert one into the other). If the screen ever feels laggy off-LAN, check `tailscale status` first: a fallback to `relay "..."` plus packet loss is the transport degrading, not the rig breaking.
+**What's still honest to say:** the Ubuntu run above was one session on one carrier. The macOS side of the tailnet route has since been run live too: the rig's Mac joined the tailnet, and a phone on mobile data drove it over VNC through the **DERP relay fallback** — the first time the relayed path of Part 3's theory was observed working on this rig, at ~125 ms with a hint of cursor lag, fully usable. That round also live-verified the Mac's headless on/off (`launchctl load/unload`) and the `nc -vz` port check below. Still untested: the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel). If the screen ever feels laggy off-LAN, check `tailscale status` first: a fallback to `relay "..."` plus packet loss is the transport degrading, not the rig breaking.
 
 **When you verify it on your networks, verify the interaction, not just the connection.** "It connected" is not the test. From the off-LAN network, connect, tap the hot corner, open a terminal, type a line, fire a `Ctrl+key` combo from the extra-keys toolbar. Every one of those exercising the same real-input path is the proof the rig works — anything stuttery points at the transport, not the setup.
 
@@ -664,6 +664,14 @@ log stream --predicate 'process == "screensharingd"' --info   # Mac — same rea
 
 Run it, hit Connect on the phone, read the outcome: **nothing appears** → traffic isn't arriving (Tailscale off, wrong address, wrong WiFi, firewall — steps 1, 2, 4) · **"Got connection" then auth failure** → connection is fine, wrong password · **phone says "refused"** → right network, wrong IP — the LAN IP changed.
 
+Even faster, from any machine that can already reach the desktop (tailnet or LAN) — the ten-second port check, no logs and no phone needed:
+
+```bash
+nc -vz <desktop-ip> 5900
+```
+
+An instant **"refused"** means the packets arrived and nothing is listening — server off, start it (on the Mac, check the Screen Sharing toggle; on Ubuntu, `pgrep -af x11vnc`). **Silence, then timeout** means a path problem — VPN down, firewall, wrong network. **"succeeded"** means go: the phone will connect. `nc` is the built-in on macOS (there's no `telnet` there anymore); on Ubuntu it ships with the default `netcat-openbsd` package. Verified live on the Mac's internet route — it's the single command worth remembering from this whole section.
+
 ### 6. Why the LAN IP drifts, and the fix
 
 The router hands out LAN IPs by DHCP — after a router reboot or lease expiry the desk can get a new one, and the phone's saved entry keeps dialing the old address. Two permanent fixes:
@@ -685,7 +693,7 @@ Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry 
 
 # Where this landed
 
-Full chain confirmed working: VNC view and control from the phone on the home network — RealVNC Viewer against the Mac end to end (window switching, multi-key shortcuts, full keyboard including voice typing, through reboots and IP re-leases), the same standard handshake against x11vnc on Ubuntu — and the same control path verified live from a phone on **mobile data**, over a direct WireGuard path through the tailnet. Still honestly untested on this rig: the macOS side of the tailnet route and the escape-hatch alternatives; the verification steps in Part 2 are how to check them on yours.
+Full chain confirmed working: VNC view and control from the phone on the home network — RealVNC Viewer against the Mac end to end (window switching, multi-key shortcuts, full keyboard including voice typing, through reboots and IP re-leases), the same standard handshake against x11vnc on Ubuntu — and the same control path verified live from a phone on **mobile data**, over a direct WireGuard path through the tailnet. The Mac's internet route has since run live as well, phone on cellular over the **DERP relay** (~125 ms, fully usable) with the `launchctl` on/off and `nc -vz` port check proven on Sequoia. Still honestly untested on this rig: only the escape-hatch alternatives (SSH reverse tunnel, Headscale, Cloudflare Tunnel); the verification steps in Part 2 are how to check them on yours.
 
 The rig is deliberately small: two servers you mostly already have (one built into the Mac, one `apt install` on Ubuntu), one phone app, and — only when you want off the LAN — one mesh VPN. No subscription, no cloud account in the control path, no ports opened to the internet. What it buys is a full second seat at the desk: see the actual screen, drive the actual apps, from the couch or from another city — and, when you'd rather talk than thumb-type, the keyboard's voice-typing mic button is right there in your pocket's own keyboard.
 

@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
 <script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+
 <style>
 :root{
   --bg:#0A0D14;
@@ -51,7 +52,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
 
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:5vh 6vw 9vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:4.5vh 6vw 8vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+/* density layer for figure-heavy slides — keeps every slide ≥0.9 fit scale */
+.compact .fig{margin:10px auto}
+.compact .fig img{max-height:38vh}
+.compact .fig-caption{margin-top:6px}
+.compact ul.bullets li{margin-bottom:9px}
+.compact .callout{padding:12px 18px;margin:10px 0}
+.compact .mode{padding:12px 14px}
+.compact .foot{padding-top:10px}
 .slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
 .slide[data-state="prev"]{transform:translateY(-18px)}
 .slide::-webkit-scrollbar{width:6px}
@@ -70,7 +79,7 @@ h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.12
 h3.section em{font-style:normal;color:var(--mint)}
 
 p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
-p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
 .muted{color:var(--muted)}
 .dim{color:var(--dim)}
 .accent{color:var(--accent)}
@@ -95,7 +104,7 @@ ol.steps li strong{color:var(--accent-2);font-weight:600}
 .checklist{list-style:none;margin:14px 0}
 .checklist li{position:relative;padding-left:34px;margin-bottom:11px;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.45;color:var(--text)}
 .checklist li::before{content:'';position:absolute;left:0;top:3px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
-.checklist li::after{content:'';position:absolute;left:5px;top:7px;width:8px;height:4px;border-left:1.5px solid var(--mint);border-bottom:1.5px solid var(--mint);transform:rotate(-45deg);opacity:.7}
+.checklist li:after{content:'';position:absolute;left:5px;top:7px;width:8px;height:4px;border-left:1.5px solid var(--mint);border-bottom:1.5px solid var(--mint);transform:rotate(-45deg);opacity:.7}
 .checklist li strong{color:var(--mint)}
 
 /* callout cards */
@@ -206,6 +215,40 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
 .end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
 
 .foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+
+/* phone-portrait density pass — stacked columns make slides tall; shrink non-essentials
+   so fitFluidSlide never has to scale below ~0.9 (readability contract, spec FR-1) */
+@media (max-width:820px),(max-height:520px){
+  html,body{font-size:14px}
+  .slide{padding:3vh 5vw 7vh 5vw}
+  h3.section{font-size:clamp(1.3rem,5.6vw,1.7rem);margin-bottom:4px}
+  p.lead{font-size:1rem;line-height:1.45}
+  ul.bullets li,ol.steps li{font-size:.95rem;margin-bottom:8px;line-height:1.42}
+  ol.steps li{padding-left:36px}
+  ol.steps li::before{width:24px;height:24px;font-size:11px}
+  .callout{padding:11px 14px;margin:9px 0;font-size:.92rem;line-height:1.42}
+  .box,.mode{padding:11px 13px}
+  .box h4{font-size:11.5px;margin-bottom:6px}
+  .box p,.mode p{font-size:.88rem;line-height:1.4}
+  .fig{margin:8px auto}
+  .fig img{max-height:34vh}
+  .fig-caption{font-size:11px;margin-top:5px}
+  .stat .num{font-size:1.5rem}
+  .stat-row{gap:16px;margin:10px 0}
+  .code-block{font-size:.8rem;padding:10px 12px;line-height:1.5}
+  .checklist li{font-size:.92rem;margin-bottom:8px}
+  .vs,.three-col{gap:10px;margin:9px 0}
+  .pipeline .step{padding:10px 6px}
+  .pipeline .step p{font-size:.8rem}
+  .compact .fig img{max-height:30vh}
+}
+/* landscape-phone refinement (wide-but-short): keep the pipeline horizontal, shrink figures harder */
+@media (min-width:821px) and (max-height:520px){
+  .fig img{max-height:26vh}
+  .compact .fig img{max-height:24vh}
+  .pipeline{flex-direction:row}
+  .pipeline .parr{transform:none;padding:0 5px}
+}
 </style>
 </head>
 <body>
@@ -231,11 +274,11 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
 
 <div class="deck" id="deck">
 
-  <!-- 1 · HERO -->
+  <!-- 01 · HERO -->
   <section class="slide hero" data-title="Your Desk in Your Pocket">
     <span class="badge"><span class="dot"></span> Deck 09 · the remote-control rig</span>
     <h1 class="title">Your desk, in your <em>pocket</em>.</h1>
-    <h2 class="subtitle">A phone as a real screen + keyboard + mouse for your <b>Mac</b> and <b>Ubuntu</b> box — on the home WiFi, or from a coffee shop three cities away. Built from what the OS already ships, one free app, and (only when you leave the LAN) one mesh VPN. <b>$0, no cloud in the control path, no ports opened to the internet.</b></h2>
+    <h2 class="subtitle">Your phone becomes a real screen + keyboard + mouse for your <b>Mac</b> and <b>Ubuntu</b> box — on the home WiFi, or from a coffee shop three cities away. Built from what the OS already ships, one free app, and (only off the home network) one mesh VPN. <b>$0, no cloud in the control path, no ports opened to the internet.</b></h2>
     <div class="pills">
       <span class="pill"><span class="dot"></span> macOS Screen Sharing</span>
       <span class="pill"><span class="dot"></span> x11vnc</span>
@@ -249,27 +292,27 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     </div>
   </section>
 
-  <!-- 2 · THE FOUR MOMENTS -->
-  <section class="slide" data-title="The four moments">
+  <!-- 02 · THE ITCH -->
+  <section class="slide" data-title="The itch: four moments">
     <div class="slide-num">02 · the itch</div>
-    <h3 class="section">Four moments, one shape: <em>act now, from where you are</em>.</h3>
-    <p class="lead">Not a workstation replacement. Occasional, light touches on real work — the couch, bed, a café on mobile data.</p>
+    <h3 class="section">Why would you want this? <em>Four moments</em>.</h3>
+    <p class="lead">Not a workstation replacement — occasional, light touches on real work, from wherever you already are.</p>
     <div class="vs">
       <div class="box good">
         <h4>🛋️ Mid-rest, an agent needs a nudge</h4>
-        <p>Tap the phone, type <span class="mono">"looks good, continue"</span> — it lands as a real keypress in the real terminal, same as if you'd walked over.</p>
+        <p>Tap the phone, type <span class="mono">"looks good, continue"</span> — it lands as a real keypress in the real terminal.</p>
       </div>
       <div class="box good">
         <h4>🔨 A build is running upstairs</h4>
-        <p>Pull up the phone, glance at the mirrored terminal. No SSH session to remember, no monitoring app.</p>
+        <p>Glance at the mirrored terminal. No SSH session to remember, no monitoring app.</p>
       </div>
       <div class="box good">
         <h4>💬 A reply is worth sending now</h4>
-        <p>Glide typing, autocorrect, clipboard — your normal phone keyboard, typing into Slack, email, a commit message.</p>
+        <p>Your normal phone keyboard — glide typing, autocorrect, clipboard — typing into Slack, email, a commit message.</p>
       </div>
       <div class="box good">
         <h4>✈️ Another city entirely</h4>
-        <p>Café WiFi, hotel Ethernet, mobile hotspot — the same saved entry still reaches home, through an encrypted tunnel, zero router ports opened.</p>
+        <p>The same saved entry still reaches home, through an encrypted tunnel. Zero router ports opened.</p>
       </div>
     </div>
     <div class="stat-row">
@@ -280,7 +323,7 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     </div>
   </section>
 
-  <!-- 3 · THE ROUTE -->
+  <!-- 03 · THE ROUTE -->
   <section class="slide" data-title="The route: three parts">
     <div class="slide-num">03 · the route</div>
     <h3 class="section">Three parts. Each removes <em>exactly one constraint</em>.</h3>
@@ -289,68 +332,63 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
       <div class="step">
         <div class="ico">📶</div>
         <h5>PART 1 · SAME NETWORK</h5>
-        <p>Phone drives the desktop over home WiFi. macOS toggle + one x11vnc command + one client app. <b>Running today.</b></p>
+        <p>Phone drives the desktop over home WiFi. <b>Running today.</b></p>
       </div>
       <div class="parr">──►</div>
       <div class="step">
         <div class="ico">🌍</div>
         <h5>PART 2 · THE INTERNET</h5>
-        <p>Same rig from anywhere, nothing exposed, nothing added to the bill. A <b>re-addressing</b>, not a rebuild.</p>
+        <p>Same rig from anywhere — a <b>re-addressing</b>, not a rebuild.</p>
       </div>
       <div class="parr">──►</div>
       <div class="step">
         <div class="ico">⚙️</div>
         <h5>PART 3 · DEEP DIVE</h5>
-        <p>What's on the wire: RFB, the 8-char password cap, why VNC fires hotkeys when SSH can't, NAT hole-punching.</p>
+        <p>What's on the wire — for when you want the <b>why</b>.</p>
       </div>
     </div>
-    <div class="callout accent"><b>The one table worth internalizing:</b> the same phone app drives both machines — <span class="mono">RealVNC Viewer</span>, one saved entry per box (<span class="mono">&lt;ip&gt;:5900</span>), each with its own VNC password. Two entries, one muscle memory.</div>
+    <div class="callout accent"><b>The one habit worth forming:</b> one phone app — <span class="mono">RealVNC Viewer</span> — drives both machines. One saved entry per box (<span class="mono">&lt;ip&gt;:5900</span>), each with its own password. Two entries, one muscle memory.</div>
     <div class="foot">Setup cost: a weekend, once. The payoff doesn't expire.</div>
   </section>
 
-  <!-- 4 · WHY VNC NOT SSH -->
-  <section class="slide" data-title="Why VNC, not SSH">
-    <div class="slide-num">04 · part 1 — the foundation</div>
-    <h3 class="section">SSH can't do this job. VNC is a <em>mirror plus a hand</em>.</h3>
+  <!-- 04 · WHY VNC NOT SSH -->
+  <section class="slide" data-title="Why not just SSH?">
+    <div class="slide-num">04 · part 1 — why VNC</div>
+    <h3 class="section">"Why not just SSH?" <em>SSH can't do this job.</em></h3>
     <div class="vs">
       <div class="box bad">
         <h4>SSH — a parallel door into the basement</h4>
-        <p>Drops you into a <b>new text shell</b>. Can't see the desktop you left running, can't click anything, can't type into open apps, can't fire global hotkeys.</p>
-        <p>Bytes → one process's stdin. As far as the OS's input system is concerned, no keyboard was touched.</p>
+        <p>Drops you into a <b>new text shell</b>. Can't see the desktop you left running, can't click, can't type into open apps, can't fire shortcuts.</p>
       </div>
       <div class="box good">
-        <h4>VNC — the actual desktop, actual input</h4>
-        <p>Phone sees <b>your apps, your windows, exactly as left</b>. Every tap and keystroke is injected as a <b>real input event</b> — indistinguishable from sitting at the keyboard.</p>
-        <p>Switch apps, run shortcuts, check a build, drag a slider — all through the same mechanism you'd use in person.</p>
+        <h4>VNC — a mirror plus a hand</h4>
+        <p>Phone sees <b>your apps, exactly as left</b>. Every tap and keystroke is injected as a <b>real input event</b> — indistinguishable from sitting at the keyboard.</p>
       </div>
     </div>
-    <div class="callout mint"><span class="label">the property everything rests on</span>Real input events → <b>every app and every hotkey listener</b> responds. That single property is why a phone can fire <span class="mono">Super+A</span>, use the hot corner, and dictate a commit message — and why the rig is VNC-based, not SSH-based. (Mechanism, with gears visible: slide 15.)</div>
-    <div class="foot">Both halves are standard: each OS serves VNC with built-in or one-command tooling, so any standards-compliant client connects.</div>
+    <div class="callout mint"><span class="label">the property everything rests on</span>Real input events → <b>every app and every hotkey listener responds</b>. That's why a phone can fire <span class="mono">Super+A</span> or dictate a commit message — and why this rig is VNC-based, not SSH-based. <span class="muted">(The gears, slide 18.)</span></div>
+    <div class="foot">Both OSes serve VNC with built-in or one-command tooling, so any standards-compliant client connects.</div>
   </section>
 
-  <!-- 5 · MACOS SERVER -->
-  <section class="slide" data-title="macOS: the server is already installed">
-    <div class="slide-num">05 · part 1 — macOS</div>
-    <h3 class="section">The Mac ships the VNC server. <em>Turn it on</em>.</h3>
+  <!-- 05 · MACOS -->
+  <section class="slide compact" data-title="The Mac: it's already installed">
+    <div class="slide-num">05 · part 1 — the Mac</div>
+    <h3 class="section">The Mac half: <em>the server is already installed</em>.</h3>
     <ol class="steps">
-      <li><strong>System Settings → General → Sharing → Screen Sharing</strong> — on. Keep it <em>plain Screen Sharing</em>: if Remote Management is the enabled one instead, legacy-VNC clients get served the login window and typing into it drops focus. <span class="muted">(Tested live: RM off, SS on → the phone landed straight on the desktop.)</span></li>
-      <li><strong>ⓘ next to Screen Sharing → "VNC viewers may control screen with password"</strong> — set that password. Without it, macOS waits for Apple's own auth handshake and most phone clients fail to connect at all.</li>
-      <li><strong>Connect from the phone</strong> to <span class="mono">&lt;mac-lan-ip&gt;:5900</span> — the VNC password, <b>username blank</b> (tested live, RealVNC Viewer).</li>
+      <li><strong>System Settings → General → Sharing → Screen Sharing</strong> — on. Keep it <em>plain Screen Sharing</em>, not Remote Management <span class="muted">(RM serves the login window and typing into it drops focus)</span>.</li>
+      <li><strong>ⓘ → "VNC viewers may control screen with password"</strong> — set that password. Without it, most phone clients fail to connect at all.</li>
+      <li><strong>Connect from the phone</strong> to <span class="mono">&lt;mac-ip&gt;:5900</span> — the VNC password, <b>username blank</b>. <span class="muted">(Tested live.)</span></li>
     </ol>
-    <div class="callout warn"><span class="label">three auth behaviors, before a client rejects a correct password</span>
-      <b>① The VNC password is effectively 8 characters</b> — DES challenge-response cap; the first 8 chars <i>are</i> the password. <b>② Two auth types are served side by side</b> — Mac-account (ARD) + legacy VNC password; a client looping on "enter credentials" answered the wrong door. <b>③ CLI gotcha:</b> the <span class="mono">kickstart</span> one-liner sets the password but on Sequoia <i>refuses to open the service</i> — count on ending in System Settings.</div>
     <div class="fig">
       <img src="../../assets/B-26/control-path-macos.png" alt="Android phone running RealVNC Viewer connects over home WiFi to a Mac: VNC over port 5900 into macOS Screen Sharing, which injects real mouse and keyboard events into the desktop input stack" loading="lazy">
-      <div class="fig-caption">The macOS control path — server pre-installed; <b>one toggle + a VNC password</b> and every app, terminal, and global-hotkey listener responds as if you typed it. Click to zoom.</div>
+      <div class="fig-caption">The macOS control path — <b>one toggle + a VNC password</b> and every app responds as if you typed it. Click to zoom.</div>
     </div>
-    <div class="foot">Bonus over Ubuntu: Screen Sharing is a system daemon that serves the login window too — VNC in and log in remotely after a reboot.</div>
+    <div class="foot">Bonus over Ubuntu: Screen Sharing serves the login window too — VNC in and log in remotely after a reboot. Full auth quirks: slide 13.</div>
   </section>
 
-  <!-- 6 · UBUNTU SERVER -->
-  <section class="slide" data-title="Ubuntu: x11vnc">
+  <!-- 06 · UBUNTU -->
+  <section class="slide compact" data-title="The Ubuntu half: one command">
     <div class="slide-num">06 · part 1 — Ubuntu</div>
-    <h3 class="section">Ubuntu: <em>one package</em>, one command, running.</h3>
-    <p class="lead">x11vnc shares and drives the <b>existing</b> desktop session — your logged-in apps, not a fresh virtual one.</p>
+    <h3 class="section">The Ubuntu half: <em>one package, one command</em>.</h3>
     <div class="code-block"><span class="prompt">$</span> sudo apt install -y x11vnc tmux
 <span class="c"># find the real display number first:  who   →  "&lt;user&gt;  :N  &lt;date&gt;"</span>
 <span class="prompt">$</span> tmux new -s vnc
@@ -359,241 +397,261 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
       <img src="../../assets/B-26/control-path-ubuntu.png" alt="Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop: VNC over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session" loading="lazy">
       <div class="fig-caption">The Ubuntu control path — x11vnc turns <b>the session you're already logged into</b> into the server. Click to zoom.</div>
     </div>
-    <div class="callout"><b>Persist it:</b> drop a <span class="mono">.desktop</span> file in <span class="mono">~/.config/autostart/</span> — starts once per graphical login, the earliest point a display exists. Consequence: after a power cut, someone must log in locally once before the phone can reach it. <span class="muted">(The Mac serves its login window; Ubuntu can't — the one thing the Mac does better here.)</span></div>
-    <div class="foot">Firewall, LAN-scoped: sudo ufw allow from &lt;your-subnet&gt; to any port 5900 — never expose it further.</div>
+    <div class="callout warn"><span class="label">the two flags that bite</span><b>-shared</b> (default off): without it, one stale half-open connection blocks every reconnect. <b>-repeat</b> (default off): without it, held keys repeat never — one character per touch. Both earned by real failure.</div>
+    <div class="foot">Persist it: a .desktop file in ~/.config/autostart/ — starts at graphical login. Firewall: ufw allow from &lt;your-subnet&gt; to any port 5900, never wider. Full flag table: the post.</div>
   </section>
 
-  <!-- 7 · FLAGS THAT BITE -->
-  <section class="slide" data-title="x11vnc flags that bite">
-    <div class="slide-num">07 · part 1 — gotchas worth money</div>
-    <h3 class="section">Four flags, each earned by a <em>real failure</em>.</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Flag</th><th>What breaks without it</th></tr></thead>
-        <tbody>
-          <tr><td><span class="mono">-shared</span> <span class="tag warn">default: off</span></td><td>Exactly one client at a time. A stale half-open connection from a WiFi blip makes every reconnect fail with <span class="mono">refusing new client … Not shared &amp; existing client</span> until you restart the server.</td></tr>
-          <tr><td><span class="mono">-repeat</span> <span class="tag warn">default: off</span></td><td>x11vnc turns <b>X autorepeat off</b> while a client keyboard is active (its log says so). A held arrow key does nothing beyond the first tap — one character per touch, forever.</td></tr>
-          <tr><td><span class="mono">-auth guess</span></td><td>Modern GNOME/gdm keeps the Xauthority cookie at <span class="mono">/run/user/&lt;uid&gt;/gdm/Xauthority</span>, not <span class="mono">~/.Xauthority</span>. Hardcoding the default = silent auth failure on launch.</td></tr>
-          <tr><td><span class="mono">-localhost=no</span> <span class="tag bad">not real</span></td><td>Passing <span class="mono">=no</span> gets rejected as unrecognized. LAN access is the <b>default</b> when you omit the flag entirely — <span class="mono">-localhost</span> alone <i>restricts</i> to loopback.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="callout warn"><span class="label">the debugging habit</span>x11vnc <b>fails fast and drops to a clean-looking prompt</b> — "crashed instantly" looks identical to "idle and fine". Always read the output (<span class="mono">tmux capture-pane -p -t vnc</span>), and check with <span class="mono">pgrep -af x11vnc</span> + <span class="mono">ss -tln | grep 5900</span>.</div>
-    <div class="foot">The VNC password (x11vnc -storepasswd) is separate from the WiFi password: it decides who can drive the desktop, not who joins the network.</div>
-  </section>
-
-  <!-- 8 · PHONE CLIENT -->
-  <section class="slide" data-title="One phone app, two machines">
-    <div class="slide-num">08 · part 1 — the client</div>
-    <h3 class="section">RealVNC Viewer: <em>one app</em>, both machines, no cloud.</h3>
-    <p class="lead">Standardized on for one reason that beats any feature list: <b>it speaks the classic VNC auth both servers serve</b> — same app, same gestures, same saved-entries list. Two entries, one muscle memory.</p>
+  <!-- 07 · PHONE CLIENT -->
+  <section class="slide" data-title="One app, both machines, no cloud">
+    <div class="slide-num">07 · part 1 — the phone</div>
+    <h3 class="section">The phone half: <em>one app, no account</em>.</h3>
+    <p class="lead"><span class="mono">RealVNC Viewer</span>, free. Standardized on for one reason that beats any feature list: <b>it speaks the classic VNC auth both servers serve</b> — same app, same gestures, same saved list for the Mac and the Ubuntu box.</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th></th><th class="hl">Ubuntu box</th><th class="hl">macOS box</th></tr></thead>
         <tbody>
-          <tr><th>client</th><td>RealVNC Viewer</td><td>RealVNC Viewer — same app</td></tr>
-          <tr><th>address</th><td class="hl">&lt;ubuntu-lan-ip&gt;:5900</td><td class="hl">&lt;mac-lan-ip&gt;:5900</td></tr>
-          <tr><th>password</th><td>the <span class="mono">-storepasswd</span> one</td><td>the 8-char VNC password</td></tr>
-          <tr><th>terminals</th><td>tmux</td><td>tmux — same reasoning</td></tr>
+          <tr><th>address</th><td class="hl">&lt;ubuntu-ip&gt;:5900</td><td class="hl">&lt;mac-ip&gt;:5900</td></tr>
+          <tr><th>password</th><td>the <span class="mono">-storepasswd</span> one</td><td>the VNC password</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="callout accent"><span class="label">where the line sits — read this before signing in</span>RealVNC the <i>company</i> sells a cloud ecosystem (accounts, device lists, "connect from anywhere"). <b>None of it is needed.</b> The Viewer connects <b>direct</b>, machine-to-machine over your LAN — no account, nothing routed through anyone's cloud. Don't sign in; add an address and connect.</div>
-    <div class="callout"><b>Voice typing comes along for free</b> (tested live): the soft keyboard is your <i>normal</i> keyboard app — tap the mic, speak, and the transcription arrives as committed keystrokes in whatever's focused. Honest trade-off: phone keyboards dictate through their maker's cloud speech service — free and zero-setup, <b>not offline</b>. Know which way it cuts before dictating anything sensitive.</div>
+    <div class="callout accent"><span class="label">read this before signing in</span>RealVNC the <i>company</i> sells a cloud ecosystem — accounts, device lists, "connect from anywhere". <b>None of it is needed.</b> The Viewer connects <b>direct</b>, machine-to-machine. Don't sign in; add an address and connect.</div>
     <div class="foot">First win to chase: connect, tap anywhere → the real cursor moves. If it does, the rig works; everything left is technique.</div>
   </section>
 
-  <!-- 9 · DRIVING BY THUMB -->
-  <section class="slide" data-title="Driving the desktop by thumb">
-    <div class="slide-num">09 · part 1 — technique</div>
-    <h3 class="section">Thumb technique: <em>fewer taps, every time</em>.</h3>
-    <ul class="bullets">
-      <li><strong>Switch apps → the hot corner first.</strong> <span class="muted">Tap the top-left pixel (GNOME) or a configured macOS hot corner → window overview → tap. No modifier key, one tap — and immune to clients whose toolbar lacks <span class="mono">Tab</span>.</span></li>
-      <li><strong>Modifier keys are toggles, not holds.</strong> <span class="muted">A touchscreen can't chord. Tap <span class="mono">Super</span> in the extra-keys toolbar (stays armed) → tap <span class="mono">A</span> → the combo fires and the modifier auto-releases. Stack them: <span class="mono">Ctrl</span>, <span class="mono">Shift</span>, then the key.</span></li>
-      <li><strong>Right-click → tap with two fingers at once;</strong> one finger = left, three = middle, two-finger drag = scroll, double-tap-hold-drag = select text. Right-click-heavy sessions: pair a Bluetooth mouse, its real right button just works. <span class="muted">Enter/Backspace are just the phone keyboard's own keys. <a href="https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device">RealVNC gesture reference</a>.</span></li>
-      <li><strong>The everyday four:</strong> new tab → <span class="mono">Ctrl</span>+<span class="mono">Shift</span>+<span class="mono">T</span> (arm each, tap T) or <span class="mono">Ctrl+b c</span> in tmux · stop a command → <span class="mono">Ctrl</span> toggle + <span class="mono">c</span> · close the shell → <span class="mono">exit</span> / <span class="mono">Ctrl+D</span> · done → just disconnect, the desktop keeps running. <span class="muted"><span class="mono">Ctrl+C</span> stops a program; <span class="mono">Ctrl+D</span> ends the shell — neither touches the VNC session. Same plays in bVNC; its right-click is hold + second-finger tap.</span></li>
-      <li><strong>Same three mechanics, every persona.</strong> <span class="muted">Dev: <span class="mono">Ctrl+Shift+C/V</span> terminal copy (the Shift is the tell), <span class="mono">Ctrl+Shift+T</span> resurrect a closed browser tab, <span class="mono">Ctrl+R</span> history search, <span class="mono">↑</span>+Enter rerun. Explorer: pinch = client-side zoom, middle-click paste via three-finger tap (RealVNC native) or BT mouse, <span class="mono">Esc</span> kills dialogs. Everyone: keyboard autofill fills desktop passwords, emoji panel sends real keystrokes, <span class="mono">Space</span> plays/pauses.</span></li>
-      <li><strong>Edit terminal lines by binding, not by arrows:</strong> <span class="mono">Ctrl+A / Ctrl+E</span> line start/end, <span class="mono">Ctrl+W</span> delete word, <span class="mono">Ctrl+U</span> clear to cursor — readline works over VNC exactly like locally.</li>
-      <li><strong>Live in one tmux session</strong> — switch terminals by keystroke (<span class="mono">Ctrl+b</span> then number) instead of hunting window thumbnails. <span class="mono">set -g mouse on</span> makes the client's two-finger swipe scroll panes directly.</li>
-      <li><strong>Pick single-key global hotkeys</strong> (<span class="mono">End</span>, <span class="mono">Insert</span>, <span class="mono">Page Up/Down</span>) for phone use — any combo costs an extra arming tap, every single time.</li>
-    </ul>
-    <div class="callout danger"><span class="label">two cautions from the terminal-shaped parts</span><b>Autocorrect + terminals don't mix</b> — it will "fix" flags, paths, and git subcommands; keystrokes arrive already corrected, no desktop-side guard. And <b>voice typing lands wherever the cursor is</b> — check the focused window before you speak.</div>
-    <div class="foot">All of this is client behavior — identical against the Mac and the Ubuntu box.</div>
-  </section>
-
-  <!-- 10 · PART 1 TRIAGE -->
-  <section class="slide" data-title="Part 1 triage table">
-    <div class="slide-num">10 · part 1 — reference</div>
-    <h3 class="section">When it breaks: <em>symptom → fix</em>, by likelihood.</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Symptom</th><th>Cause → Fix</th></tr></thead>
-        <tbody>
-          <tr><td>Loops on "enter VNC credentials" (Mac)</td><td>Wrong auth door answered, or password &gt; 8 chars silently truncated → enter the <b>VNC password, username blank</b>; first 8 chars are the real password</td></tr>
-          <tr><td>Nothing connects at all (Mac)</td><td>"VNC viewers may control screen with password" never enabled → enable via ⓘ, set password, retry</td></tr>
-          <tr><td>Lands on the <b>login window</b>, typing drops focus</td><td><b>Remote Management</b> is the enabled service, not plain Screen Sharing → swap them; reconnect lands on the desktop</td></tr>
-          <tr><td>"Connection refused" (Ubuntu)</td><td>Nothing listening: <span class="mono">pgrep -af x11vnc</span> / <span class="mono">ss -tln | grep 5900</span> → re-run and <b>read the output</b>: wrong display number (<span class="mono">who</span>) or Xauth path (<span class="mono">-auth guess</span>)</td></tr>
-          <tr><td>Worked yesterday, dead today</td><td>DHCP re-leased the LAN IP → <span class="mono">ipconfig getifaddr en0</span> (Mac) / <span class="mono">hostname -I</span> (Ubuntu — ignore <span class="mono">172.x</span> bridges), update the saved entry — or set a router DHCP reservation</td></tr>
-          <tr><td><b>Times out</b> — "but I'm on the same WiFi"</td><td>Traffic never arrived: phone silently off the LAN (check its WiFi details — SSID + gateway match the router), router guest/AP isolation, or a VPN on the phone. Watch <span class="mono">journalctl --user -f | grep -i x11vnc</span> (Mac: <span class="mono">log stream --predicate 'process == "screensharingd"'</span>) while tapping Connect — nothing logged confirms it. <b>"Refused"</b> = arrived, nothing listening → server side</td></tr>
-          <tr><td>View freezes after idle (Mac)</td><td>Auto-lock screen fights phone keystrokes for focus → unlock once locally; lengthen "Require password…" for couch sessions</td></tr>
-        </tbody>
-      </table>
+  <!-- 08 · FIRST DRIVE -->
+  <section class="slide" data-title="First drive: it feels like sitting down">
+    <div class="slide-num">08 · part 1 — first drive</div>
+    <h3 class="section">First drive: <em>it feels like sitting down</em>.</h3>
+    <p class="lead">The moment it clicks — you're on the couch, the desktop is upstairs, and neither of you notices the distance:</p>
+    <div class="vs">
+      <div class="box good">
+        <h4>⌨️ The nudge</h4>
+        <p>Terminal mirrored on the phone. You type <span class="mono">"looks good, continue"</span> — it lands as a real keypress in the real terminal, same as if you'd walked over.</p>
+      </div>
+      <div class="box good">
+        <h4>👀 The glance</h4>
+        <p>A build's mid-run upstairs? Pull up the phone, read the tail of the output, put it away. Nothing to reconnect, nothing to remember.</p>
+      </div>
     </div>
-    <div class="callout danger"><span class="label">part 1 security recap</span>Keep 5900 <b>LAN-scoped</b> (ufw subnet rule on Ubuntu; the Mac firewall already permits Screen Sharing). Classic VNC auth is a <b>DES challenge-response capped at 8 chars</b> — acceptable behind a firewalled LAN, never exposed raw. And <b>never port-forward 5900</b>, on either OS. Needing in from outside is a VPN job — that's Part 2.</div>
+    <div class="callout mint"><span class="label">verified live</span>Window switching, multi-key shortcuts, the full keyboard — all from the phone, exactly as from the desk. The next four slides are the technique that makes it <b>fewer taps, every time</b>.</div>
+    <div class="foot">Your normal keyboard comes along: glide typing, autofill, even voice typing — with two cautions coming on slide 12.</div>
   </section>
 
-  <!-- 11 · PART 2 OPENER: CGNAT -->
-  <section class="slide" data-title="The port-forward illusion">
-    <div class="slide-num">11 · part 2 — over the internet</div>
-    <h3 class="section">"Just port-forward 5900" — <em>check if that's even possible</em>.</h3>
+  <!-- 09 · GESTURES -->
+  <section class="slide" data-title="Gestures: taps are clicks">
+    <div class="slide-num">09 · part 1 — gestures</div>
+    <h3 class="section">Your fingers are the mouse: <em>taps are clicks</em>.</h3>
+    <ul class="bullets">
+      <li><strong>One finger = left click. Two fingers at once = right-click.</strong> <span class="muted">Three = middle click; two-finger drag = scroll; double-tap-hold-drag = select text.</span></li>
+      <li><strong>Modifier keys are toggles, not holds.</strong> <span class="muted">A touchscreen can't chord. Tap <span class="mono">Ctrl</span> in the toolbar (stays armed) → tap the key → the combo fires and releases. Stack <span class="mono">Ctrl</span>, <span class="mono">Shift</span>, then the key.</span></li>
+      <li><strong>Switch apps via the hot corner first.</strong> <span class="muted">Tap the top-left pixel (GNOME) or a macOS hot corner → window overview → tap. One tap, no modifier.</span></li>
+      <li><strong>Right-click-heavy session? Pair a Bluetooth mouse</strong> — its real right button just works. <span class="muted"><a href="https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device" target="_blank" rel="noopener">Gesture reference ↗</a>. Same plays in bVNC; its right-click is hold + second-finger tap.</span></li>
+    </ul>
+    <div class="foot">All client-side behavior — identical against the Mac and the Ubuntu box.</div>
+  </section>
+
+  <!-- 10 · EVERYDAY MOVES -->
+  <section class="slide" data-title="The everyday moves">
+    <div class="slide-num">10 · part 1 — everyday moves</div>
+    <h3 class="section">The moves you'll use <em>every single day</em>.</h3>
+    <ul class="bullets">
+      <li><strong>Reopen a closed tab:</strong> arm <span class="mono">Ctrl</span> + <span class="mono">Shift</span>, tap <span class="mono">T</span> — or <span class="mono">Ctrl+b c</span> for a new tmux window.</li>
+      <li><strong>Stop a runaway command:</strong> <span class="mono">Ctrl</span> toggle + <span class="mono">c</span>. <span class="muted"><span class="mono">Ctrl+C</span> stops the program; <span class="mono">Ctrl+D</span> ends the shell — neither touches the VNC session.</span></li>
+      <li><strong>Fix a line without arrows:</strong> <span class="mono">Ctrl+A / Ctrl+E</span> start/end, <span class="mono">Ctrl+W</span> delete word — readline bindings work over VNC exactly like locally.</li>
+      <li><strong>Done? Just disconnect.</strong> The desktop keeps running; your session waits. <span class="muted">Close a shell with <span class="mono">exit</span> when you actually mean it.</span></li>
+    </ul>
+    <div class="callout accent"><b>Live in one tmux session</b> — switch terminals by keystroke (<span class="mono">Ctrl+b</span> then a number) instead of hunting window thumbnails. <span class="mono">set -g mouse on</span> lets the client's two-finger swipe scroll panes directly.</div>
+    <div class="foot">Tip for anything you fire from the phone: pick single-key global hotkeys (<span class="mono">End</span>, <span class="mono">Insert</span>) — every combo costs an extra arming tap.</div>
+  </section>
+
+  <!-- 11 · PERSONAS -->
+  <section class="slide" data-title="Same three mechanics, every user">
+    <div class="slide-num">11 · part 1 — personas</div>
+    <h3 class="section">Same three mechanics, <em>whoever you are</em>.</h3>
+    <p class="lead">Gestures, modifier toggles, the hot corner — everything above reduces to those three. What changes is what you do with them:</p>
+    <div class="three-col">
+      <div class="mode"><span class="tech">👩‍💻 if you live in terminals</span><h4>The dev</h4><p><span class="mono">Ctrl+Shift+C/V</span> to copy-paste in terminals (the Shift is the tell), <span class="mono">Ctrl+R</span> history search, <span class="mono">↑</span>+Enter to rerun.</p></div>
+      <div class="mode"><span class="tech">🧭 if you're browsing, not building</span><h4>The explorer</h4><p>Pinch = client-side zoom on dense pages, three-finger tap = middle-click paste, <span class="mono">Esc</span> kills dialogs.</p></div>
+      <div class="mode"><span class="tech">🎬 if it's media and messages</span><h4>Everyone else</h4><p>Keyboard autofill fills desktop passwords, the emoji panel sends real keystrokes, <span class="mono">Space</span> plays and pauses.</p></div>
+    </div>
+    <div class="foot">Voice typing comes along for free too — the phone's mic key, straight into whatever's focused. Its cautions are next.</div>
+  </section>
+
+  <!-- 12 · TWO CAUTIONS -->
+  <section class="slide" data-title="Two cautions worth their own slide">
+    <div class="slide-num">12 · part 1 — cautions</div>
+    <h3 class="section">Two cautions, <em>both learned the annoying way</em>.</h3>
+    <div class="callout danger"><span class="label">caution 1 — autocorrect</span><b>Autocorrect + terminals don't mix.</b> It will "fix" flags, paths, and git subcommands — and keystrokes arrive <b>already corrected</b>, with no desktop-side guard to catch it. Disable it for the VNC app, or proofread before Enter.</div>
+    <div class="callout danger"><span class="label">caution 2 — the cursor</span><b>Voice typing lands wherever the cursor is.</b> Check the focused window before you speak — dictation commits instantly into whatever app owns the cursor.</div>
+    <div class="callout warn"><b>One honesty note on voice:</b> phone keyboards dictate through their maker's cloud speech service — free and zero-setup, but <b>not offline</b>. Know which way that cuts before dictating anything sensitive.</div>
+  </section>
+
+  <!-- 13 · WHEN IT BREAKS (TEASER) -->
+  <section class="slide" data-title="When it breaks: where to look">
+    <div class="slide-num">13 · part 1 — when it breaks</div>
+    <h3 class="section">When it breaks: <em>three symptoms cover most of it</em>.</h3>
+    <ul class="bullets">
+      <li><strong>Mac loops on "enter credentials"</strong> → answer the VNC door: <b>password only, username blank</b> — and the first 8 characters are the real password. <span class="muted">(Why 8: slide 20.)</span></li>
+      <li><strong>Ubuntu says "connection refused"</strong> → nothing is listening: <span class="mono">pgrep -af x11vnc</span>, then re-run and <b>read the output</b> — usually the wrong display number.</li>
+      <li><strong>Worked yesterday, dead today</strong> → DHCP re-leased the LAN IP: <span class="mono">hostname -I</span> / <span class="mono">ipconfig getifaddr en0</span>, update the saved entry — or set a router reservation.</li>
+    </ul>
+    <div class="callout"><b>The full symptom → fix table</b> — including the timeout-vs-refused tell and the Mac's three auth behaviors — lives in the post's Reference section. <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md" target="_blank" rel="noopener">Read it here ↗</a></div>
+    <div class="callout danger"><span class="label">the security line, in one breath</span>Keep 5900 <b>LAN-scoped</b>, treat the VNC password as <b>8 characters effective</b>, and <b>never port-forward 5900</b> — needing in from outside is Part 2's job.</div>
+  </section>
+
+  <!-- 14 · OFF THE LAN -->
+  <section class="slide" data-title="'Just port-forward' — check first">
+    <div class="slide-num">14 · part 2 — off the LAN</div>
+    <h3 class="section">"Wait — this only works on my WiFi." <em>Fixable. Not by port-forwarding.</em></h3>
     <p class="lead">The 2010 advice fails silently on a large share of modern connections. Five minutes tells you which side you're on:</p>
     <div class="code-block"><span class="c"># 1 — router admin panel: note its WAN IP</span>
 <span class="c"># 2 — ask the internet what IP your desktop is seen as</span>
 <span class="prompt">$</span> curl ifconfig.me
-<span class="c"># 3 — compare:</span>
-<span class="c">#     same address      → real public IP; port-forwarding is possible</span>
-<span class="c">#     different address, or WAN IP inside 100.64.0.0/10</span>
-<span class="c">#                      → CGNAT: the ISP's shared NAT drops inbound —</span>
-<span class="c">#                        no router config changes that, ever</span></div>
-    <div class="callout warn"><b>CGNAT is standard now</b> on many fiber and 5G home connections — your router's "public" side is itself a private address inside the ISP's NAT layer. Everything on your side can be configured perfectly and the packets still never arrive.</div>
-    <div class="callout danger"><span class="label">and even with a clean check — don't, not raw VNC</span>① Classic VNC auth is a <b>single shared password</b> — no usernames, no rate limiting, no 2FA, no lockout. ② <b>5900 is a top-tier scan target</b> — internet-wide scanners probe an open port within hours, each probe a guess against an 8-char-effective secret. ③ A correct guess <b>drives the desktop</b> — a full remote session, as if they sat down at your keyboard.</div>
-    <div class="callout mint"><b>The real goal:</b> put phone and desktop on the same private network no matter where either physically is — and let VNC keep believing it's on a LAN, exactly like Part 1.</div>
+<span class="c"># 3 — compare: same → real public IP, forwarding possible</span>
+<span class="c">#     different, or WAN IP inside 100.64.0.0/10</span>
+<span class="c">#      → CGNAT: your ISP's shared NAT drops inbound, forever</span></div>
+    <div class="callout warn"><b>CGNAT is standard now</b> on many fiber and 5G connections — your router's "public" side is itself private, inside the ISP's NAT layer. Everything on your side can be perfect and the packets still never arrive.</div>
+    <div class="callout mint"><b>And even with a clean check — don't, not raw VNC:</b> classic VNC auth is a single shared 8-character password, and a correct guess <b>drives your desktop</b>. The real goal: put phone and desktop on one private network, wherever both physically are.</div>
   </section>
 
-  <!-- 12 · TAILSCALE -->
-  <section class="slide" data-title="Tailscale: a re-addressing">
-    <div class="slide-num">12 · part 2 — the mesh VPN</div>
-    <h3 class="section">Tailscale: the tailnet replaces <em>"same WiFi"</em>.</h3>
-    <p class="lead">A mesh VPN built on WireGuard. Install, log into one account — every device gets a <b>permanent private <span class="mono">100.x.y.z</span></b> that never changes when the device moves networks. Café laptop, cellular phone, home desktop: one switch in your living room.</p>
+  <!-- 15 · TAILSCALE -->
+  <section class="slide compact" data-title="Tailscale: a re-addressing">
+    <div class="slide-num">15 · part 2 — the mesh VPN</div>
+    <h3 class="section">Tailscale: your private network that <em>follows the devices</em>.</h3>
+    <p class="lead">A mesh VPN built on WireGuard encryption. Install it, log in once — every device gets a <b>permanent private <span class="mono">100.x.y.z</span></b> address (the "tailnet") that never changes when the device moves. The phone just dials that instead of the LAN IP.</p>
     <div class="fig">
       <img src="../../assets/B-26/internet-path.png" alt="Phone on café WiFi and desktop at home, each with a permanent 100.x.y.z tailnet address; RealVNC Viewer targets the tailnet IP on 5900; direct WireGuard tunnel end-to-end encrypted, DERP relay fallback carrying ciphertext only; no router ports opened" loading="lazy">
       <div class="fig-caption">Part 2 in one picture — <b>a networking-layer swap</b>; the rig's software never learns a VPN exists. Click to zoom.</div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Piece</th><th>Part 1 (LAN)</th><th class="hl">Part 2 (internet)</th></tr></thead>
-        <tbody>
-          <tr><th>x11vnc / Screen Sharing</th><td>running</td><td><b>unchanged</b></td></tr>
-          <tr><th>port / password / phone app</th><td>5900 · set · Viewer</td><td><b>unchanged</b></td></tr>
-          <tr><th>address the phone dials</th><td>LAN IP, can re-lease</td><td class="hl"><b>tailnet IP — permanent</b></td></tr>
-          <tr><th>ufw rule (Ubuntu)</th><td><span class="mono">allow from 192.168.x.0/24</span></td><td class="hl"><span class="mono">allow from 100.64.0.0/10</span> — or just the phone's tailnet IP</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="callout accent"><b>Two new apps, one firewall rule, one edited IP.</b> Part 2 is a re-addressing, not a rebuild. <span class="muted">(That <span class="mono">100.64.0.0/10</span> is CGNAT space by spec — deliberately unroutable on the public internet, so tailnet traffic can't collide with anything real.)</span></div>
+    <div class="callout accent"><b>What actually changes:</b> the address the phone dials (LAN IP → tailnet IP), one ufw rule (<span class="mono">100.64.0.0/10</span> instead of your subnet), and two small installs. <b>x11vnc, Screen Sharing, the port, the password, the app — all unchanged.</b> A re-addressing, not a rebuild.</div>
   </section>
 
-  <!-- 13 · TRUST + VERIFIED -->
-  <section class="slide" data-title="Trust, and verified from cellular">
-    <div class="slide-num">13 · part 2 — trust + receipts</div>
-    <h3 class="section">Can you trust it? <em>Here's the case — and the receipts</em>.</h3>
+  <!-- 16 · TRUST -->
+  <section class="slide" data-title="Can you trust it?">
+    <div class="slide-num">16 · part 2 — trust</div>
+    <h3 class="section">"Can I trust some company's VPN?" <em>Here's the case</em>.</h3>
     <div class="three-col">
-      <div class="mode"><span class="tech">the crypto</span><h4>WireGuard's, not home-rolled</h4><p>Formally verified primitives (Curve25519, ChaCha20-Poly1305), end-to-end between <b>your two devices only</b>. Private keys never leave the device; the coordination server exchanges public keys — relays carry ciphertext, by construction.</p></div>
-      <div class="mode"><span class="tech">the code</span><h4>Data-touching parts are open</h4><p>Every client (Linux, macOS, Android, iOS, Windows) and even the DERP relay code are on GitHub. The closed piece — coordination — sees metadata, never payloads.</p></div>
-      <div class="mode"><span class="tech">the record</span><h4>Audited, at scale, exit-able</h4><p>Recurring third-party audits (Latacora), SOC 2 Type II, public bulletins. Millions of daily users. If the coordination trade-off ever stops being acceptable: <b>Headscale</b> — self-hosted control plane, same clients, nothing else changes.</p></div>
+      <div class="mode"><span class="tech">the crypto</span><h4>WireGuard's, not home-rolled</h4><p>Formally verified primitives, end-to-end between <b>your two devices only</b>. The coordination server exchanges public keys — relays carry ciphertext by construction.</p></div>
+      <div class="mode"><span class="tech">the code</span><h4>Data-touching parts are open</h4><p>Every client and even the relay code are on GitHub. The closed piece — coordination — sees metadata, never payloads.</p></div>
+      <div class="mode"><span class="tech">the exit</span><h4>Audited, and exit-able</h4><p>Recurring third-party audits, millions of daily users. If the trade-off ever stops being acceptable: <b>Headscale</b>, a self-hosted control plane, same clients.</p></div>
     </div>
     <div class="stat-row">
+      <div class="stat"><div class="num mint">E2E</div><div class="label">encryption device-to-device</div></div>
+      <div class="stat"><div class="num mint">0</div><div class="label">router ports opened</div></div>
+      <div class="stat"><div class="num mint">1</div><div class="label">account, free tier</div></div>
+    </div>
+  </section>
+
+  <!-- 17 · RECEIPTS -->
+  <section class="slide" data-title="The receipts: verified from cellular">
+    <div class="slide-num">17 · part 2 — the receipts</div>
+    <h3 class="section">Not a diagram — <em>a live session</em>.</h3>
+    <div class="stat-row">
       <div class="stat"><div class="num mint">mobile data</div><div class="label">WiFi off, live session</div></div>
-      <div class="stat"><div class="num mint">direct</div><div class="label">wireguard path — no relay needed</div></div>
-      <div class="stat"><div class="num mint">~66 ms</div><div class="label">tailscale ping, phone ↔ desktop</div></div>
+      <div class="stat"><div class="num mint">direct</div><div class="label">WireGuard path — no relay</div></div>
+      <div class="stat"><div class="num mint">~66 ms</div><div class="label">phone ↔ desktop</div></div>
     </div>
-    <div class="callout mint"><span class="label">verified from cellular — and how to verify on yours</span>Screen updated, taps and keystrokes landed, every Part 1 skill carried over — on a carrier network, direct path. <b>Verify the interaction, not the connection:</b> connect, hit the hot corner, open a terminal, type a line, fire a <span class="mono">Ctrl+key</span> combo. Anything stuttery → check <span class="mono">tailscale status</span> for <span class="mono">relay</span> + packet loss — that's transport degrading, not the rig breaking. From any tailnet machine, the ten-second port check: <span class="mono">nc -vz &lt;desktop-ip&gt; 5900</span> (no <span class="mono">telnet</span> on macOS) — instant "refused" = server off, silence = path.</div>
-    <div class="foot">The Mac route has since run live from cellular too — via the <b>DERP relay</b> (no punchable direct path that round, ~125 ms, VNC-usable): the encrypted fallback of the deep-dive slides, observed working. Still honest: the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel) remain untested on this rig.</div>
+    <div class="callout mint"><span class="label">verified from cellular</span>Screen updated, taps and keystrokes landed, every Part 1 skill carried over — on a carrier network. <b>Verify the interaction, not the connection:</b> connect, hit the hot corner, open a terminal, type a line, fire a <span class="mono">Ctrl+key</span> combo. Anything stuttery → <span class="mono">tailscale status</span> will say <span class="mono">relay</span> — that's transport, not the rig.</div>
+    <div class="callout"><b>The Mac's route ran live too</b> — through the <b>DERP relay</b>, the encrypted fallback (~125 ms, fully usable VNC): the one carrier round where no direct path was punchable. <span class="muted">Honest edge: the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel) remain untested on this rig.</span></div>
   </section>
 
-  <!-- 14 · RFB HANDSHAKE -->
-  <section class="slide" data-title="Deep dive: RFB + the 8-char cap">
-    <div class="slide-num">14 · <span class="deep">part 3</span> — the wire protocol</div>
-    <h3 class="section">RFB: the whole session is <em>this conversation</em>.</h3>
-    <div class="fig">
-      <img src="../../assets/B-26/rfb-handshake.png" alt="Sequence diagram of the RFB handshake: version exchange, security negotiation where macOS serves two auth types at once, DES challenge-response where the password is the DES key, then framebuffer updates and pointer/key events" loading="lazy">
-      <div class="fig-caption">RFC 6143 — <b>step 3 is where the 8-character cap lives.</b> Click to zoom.</div>
-    </div>
-    <div class="callout violet" style="border-color:rgba(167,139,250,.30);background:linear-gradient(135deg,var(--violet-soft),var(--elevated))"><span class="label" style="color:var(--violet)">the 8-char cap, mechanically</span>Classic VNC auth is a <b>DES challenge-response</b>: the server sends a 16-byte challenge; the client encrypts it with DES using <b>the password itself as the key</b> — and <b>DES keys are 8 bytes</b>. Whatever you type past character 8 never enters the computation. Every classic-auth implementation inherits it: macOS's Screen Sharing password and x11vnc's <span class="mono">-rfbauth</span> file alike. Not a bug in either — the protocol wearing its age on its sleeve.</div>
-    <div class="foot">Security negotiation is also why macOS can serve two doors at once (Mac-account ARD + legacy VNC) — a client that negotiates the wrong one dies with a rejected-correct-password loop.</div>
-  </section>
-
-  <!-- 15 · XTEST VS SSH -->
-  <section class="slide" data-title="Why VNC fires hotkeys, SSH can't">
-    <div class="slide-num">15 · <span class="deep">part 3</span> — input injection</div>
-    <h3 class="section">Same keystroke, two doors: <em>X server vs stdin</em>.</h3>
+  <!-- 18 · XTEST -->
+  <section class="slide compact" data-title="Why VNC fires hotkeys, SSH can't">
+    <div class="slide-num">18 · <span class="deep">part 3</span> — hotkeys</div>
+    <h3 class="section">The deep dive's best trick: <em>why shortcuts fire</em>.</h3>
     <div class="fig">
       <img src="../../assets/B-26/input-injection.png" alt="VNC key events reach x11vnc, which calls the XTEST extension to inject input at the X server level — same keycodes, same grabs as the physical keyboard driver, so terminals, the window manager, and global hotkey hooks all respond. SSH delivers bytes to one process's stdin — no keyboard event as far as the OS is concerned" loading="lazy">
       <div class="fig-caption"><b>XTEST</b> — the X11 extension built for test automation, injecting at the <i>server</i> level, upstream of every app. Click to zoom.</div>
     </div>
     <ul class="bullets">
-      <li><strong>XTEST-synthesized events enter the X server's input stream</strong> <span class="muted">and are dispatched exactly like the physical keyboard driver's: same keycodes, same grabs, same global hotkey listeners.</span></li>
-      <li><strong>So: terminals see keystrokes, the window manager sees combos, every hotkey hook sees a real key event</strong> <span class="muted">— launchers, screenshot tools, <span class="mono">Super</span>-shaped shortcuts, all from the phone.</span></li>
-      <li><strong>SSH delivers bytes to one process's stdin.</strong> <span class="muted">No window manager, no listeners, no GUI — nothing about an SSH keystroke is a keyboard event as far as the OS is concerned.</span></li>
-      <li><strong>macOS runs the same play, different plumbing:</strong> <span class="muted">Screen Sharing injects through the window server's event path — equivalent to a physical event to every listener (verified live: shortcuts fired from the phone exactly as from the keyboard).</span></li>
+      <li><strong>VNC keystrokes enter the X server's input stream</strong> <span class="muted">— dispatched exactly like the physical keyboard's: same keycodes, same grabs, same hotkey listeners.</span></li>
+      <li><strong>So terminals, the window manager, and every launcher see a real key event</strong> <span class="muted">— <span class="mono">Super</span>-shaped shortcuts included, all from the phone.</span></li>
+      <li><strong>SSH bytes go to one process's stdin</strong> <span class="muted">— nothing about them is a keyboard event as far as the OS is concerned.</span></li>
     </ul>
+    <div class="foot">macOS runs the same play, different plumbing — verified live: shortcuts fired from the phone exactly as from the keyboard.</div>
   </section>
 
-  <!-- 16 · NAT TRAVERSAL -->
-  <section class="slide" data-title="NAT hole-punching + DERP">
-    <div class="slide-num">16 · <span class="deep">part 3</span> — finding each other</div>
-    <h3 class="section">Two firewalled devices, one <em>simultaneous handshake</em>.</h3>
+  <!-- 19 · FINDING EACH OTHER -->
+  <section class="slide compact" data-title="How two firewalled devices meet">
+    <div class="slide-num">19 · <span class="deep">part 3</span> — finding each other</div>
+    <h3 class="section">Your phone and your desktop sit behind <em>two different firewalls</em>. How do they meet?</h3>
     <div class="fig">
       <img src="../../assets/B-26/nat-hole-punching.png" alt="Rendezvous sequence: both peers contact the server outbound; each learns the other's observed address; both send at each other simultaneously so each side's outbound packet opens a pinhole in its own NAT for the other's packets to slip through" loading="lazy">
-      <div class="fig-caption">The generic rendezvous trick Tailscale's coordination plane runs <b>before falling back to DERP</b>. Click to zoom.</div>
+      <div class="fig-caption">The rendezvous trick: both sides send <b>at each other simultaneously</b> — each outbound packet opens a pinhole in its own firewall. Click to zoom.</div>
     </div>
     <div class="three-col">
       <div class="mode violet"><span class="tech">the envelope</span><h4>WireGuard</h4><p>Each device pair shares keys; traffic is a sealed UDP envelope <b>no relay can open</b>.</p></div>
-      <div class="mode violet"><span class="tech">the connection problem</span><h4>NAT traversal</h4><p>Coordination tells each side the other's <span class="mono">addr:port</span>; both send <b>at each other simultaneously</b> — each outbound packet opens the pinhole its own NAT, and the other's packets slip through. The common case: direct.</p></div>
-      <div class="mode violet"><span class="tech">the fallback</span><h4>DERP relay</h4><p>Symmetric NAT on both ends, hostile firewalls → encrypted packets relayed through Tailscale's servers. Slower by a hop, but <b>still ciphertext — a post office, not a listener</b>.</p></div>
+      <div class="mode violet"><span class="tech">the usual outcome</span><h4>Direct path</h4><p>Coordination tells each side the other's address; the simultaneous handshake connects them directly.</p></div>
+      <div class="mode violet"><span class="tech">the fallback</span><h4>DERP relay</h4><p>When no direct path is punchable: encrypted packets relayed through Tailscale's servers. Slower by a hop, <b>still ciphertext</b> — a post office, not a listener.</p></div>
     </div>
-    <div class="foot">See which path you're on: tailscale status prints, per peer, "direct" or "relay …" — check once at setup; it explains the latency you feel.</div>
+    <div class="foot">See which path you're on: <span class="mono">tailscale status</span> prints "direct" or "relay" per peer — it explains the latency you feel.</div>
   </section>
 
-  <!-- 17 · FAILURE-MODE MAP -->
-  <section class="slide" data-title="The failure-mode map">
-    <div class="slide-num">17 · <span class="deep">part 3</span> — reference</div>
-    <h3 class="section">The failure-mode map: <em>symptom → layer → check</em>.</h3>
-    <p class="lead">The mechanics explain why the rig works; this table makes a broken rig debug in the right order — not by guesswork.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Symptom</th><th>Suspect layer</th><th class="hl">Check</th></tr></thead>
-        <tbody>
-          <tr><td>Can't connect at all (off-LAN)</td><td><span class="tag">tailnet</span></td><td><span class="mono">tailscale status</span> on both — each online, seeing the other? Then <span class="mono">tailscale ping &lt;ip&gt;</span></td></tr>
-          <tr><td>Same WiFi, right IP, times out (LAN)</td><td><span class="tag">phone network</span></td><td>watch <span class="mono">journalctl --user -f</span> / Mac <span class="mono">log stream --predicate 'process == "screensharingd"'</span> while tapping Connect — nothing logged = never arrived (phone WiFi details: SSID + gateway; router AP isolation; phone VPN)</td></tr>
-          <tr><td>Tailnet up, VNC refuses</td><td><span class="tag">firewall / server</span></td><td>x11vnc running? ufw covers <span class="mono">100.64.0.0/10</span>? ping works but 5900 times out = firewall</td></tr>
-          <tr><td>VNC connects, password rejected</td><td><span class="tag">auth</span></td><td>8-char DES cap (first 8 are real); Mac: VNC password, username blank</td></tr>
-          <tr><td>Connects, input feels laggy (off-LAN)</td><td><span class="tag">transport</span></td><td><span class="mono">tailscale status</span> — relayed instead of direct? relay + loss = transport, not the rig</td></tr>
-          <tr><td>Everything connects, nothing types</td><td><span class="tag">client</span></td><td>Does the client send key events for IME commits? RealVNC Viewer does (tested) — a client that injects nothing won't; try its key panel</td></tr>
-          <tr><td>Works on LAN, never off-LAN</td><td><span class="tag">membership</span></td><td>Both devices in the <i>same</i> tailnet? Phone's VPN toggle actually on? (Android kills VPNs quietly — check the key icon)</td></tr>
-          <tr><td>Ubuntu dead after a power cut</td><td><span class="tag">autostart</span></td><td>x11vnc starts only after graphical login — someone logs in locally once (the Mac serves its login window; Ubuntu can't)</td></tr>
-        </tbody>
-      </table>
+  <!-- 20 · RFB -->
+  <section class="slide" data-title="The protocol, and the 8-char password">
+    <div class="slide-num">20 · <span class="deep">part 3</span> — the protocol</div>
+    <h3 class="section">RFB — the conversation every VNC session <em>opens with</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-26/rfb-handshake.png" alt="Sequence diagram of the RFB handshake: version exchange, security negotiation where macOS serves two auth types at once, DES challenge-response where the password is the DES key, then framebuffer updates and pointer/key events" loading="lazy">
+      <div class="fig-caption">RFC 6143 — <b>step 3 is where the 8-character cap lives.</b> Click to zoom.</div>
     </div>
+    <div class="callout violet" style="border-color:rgba(167,139,250,.30);background:linear-gradient(135deg,var(--violet-soft),var(--elevated))"><span class="label" style="color:var(--violet)">why 8 characters, mechanically</span>Classic VNC auth is a <b>DES challenge-response</b>: the server sends a challenge; the client encrypts it with DES using <b>the password itself as the key</b> — and <b>DES keys are 8 bytes</b>. Whatever you type past character 8 never enters the computation. Every classic-auth implementation inherits it — macOS and x11vnc alike. Not a bug: the protocol wearing its age on its sleeve.</div>
+    <div class="foot">This is also why the Mac can serve two auth doors at once — a client negotiating the wrong one dies with a rejected-correct-password loop. Symptom → layer → check map: the post's Reference.</div>
   </section>
 
-  <!-- 18 · DAILY LOOP -->
-  <section class="slide" data-title="The daily loop">
-    <div class="slide-num">18 · post-setup — the daily loop</div>
-    <h3 class="section">After setup: <em>nothing to type</em> — until you want it off, or it feels off.</h3>
-    <p class="lead">Tailscale runs as a service, x11vnc autostarts at login, the Mac's launchd state and the ufw rule persist across reboots. These are the only commands left in your week:</p>
+  <!-- 21 · DAILY LOOP -->
+  <section class="slide" data-title="The daily loop: almost nothing">
+    <div class="slide-num">21 · after setup — the daily loop</div>
+    <h3 class="section">After the weekend: <em>nothing to type</em>.</h3>
+    <p class="lead">The VPN runs as a service, the servers autostart, the firewall rule persists across reboots. What's left in a normal week:</p>
     <div class="three-col">
-      <div class="mode"><span class="tech">start · only if you unloaded</span><h4>Mac server on</h4><p><span class="mono">sudo launchctl load -w …/com.apple.screensharing.plist</span> → confirm <span class="mono">nc -vz &lt;mac-ip&gt; 5900</span> says <b>succeeded</b>. Phone: Tailscale toggle → RealVNC saved entry.</p></div>
-      <div class="mode"><span class="tech">check · ten seconds</span><h4>Me or the rig?</h4><p><span class="mono">tailscale status</span> — online? direct or <span class="mono">relay</span>?<br><span class="mono">tailscale ping &lt;ip&gt;</span> — path latency<br><span class="mono">nc -vz &lt;ip&gt; 5900</span> — <b>refused</b> = server off · <b>timeout</b> = path · <b>succeeded</b> = go <span class="muted">(no <span class="mono">telnet</span> on macOS — <span class="mono">nc</span> is the built-in)</span></p></div>
-      <div class="mode"><span class="tech">stop · done for the day</span><h4>Close the port</h4><p>Phone: disconnect, Tailscale off (battery). Mac: <span class="mono">sudo launchctl unload -w …/com.apple.screensharing.plist</span> — both directions one line, both survive reboots.</p></div>
+      <div class="mode"><span class="tech">start · only if you unloaded it</span><h4>Mac server on</h4><p><span class="mono">sudo launchctl load -w …/screensharing.plist</span> → confirm with the port check. Phone: VPN toggle → saved entry.</p></div>
+      <div class="mode"><span class="tech">check · ten seconds</span><h4>Me or the rig?</h4><p><span class="mono">tailscale status</span> — online? direct or relay? Then <span class="mono">nc -vz &lt;ip&gt; 5900</span>: <b>refused</b> = server off · <b>timeout</b> = path · <b>succeeded</b> = go.</p></div>
+      <div class="mode"><span class="tech">stop · done for the day</span><h4>Close things down</h4><p>Phone: disconnect, VPN off (battery). Mac: the matching <span class="mono">unload</span> — one line each direction, both survive reboots.</p></div>
     </div>
-    <div class="callout accent"><b>Ubuntu has no daily anything</b> — server, VPN, and firewall all persist (Part 2's stop script handles the audio side, the one piece worth stopping daily: it holds the phone's mic and battery). The Mac's <span class="mono">launchctl</span> pair is the only on/off in the whole internet rig.</div>
+    <div class="callout accent"><b>Ubuntu has no daily anything</b> — server, VPN, and firewall all persist on their own. The Mac's <span class="mono">launchctl</span> pair is the only on/off in the whole internet rig.</div>
   </section>
 
-  <!-- 19 · RECAP -->
-  <section class="slide hero" data-title="Where this landed">
-    <div class="slide-num">19 · where this landed</div>
-    <h3 class="section">A full second seat at the desk, <em>from the couch or another city</em>.</h3>
-    <ul class="checklist" style="max-width:72ch">
-      <li><b>Verified live:</b> RealVNC Viewer against the Mac end to end — window switching, multi-key shortcuts, full keyboard incl. voice typing, through reboots and IP re-leases.</li>
-      <li><b>Verified off-LAN:</b> phone on mobile data, direct WireGuard path through the tailnet, ~66 ms — every Part 1 skill carried over unchanged.</li>
-      <li><b>Verified on the Mac's internet route too:</b> tailnet joined, phone on cellular drove it over VNC through the <b>DERP relay</b> (~125 ms — the encrypted fallback, observed live), with the headless <span class="mono">launchctl</span> on/off and the <span class="mono">nc</span> port check proven on Sequoia.</li>
-      <li><b>Same standard handshake against x11vnc</b> on Ubuntu — one app, two entries.</li>
-      <li><b>Honestly untested on this rig:</b> the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel).</li>
-      <li><b>The rig stays deliberately small:</b> 2 servers you mostly already have + 1 phone app + 1 mesh VPN only when you leave the LAN. No subscription, no cloud in the control path, no ports opened to the internet.</li>
+  <!-- 22 · THE BILL -->
+  <section class="slide" data-title="The bill">
+    <div class="slide-num">22 · the bill</div>
+    <h3 class="section">What it actually costs: <em>see for yourself</em>.</h3>
+    <div class="stat-row">
+      <div class="stat"><div class="num mint">$0</div><div class="label">software, forever</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">Saturday of setup</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">OSes, served by built-ins</div></div>
+      <div class="stat"><div class="num mint">3</div><div class="label">routes verified live</div></div>
+    </div>
+    <ul class="checklist" style="max-width:78ch">
+      <li><b>No subscription</b> — free tiers throughout, nothing expires.</li>
+      <li><b>No cloud in the control path</b> — connections are direct device-to-device, encrypted with your own keys.</li>
+      <li><b>No ports opened to the internet</b> — the firewall rules only ever narrow.</li>
+      <li><b>Honest edges</b> — escape hatches untested; relay rounds are usable but laggier (~125 ms).</li>
     </ul>
+  </section>
+
+  <!-- 23 · WHERE THIS LANDED -->
+  <section class="slide" data-title="Where this landed">
+    <div class="slide-num">23 · where this landed</div>
+    <h3 class="section">Where this landed: <em>a full second seat at the desk</em>.</h3>
+    <ul class="checklist" style="max-width:76ch">
+      <li><b>Mac, on the LAN:</b> RealVNC Viewer end to end — window switching, multi-key shortcuts, voice typing — through reboots and IP re-leases.</li>
+      <li><b>Ubuntu, on the LAN:</b> same standard handshake against x11vnc — one app, two entries.</li>
+      <li><b>Off the LAN, direct:</b> phone on mobile data, ~66 ms, every Part 1 skill carried over unchanged.</li>
+      <li><b>Off the LAN, relayed:</b> the Mac driven over the DERP fallback — observed live, not just diagrammed.</li>
+      <li><b>Deliberately small:</b> 2 servers you mostly already have + 1 phone app + 1 mesh VPN only off the LAN.</li>
+    </ul>
+    <div class="foot">Every "verified" above means run live on the actual rig — the build story is in the post, failures included.</div>
+  </section>
+
+  <!-- 24 · BUILD IT -->
+  <section class="slide hero" data-title="Build it this weekend">
+    <div class="slide-num">24 · build it</div>
+    <h3 class="section">The couch is a valid place to get something done. <em>So is another city.</em></h3>
+    <p class="lead">Part 1 alone takes an evening and works on your home network today. The internet comes along later as one small install.</p>
     <div class="end-links">
-      <a class="primary" href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md" target="_blank" rel="noopener">↗ Read the full 3-part guide (B-26)</a>
+      <a class="primary" href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md" target="_blank" rel="noopener">↗ Read the full 3-part guide (B-26) — every command, table, and gotcha</a>
       <a class="ghost" href="https://datatracker.ietf.org/doc/html/rfc6143" target="_blank" rel="noopener">↗ RFC 6143 — the RFB protocol</a>
       <a class="ghost" href="https://tailscale.com/blog/how-tailscale-works" target="_blank" rel="noopener">↗ How Tailscale works — NAT traversal &amp; DERP</a>
       <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
@@ -610,7 +668,7 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-19">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-24">
 </div>
 
 <div class="dk-help" id="helpOverlay">
