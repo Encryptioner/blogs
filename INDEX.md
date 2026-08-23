@@ -29,6 +29,7 @@
 24. Productivity: [Run Your Desk From the Couch - Free Remote Control + Voice Dictation From Your Phone](./topics/Productivity/Run%20Your%20Desk%20From%20the%20Couch%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20From%20Your%20Phone.md)
 25. Productivity: [Run Your Desk From Anywhere - Free Remote Control + Voice Dictation Over the Internet](./topics/Productivity/Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md)
 26. Productivity: [Your Desk in Your Pocket - Free Remote Control for Mac & Ubuntu, Same Room or Anywhere on Earth](./topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md)
+27. Productivity: [When Your Desktop Needs You - Free Notifications From Mac & Ubuntu to Your Phone (and Why You'll Never Hear Its Speakers)](./topics/Productivity/When%20Your%20Desktop%20Needs%20You%20-%20Free%20Notifications%20From%20Mac%20%26%20Ubuntu%20to%20Your%20Phone%20(and%20Why%20You'll%20Never%20Hear%20Its%20Speakers).md)
 
 ## Presentations
 0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)
