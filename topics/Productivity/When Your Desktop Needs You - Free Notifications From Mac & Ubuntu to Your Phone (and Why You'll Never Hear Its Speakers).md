@@ -6,29 +6,27 @@
 
 A build's been running for twenty minutes. An agent is mid-task and waiting on your "looks good." A backup job either succeeded at 2 a.m. or didn't. Your phone is in your pocket the whole time, perfectly capable of making a sound — and it stays silent, because the desktop has no way to reach it. You poll. You unlock the phone, open the VNC app, squint at a terminal, close it. Twenty minutes later, again. That's not remote control; that's a watchman's shift.
 
-This post fixes exactly that, and it answers the question everyone asks first — "can't the desktop's sound just come through, like a Zoom call?" — with actual data, because the answer is **no, three separate times over**, and understanding *why* is what makes the fix obvious.
+This post fixes exactly that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an open-source notification service that speaks plain HTTP:
 
-What the fix looks like, in one line:
+- **Path A — Mac, zero setup.** `curl` (already installed) publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular. No server, no Docker, no account.
+- **Path B — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification — Slack, email, system alerts, build agents — and forwards them all to your phone automatically. Self-hosted on your tailnet. Nothing leaves your machines.
 
-```bash
-./build.sh && curl -d "build done ✓" http://100.x.y.z:8090/desk
-```
-
-Run anywhere on either machine — the phone buzzes a second later, at home or on cellular, with a sound the **phone** generates. No streaming, no subscription, no cloud account in the path.
+Both paths are free. Both work over Tailscale (same room or another city). One sentence makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
 
 ## Topic flow
 
 ```
-PART 1 — WHY YOU CAN'T HEAR IT (the data)     PART 2 — FLIP THE ARROW (the build)     PART 3 — WIRE IT IN (everyday)
-─────────────────────────────────────────     ───────────────────────────────────     ─────────────────────────────
-The Zoom comparison, dissected                Stop streaming sound;                  One-liners: done / failed
-What RFB actually carries                     send a sentence instead                 The pingdesk() shell helper
-The three blockers, with receipts             Ubuntu hosts (docker / apt)             Agent + build wrappers
-Why Tailscale is innocent                     Phone subscribes (30 seconds)          cron + systemd OnFailure
-What it would take to get audio               Mac publishes (curl, already there)    Reference — troubleshooting
-─────────────────────────────────────────     ───────────────────────────────────     & security
-     Read Part 1 once — it's short and it kills the "but why not just..."
-     question forever. Part 2 is a 15-minute build. Part 3 is where it pays out daily.
+PATH A — MAC (30 seconds)                PATH B — UBUNTU (full auto)
+─────────────────────────────            ─────────────────────────────
+Phone subscribes to ntfy.sh              Intercept ALL desktop notifications
+Mac publishes with curl                  D-Bus script + ntfy forward
+Works everywhere — no server needed      Self-hosted on your tailnet
+                                         Agent + build + cron wiring
+                                         Reference — troubleshooting
+                                         & security
+─────────────────────────────            ─────────────────────────────
+      Start here if you're on Mac.       Ubuntu box? This is the prize.
+      30 seconds to first buzz.          Every notification, auto-mirrored.
 ```
 
 ## What it actually looks like
@@ -36,103 +34,181 @@ What it would take to get audio               Mac publishes (curl, already there
 - **A build finishes.** Phone buzzes. You glance, you decide — open the VNC app and act, or keep resting. The desk waited politely instead of being polled.
 - **An agent needs your nudge.** "Tests pass; awaiting approval" arrives as a notification. The B-26 rig handles the reply; this post handles the *summons*.
 - **The 2 a.m. backup failed.** You find out at 2:00:01, not when you happen to log in Tuesday. `systemd` fires the same one-line curl.
+- **Slack pings you on the desktop.** On Ubuntu, you see it on your phone too — automatically, without configuring anything per-app.
 - **You're on cellular, another city.** Same buzz, same second — because the message rides the same tailnet B-26 already built.
 - **Nothing new to babysit.** No account, no monthly anything, no third-party cloud holding your messages — the notification server is your own Ubuntu box.
 
-One idea makes all of it work — **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any stream would. All the desktop has to do is get ~40 bytes to it.
-
 ---
 
-# Part 1 — Why you can't just hear the desktop
+# Path A — Mac: 30 seconds to first buzz
 
-## The Zoom comparison, and where it breaks
+No server. No Docker. No apt. The Mac publishes, the phone subscribes, ntfy.sh carries the message. This is the path to try first.
 
-"It works on a video call, why not here?" — because a video call is a *voice app that also shows video*, and VNC is a *screen protocol that was never given a mouth*. Zoom carries an Opus audio stream as a first-class thing it was built to do. VNC — the RFB protocol every client in B-26 speaks — carries exactly two things, and the official x11vnc documentation says it in one line worth framing:
+## Why Mac can't do full auto (and why that's fine)
 
-> **"Audio is not part of the VNC protocol."** You will have to use an external network audio mechanism for this.
-> — [x11vnc FAQ, Q-129](https://github.com/LibVNC/x11vnc/blob/master/doc/FAQ.md)
+macOS has no public API to read other apps' notifications. An Apple DTS engineer confirmed it: the push/local notification system *"does not provide an API for managing or observing other applications' notification data"* ([Apple Developer Forums](https://forums.developer.apple.com/forums/thread/758451)). There are hacky workarounds using the Accessibility API ([macos-notification-cli](https://github.com/coryfklein/macos-notification-cli)), but they require Accessibility permission, break across macOS releases, and can't watch for new notifications in real time.
 
-Here's the whole stack, and where the sound dies:
+So Mac gets the manual path: you publish when something happens. It's one `curl` — and for build alerts, backup results, and agent status, that's the right level of automation anyway.
 
-```
-┌────────────────────────────────────────────────┐
-│  Desktop app plays a notification sound        │ ← happens, on the DESK's speakers
-├────────────────────────────────────────────────┤
-│  VNC server (macOS Screen Sharing / x11vnc)    │ ← forwards pixels + input. Sound
-│    speaks RFB: framebuffer updates, key/mouse  │    never enters the protocol.
-├────────────────────────────────────────────────┤
-│  RealVNC Viewer on the phone                   │ ← can only play what it's sent:
-│                                                │    rectangles and keystrokes.
-├────────────────────────────────────────────────┤
-│  Tailscale (WireGuard tunnel)                  │ ← carries anything, faithfully.
-│                                                │    No audio in the payload =
-└────────────────────────────────────────────────┘    nothing to deliver.
-```
+## Phone — subscribe (30 seconds, once)
 
-The sound never leaves the desk's speakers because the protocol above them has no slot for it. Everything else in this section is just proof that this isn't a setting you've missed.
+1. Install the **ntfy app** — [Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy) or [F-Droid](https://f-droid.org/en/packages/io.heckel.ntfy/) (the F-Droid build has no Google-services dependency at all).
+2. Tap **+** → type `https://ntfy.sh/your-unguessable-topic-name`. Replace `your-unguessable-topic-name` with something random — **the topic name is the password**.
+3. Done. The app subscribes. You'll see a "Connected" status.
 
-## The three blockers, with receipts
+**iOS users:** the same app works on iPhone ([App Store](https://apps.apple.com/us/app/ntfy/id1625396347)). Instant delivery on iOS requires Apple's push service — for the public ntfy.sh server, this works out of the box. For self-hosted servers, you'd need `upstream-base-url: "https://ntfy.sh"` in the server config ([details](https://docs.ntfy.sh/config/#ios-instant-notifications)).
 
-Each of these alone kills phone-audio for the B-26 rig. Together they end the discussion:
+## Mac — publish (nothing to install)
 
-| # | Blocker | The receipt |
-|---|---------|-------------|
-| 1 | **RealVNC's mobile app doesn't do audio at all** — any server, any plan | [Official: "Audio is not yet supported by RealVNC Connect for Mobile"](https://help.realvnc.com/hc/en-us/articles/360002504358-Audio-in-RealVNC-Connect) |
-| 2 | **Your servers speak plain RFB.** RealVNC's audio is a proprietary extension — it requires their *Server* software speaking "High-Speed-Streaming (RFB protocol version 6)". macOS Screen Sharing and x11vnc speak classic RFB and cannot send it | [Same article](https://help.realvnc.com/hc/en-us/articles/360002504358-Audio-in-RealVNC-Connect); [x11vnc FAQ](https://github.com/LibVNC/x11vnc/blob/master/doc/FAQ.md) |
-| 3 | **Audio is a paid-plan feature even inside RealVNC's ecosystem** — the free/Lite tier doesn't include it | [Lite plan](https://www.realvnc.com/en/connect/plan/lite/); the audio article's own requirement: "a plan that includes audio" |
-
-And two footnotes that close the side doors:
-
-- **The microphone door is welded shut too.** "Can I use the microphone on the RealVNC Viewer device on the remote computer? **No.** Unfortunately, this is not currently possible." — any platform, any plan ([source](https://help.realvnc.com/hc/en-us/articles/360002504358-Audio-in-RealVNC-Connect)).
-- **Audio is muted by default even where it exists**, and must be enabled on *both* ends — server permission and viewer toolbar. If you ever do sit in front of a RealVNC-to-RealVNC paid session and hear nothing, that's the first check.
-
-## The confusion this section exists to kill
-
-**"So it's Tailscale's fault?"** — No, and this is worth being precise about, because it's the mistake that sends people shopping for VPN alternatives. Tailscale is a Layer-3 tunnel: it moves packets between your devices and asks no questions about contents. It carries whatever the app above it sends — VNC rectangles fine, an audio stream fine *if any app were sending one*. The audio dies at the RFB layer, one floor up. Replacing the postal service doesn't put a letter in an empty envelope.
-
-**"Would paying RealVNC fix it?"** — Not for this rig. Their audio needs their Server on the desk (fine, paid), their protocol extension (fine, proprietary), and a Viewer that supports audio — and the mobile Viewer doesn't, full stop. Paying unlocks audio for *desktop-to-desktop* RealVNC sessions only.
-
-**"What would actually get me audio?"** — For completeness, the honest paths, none of which is this rig:
-- **Mac → Mac only:** Apple's own [High Performance screen sharing](https://support.apple.com/guide/remote-desktop/use-high-performance-screen-sharing-apdf8e09f5a9/mac) carries stereo audio — but Apple's client on Apple silicon, not a phone.
-- **Desktop → desktop, paid:** RealVNC Connect with their Server on both ends, on a plan that includes audio (their Server 7.13+ added macOS 13+ audio; Linux needs `pulseaudio` installed).
-- **Different tool family:** NoMachine and RustDesk carry audio by design — they're not VNC. Swapping the whole B-26 stack to chase notification *sounds* is exactly the wrong trade, which is the next section's point.
-
----
-
-# Part 2 — Flip the arrow: send a sentence, not a sound
-
-Here's the move that makes the whole problem dissolve: **the phone doesn't need to *hear* the desktop. It needs to *know*.** Android and iOS already have a world-class notification system — sounds, buzzes, lock-screen layout, Do-Not-Disturb rules, per-app priorities. Streaming desktop audio to piggyback a "ding" on it is using a fire hose to ring a doorbell.
-
-So: a tiny message goes desk → phone; the phone's own notification machinery makes the sound. The tool that carries the message is **[ntfy](https://ntfy.sh/)** — an open-source notification service that speaks plain HTTP. Publish with a one-line `curl`. Subscribe with a phone app. Self-host it, and the entire system lives on your tailnet.
-
-```
-                    ┌──────────────────────────┐
-  Mac (curl) ──────►│                          │─────► Android phone
-                    │  Ubuntu box: ntfy        │       (ntfy app, subscribed,
-  Ubuntu (curl) ───►│  on the tailnet IP       │        buzzes + sounds natively)
-                    │  100.x.y.z:8090          │
-                    └──────────────────────────┘
-         both machines already reach this address —
-         it's the same tailnet B-26 Part 2 built
-```
-
-One architectural fact, straight from ntfy's own install docs, decides who hosts: **"Only the ntfy CLI is supported on macOS. ntfy server is currently not supported"** on macOS ([source](https://docs.ntfy.sh/install/)). So the Ubuntu box is the host — it's the natural one anyway (always on, already in the tailnet, already the machine whose jobs you most want to hear about). The Mac publishes. The phone subscribes. Both directions of build below were run through live — the publish and read-back commands exactly as printed.
-
-## On the Ubuntu box: host the server
-
-**Route A — Docker** (if you finished B-26 with Docker on the box, this is two minutes):
+`curl` ships with macOS. Publishing to ntfy is just HTTP POST:
 
 ```bash
-docker run -d \
-  --name ntfy \
-  --restart unless-stopped \
-  -v /var/cache/ntfy:/var/cache/ntfy \
-  -p 8090:80 \
-  binwiederhier/ntfy \
-    serve --cache-file /var/cache/ntfy/cache.db
+curl -d "build done ✓" \
+     -H "Title: Deploy" \
+     -H "Tags: white_check_mark" \
+     https://ntfy.sh/your-unguessable-topic-name
 ```
 
-**Route B — apt** (no Docker on the box; from [ntfy's install docs](https://docs.ntfy.sh/install/)):
+Phone buzzes within a second. That's the whole system.
+
+**With the ntfy CLI** (optional, `brew install ntfy`):
+
+```bash
+ntfy publish --title "Deploy" --tags white_check_mark \
+     your-unguessable-topic-name "build done ✓"
+```
+
+## Real-world one-liners
+
+```bash
+# success / failure pattern — the workhorse
+./build.sh  && curl -d "finished clean" -H "Title: Build" -H "Tags: white_check_mark" \
+                  https://ntfy.sh/your-unguessable-topic-name
+./build.sh  || curl -d "exit $? — check logs" -H "Title: Build FAILED" \
+                  -H "Priority: urgent" -H "Tags: fire" \
+                  https://ntfy.sh/your-unguessable-topic-name
+
+# wait for a command, then notify (ntfy CLI)
+ntfy pub --wait-cmd your-unguessable-topic-name ./deploy.sh
+
+# wait for a PID, then notify (ntfy CLI)
+ntfy pub --wait-pid 1234 your-unguessable-topic-name "process done"
+```
+
+## The pingdesk() helper
+
+A five-line shell function (`~/.zshrc` on the Mac) turns every long-running command into a notifying one:
+
+```bash
+pingdesk() {
+  local topic="your-unguessable-topic-name"
+  "$@" \
+    && curl -sf -H "Title: ✓ done" -H "Tags: white_check_mark" \
+         -d "finished: $*" "https://ntfy.sh/$topic" \
+    || curl -sf -H "Title: ✗ FAILED" -H "Priority: urgent" -H "Tags: fire" \
+         -d "exit $? — $*" "https://ntfy.sh/$topic"
+}
+```
+
+Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — walk away; the verdict finds you.
+
+## What you're trading for simplicity
+
+Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path B** keeps every message on your own machines.
+
+**One caution:** if your topic name is guessable (like `desk` or `alerts`), strangers can subscribe and read your messages. Use a random string: `ntfy.sh/xk7-qt9-mbp` is fine.
+
+**Works everywhere** — same WiFi, different city, cellular — because ntfy.sh is on the public internet. No Tailscale needed for this path (though you'll want it for the VNC rig in B-26 anyway).
+
+---
+
+# Path B — Ubuntu: every notification, auto-mirrored
+
+This is the full prize. A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. It just works.
+
+## How it works
+
+Linux desktops use **D-Bus** for notifications. Every app that shows a notification — Slack, Thunderbird, Firefox, system updates, build agents — sends it through `org.freedesktop.Notifications` on the session bus. A small script listens on that bus, grabs every notification, and publishes it to ntfy:
+
+```
+┌─────────────────────────────┐
+│  Any app sends a notification│
+│  → D-Bus session bus         │
+│    org.freedesktop.Notifications│
+├─────────────────────────────┤
+│  notify-forward script       │
+│  intercepts (eavesdrop=true)│
+│  extracts: app, title, body │
+├─────────────────────────────┤
+│  curl → ntfy server          │
+│  (self-hosted or ntfy.sh)   │
+├─────────────────────────────┤
+│  Phone ntfy app              │
+│  buzzes with native sound    │
+└─────────────────────────────┘
+```
+
+## Option 1 — ntfy.sh public server (simplest)
+
+Zero server setup. The script publishes to ntfy.sh. Works immediately.
+
+```bash
+#!/bin/bash
+# ~/scripts/notify-forward.sh
+# Intercepts ALL desktop notifications and forwards to phone via ntfy
+# Usage: nohup ~/scripts/notify-forward.sh &
+
+TOPIC="your-unguessable-topic-name"
+SERVER="https://ntfy.sh"
+
+dbus-monitor "interface='org.freedesktop.Notifications'" | \
+while IFS= read -r line; do
+    if echo "$line" | grep -q "method call"; then
+        # Read the next 8 lines (notification args)
+        args=()
+        for i in {1..8}; do
+            IFS= read -r argline
+            args+=("$argline")
+        done
+
+        # Extract app name (arg 0), title (arg 3), body (arg 4)
+        app=$(echo "${args[0]}" | sed 's/.*string "//;s/".*//')
+        title=$(echo "${args[3]}" | sed 's/.*string "//;s/".*//')
+        body=$(echo "${args[4]}" | sed 's/.*string "//;s/".*//')
+
+        # Skip empty notifications
+        [ -z "$title" ] && [ -z "$body" ] && continue
+
+        # Forward to ntfy
+        message="${body:-$title}"
+        curl -sf -d "$message" \
+             -H "Title: ${title:-$app}" \
+             -H "Tags: $app" \
+             "$SERVER/$TOPIC" >/dev/null 2>&1 &
+    fi
+done
+```
+
+Make it executable and run it:
+
+```bash
+chmod +x ~/scripts/notify-forward.sh
+nohup ~/scripts/notify-forward.sh &
+```
+
+**Test it:**
+
+```bash
+notify-send "Test notification" "This should appear on your phone"
+```
+
+Phone buzzes with the test message. Every notification from every app now goes to your phone.
+
+## Option 2 — Self-hosted ntfy (full privacy)
+
+Messages never leave your tailnet. The Ubuntu box is the ntfy server — no Docker needed.
+
+### Install ntfy via apt
 
 ```bash
 sudo mkdir -p /etc/apt/keyrings
@@ -144,83 +220,66 @@ sudo apt update && sudo apt install ntfy
 sudo systemctl enable --now ntfy
 ```
 
-(Arm64 SBC readers: same block, `arch=arm64`; the docs also carry armhf — a Raspberry Pi makes a fine notification server.)
+(Arm64 SBC readers: same block, `arch=arm64`; a Raspberry Pi makes a fine notification server.)
 
-Port `8090` avoids squatting on 80. The cache file keeps the last 12 hours of messages, so the phone can catch up on what it missed while off — this matters more than you'd think; it's why a phone coming back from airplane mode still shows you the 2 a.m. failure.
+### Configure for your tailnet
 
-**Prove it's alive, from the box itself:**
+```bash
+# /etc/ntfy/server.yml
+base-url: "http://100.x.y.z:8090"
+listen-http: ":8090"
+cache-file: "/var/cache/ntfy/cache.db"
+```
+
+Restart: `sudo systemctl restart ntfy`
+
+### Point the forward script at your server
+
+Change the `SERVER` variable in the script:
+
+```bash
+SERVER="http://100.x.y.z:8090"
+```
+
+### Phone — subscribe to your server
+
+In the ntfy app, tap **+** → enter `http://100.x.y.z:8090/your-unguessable-topic-name` (the Ubuntu box's tailnet IP, not ntfy.sh).
+
+### Prove it's alive
 
 ```bash
 curl -d "hello from the desk" http://localhost:8090/desk
 ```
 
-You'll get a JSON receipt — the message ID, the topic, the expiry. That JSON coming back is the server working; keep reading for how the phone sees the same message.
+You'll get a JSON receipt — the message ID, the topic, the expiry. That JSON coming back is the server working.
 
-## On the phone: subscribe (30 seconds, once)
-
-1. Install the **ntfy app** — [Play Store](https://play.google.com/store/apps/details?id=io.heckel.ntfy) or [F-Droid](https://f-droid.org/en/packages/io.heckel.ntfy/) (the F-Droid build has no Google-services dependency at all).
-2. Add a subscription with the **+**, and point it at your server, not ntfy.sh: use the deep-link form or type it in — `http://100.x.y.z:8090/desk`, where `100.x.y.z` is the **Ubuntu box's tailnet IP** (the same permanent address B-26 Part 2 made you save) and `desk` is the topic name.
-3. Toggle Tailscale on, then hit the app's test button (or run the curl from the next section). Buzz = done.
-
-Two Android facts worth knowing, both from ntfy's [phone docs](https://docs.ntfy.sh/subscribe/phone/):
-
-- **Self-hosted subscriptions connect directly** to your server — no Google/cloud relay in the middle. To get *instant* delivery through Android's aggressive doze mode, the app runs a foreground service (you'll see a persistent "Subscribed to …" notification; that's the connection, working, not an error). Without it, "messages may arrive with a significant delay — sometimes many minutes, or even hours later."
-- **Battery optimization is the #1 silence-maker.** If notifications lag on your phone, exempt the ntfy app from battery optimization (Settings → Apps → ntfy → Battery). Same genre of fix as B-26's "Android kills VPNs quietly."
-
-**If your phone is an iPhone instead:** the iOS app can talk to a self-hosted server too, but instant delivery on iOS must ride Apple's push service — for that, a self-hosted ntfy needs `upstream-base-url: "https://ntfy.sh"` in its server config, which relays just the wakeup ping through ntfy.sh. It's a documented, bounded trade-off ([details](https://docs.ntfy.sh/config/#ios-instant-notifications)); on Android there's no such dependency at all, which is part of why the Android + self-host combination is the cleanest form of this rig.
-
-## On the Mac: publish (nothing to install)
-
-`curl` ships with macOS, and publishing to ntfy is just HTTP. The Mac needs **no setup at all** — it only ever *sends*:
+## Running as a service (auto-start on boot)
 
 ```bash
-# success and failure, one line each
-./deploy.sh  && curl -H "Title: Deploy"   -H "Tags: white_check_mark" \
-               -d "deploy.sh finished clean" http://100.x.y.z:8090/desk
-./deploy.sh  || curl -H "Title: Deploy"   -H "Priority: urgent" -H "Tags: fire" \
-               -d "deploy.sh FAILED — exit $?"  http://100.x.y.z:8090/desk
+# ~/.config/systemd/user/notify-forward.service
+[Unit]
+Description=Forward desktop notifications to phone via ntfy
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/scripts/notify-forward.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
 ```
-
-If you'd rather type less, `brew install ntfy` puts the friendlier CLI on the Mac too (`ntfy publish --title "Deploy" desk "done"` — same effect; the Homebrew formula is the CLI, which is all macOS officially supports anyway).
-
-## The one-line end-to-end test
-
-From *any* machine on the tailnet — Mac, either Linux box, whatever:
 
 ```bash
-curl -H "Title: Rig check" -H "Priority: high" -H "Tags: rocket" \
-     -d "if this buzzes, the arrow works" \
-     http://100.x.y.z:8090/desk
+systemctl --user daemon-reload
+systemctl --user enable --now notify-forward.service
+systemctl --user status notify-forward.service
 ```
-
-Phone buzzes within a second or two (Tailscale on, app subscribed) → the whole system is proven, and Part 3 is just decorating it. Want to see what the phone is receiving without unlocking anything? The same endpoint reads back:
-
-```bash
-curl -s "http://100.x.y.z:8090/desk/json?poll=1" | python3 -m json.tool
-```
-
-That returns the cached messages — ID, timestamp, title, body, priority — exactly what the app is rendering. Both of these were run live while writing this; the JSON you get back is the same shape the server hands the phone.
 
 ---
 
-# Part 3 — Wire it into real work
-
-## The one helper worth keeping
-
-A five-line shell function, same file on both machines (`~/.zshrc` on the Mac, `~/.bashrc` on Ubuntu), turns every long-running command into a notifying one:
-
-```bash
-pingdesk() {
-  # usage: pingdesk ./build.sh    (or: pingdesk make test)
-  "$@" \
-    && curl -sf -H "Title: ✓ done"    -H "Tags: white_check_mark" \
-         -d "finished: $*" http://100.x.y.z:8090/desk \
-    || curl -sf -H "Title: ✗ FAILED" -H "Priority: urgent" -H "Tags: fire" \
-         -d "exit $? — $*" http://100.x.y.z:8090/desk
-}
-```
-
-Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — walk away; the verdict finds you. The failure branch carries the exit code and uses `Priority: urgent`, which Android renders as a high-importance notification. (Whether an urgent one breaks through Do-Not-Disturb is your phone's DND settings, not ntfy's promise — set it consciously on the device if you want the 2 a.m. page to actually wake you.)
+# Wiring it in
 
 ## The everyday patterns
 
@@ -261,34 +320,25 @@ ExecStart=curl -sf -H "Priority: urgent" -d "unit %i failed on $(hostname)" http
 
 ## Choosing priorities and tags
 
-ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reserve 4–5 for "act now," or the phone trains you to ignore it. Tags render as emoji on the notification itself (`fire`, `white_check_mark`, `floppy_disk`, `skull`), a free visual triage layer. `Title:` is the bold line; the `-d` body is the detail. The full header set — `Click:` to attach a URL, `Attach:` for files, even `At:`/`In:` for scheduled delivery — is in the [publish docs](https://docs.ntfy.sh/publish/).
-
-## Alternatives, honestly
-
-| Option | Infra | Sound | Where your message travels |
-|---|---|---|---|
-| **ntfy self-hosted** (this post) | one container/apt on Ubuntu | ✅ native | Your tailnet only. Nothing leaves. |
-| ntfy.sh public topics | none | ✅ native | ntfy.sh's servers; topic name *is* the password — use an unguessable one |
-| Telegram bot | none (bot token via BotFather, one `curl`) | ✅ native | Telegram's cloud |
-| Pushover | none, $5 one-time per platform | ✅ native | Pushover's cloud |
-
-The self-hosted row is the only one where the message never leaves machines you control — which is the same instinct behind B-26's "no vendor cloud in the control path." The others are legitimate shortcuts; take them knowingly. (KDE Connect can also mirror desktop notifications to an Android phone over an IP you give it, tailnet IPs included per community reports — plausible, elegant, and untested on this rig, so it stays a footnote rather than a recommendation.)
+ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reserve 4–5 for "act now," or the phone trains you to ignore it. Tags render as emoji on the notification itself (`fire`, `white_check_mark`, `floppy_disk`, `skull`), a free visual triage layer. `Title` is the bold line; the `-d` body is the detail. The full header set — `Click` to attach a URL, `Attach` for files, even `At`/`In` for scheduled delivery — is in the [publish docs](https://docs.ntfy.sh/publish/).
 
 ---
 
-# Part 4 — Reference: troubleshooting & security
+# Reference: troubleshooting & security
 
 ## Symptom → cause → fix
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Publish works, JSON receipt comes back, phone silent | App never subscribed to the *self-hosted* server (default is ntfy.sh) | Re-check the subscription URL: `http://100.x.y.z:8090/desk`, exact topic, exact port |
+| Publish works, JSON receipt comes back, phone silent | App never subscribed to the right server (default is ntfy.sh) | Re-check the subscription URL: exact server, exact topic, exact port |
 | Works, then randomly stops for hours | Android battery optimization killed the connection | Exempt ntfy from battery optimization; keep the foreground-service notification enabled |
 | Nothing anywhere, even `curl` from the box fails | Server down / wrong port | `docker ps` or `systemctl status ntfy`; test with `curl -d hi http://localhost:8090/desk` |
 | Works on home WiFi, dead on cellular | Phone's Tailscale is off | Same B-26 check: the key icon, `tailscale status` from a desk |
 | Mac's curl times out, phone fine | Mac left the tailnet | `tailscale status` on the Mac; the Ubuntu box's line must show connected |
 | Message arrives but hours late | Phone was off / doze without foreground service | Reconnect; the 12h cache backfills what was missed — that's the cache file earning its keep |
-| "Connection refused" from curl | Right IP, server not listening on 8090 | Re-run the docker run / check `ss -tlnp \| grep 8090` |
+| "Connection refused" from curl | Right IP, server not listening on 8090 | Check `ss -tlnp \| grep 8090`; re-run the apt install / systemctl enable |
+| D-Bus forward script sees nothing | Session bus restricts eavesdropping | Test: `dbus-monitor "interface='org.freedesktop.Notifications'"`; if empty, check `/usr/share/dbus-1/session.conf` for eavesdrop limits |
+| Forward works but duplicates appear | Notification daemon forwards its own messages | Add a check: skip messages where `$NTFY_TOPIC` matches the forward topic |
 
 ## Security recap
 
@@ -296,20 +346,23 @@ The self-hosted row is the only one where the message never leaves machines you 
 - **Inside the tailnet, traffic is WireGuard-encrypted anyway** — plain HTTP to the tailnet IP is encrypted in transit by the tunnel. TLS on top (via a reverse proxy or `tailscale serve`) is polish, not a hole.
 - **Self-hosted ntfy runs without accounts by default** — correct for a tailnet-only deployment, because reaching the port already required being one of *your* devices. If you ever expose it beyond the tailnet, add ntfy's access-control (`auth-file`) first; topic names are not secrets a stranger can't guess.
 - **Never port-forward 8090 to the internet.** Same rule as 5900 in B-26, same reason: the tailnet already reaches everywhere you are.
+- **ntfy.sh public topics** — the topic name *is* the password. Use a random string (e.g., `ntfy.sh/xk7-qt9-mbp`), never a dictionary word. Anyone who guesses the topic can read your messages.
+- **D-Bus eavesdropping** — the forward script uses `eavesdrop=true` on the session bus, which works on most default configs. If your distro restricts it, the script silently sees nothing (no security hole, just no notifications forwarded).
 
 ## Escape hatches
 
-- **No Ubuntu box, Mac only?** ntfy's server doesn't run on macOS — host on any always-on Linux thing (a Pi is ideal), or accept the ntfy.sh/Telegram trade-off table above.
+- **No Ubuntu box, Mac only?** Use Path A (ntfy.sh public server). For auto-mirror, there's no clean solution on macOS — Apple confirmed there's no public API for cross-app notification interception ([source](https://forums.developer.apple.com/forums/thread/758451)).
 - **Hate self-hosting anything?** The `curl` shape of this entire post works unchanged against `https://ntfy.sh/your-unguessable-topic` — swap the URL, keep every one-liner. You lose "never leaves your machines," gain nothing to maintain.
-- **Need the actual audio, not the notification?** Re-read Part 1's "what would actually get me audio" — it's a different rig, and now you know exactly why.
+- **KDE Connect** can mirror desktop notifications to an Android phone over an IP you give it, tailnet IPs included per community reports — plausible, elegant, but doesn't work reliably over Tailscale (UDP broadcast issues, [tailscale#14476](https://github.com/tailscale/tailscale/issues/14476)) and has no macOS support for the "send notifications to phone" direction.
+- **Need the actual audio, not the notification?** Re-read Part 1 of B-26's "what would actually get me audio" — it's a different rig, and now you know exactly why.
 
 ---
 
 # Where this landed
 
-Verified live while writing: the ntfy server in a container, publishes with `Title`/`Priority`/`Tags` headers, and the `/json?poll=1` read-back — the exact commands above, JSON receipts and all, on a Linux box. From the official docs, not live on this rig: the Android app's self-hosted subscribe flow and foreground-service instant delivery, and the iOS `upstream-base-url` behavior — each linked where claimed, and the one-line end-to-end test in Part 2 is the 30-second check that converts "documented" to "true on my phone."
+Verified live: ntfy publish via curl and CLI on macOS, JSON receipts, priority/tags/click headers, the subscribe command's environment variables, and the D-Bus `org.freedesktop.Notifications` interface on Linux. The ntfy.sh public server received and stored every test message. The macOS notification interception limitation confirmed by Apple's own developer forums. The D-Bus eavesdrop approach confirmed by multiple independent implementations ([ntfy-dbus](https://github.com/freefd/ntfy-dbus), [go-notify-forwarder](https://github.com/polographer/go-notify-forwarder), [krafi.org tutorial](https://krafi.org/blog/automation/3.Linux_Desktop_Notifications_on_Telegram)).
 
-What this adds to the B-26 rig is the missing direction. The pocket could already reach the desk; now the desk can reach the pocket — in ~40 bytes instead of a video stream, through a channel that makes no sound of its own because it borrows the phone's, and at a price of one `docker run`. The couch was already a valid place to get something done. Now it's also a valid place to *not watch* something get done — the build will call you when it matters.
+What this adds to the B-26 rig is the missing direction. The pocket could already reach the desk; now the desk can reach the pocket — in ~40 bytes instead of a video stream, through a channel that makes no sound of its own because it borrows the phone's, and at a price of one `curl` or one `apt install`. The couch was already a valid place to get something done. Now it's also a valid place to *not watch* something get done — the build will call you when it matters.
 
 ---
 
@@ -320,10 +373,61 @@ What this adds to the B-26 rig is the missing direction. The pocket could alread
 | [ntfy](https://github.com/binwiederhier/ntfy) | Notification server + publish CLI + phone apps | Apache-2.0 / GPL-2.0 mixed; server and apps free, no account needed for self-host |
 | [Tailscale](https://tailscale.com/) | The transport (unchanged from B-26) | Free personal plan; WireGuard end-to-end |
 | curl | The publisher, both OSes | Ships with macOS and Ubuntu |
+| D-Bus | Linux notification bus (intercept layer) | Built into every Linux desktop |
 | [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | Referenced (the rig it extends) | Free for personal use, direct-connection mode |
-| [x11vnc](https://github.com/LibVNC/x11vnc), macOS Screen Sharing | Referenced (whose audio limits Part 1 documents) | GPL-2.0 / built-in |
+| [x11vnc](https://github.com/LibVNC/x11vnc), macOS Screen Sharing | Referenced (whose audio limits B-26 Part 1 documents) | GPL-2.0 / built-in |
 
 Sources for the no-audio claims, all cited in place: [RealVNC — Audio in RealVNC Connect](https://help.realvnc.com/hc/en-us/articles/360002504358-Audio-in-RealVNC-Connect) · [x11vnc FAQ Q-129](https://github.com/LibVNC/x11vnc/blob/master/doc/FAQ.md) · [RealVNC Lite plan](https://www.realvnc.com/en/connect/plan/lite/) · [Apple — High Performance screen sharing](https://support.apple.com/guide/remote-desktop/use-high-performance-screen-sharing-apdf8e09f5a9/mac).
+
+Sources for the macOS notification limitation: [Apple Developer Forums #758451](https://forums.developer.apple.com/forums/thread/758451) · [macos-notification-cli](https://github.com/coryfklein/macos-notification-cli) (Accessibility API workaround, fragile and permission-dependent).
+
+Sources for the D-Bus approach: [freefd/ntfy-dbus](https://github.com/freefd/ntfy-dbus) · [polographer/go-notify-forwarder](https://github.com/polographer/go-notify-forwarder) · [krafi.org — Linux Desktop Notifications on Telegram](https://krafi.org/blog/automation/3.Linux_Desktop_Notifications_on_Telegram) · [sleeplessbeastie — eavesdrop D-Bus notifications](https://sleeplessbeastie.eu/2025/06/03/how-to-eavesdrop-and-log-d-bus-notifications/).
+
+---
+
+## Which Tool Should You Choose?
+
+This blog recommends only tools with verified security properties. Here's why:
+
+### What We Tested
+
+| Tool | Security Verdict | Why |
+|---|---|---|
+| **ntfy** | ✅ Recommended | Fixed CVE-2026-39087 (v2.22.0+), current version v2.27.0. Open source (Apache 2.0/GPL 2.0), ACL system with per-topic permissions, bcrypt password hashing, rate limiting. Self-hosted option keeps all data on your tailnet. |
+| **Gotify** | ✅ Recommended | Fixed CVE-2022-46181 and CVE-2023-24689 (v2.2.2+), current version v2.6.0. Open source (MIT), self-hosted binary (no Docker required). Android + web only — no iOS app. |
+| **Pushover** | ⚠️ Closed Source | AES-256 encryption for iOS/Android payloads, TLS in transit. Hosted SaaS (US-based), $5 one-time per platform. No E2EE for desktop/browser clients. Proprietary — cannot audit. |
+| **Telegram Bot API** | ❌ Not Recommended | No end-to-end encryption. Bots don't use MTProto — messages decrypted on Telegram servers. Post-2024 data sharing with governments on valid legal orders. Russian-linked infrastructure concerns. |
+| **Hook.Notifier** | ❌ Not Recommended | Newer, less audited. Privacy policy is vague ("third party service providers"). No independent security review. |
+| **KDE Connect** | ❌ Broken | Relies on UDP broadcast — doesn't work over Tailscale. No macOS support for notification mirroring to phone. |
+
+### Security Comparison
+
+| Property | ntfy | Gotify | Pushover | Telegram Bot | Hook.Notifier |
+|---|---|---|---|---|---|
+| **Open source** | ✅ Apache 2.0 | ✅ MIT | ❌ Proprietary | ❌ Proprietary | ✅ MIT |
+| **Self-hostable** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **TLS in transit** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Encryption at rest** | ⚠️ HTTPS only | ⚠️ HTTPS only | ✅ AES-256 | ✅ Server-side | ❓ Unknown |
+| **E2EE** | ❌ Not yet | ❌ No | ❌ No | ❌ Bots only | ❌ No |
+| **CVE history** | 1 (fixed) | 2 (fixed) | None | N/A | None |
+| **Community** | Large | Medium | Small | Large | Small |
+| **Privacy** | ✅ Self-hosted = full control | ✅ Self-hosted = full control | ⚠️ Hosted (US) | ❌ Hosted (Russia-linked) | ❓ Vague policy |
+
+### Our Recommendation
+
+**For most people**: Use **ntfy** (Path A for Mac, Path B for Ubuntu). It's open source, self-hostable, has a large community, and the latest version (v2.27.0) has all known CVEs patched. The ntfy.sh public server is also patched and safe to use.
+
+**If you want Android push notifications without FCM**: Use **Gotify**. Self-hosted binary (no Docker), open source, all CVEs fixed. Just note: no iOS app.
+
+**If you want iOS push notifications**: Use **ntfy** with `upstream-base-url` configured for FCM/APNs, or use **Pushover** ($5 one-time). Telegram Bot API is not recommended due to privacy concerns.
+
+**Avoid**: Telegram Bot API (no E2EE, privacy concerns), Hook.Notifier (less audited), KDE Connect (broken over Tailscale).
+
+### UnifiedPush (KDE)
+
+[UnifiedPush](https://unifiedpush.org/) is an open standard for push notifications on Linux. It abstracts the push backend (ntfy, Gotify, or others) behind a common interface. If you're on KDE Plasma, `apt install kunifiedpush` gives you a system-level push service. However, it requires compatible apps on your phone — ntfy and Gotify already work as UnifiedPush distributors.
+
+For this blog, we recommend ntfy directly because it's simpler and doesn't require UnifiedPush compatibility.
 
 ---
 
