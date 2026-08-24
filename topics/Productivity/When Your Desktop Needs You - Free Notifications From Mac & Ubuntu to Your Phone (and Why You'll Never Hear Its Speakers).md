@@ -9,7 +9,7 @@ A build's been running for twenty minutes. An agent is mid-task and waiting on y
 This post fixes exactly that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an open-source notification service that speaks plain HTTP:
 
 - **Path A — Mac, zero setup.** `curl` (already installed) publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular. No server, no Docker, no account.
-- **Path B — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification — Slack, email, system alerts, build agents — and forwards them all to your phone automatically. Self-hosted on your tailnet. Nothing leaves your machines.
+- **Path C — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification — Slack, email, system alerts, build agents — and forwards them all to your phone automatically. Self-hosted on your tailnet. Nothing leaves your machines.
 
 Both paths are free. Both work over Tailscale (same room or another city). One sentence makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
 
@@ -114,7 +114,7 @@ Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — wal
 
 ## What you're trading for simplicity
 
-Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path B** keeps every message on your own machines.
+Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path C** keeps every message on your own machines.
 
 **One caution:** if your topic name is guessable (like `desk` or `alerts`), strangers can subscribe and read your messages. Use a random string: `ntfy.sh/xk7-qt9-mbp` is fine.
 
@@ -122,9 +122,180 @@ Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but no
 
 ---
 
-# Path B — Ubuntu: every notification, auto-mirrored
+# Path B — Windows: full auto-mirror (yes, Windows can do it)
 
-This is the full prize. A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. It just works.
+Unlike macOS, Windows has a **public API** for reading other apps' notifications. The `UserNotificationListener` API lets any app intercept every desktop notification — Slack, Teams, Outlook, system alerts, everything. This means Windows gets the full auto-mirror path, just like Ubuntu.
+
+## How it works
+
+Windows notifications go through the Action Center. The `UserNotificationListener` API taps into that stream:
+
+```
+┌─────────────────────────────┐
+│  Any app sends a notification│
+│  → Windows Action Center     │
+│    UserNotificationListener  │
+├─────────────────────────────┤
+│  notify-forward script       │
+│  intercepts all toasts       │
+│  extracts: app, title, body  │
+├─────────────────────────────┤
+│  curl → ntfy server          │
+│  (self-hosted or ntfy.sh)   │
+├─────────────────────────────┤
+│  Phone ntfy app              │
+│  buzzes with native sound    │
+└─────────────────────────────┘
+```
+
+## Phone — subscribe (same as Mac)
+
+Same 30-second setup. Install ntfy app, subscribe to your topic.
+
+## Windows — publish (PowerShell)
+
+PowerShell ships with Windows. Publishing is just HTTP POST:
+
+```powershell
+Invoke-RestMethod -Uri "https://ntfy.sh/your-unguessable-topic-name" `
+    -Method Post `
+    -Body "build done" `
+    -Headers @{ Title = "Deploy"; Tags = "white_check_mark" }
+```
+
+**With the ntfy CLI** (optional, `winget install binwiederhier.ntfy`):
+
+```powershell
+ntfy publish --title "Deploy" --tags white_check_mark `
+    your-unguessable-topic-name "build done"
+```
+
+## Full auto-mirror — Python script
+
+This script uses the `winrt` package to intercept all Windows notifications and forward them to ntfy:
+
+```python
+# notify_forward.py
+# Intercepts ALL Windows desktop notifications and forwards to phone via ntfy
+# Usage: python notify_forward.py
+
+import asyncio
+import requests
+from winrt.windows.ui.notifications.management import UserNotificationListener
+from winrt.windows.ui.notifications import NotificationKinds
+
+TOPIC = "your-unguessable-topic-name"
+SERVER = "https://ntfy.sh"
+
+async def main():
+    listener = UserNotificationListener.get_current()
+
+    # Request access (one-time, user must approve)
+    access_status = await listener.request_access_async()
+    if access_status != 1:  # ALLOWED
+        print("Notification access denied. Enable in Settings → Notifications.")
+        return
+
+    print(f"Listening for notifications → {SERVER}/{TOPIC}")
+
+    # Get current notifications
+    notifications = await listener.get_notifications_async(NotificationKinds.TOAST)
+
+    seen_ids = set()
+    for notif in notifications:
+        seen_ids.add(notif.id)
+
+    # Poll for new notifications every 2 seconds
+    while True:
+        await asyncio.sleep(2)
+        notifications = await listener.get_notifications_async(NotificationKinds.TOAST)
+
+        for notif in notifications:
+            if notif.id in seen_ids:
+                continue
+            seen_ids.add(notif.id)
+
+            # Extract info
+            app = notif.app_info.display_name or "Unknown"
+            binding = notif.notification.visual.get_binding_at(0)
+            if binding:
+                texts = binding.get_text_elements()
+                title = texts.get_at(0) if texts.size > 0 else ""
+                body = texts.get_at(1) if texts.size > 1 else ""
+            else:
+                title = ""
+                body = ""
+
+            if not title and not body:
+                continue
+
+            message = body or title
+            try:
+                requests.post(
+                    f"{SERVER}/{TOPIC}",
+                    data=message.encode("utf-8"),
+                    headers={"Title": title or app, "Tags": app},
+                    timeout=5,
+                )
+                print(f"→ [{app}] {title}: {body}")
+            except Exception as e:
+                print(f"Failed: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Install and run
+
+```powershell
+# Install dependencies (one-time)
+pip install winrt-python requests
+
+# Run
+python notify_forward.py
+```
+
+**Windows will prompt you** to allow notification access. Click "Allow". This is a one-time permission — the script can now read all notifications.
+
+### Run on startup
+
+Create a shortcut to the script in your Startup folder:
+
+```powershell
+# Open Startup folder
+shell:startup
+
+# Create shortcut to your script
+# Right-click → New → Shortcut → browse to python.exe + script path
+```
+
+## Option 1 — ntfy.sh public server (simplest)
+
+Zero server setup. The script publishes to ntfy.sh. Works immediately.
+
+**Trade-off:** Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade.
+
+## Option 2 — Self-hosted ntfy (full privacy)
+
+Messages never leave your tailnet. The Ubuntu box (or any machine) is the ntfy server. See **Path C** for server setup.
+
+On Windows, just change the `SERVER` variable in the script:
+
+```python
+SERVER = "http://100.71.27.48:8090"  # Your Ubuntu ntfy server on tailnet
+```
+
+Inside the tailnet, WireGuard encrypts plain HTTP traffic. Never port-forward 8090 to the internet.
+
+## What you're trading for simplicity
+
+The `UserNotificationListener` API requires user permission — Windows will prompt you once. Some security-sensitive apps (banking, password managers) may not show full notification content. This is a Windows security feature, not a bug.
+
+---
+
+# Path C — Ubuntu: every notification, auto-mirrored (full privacy)
+
+This is the full prize. A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. It just works. This path keeps every message on your own machines — no third-party servers.
 
 ## How it works
 
@@ -415,7 +586,7 @@ This blog recommends only tools with verified security properties. Here's why:
 
 ### Our Recommendation
 
-**For most people**: Use **ntfy** (Path A for Mac, Path B for Ubuntu). It's open source, self-hostable, has a large community, and the latest version (v2.27.0) has all known CVEs patched. The ntfy.sh public server is also patched and safe to use.
+**For most people**: Use **ntfy** (Path A for Mac, Path B for Windows, Path C for Ubuntu). It's open source, self-hostable, has a large community, and the latest version (v2.27.0) has all known CVEs patched. The ntfy.sh public server is also patched and safe to use.
 
 **If you want Android push notifications without FCM**: Use **Gotify**. Self-hosted binary (no Docker), open source, all CVEs fixed. Just note: no iOS app.
 
