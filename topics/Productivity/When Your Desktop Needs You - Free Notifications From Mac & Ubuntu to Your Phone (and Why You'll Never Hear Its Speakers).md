@@ -9,6 +9,7 @@ A build's been running for twenty minutes. An agent is mid-task and waiting on y
 This post fixes exactly that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an open-source notification service that speaks plain HTTP:
 
 - **Path A — Mac, zero setup.** `curl` (already installed) publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular. No server, no Docker, no account.
+- **Path B — Windows, full auto.** Windows, unlike macOS, exposes a public API to read other apps' notifications. A small Python script taps it and mirrors every toast — Slack, Teams, Outlook — to your phone.
 - **Path C — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification — Slack, email, system alerts, build agents — and forwards them all to your phone automatically. Self-hosted on your tailnet. Nothing leaves your machines.
 
 Both paths are free. Both work over Tailscale (same room or another city). One sentence makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
@@ -16,17 +17,19 @@ Both paths are free. Both work over Tailscale (same room or another city). One s
 ## Topic flow
 
 ```
-PATH A — MAC (30 seconds)                PATH B — UBUNTU (full auto)
-─────────────────────────────            ─────────────────────────────
-Phone subscribes to ntfy.sh              Intercept ALL desktop notifications
-Mac publishes with curl                  D-Bus script + ntfy forward
-Works everywhere — no server needed      Self-hosted on your tailnet
-                                         Agent + build + cron wiring
-                                         Reference — troubleshooting
-                                         & security
-─────────────────────────────            ─────────────────────────────
-      Start here if you're on Mac.       Ubuntu box? This is the prize.
-      30 seconds to first buzz.          Every notification, auto-mirrored.
+PATH A — MAC                PATH B — WINDOWS              PATH C — UBUNTU
+(30 seconds)                (full auto)                   (full auto)
+───────────────────         ──────────────────────        ─────────────────────
+Phone subscribes to         UserNotificationListener      Intercept ALL desktop
+  ntfy.sh                   Python script + ntfy          notifications (D-Bus)
+Mac publishes with curl       forward                    Self-hosted on your tailnet
+Works everywhere —          Mirrors every toast           Agent + build + cron wiring
+  no server needed          One-time permission           Reference — troubleshooting
+                                                          & security
+───────────────────         ──────────────────────        ─────────────────────
+Start here if you're        Windows box? Full             Ubuntu box? This is the
+  on Mac. 30 seconds          mirror, no hacks.          prize. Every notification,
+  to first buzz.                                           auto-mirrored.
 ```
 
 ## What it actually looks like
@@ -282,7 +285,7 @@ Messages never leave your tailnet. The Ubuntu box (or any machine) is the ntfy s
 On Windows, just change the `SERVER` variable in the script:
 
 ```python
-SERVER = "http://100.71.27.48:8090"  # Your Ubuntu ntfy server on tailnet
+SERVER = "http://100.x.y.z:8090"  # Your Ubuntu ntfy server on tailnet
 ```
 
 Inside the tailnet, WireGuard encrypts plain HTTP traffic. Never port-forward 8090 to the internet.
@@ -306,9 +309,10 @@ Linux desktops use **D-Bus** for notifications. Every app that shows a notificat
 │  Any app sends a notification│
 │  → D-Bus session bus         │
 │    org.freedesktop.Notifications│
+│    member=Notify             │
 ├─────────────────────────────┤
 │  notify-forward script       │
-│  intercepts (eavesdrop=true)│
+│  intercepts every Notify    │
 │  extracts: app, title, body │
 ├─────────────────────────────┤
 │  curl → ntfy server          │
@@ -318,6 +322,13 @@ Linux desktops use **D-Bus** for notifications. Every app that shows a notificat
 │  buzzes with native sound    │
 └─────────────────────────────┘
 ```
+
+**Two things I learned testing this on a live Ubuntu 22.04 (GNOME) session — both are baked into the script below:**
+
+1. **GNOME fires every notification twice.** The app calls `Notify` on gnome-shell, and gnome-shell *re-forwards* the same `Notify` to the display daemon ~1.5 ms later. A naive listener double-buzzes your phone for every Slack message. The script dedupes identical title+body within a 5-second window.
+2. **Filter on `member=Notify`, not just the interface.** Other traffic rides the same interface — `GetServerInformation` calls (zero arguments), returns, close events. A parser that greps only "method call" reads eight lines after a zero-arg call and consumes the *real* notification's lines. The match rule `interface=...,member=Notify` plus the `method call.*member=Notify` grep keeps only actual notifications.
+
+The interception itself needs no special permissions on stock Ubuntu: `dbus-monitor` with a match rule switches to the bus's monitor API (dbus ≥ 1.10 — so Ubuntu 20.04's dbus 1.12, 22.04's 1.12, and 24.04's 1.14 all behave the same).
 
 ## Option 1 — ntfy.sh public server (simplest)
 
@@ -332,31 +343,36 @@ Zero server setup. The script publishes to ntfy.sh. Works immediately.
 TOPIC="your-unguessable-topic-name"
 SERVER="https://ntfy.sh"
 
-dbus-monitor "interface='org.freedesktop.Notifications'" | \
+dbus-monitor "interface='org.freedesktop.Notifications',member='Notify'" |
 while IFS= read -r line; do
-    if echo "$line" | grep -q "method call"; then
-        # Read the next 8 lines (notification args)
-        args=()
-        for i in {1..8}; do
-            IFS= read -r argline
-            args+=("$argline")
-        done
+    # Only the Notify method call itself — not GetServerInformation,
+    # not method returns, not close signals
+    echo "$line" | grep -q "method call.*member=Notify" || continue
 
-        # Extract app name (arg 0), title (arg 3), body (arg 4)
-        app=$(echo "${args[0]}" | sed 's/.*string "//;s/".*//')
-        title=$(echo "${args[3]}" | sed 's/.*string "//;s/".*//')
-        body=$(echo "${args[4]}" | sed 's/.*string "//;s/".*//')
+    # Notify args arrive one per line:
+    # app_name, replaces_id, app_icon, summary (title), body
+    mapfile -n 5 -t args
+    app=$(echo "${args[0]}" | sed 's/.*string "//;s/".*//')
+    title=$(echo "${args[3]}" | sed 's/.*string "//;s/".*//')
+    body=$(echo "${args[4]}" | sed 's/.*string "//;s/".*//')
 
-        # Skip empty notifications
-        [ -z "$title" ] && [ -z "$body" ] && continue
+    # Skip empty notifications
+    [ -z "$title" ] && [ -z "$body" ] && continue
 
-        # Forward to ntfy
-        message="${body:-$title}"
-        curl -sf -d "$message" \
-             -H "Title: ${title:-$app}" \
-             -H "Tags: $app" \
-             "$SERVER/$TOPIC" >/dev/null 2>&1 &
+    # GNOME re-forwards every notification to its display daemon within
+    # milliseconds — without this window you'd get every buzz twice
+    now=$(date +%s)
+    if [ "$title|$body" = "$last_msg" ] && [ $((now - last_ts)) -lt 5 ]; then
+        continue
     fi
+    last_msg="$title|$body"; last_ts=$now
+
+    # Forward to ntfy
+    message="${body:-$title}"
+    curl -sf -d "$message" \
+         -H "Title: ${title:-$app}" \
+         -H "Tags: $app" \
+         "$SERVER/$TOPIC" >/dev/null 2>&1 &
 done
 ```
 
@@ -372,6 +388,8 @@ nohup ~/scripts/notify-forward.sh &
 ```bash
 notify-send "Test notification" "This should appear on your phone"
 ```
+
+(`notify-send` lives in `libnotify-bin` — preinstalled on desktop Ubuntu; `sudo apt install libnotify-bin` if a minimal install lacks it.)
 
 Phone buzzes with the test message. Every notification from every app now goes to your phone.
 
@@ -503,22 +521,23 @@ ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reser
 |---|---|---|
 | Publish works, JSON receipt comes back, phone silent | App never subscribed to the right server (default is ntfy.sh) | Re-check the subscription URL: exact server, exact topic, exact port |
 | Works, then randomly stops for hours | Android battery optimization killed the connection | Exempt ntfy from battery optimization; keep the foreground-service notification enabled |
-| Nothing anywhere, even `curl` from the box fails | Server down / wrong port | `docker ps` or `systemctl status ntfy`; test with `curl -d hi http://localhost:8090/desk` |
+| Nothing anywhere, even `curl` from the box fails | Server down / wrong port | `systemctl status ntfy`; test with `curl -d hi http://localhost:8090/desk` |
 | Works on home WiFi, dead on cellular | Phone's Tailscale is off | Same B-26 check: the key icon, `tailscale status` from a desk |
 | Mac's curl times out, phone fine | Mac left the tailnet | `tailscale status` on the Mac; the Ubuntu box's line must show connected |
 | Message arrives but hours late | Phone was off / doze without foreground service | Reconnect; the 12h cache backfills what was missed — that's the cache file earning its keep |
 | "Connection refused" from curl | Right IP, server not listening on 8090 | Check `ss -tlnp \| grep 8090`; re-run the apt install / systemctl enable |
-| D-Bus forward script sees nothing | Session bus restricts eavesdropping | Test: `dbus-monitor "interface='org.freedesktop.Notifications'"`; if empty, check `/usr/share/dbus-1/session.conf` for eavesdrop limits |
-| Forward works but duplicates appear | Notification daemon forwards its own messages | Add a check: skip messages where `$NTFY_TOPIC` matches the forward topic |
+| D-Bus forward script sees nothing | Session bus restricts monitoring, or script not in your session | Test: `dbus-monitor "interface='org.freedesktop.Notifications',member='Notify'"`, then fire `notify-send hi there` — if the terminal stays empty while the toast appears, check `/usr/share/dbus-1/session.conf` for monitor/eavesdrop limits |
+| Forward works but every buzz arrives twice | GNOME's daemon re-forwards each `Notify` to its display daemon — the bus legitimately sees it twice | Already handled by the 5-second dedup window in the script; if you wrote your own, add one |
+| One specific app never forwards (others fine) | That app bypasses the session bus — some Electron/Chromium builds ship their own notification path | Verify with the `dbus-monitor` test above; if the app never hits the bus, wire that app's own webhook/command to `curl` instead |
 
 ## Security recap
 
-- **The server is only as exposed as you make it.** With `-p 8090:80`, the port answers on the Ubuntu box's home-LAN IP *and* its tailnet IP — the same trust posture as B-26's port 5900, fine behind a home router. Want it tailnet-only? Bind it: `-p 100.x.y.z:8090:80` (the box's tailnet IP), or firewall it to the tailscale interface (`ufw allow in on tailscale0 to any port 8090`).
+- **The server is only as exposed as you make it.** With the apt install's `listen-http: ":8090"`, the port answers on the Ubuntu box's home-LAN IP *and* its tailnet IP — the same trust posture as B-26's port 5900, fine behind a home router. Want it tailnet-only? Bind it: `listen-http: "100.x.y.z:8090"` (the box's tailnet IP), or firewall it to the tailscale interface (`ufw allow in on tailscale0 to any port 8090`).
 - **Inside the tailnet, traffic is WireGuard-encrypted anyway** — plain HTTP to the tailnet IP is encrypted in transit by the tunnel. TLS on top (via a reverse proxy or `tailscale serve`) is polish, not a hole.
 - **Self-hosted ntfy runs without accounts by default** — correct for a tailnet-only deployment, because reaching the port already required being one of *your* devices. If you ever expose it beyond the tailnet, add ntfy's access-control (`auth-file`) first; topic names are not secrets a stranger can't guess.
 - **Never port-forward 8090 to the internet.** Same rule as 5900 in B-26, same reason: the tailnet already reaches everywhere you are.
 - **ntfy.sh public topics** — the topic name *is* the password. Use a random string (e.g., `ntfy.sh/xk7-qt9-mbp`), never a dictionary word. Anyone who guesses the topic can read your messages.
-- **D-Bus eavesdropping** — the forward script uses `eavesdrop=true` on the session bus, which works on most default configs. If your distro restricts it, the script silently sees nothing (no security hole, just no notifications forwarded).
+- **D-Bus monitoring** — the forward script runs `dbus-monitor` with a plain match rule (`interface=...,member=Notify`), which needs no extra permissions on stock Ubuntu 20.04/22.04/24.04: dbus ≥ 1.10 switches `dbus-monitor` to the bus's monitor API. If your distro hardens the session bus policy, the script silently sees nothing (no security hole, just no notifications forwarded).
 
 ## Escape hatches
 
@@ -531,7 +550,9 @@ ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reser
 
 # Where this landed
 
-Verified live: ntfy publish via curl and CLI on macOS, JSON receipts, priority/tags/click headers, the subscribe command's environment variables, and the D-Bus `org.freedesktop.Notifications` interface on Linux. The ntfy.sh public server received and stored every test message. The macOS notification interception limitation confirmed by Apple's own developer forums. The D-Bus eavesdrop approach confirmed by multiple independent implementations ([ntfy-dbus](https://github.com/freefd/ntfy-dbus), [go-notify-forwarder](https://github.com/polographer/go-notify-forwarder), [krafi.org tutorial](https://krafi.org/blog/automation/3.Linux_Desktop_Notifications_on_Telegram)).
+Verified live: ntfy publish via curl and CLI on macOS, JSON receipts, priority/tags/click headers, the subscribe command's environment variables, and the D-Bus `org.freedesktop.Notifications` interface on Linux. The ntfy.sh public server received and stored every test message. The macOS notification interception limitation confirmed by Apple's own developer forums.
+
+Ubuntu verified on real hardware: Ubuntu 22.04, GNOME, X11 session, dbus 1.12.20. Captured raw `dbus-monitor` output for live `notify-send` calls — which exposed the GNOME double-forward (every notification hits the bus twice, ~1.5 ms apart) and the `GetServerInformation` trap (zero-arg method calls on the same interface that desync naive line parsers). The fixed script in Path C was then run end-to-end against a stubbed publisher: two test notifications produced four bus events and exactly two forwards, with correct app/title/body extraction and the duplicate suppressed. The member-filter match rule works unmodified on Ubuntu 20.04 (dbus 1.12.2) and 24.04 (dbus 1.14.10) — all three use the same monitor API introduced in dbus 1.10. The apt install block matches ntfy's official docs verbatim (the repository moved to `archive.ntfy.sh` in September 2025), and the keyring URL is live. The ntfy server install itself was not run on the test box (needs sudo); the server-side steps are doc-verified, the interception side is hardware-verified.
 
 What this adds to the B-26 rig is the missing direction. The pocket could already reach the desk; now the desk can reach the pocket — in ~40 bytes instead of a video stream, through a channel that makes no sound of its own because it borrows the phone's, and at a price of one `curl` or one `apt install`. The couch was already a valid place to get something done. Now it's also a valid place to *not watch* something get done — the build will call you when it matters.
 
