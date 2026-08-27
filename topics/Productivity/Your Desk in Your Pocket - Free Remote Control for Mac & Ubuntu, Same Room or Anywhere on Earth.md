@@ -28,7 +28,7 @@ Why VNC, not SSH                         The port-forward check,             RFB
  └─ Ubuntu: x11vnc                       Why raw VNC-over-internet           Why VNC hotkeys fire
 Phone client: RealVNC Viewer              is still wrong                       and SSH can't (XTEST)
 Driving the desktop: gestures,           Tailscale: what, why, trustworthy   WireGuard, NAT traversal,
- modifiers, tmux cheat sheet             Desktop + phone setup               and DERP
+ modifiers, keystroke shortcuts             Desktop + phone setup               and DERP
 Reference — troubleshooting & security   What changes vs. Part 1 (a table)   Reference — failure-mode map
                                          Reference — security & escape        (symptom → layer → check)
 ───────────────────────────────────      ─────────────────────────────       ──────────────────────────────
@@ -52,7 +52,7 @@ One protocol makes all of it work — **VNC**, served by what your OS already sh
 
 ## The route this post takes
 
-1. **Part 1 — Same network.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, typing with your normal mobile keyboard, and a tmux cheat sheet for thumb-friendly terminals.
+1. **Part 1 — Same network.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, and typing with your normal mobile keyboard.
 2. **Part 2 — Over the internet.** Why "just port-forward 5900" is the wrong answer (and often an impossible one), what a mesh VPN actually does, and the Tailscale build that swaps every LAN IP for a permanent private one — the whole Part 1 rig unchanged in shape.
 3. **Part 3 — Deep dive.** The RFB protocol and why the VNC password stops at 8 characters, why VNC input triggers global hotkeys when an SSH session can't, and how WireGuard NAT traversal gets two firewalled devices talking.
 
@@ -65,7 +65,7 @@ The one table worth internalizing before anything else — **the same phone app 
 | Address (Part 1) | `<ubuntu-lan-ip>:5900` | `<mac-lan-ip>:5900` |
 | Address (Part 2) | tailnet IP, permanent | tailnet IP, permanent |
 | Password | the `x11vnc -storepasswd` one | the 8-character VNC password |
-| Terminals by keystroke | tmux | tmux — same reasoning, no Mac-specific parts |
+| OS-specific extras | none needed | none needed |
 
 Security and license notes for every tool close the post.
 
@@ -110,21 +110,18 @@ What you *don't* need, relative to Ubuntu below: no display-number hunting, no X
 x11vnc shares and drives the **existing** desktop session — the one you're actually logged into, with your apps already open — rather than spawning a fresh virtual one. It's in the standard repos:
 
 <div align="center">
-  <img src="../../assets/B-26/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, tmux, and any global hotkey listener all respond as if the inputs were physical."/>
+  <img src="../../assets/B-26/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical."/>
   <br/>
   <sub>The Ubuntu control path — x11vnc turns the desktop session you're already logged into into a VNC server.</sub>
 </div>
 
 ```bash
-sudo apt install -y x11vnc tmux
+sudo apt install -y x11vnc
 ```
-
-(`tmux` rides along here because it's part of making terminals phone-drivable — see the cheat sheet further down. Ubuntu ships it on some images but not others.)
 
 ### Run it
 
 ```bash
-tmux new -s vnc
 x11vnc -display :<real-display-number> -auth guess -usepw -shared -repeat -forever
 ```
 
@@ -197,7 +194,7 @@ Three ways, in the order actually worth trying on a phone:
 
 - **The desktop's hot corner (no keys needed at all)**: on GNOME, tap the very top-left pixel of the mirrored screen, just under where "Activities" would show — the overview opens with every open window as a thumbnail; tap the one you want. macOS has the same feature: System Settings → Desktop & Dock → Hot Corner (e.g. top-left → Mission Control). This is the one to reach for first: it needs no modifier key, works even if your VNC client's extra-keys toolbar doesn't expose `Tab` (some builds don't), and is one tap instead of a hold-plus-tap combo.
 - **Alt+Tab / Cmd+Tab, if your client has both keys**: hold `Alt` (or `Cmd` on the Mac) and tap `Tab` from the extra-keys toolbar to cycle, same as at a physical keyboard — same toggle-then-tap mechanism as the multi-key shortcuts below. Falls back to the hot corner if `Tab` isn't in your toolbar's default row.
-- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Keep everything inside one tmux session instead and switch panes/windows by keystroke (`Ctrl+b` + number, see the cheat sheet below). Works identically on the Mac.
+- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Use the desktop's window overview (hot corner or Alt+Tab) instead.
 
 All three are the same underlying trick: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
 
@@ -225,7 +222,6 @@ You'll scroll more than you'll click. **Two fingers swiped up/down sends real mo
 
 The one place it needs help is the terminal, and only because terminals handle wheels oddly at the desk too:
 
-- **Inside tmux**: `set -g mouse on` (already in the cheat sheet below) makes the wheel scroll panes directly — this is the fix that matters, because tmux is where a phone-driven terminal lives.
 - **Plain GUI terminal, Ubuntu**: the wheel scrolls the terminal's own scrollback in GNOME Terminal as usual — two-finger swipe works out of the box.
 - **Plain Terminal on the Mac**: same — the wheel drives the window's scrollback natively.
 
@@ -237,11 +233,11 @@ The four things you'll do a hundred times, in one place. Modifier mechanics are 
 
 | Everyday action | How, from the phone |
 |---|---|
-| **Open a new terminal tab** on the desktop | Same combo as at the desk: `Ctrl+Shift+T` (Ubuntu's GNOME Terminal) — tap Ctrl, tap Shift, tap T. Mac Terminal: `Cmd+T` (Super toggle, then T). Inside tmux it's one modifier instead: `Ctrl+b` then `c` — a new window, the "tab" that survives disconnects |
+| **Open a new terminal tab** on the desktop | Same combo as at the desk: `Ctrl+Shift+T` (Ubuntu's GNOME Terminal) — tap Ctrl, tap Shift, tap T. Mac Terminal: `Cmd+T` (Super toggle, then T) |
 | **Right-click** | Tap with two fingers at once (section above) |
 | **Stop a running command (`Ctrl+C`)** | Tap **Ctrl** in the extra-keys row (it arms, stays highlighted), tap `c` → sends `Ctrl+C`, which **interrupts the foreground process**. It closes nothing — not the tab, not the session |
 | **Close the tab / end the shell** | `exit`, or `Ctrl+D` (Ctrl toggle + `d`) — the thing people wrongly reach for `Ctrl+C` to do. Different key, different job |
-| **Done — end the phone session** | Just disconnect from the toolbar; everything keeps running on the desktop. In tmux, detach first — `Ctrl+b` then `d` — and the next session's `tmux attach` lands exactly where you left off |
+| **Done — end the phone session** | Just disconnect from the toolbar; everything keeps running on the desktop |
 
 The pair worth memorizing: **`Ctrl+C` stops a program, `Ctrl+D` ends the shell.** C is "interrupt what's running," D is "I'm leaving" — and neither ever touches the VNC session itself. (Running bVNC against the Ubuntu box instead of RealVNC Viewer? Same plays — its Ctrl toggle arms the same way, and its right-click is a hold-then-second-finger-tap gesture.)
 
@@ -266,7 +262,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 |---|---|
 | Middle-click paste (Linux's best-kept secret) | Tap with three fingers at once — RealVNC's native middle click (or a Bluetooth mouse's middle button) |
 | Zoom the remote screen | Pinch — client-side zoom, sharp on a phone's high-DPI panel, touches nothing on the desktop |
-| Scroll a terminal | Two-finger swipe (with tmux mouse mode on) |
+| Scroll a terminal | Two-finger swipe (works in most terminals; check scrollback settings if not) |
 | Move a window | Touch mode: drag its title bar like a real finger would |
 | Dismiss a dialog / cancel a popup | `Esc` from the extra-keys row — one tap, no modifiers |
 
@@ -301,32 +297,6 @@ Two cautions from the terminal-shaped parts of this rig:
 
 - **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Your keyboard app's settings (its own toolbar, or Settings → System → Languages & input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
 - **Voice typing lands wherever the cursor is.** Same rule as autocorrect, stronger stakes: check the focused window before you speak, because the words land as keystrokes the instant the keyboard commits them.
-
-### tmux, if you've never used it
-
-tmux is the answer to "alt-tabbing between GUI terminal windows by touch is fiddly" — keep everything in one terminal window, switch by keystroke. Everything below starts with the prefix `Ctrl+b`, released, *then* the next key — it's tapped in sequence, not held together.
-
-| Want to... | Keys |
-|---|---|
-| New named session | `tmux new -s <name>` |
-| Reattach later | `tmux attach -t <name>` |
-| List sessions | `tmux ls` |
-| **Detach** (leave running) | `Ctrl+b` then `d` |
-| New window | `Ctrl+b` then `c` |
-| Switch to window N | `Ctrl+b` then `<number>` |
-| Next / previous window | `Ctrl+b` then `n` / `p` |
-| Split pane | `Ctrl+b` then `%` (vertical) / `"` (horizontal) |
-| **Close a pane/window** | `exit` or `Ctrl+d` — an ordinary shell command, not a tmux shortcut |
-| **Kill a whole session** | `tmux kill-session -t <name>` |
-| Scroll back | `Ctrl+b` then `[`, arrow keys, `q`/`Esc` to exit |
-
-The thing that trips people up: there's no tmux-specific "close" shortcut. You close a pane exactly like you'd close a normal terminal. `Ctrl+b`-prefixed shortcuts only *navigate* — they never end a session.
-
-Scrolling by typing `Ctrl+b [` on a touch keyboard is annoying — turn on mouse mode instead so the VNC client's own two-finger swipe scrolls the pane directly:
-
-```bash
-tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permanently
-```
 
 ### A note on global hotkeys
 
@@ -363,7 +333,7 @@ pgrep -af x11vnc     # nothing = not running
 ss -tln | grep 5900  # nothing = nothing listening
 ```
 
-If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output (`tmux capture-pane -p -t <session>` if it's not currently on screen). The two causes that hit here:
+If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output. The two causes that hit here:
 
 - **Wrong display number.** `-display :0` failed with an Xauthority error on a session that was actually `:1`. Check with `who` (`<user>  :1  <date>` — the number after the colon) from a terminal that's part of the actual graphical session, not an unrelated SSH shell.
 - **Xauthority not at the default path.** Modern GNOME/gdm often keeps it at `/run/user/<uid>/gdm/Xauthority` instead of `~/.Xauthority`. `-auth guess` finds it automatically; the explicit fallback is `-auth /run/user/<uid>/gdm/Xauthority`.
@@ -512,7 +482,7 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 | Phone client | RealVNC Viewer | **unchanged app** — new target IP |
 | Desktop address phone dials | LAN IP, re-check after router re-leases | **tailnet IP — permanent** |
 | ufw rule (Ubuntu) | `allow from 192.168.x.0/24` | `allow from 100.64.0.0/10` (or the phone's tailnet IP) |
-| tmux, hotkeys, everything else | working | **unchanged** |
+| hotkeys, everything else | working | **unchanged** |
 
 The one-line summary: **Part 2 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, one edited IP.
 
@@ -664,7 +634,7 @@ On a Mac, the server is `screensharingd` — one command answers both questions:
 sudo lsof -iTCP:5900 -sTCP:LISTEN   # expect: screensharingd LISTEN
 ```
 
-Empty on either = the server side is down — Ubuntu: re-login graphically (autostart fires on login) or start it in a tmux session; Mac: System Settings → General → Sharing → Screen Sharing got flipped off — flip it back on (and re-check the "VNC viewers may control screen with password" setting).
+Empty on either = the server side is down — Ubuntu: re-login graphically (autostart fires on login); Mac: System Settings → General → Sharing → Screen Sharing got flipped off — flip it back on (and re-check the "VNC viewers may control screen with password" setting).
 
 ### 4. What the phone should dial
 
@@ -728,7 +698,6 @@ The rig is deliberately small: two servers you mostly already have (one built in
 | [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | Phone client, both OSes | Free for personal use; used here in direct-connection mode with no account — nothing routed via the vendor's cloud |
 | [Tailscale](https://tailscale.com/) | Mesh VPN (Part 2) | Free personal plan; open clients ([Android](https://github.com/tailscale/tailscale-android), [iOS](https://github.com/tailscale/tailscale-ios), [macOS/CLI](https://github.com/tailscale/tailscale)); coordination service is closed; WireGuard end-to-end, SOC 2 Type II |
 | [Headscale](https://github.com/juanfont/headscale) | Self-hosted control plane (escape hatch) | Open source, BSD-3 |
-| [tmux](https://github.com/tmux/tmux) | Terminal multiplexer | ISC; 20-year track record, no network surface |
 
 Security notes worth acting on: classic VNC auth is a DES challenge-response capped at 8 characters (Part 3 explains why) — fine behind a LAN rule or a tailnet, never fine exposed to the internet; and never port-forward 5900, on either OS, for any reason. The whole point of Part 2's design is that you never have to.
 

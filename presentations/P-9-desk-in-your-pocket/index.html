@@ -389,9 +389,8 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
   <section class="slide compact" data-title="The Ubuntu half: one command">
     <div class="slide-num">06 · part 1 — Ubuntu</div>
     <h3 class="section">The Ubuntu half: <em>one package, one command</em>.</h3>
-    <div class="code-block"><span class="prompt">$</span> sudo apt install -y x11vnc tmux
+    <div class="code-block"><span class="prompt">$</span> sudo apt install -y x11vnc
 <span class="c"># find the real display number first:  who   →  "&lt;user&gt;  :N  &lt;date&gt;"</span>
-<span class="prompt">$</span> tmux new -s vnc
 <span class="prompt">$</span> x11vnc -display :&lt;N&gt; -auth guess -usepw -shared -repeat -forever</div>
     <div class="fig">
       <img src="../../assets/B-26/control-path-ubuntu.png" alt="Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop: VNC over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session" loading="lazy">
@@ -439,7 +438,7 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     <h3 class="section">Your fingers are the mouse: <em>taps are clicks</em>.</h3>
     <ul class="bullets">
       <li><strong>One finger = left click. Two fingers at once = right-click.</strong> <span class="muted">Three = middle click; double-tap-hold-drag = select text.</span></li>
-      <li><strong>Scroll = two-finger swipe — a real wheel event.</strong> <span class="muted">Pages, lists, editors scroll natively on both OSes; terminal scrollback works out of the box, tmux needs <span class="mono">set -g mouse on</span>.</span></li>
+      <li><strong>Scroll = two-finger swipe — a real wheel event.</strong> <span class="muted">Pages, lists, editors scroll natively on both OSes; terminal scrollback works out of the box.</span></li>
       <li><strong>Modifier keys are toggles, not holds.</strong> <span class="muted">A touchscreen can't chord. Tap <span class="mono">Ctrl</span> in the toolbar (stays armed) → tap the key → the combo fires and releases. Stack <span class="mono">Ctrl</span>, <span class="mono">Shift</span>, then the key.</span></li>
       <li><strong>Switch apps via the hot corner first.</strong> <span class="muted">Tap the top-left pixel (GNOME) or a macOS hot corner → window overview → tap. One tap, no modifier.</span></li>
       <li><strong>Right-click-heavy session? Pair a Bluetooth mouse</strong> — its real right button just works. <span class="muted"><a href="https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device" target="_blank" rel="noopener">Gesture reference ↗</a>. Same plays in bVNC; its right-click is hold + second-finger tap.</span></li>
@@ -452,12 +451,12 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
     <div class="slide-num">10 · part 1 — everyday moves</div>
     <h3 class="section">The moves you'll use <em>every single day</em>.</h3>
     <ul class="bullets">
-      <li><strong>Reopen a closed tab:</strong> arm <span class="mono">Ctrl</span> + <span class="mono">Shift</span>, tap <span class="mono">T</span> — or <span class="mono">Ctrl+b c</span> for a new tmux window.</li>
+      <li><strong>Reopen a closed tab:</strong> arm <span class="mono">Ctrl</span> + <span class="mono">Shift</span>, tap <span class="mono">T</span>.</li>
       <li><strong>Stop a runaway command:</strong> <span class="mono">Ctrl</span> toggle + <span class="mono">c</span>. <span class="muted"><span class="mono">Ctrl+C</span> stops the program; <span class="mono">Ctrl+D</span> ends the shell — neither touches the VNC session.</span></li>
       <li><strong>Fix a line without arrows:</strong> <span class="mono">Ctrl+A / Ctrl+E</span> start/end, <span class="mono">Ctrl+W</span> delete word — readline bindings work over VNC exactly like locally.</li>
       <li><strong>Done? Just disconnect.</strong> The desktop keeps running; your session waits. <span class="muted">Close a shell with <span class="mono">exit</span> when you actually mean it.</span></li>
     </ul>
-    <div class="callout accent"><b>Live in one tmux session</b> — switch terminals by keystroke (<span class="mono">Ctrl+b</span> then a number) instead of hunting window thumbnails. <span class="mono">set -g mouse on</span> lets the client's two-finger swipe scroll panes directly.</div>
+    <div class="callout accent"><b>Switch terminals by keystroke</b> — use the desktop's window overview (hot corner or Alt+Tab) instead of hunting window thumbnails.</div>
     <div class="foot">Tip for anything you fire from the phone: pick single-key global hotkeys (<span class="mono">End</span>, <span class="mono">Insert</span>) — every combo costs an extra arming tap.</div>
   </section>
 
@@ -652,7 +651,7 @@ td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
       <a class="ghost" href="https://tailscale.com/blog/how-tailscale-works" target="_blank" rel="noopener">↗ How Tailscale works — NAT traversal &amp; DERP</a>
       <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
     </div>
-    <div class="foot">Tools: macOS Screen Sharing (built-in) · x11vnc (GPL-2.0) · RealVNC Viewer (free, direct mode) · Tailscale (free personal, WireGuard E2E) · tmux (ISC)</div>
+    <div class="foot">Tools: macOS Screen Sharing (built-in) · x11vnc (GPL-2.0) · RealVNC Viewer (free, direct mode) · Tailscale (free personal, WireGuard E2E)</div>
   </section>
 
 </div>

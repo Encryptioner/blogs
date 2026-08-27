@@ -220,7 +220,7 @@ Ubuntu has no daily start/stop at all — server, VPN, and firewall all persist;
 | Desktop address phone dials | LAN IP, re-check after router re-leases | **tailnet IP — permanent** |
 | ufw rule | `allow from 192.168.x.0/24` | `allow from 100.64.0.0/10` (or the phone's tailnet IP) |
 | DroidCam target | phone's WiFi IP | phone's tailnet IP |
-| Handy, tmux, hotkeys, everything else | working | **unchanged** |
+| Handy, hotkeys, everything else | working | **unchanged** |
 
 The one-line summary: **Part 3 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, two edited IPs.
 

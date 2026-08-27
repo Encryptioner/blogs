@@ -51,12 +51,12 @@
   <text x="550" y="211" text-anchor="middle" font-size="11" fill="#1e40af">mouse events + shares screen</text>
   <text x="550" y="230" text-anchor="middle" font-size="10.5" fill="#3b82f6">-shared -repeat -auth guess</text>
 
-  <!-- tmux -->
+  <!-- terminals -->
   <rect x="695" y="150" width="230" height="100" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <text x="810" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">tmux session</text>
-  <text x="810" y="196" text-anchor="middle" font-size="11" fill="#92400e">all terminals in one window,</text>
-  <text x="810" y="211" text-anchor="middle" font-size="11" fill="#92400e">switch panes by keystroke</text>
-  <text x="810" y="230" text-anchor="middle" font-size="10.5" fill="#b45309">Ctrl+b, then number</text>
+  <text x="810" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">Terminals</text>
+  <text x="810" y="196" text-anchor="middle" font-size="11" fill="#92400e">same real keystrokes —</text>
+  <text x="810" y="211" text-anchor="middle" font-size="11" fill="#92400e">check builds, nudge agents</text>
+  <text x="810" y="230" text-anchor="middle" font-size="10.5" fill="#b45309">hot corner or Alt+Tab to switch</text>
 
   <line x1="550" y1="250" x2="550" y2="280" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
   <line x1="810" y1="250" x2="810" y2="280" stroke="#d97706" stroke-width="2" marker-end="url(#arrowGreen)"/>

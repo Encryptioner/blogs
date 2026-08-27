@@ -26,7 +26,7 @@ Why VNC, not SSH                            Handy — the dictation engine (macO
 Phone client: RealVNC Viewer (one app,        └─ macOS mic relay: AudioRelay + BlackHole
  both machines; bVNC optional for Ubuntu)       (or an iPhone's Continuity mic)
 Driving the desktop: gestures, modifiers,   Reference — troubleshooting, daily
- tmux cheat sheet                            scenarios, teardown
+ keystroke shortcuts                        scenarios, teardown
 Reference — troubleshooting & security
 ────────────────────────────────────        ──────────────────────────────────────────
              └──► WHAT'S NEXT: same rig off the home network (Part 3) + how it all
@@ -49,7 +49,7 @@ Two tools make this work, both free: a **VNC remote-control rig** (built from wh
 
 ## The route this post takes
 
-1. **Part 1 — Remote control from the phone.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, typing with your normal mobile keyboard, and a tmux cheat sheet for thumb-friendly terminals.
+1. **Part 1 — Remote control from the phone.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, and typing with your normal mobile keyboard.
 2. **Part 2 — Voice dictation.** Handy on both OSes (models, hotkey tuning, the Wayland question), plus wiring the phone's mic in as a system input: DroidCam + PulseAudio loopback on Ubuntu, AudioRelay + BlackHole (or an iPhone's Continuity mic) on macOS. Start/stop scripts and troubleshooting close it out.
 
 Read Part 1 fully, then *your* machine's subsection in Part 2 — skip the other OS wherever you like; each route is self-contained.
@@ -62,7 +62,7 @@ The one table worth internalizing before anything else — **the same phone app 
 | Phone VNC client | **RealVNC Viewer** (Android/iOS) | **RealVNC Viewer** — same app, second entry |
 | Phone mic → system input *(Part 2)* | DroidCam + PulseAudio loopback | AudioRelay + BlackHole — or iPhone Continuity mic |
 | Switch default input *(Part 2)* | `pactl set-default-source` | `SwitchAudioSource -t input -s …` or Sound settings |
-| Terminals by keystroke | tmux | tmux — same reasoning, no Mac-specific parts |
+| OS-specific extras | none needed | none needed |
 
 Security and license notes for every tool close the post.
 
@@ -107,21 +107,18 @@ What you *don't* need, relative to Ubuntu below: no display-number hunting, no X
 x11vnc shares and drives the **existing** desktop session — the one you're actually logged into, with your apps already open — rather than spawning a fresh virtual one. It's in the standard repos:
 
 <div align="center">
-  <img src="../../assets/B-24/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, tmux, and any global hotkey listener all respond as if the inputs were physical."/>
+  <img src="../../assets/B-24/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical."/>
   <br/>
   <sub>The Ubuntu control path — x11vnc turns the desktop session you're already logged into into a VNC server.</sub>
 </div>
 
 ```bash
-sudo apt install -y x11vnc tmux
+sudo apt install -y x11vnc
 ```
-
-(`tmux` rides along here because it's part of making terminals phone-drivable — see the cheat sheet further down. Ubuntu ships it on some images but not others.)
 
 ### Run it
 
 ```bash
-tmux new -s vnc
 x11vnc -display :<real-display-number> -auth guess -usepw -shared -repeat -forever
 ```
 
@@ -198,7 +195,7 @@ Three ways, in the order actually worth trying on a phone:
 
 - **The desktop's hot corner (no keys needed at all)**: on GNOME, tap the very top-left pixel of the mirrored screen, just under where "Activities" would show — the overview opens with every open window as a thumbnail; tap the one you want. macOS has the same feature: System Settings → Desktop & Dock → Hot Corner (e.g. top-left → Mission Control). This is the one to reach for first: it needs no modifier key, works even if your VNC client's extra-keys toolbar doesn't expose `Tab` (some builds don't), and is one tap instead of a hold-plus-tap combo.
 - **Alt+Tab / Cmd+Tab, if your client has both keys**: hold `Alt` (or `Cmd` on the Mac) and tap `Tab` from the extra-keys toolbar to cycle, same as at a physical keyboard — same toggle-then-tap mechanism as the multi-key shortcuts below. Falls back to the hot corner if `Tab` isn't in your toolbar's default row.
-- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Keep everything inside one tmux session instead and switch panes/windows by keystroke (`Ctrl+b` + number, see the cheat sheet below). Works identically on the Mac.
+- **Between terminals/shells specifically**: don't alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it's worth. Use the desktop's window overview (hot corner or Alt+Tab) instead.
 
 All three are the same underlying trick: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
 
@@ -236,7 +233,7 @@ The four things you'll do a hundred times from the couch, in one place. Modifier
 | **Right-click** | Tap with two fingers at once | Hold one finger, tap with a second — the full guide is the section above |
 | **Stop a running command (`Ctrl+C`)** | Tap **Ctrl** in the extra-keys row, tap `c` → sends `Ctrl+C`, which **interrupts the foreground process**. It closes nothing — not the tab, not the session | Identical: Ctrl toggle in its keys row, then `c` |
 | **Close the tab / end the shell** | `exit`, or `Ctrl+D` (Ctrl toggle + `d`) — the thing people wrongly reach for `Ctrl+C` to do. Different key, different job | Same |
-| **Done — end the phone session** | Disconnect from the toolbar; the desktop keeps running. In tmux, detach first (`Ctrl+b` then `d`) so reattach lands where you left | Same |
+| **Done — end the phone session** | Disconnect from the toolbar; the desktop keeps running | Same |
 
 The pair worth memorizing: **`Ctrl+C` stops a program, `Ctrl+D` ends the shell.** C is "interrupt what's running," D is "I'm leaving" — and neither ever touches the VNC session itself.
 
@@ -261,7 +258,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 |---|---|
 | Middle-click paste (Linux's best-kept secret) | Tap with three fingers at once — RealVNC's native middle click (or a Bluetooth mouse's middle button) |
 | Zoom the remote screen | Pinch — client-side zoom, sharp on a phone's high-DPI panel, touches nothing on the desktop |
-| Scroll a terminal | Two-finger swipe (with tmux mouse mode on) |
+| Scroll a terminal | Two-finger swipe (works in most terminals; check scrollback settings if not) |
 | Move a window | Touch mode: drag its title bar like a real finger would |
 | Dismiss a dialog / cancel a popup | `Esc` from the extra-keys row — one tap, no modifiers |
 
@@ -295,32 +292,6 @@ Two cautions from the terminal-shaped parts of this rig:
 
 - **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Your keyboard app's settings (its own toolbar, or Settings → System → Languages & input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
 - **Voice typing works — mind where it transcribes.** Any keyboard with voice-typing support works over VNC (tested live): the keyboard's speech engine does the transcribing, and the committed text arrives as keystrokes like any other typing. The catch isn't injection — it's that most keyboards dictate through their maker's cloud speech service, the opposite of this rig's offline promise. Part 2 exists for the local version: the phone's mic streaming to the desktop, transcribed **locally** by Handy, landing in any app — no cloud in the loop.
-
-### tmux, if you've never used it
-
-tmux is the answer to "alt-tabbing between GUI terminal windows by touch is fiddly" — keep everything in one terminal window, switch by keystroke. Everything below starts with the prefix `Ctrl+b`, released, *then* the next key — it's tapped in sequence, not held together.
-
-| Want to... | Keys |
-|---|---|
-| New named session | `tmux new -s <name>` |
-| Reattach later | `tmux attach -t <name>` |
-| List sessions | `tmux ls` |
-| **Detach** (leave running) | `Ctrl+b` then `d` |
-| New window | `Ctrl+b` then `c` |
-| Switch to window N | `Ctrl+b` then `<number>` |
-| Next / previous window | `Ctrl+b` then `n` / `p` |
-| Split pane | `Ctrl+b` then `%` (vertical) / `"` (horizontal) |
-| **Close a pane/window** | `exit` or `Ctrl+d` — an ordinary shell command, not a tmux shortcut |
-| **Kill a whole session** | `tmux kill-session -t <name>` |
-| Scroll back | `Ctrl+b` then `[`, arrow keys, `q`/`Esc` to exit |
-
-The thing that trips people up: there's no tmux-specific "close" shortcut. You close a pane exactly like you'd close a normal terminal. `Ctrl+b`-prefixed shortcuts only *navigate* — they never end a session.
-
-Scrolling by typing `Ctrl+b [` on a touch keyboard is annoying — turn on mouse mode instead so the VNC client's own two-finger swipe scrolls the pane directly:
-
-```bash
-tmux set -g mouse on          # or add "set -g mouse on" to ~/.tmux.conf permanently
-```
 
 ### A note on global hotkeys
 
@@ -357,7 +328,7 @@ pgrep -af x11vnc     # nothing = not running
 ss -tln | grep 5900  # nothing = nothing listening
 ```
 
-If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output (`tmux capture-pane -p -t <session>` if it's not currently on screen). The two causes that hit here:
+If it's not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes "crashed instantly" from "idle and fine" unless you read the output. The two causes that hit here:
 
 - **Wrong display number.** `-display :0` failed with an Xauthority error on a session that was actually `:1`. Check with `who` (`<user>  :1  <date>` — the number after the colon) from a terminal that's part of the actual graphical session, not an unrelated SSH shell.
 - **Xauthority not at the default path.** Modern GNOME/gdm often keeps it at `/run/user/<uid>/gdm/Xauthority` instead of `~/.Xauthority`. `-auth guess` finds it automatically; the explicit fallback is `-auth /run/user/<uid>/gdm/Xauthority`.
@@ -463,7 +434,7 @@ Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — i
 The mic half of the Ubuntu rig: **DroidCam** (Android app + Linux client) streams the phone's mic over WiFi into a virtual PulseAudio source. Since Handy just follows the system default input device, setting that virtual source as default *is* the entire integration.
 
 <div align="center">
-  <img src="../../assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer and DroidCam connects over local WiFi to an Ubuntu desktop. The VNC client's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, tmux, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
+  <img src="../../assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer and DroidCam connects over local WiFi to an Ubuntu desktop. The VNC client's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it."/>
   <br/>
   <sub>The Ubuntu rig: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
 </div>
@@ -547,16 +518,14 @@ if ! pgrep -x x11vnc >/dev/null; then
   exit 1
 fi
 
-tmux has-session -t dc 2>/dev/null && tmux kill-session -t dc   # clear a stale session first
-tmux new -d -s dc
-tmux send-keys -t dc "droidcam-cli -a ${PHONE_IP} 4747" Enter
+nohup droidcam-cli -a "${PHONE_IP}" 4747 >/dev/null 2>&1 &
 sleep 3
 
 if pactl list sources short | grep -q "Loopback.*RUNNING"; then
   pactl set-default-source alsa_input.hw_Loopback_1_0
   echo "phone mic live — connect from the phone and dictate"
 else
-  echo "loopback source not RUNNING yet — check: tmux capture-pane -p -t dc"
+  echo "loopback source not RUNNING yet — check: pactl list sources short | grep Loopback"
 fi
 ```
 
@@ -591,7 +560,7 @@ set -euo pipefail
 
 DESKTOP_MIC="${1:?Usage: dictation-remote-stop.sh <desktop-mic-source-name>}"
 
-tmux kill-session -t dc 2>/dev/null || true
+pkill -f "droidcam-cli" 2>/dev/null || true
 pactl set-default-source "${DESKTOP_MIC}"
 echo "phone mic session stopped, desktop mic restored"
 ```
@@ -659,7 +628,7 @@ The setup above is a one-time build. What follows is what to check when dictatio
 | Done for now / stepping away | Run the stop script. Leave x11vnc running — it's fine indefinitely, low overhead — just stop the mic stream so it's not holding your phone's mic and battery for nothing. |
 | Need the desktop mic back quickly (e.g. a call) | `pactl set-default-source <desktop-mic>` (Ubuntu) / switch Input in Sound settings (Mac) — instant, no need to stop the phone stream first. |
 | WiFi drops and reconnects | VNC: just reconnect — `-shared` means a dead old connection won't block the new one. DroidCam: the client process usually needs a manual restart — rerun the start command. |
-| Phone's IP changed (DHCP re-lease) | Check the new IP on the DroidCam app screen, kill the `dc` tmux session, reconnect with the new IP. |
+| Phone's IP changed (DHCP re-lease) | Check the new IP on the DroidCam app screen, kill the `droidcam-cli` process, reconnect with the new IP. |
 | Long idle session, phone screen off | Android's battery optimization can throttle or kill a backgrounded app's mic stream over time — exclude DroidCam/AudioRelay from battery optimization if you're leaving this running for hours; for a quick check-in it won't matter. |
 | Desktop reboots or loses power | Ubuntu: x11vnc's autostart only fires **after graphical login** — someone has to log in locally once. Mac: Screen Sharing serves the login window, so you can VNC in and log in remotely. |
 | Away from home / different WiFi | Nothing to do — the rig is firewalled to your home subnet, so it's simply unreachable from outside it. That's the intended behavior, not a setting to flip. (See the roadmap below for taking it past the LAN.) |
@@ -726,7 +695,6 @@ Every tool in this post, checked against primary sources — the repo's actual L
 |---|---|---|---|---|---|---|
 | [Handy](https://github.com/cjpais/Handy) | Dictation (macOS/Ubuntu) | CJ Pais (solo) | MIT (name/logo excepted) | ✅ | None found | Acceptable — active (v0.9.5, Aug 2026), fully offline, no telemetry found; young solo-maintained project, no third-party audit |
 | [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | VNC client (Android/iOS/desktop) | RealVNC Ltd | Proprietary, free to use | ❌ | None found for the client (vendor's server products have past CVEs; not used here) | Acceptable — mature vendor, original VNC authors; used here in direct-connection mode with no account, nothing routed via their cloud |
-| [tmux](https://github.com/tmux/tmux) | Terminal multiplexer | Nicholas Marriott et al. | ISC | ✅ | 1 real CVE (CVE-2020-27347, fixed in 3.1c); a 2022 one was disputed and rejected by MITRE | **Publicly trusted** — 20-year track record, no network surface |
 | [x11vnc](https://github.com/LibVNC/x11vnc) | VNC server (Ubuntu) | LibVNC org | GPL | ✅ | Several (2018–2020, incl. CVE-2020-29074) — all addressed by 0.9.17 | Acceptable — actively maintained; use TLS/SSH on untrusted LANs (see below) |
 | [bVNC](https://github.com/iiordanov/remote-desktop-clients) | VNC client (Android, optional) | Iordan Iordanov | GPL-3.0 | ✅ (free = same code as Pro) | None specific; bundles libvncclient which has 2026 decoder CVEs (client-side, malicious-server scenario) | Acceptable — mature; SSH/TLS tunneling built in |
 | [DroidCam](https://droidcam.app/) | Phone mic/camera → desktop | Dev47Apps | GPL-2.0 **Linux client only** — Android/desktop apps closed | ⚠️ partial | None found (weak evidence — closed source has no audit surface) | **Concerns** — see below |
