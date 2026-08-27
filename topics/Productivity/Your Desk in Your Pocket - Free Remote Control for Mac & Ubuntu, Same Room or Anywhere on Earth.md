@@ -2,61 +2,19 @@
 
 > The gap between having a thought worth acting on and acting on it shouldn't cost a walk to the desk — or a flight home.
 
-A build's running upstairs. You're on the couch, mid-rest, and a thought worth acting on shows up: reply to that message, nudge the agent that's mid-task, check whether the tests actually passed. Later that week you're in a coffee shop, or on a train, and the same thought shows up — except now the machine is kilometers away and the "walk to the desk" is a commute.
+A build's running upstairs. You're on the couch, and something needs doing — reply to that message, nudge the agent, check whether the tests passed. Later that week you're in a coffee shop, same thought, except now the machine is kilometers away.
 
-None of that needs you to be physically at a keyboard. It needs a phone, pointed at a machine that's already on. That's the actual shape of this setup once it's running: **occasional, light touches on real work, from wherever you already are** — the couch, bed, a café on mobile data. Not a full workstation replacement, not "work from anywhere all day." Just the ability to act on a thought without the gap costing you a walk every time.
+This post builds a phone-to-desktop remote control in three parts:
 
-This post builds it in three parts, each one removing exactly one constraint:
+- **Part 1 — Same network.** macOS Screen Sharing, Ubuntu `x11vnc`, one phone app. Set this up first.
+- **Part 2 — Over the internet.** The same rig from a coffee shop or hotel, via a mesh VPN. Re-addressing, not a rebuild.
+- **Part 3 — Deep dive.** The protocol, the 8-character password cap, why VNC triggers hotkeys when SSH can't.
 
-- **Part 1 — Same network.** The phone becomes a real screen + keyboard + mouse for your desktop, over your home WiFi. macOS's built-in Screen Sharing, one `x11vnc` command on Ubuntu, and one VNC client app on the phone. This is the part to set up first; everything else builds on it.
-- **Part 2 — Over the internet.** The same rig, working from a coffee shop, a hotel, or the back seat of a cab on mobile data — with nothing exposed to the open internet and nothing added to the bill. A mesh VPN does it, and the setup is a re-addressing, not a rebuild.
-- **Part 3 — Deep dive.** What's actually happening on the wire: the protocol a VNC session speaks, why its password stops at 8 characters, why remote taps fire desktop shortcuts when an SSH session can't, and how two devices behind two different routers find each other at all.
+Everything is free, and once wired, needs nothing further from you. Set it up on a Saturday, and the couch becomes a valid place to get something done — and so does another city.
 
-**The setup cost is a weekend, once. The payoff doesn't expire.** Everything here is free, and — once wired — needs nothing further from you: no subscription to keep paying, no cloud account to manage. Set it up on a Saturday, and every day after that, the couch is a valid place to get something done — and so is another city.
+The phone keyboard's own **voice typing works straight through this rig** (Part 1), so dictation comes along for free.
 
-And if your reason for wanting remote control was "typing paragraphs on a phone is painful" — the phone keyboard's own **voice typing works straight through this rig** (covered in Part 1), so dictation comes along for free without any extra layer.
-
-## Topic flow
-
-Each Part below splits in two: **build it** — read straight through, in order — then **Reference**, where the troubleshooting tables, gotchas, and security notes live. Skip straight to Reference when something breaks; skip it entirely on a first read.
-
-```
-PART 1 — SAME NETWORK (set up first)     PART 2 — OVER THE INTERNET          PART 3 — DEEP DIVE (the why)
-───────────────────────────────────      ─────────────────────────────       ──────────────────────────────
-Why VNC, not SSH                         The port-forward check,             RFB protocol + the 8-char
- ├─ macOS: Screen Sharing (built in)      and why it fails (CGNAT)            password cap
- └─ Ubuntu: x11vnc                       Why raw VNC-over-internet           Why VNC hotkeys fire
-Phone client: RealVNC Viewer              is still wrong                       and SSH can't (XTEST)
-Driving the desktop: gestures,           Tailscale: what, why, trustworthy   WireGuard, NAT traversal,
- modifiers, keystroke shortcuts             Desktop + phone setup               and DERP
-Reference — troubleshooting & security   What changes vs. Part 1 (a table)   Reference — failure-mode map
-                                         Reference — security & escape        (symptom → layer → check)
-───────────────────────────────────      ─────────────────────────────       ──────────────────────────────
-        └──► Read Part 1 to get it running today; Part 2 to take it anywhere;
-             Part 3 when something breaks and you want to know why — or you just like knowing.
-```
-
-Read Part 1 fully (your own OS's subsection plus the phone skills), then Part 2 when the LAN starts feeling small. Part 3 is optional and self-contained. Skip the other OS wherever you like — each machine's route is independent.
-
-## What it actually looks like
-
-- **Mid-rest, an AI agent needs a nudge.** Tap the phone, type "looks good, continue" — or say it with the keyboard's voice typing — and it lands as a real keypress in the real terminal, same as if you'd walked over and typed it.
-- **A build's running, you want to know without getting up.** Pull up the phone, glance at the terminal on the mirrored screen, done. No SSH session to remember, no separate monitoring app.
-- **A reply is worth sending now, not in twenty minutes.** Type it from the phone's keyboard — glide typing, autocorrect, clipboard, all of it — into Slack, an email, a commit message.
-- **Something needs a click, not a sentence.** Dismiss a dialog, pause a download, check a setting, switch a song — full mouse and keyboard, in your pocket.
-- **You're in another city entirely.** Coffee shop WiFi, hotel Ethernet, phone hotspot — the same saved entry in the same app still reaches the machine at home, through an encrypted tunnel, with zero ports opened on your router.
-
-One protocol makes all of it work — **VNC**, served by what your OS already ships (or one free package), driven by one free phone app. How it gets wired — once — is the rest of this post.
-
----
-
-## The route this post takes
-
-1. **Part 1 — Same network.** Why VNC (not SSH), then per-OS server setup: macOS's built-in Screen Sharing, Ubuntu's `x11vnc`. One phone client — **RealVNC Viewer** — for both. Then the phone-side skills: gestures, modifier keys, and typing with your normal mobile keyboard.
-2. **Part 2 — Over the internet.** Why "just port-forward 5900" is the wrong answer (and often an impossible one), what a mesh VPN actually does, and the Tailscale build that swaps every LAN IP for a permanent private one — the whole Part 1 rig unchanged in shape.
-3. **Part 3 — Deep dive.** The RFB protocol and why the VNC password stops at 8 characters, why VNC input triggers global hotkeys when an SSH session can't, and how WireGuard NAT traversal gets two firewalled devices talking.
-
-The one table worth internalizing before anything else — **the same phone app drives both machines**, one saved entry per box:
+The one table worth internalizing — **the same phone app drives both machines**, one saved entry per box:
 
 | The job | Ubuntu machine | macOS machine |
 |---|---|---|
@@ -275,7 +233,7 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 | Play / pause video | `Space` — a key the phone keyboard already has |
 | Long text (URLs, messages) | Copy on the phone, paste with the keyboard's paste button — or dictate it (mic button, section below) |
 
-That's the quiet point of the whole rig: if the phone's keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.
+That's the quiet payoff: if the phone's keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.
 
 ### Editing text in a terminal
 
@@ -291,7 +249,7 @@ The soft keyboard that appears when you tap the keyboard icon is your phone's **
 - **Clipboard** — copy on the phone (from anywhere), paste into the desktop app with the keyboard's paste button. Copy on the desktop, read it on the phone.
 - **Multilingual typing** — your keyboard's per-language or multi-language modes work as usual; typing Bangla or any other language into a desktop app needs no desktop-side setup beyond the app accepting text.
 - **One-handed / floating mode** — shrink the keyboard to a thumb-zone corner for couch use.
-- **Voice typing — the built-in speech-to-text** (tested live): any keyboard with a mic button (Gboard, SwiftKey, Samsung Keyboard) works over VNC. Tap the mic, speak, and the transcribed text arrives as committed keystrokes in whatever desktop app is focused — a commit message, a Slack reply, a doc — no extra rig, no second app, no setup. The honest trade-off: nearly every phone keyboard dictates through its maker's cloud speech service (Google/Microsoft/Samsung servers do the transcribing), so it's "free and zero-setup," not "offline." For most people, most dictation, that's the right trade — just know which way it cuts before dictating anything sensitive.
+- **Voice typing — the built-in speech-to-text** (tested live): any keyboard with a mic button (Gboard, SwiftKey, Samsung Keyboard) works over VNC. Tap the mic, speak, and the transcribed text arrives as committed keystrokes in whatever desktop app is focused — a commit message, a Slack reply, a doc — no extra rig, no second app, no setup. The catch: nearly every phone keyboard dictates through its maker's cloud speech service (Google/Microsoft/Samsung servers do the transcribing), so it's "free and zero-setup," not "offline." For most dictation, that's the right trade — just know which way it cuts before dictating anything sensitive.
 
 Two cautions from the terminal-shaped parts of this rig:
 
@@ -402,7 +360,7 @@ So the real goal was never "forward port 5900." It's this:
 | Cloudflare Tunnel | Low-medium | Free tier | Yes — `cloudflared` runs outbound | No inbound port, but traffic transits Cloudflare's edge |
 | Port forward + DDNS | Low *if* CGNAT check passes | Free | **No** — the one CGNAT kills outright | Yes, directly — the whole point of the approach |
 
-The rest of this part builds the first row. The alternatives get a short honest treatment in the Reference section below ("Escape hatches") — worth knowing even if you never need them.
+The rest of this part builds the first row. The alternatives get a short treatment in the Reference section below ("Escape hatches").
 
 ## Tailscale: what it is and why it fits
 
@@ -414,7 +372,7 @@ The properties that matter for this rig:
 - **Nothing is publicly exposed.** No router ports open, no public IP needed, inbound scanning finds nothing. The desktop's VNC port stays reachable only from inside the tailnet.
 - **The protocols don't change.** VNC on 5900, same password, same client app — the rig's software never learns a VPN exists. This is a networking-layer swap; Part 1's setup survives untouched.
 
-**The honest trade-off:** the LAN-only rig was "no cloud dependency" in the strictest sense. Tailscale adds a third-party *coordination* service — its control plane handles identity and connection setup. In the common direct-connection case, no VNC pixels ever touch Tailscale's servers; in the relay-fallback case their servers carry them, encrypted, unreadable in transit. If that trade-off ever stops being acceptable, [Headscale](https://github.com/juanfont/headscale) — the self-hosted, open-source control-plane replacement — is a documented exit that keeps everything else identical.
+**The trade-off:** the LAN-only rig was "no cloud dependency" in the strictest sense. Tailscale adds a third-party *coordination* service — its control plane handles identity and connection setup. In the common direct-connection case, no VNC pixels ever touch Tailscale's servers; in the relay-fallback case their servers carry them, encrypted, unreadable in transit. If that trade-off ever stops being acceptable, [Headscale](https://github.com/juanfont/headscale) — the self-hosted control-plane replacement — keeps everything else identical.
 
 <div align="center">
   <img src="../../assets/B-26/internet-path.png" alt="Diagram: an Android phone on café WiFi or mobile data and a desktop at home behind a router, each running Tailscale with a permanent 100.x.y.z tailnet address. RealVNC Viewer targets the desktop's tailnet IP on port 5900. A direct WireGuard tunnel (the common case) connects the two peers end-to-end encrypted; when no direct path can be punched, traffic falls back to a DERP relay that carries ciphertext only. No router ports are opened."/>
@@ -424,15 +382,14 @@ The properties that matter for this rig:
 
 ### Is Tailscale safe to trust?
 
-This deserves its own answer, not a hand-wave — the rig's VNC password would be one tailnet membership away from the desktop. The case, from [Tailscale's own security documentation](https://tailscale.com/security) and its public record:
+The VNC password is one tailnet membership away from your desktop, so this matters. The short version:
 
-- **The crypto is WireGuard's, not a home-rolled protocol.** Peer-reviewed, formally verified primitives (Curve25519 key exchange, ChaCha20-Poly1305); traffic is end-to-end encrypted between *your two devices only*. Private keys never leave the device they belong to — the coordination server only ever exchanges public keys, so neither Tailscale Inc nor their relays can decrypt what flows between your phone and desktop. Relay fallback carries ciphertext, by construction.
-- **The parts that touch your data are open source.** Every client (Linux, macOS, Android, iOS, Windows) and even the DERP relay server code are on GitHub — auditable and forkable. The closed piece is the coordination/control plane, which sees metadata (which nodes exist, who connects to whom), never payloads.
-- **Professionally audited, repeatedly.** Recurring third-party security reviews by [Latacora](https://www.latacora.com/), SOC 2 Type II certified, public security bulletins when issues surface — the disclosure pattern you want to see, not silence.
-- **Publicly used at serious scale.** Millions of daily users across personal and enterprise tailnets; named customers include Duolingo, Instacart, Retool, Mercury, and Mercari. A two-device hobby rig is the smallest possible use of infrastructure battle-tested far beyond it.
-- **The account side is defensible by default.** SSO/MFA on your identity provider, per-device approval, ACLs, and tailnet lock (pin which devices may join). The 8-character VNC password is no longer your outer wall — the tailnet is, and it's a modern one.
+- **WireGuard crypto, not home-rolled.** Curve25519 key exchange, ChaCha20-Poly1305. Traffic is end-to-end encrypted between your two devices only. Private keys never leave the device — Tailscale's servers can't decrypt what flows between your phone and desktop.
+- **Clients are open source.** Linux, macOS, Android, iOS, Windows, even the DERP relay server — all on GitHub. The closed piece is the coordination/control plane, which sees metadata (who connects to whom), never payloads.
+- **Audited and scaled.** Recurring third-party reviews by [Latacora](https://www.latacora.com/), SOC 2 Type II certified. Millions of daily users; named customers include Duolingo, Instacart, Retool, Mercury.
+- **Account-side is solid.** SSO/MFA, per-device approval, ACLs, tailnet lock. The tailnet is your outer wall now, not the 8-character VNC password.
 
-The remaining honest caveat is the one from the trade-off above: coordination is a third-party closed service. If that ever bothers you, Headscale swaps it for your own server and nothing else changes.
+The remaining caveat: coordination is a third-party closed service. If that ever bothers you, [Headscale](https://github.com/juanfont/headscale) — the self-hosted control-plane replacement — keeps everything else identical.
 
 ### On the desktop
 
@@ -488,11 +445,9 @@ The one-line summary: **Part 2 is a re-addressing, not a rebuild.** Two new apps
 
 ## Verified from cellular
 
-The off-LAN control path isn't theory here — it was run live end to end: a phone on **mobile data** (WiFi off) drove the desktop over VNC through the tailnet, on a **direct** WireGuard path. `tailscale ping` to the phone answered in ~66 ms — not even the relay was needed on a carrier network. Screen updated, taps and keystrokes landed, everything from Part 1's skill set carried over unchanged.
+The off-LAN path was tested end to end: phone on **mobile data** (WiFi off) driving the desktop over VNC through the tailnet, on a **direct** WireGuard path. `tailscale ping` answered in ~66 ms — not even the relay was needed. The Mac's internet route has since been tested too, over the **DERP relay** at ~125 ms, fully usable.
 
-**What's still honest to say:** the Ubuntu run above was one session on one carrier. The macOS side of the tailnet route has since been run live too: the rig's Mac joined the tailnet, and a phone on mobile data drove it over VNC through the **DERP relay fallback** — the first time the relayed path of Part 3's theory was observed working on this rig, at ~125 ms with a hint of cursor lag, fully usable. That round also live-verified the Mac's headless on/off (`launchctl load/unload`) and the `nc -vz` port check below. Still untested: the escape hatches (SSH reverse tunnel, Headscale, Cloudflare Tunnel). If the screen ever feels laggy off-LAN, check `tailscale status` first: a fallback to `relay "..."` plus packet loss is the transport degrading, not the rig breaking.
-
-**When you verify it on your networks, verify the interaction, not just the connection.** "It connected" is not the test. From the off-LAN network, connect, tap the hot corner, open a terminal, type a line, fire a `Ctrl+key` combo from the extra-keys toolbar. Every one of those exercising the same real-input path is the proof the rig works — anything stuttery points at the transport, not the setup.
+**When you verify it on your networks, verify the interaction, not just the connection.** Connect, tap the hot corner, open a terminal, type a line, fire a `Ctrl+key` combo. Every one of those exercising the real-input path is the proof the rig works.
 
 ## Part 2 — Reference: security recap & escape hatches
 
@@ -531,7 +486,7 @@ VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Fram
 2. **Security negotiation** — the server lists the auth types it will accept; the client picks one. This is where macOS offers *two at once* — Mac-account (Apple's ARD-style handshake) and the legacy VNC password — and where a client that can only speak one of them dies with a rejected-correct-password loop. It negotiated the wrong door, not the wrong key.
 3. **Auth, then framebuffer negotiation** — pixel format, encodings, and from there a stream of framebuffer updates (server → client) and pointer/key events (client → server).
 
-The 8-character cap: classic VNC authentication is a [**DES challenge-response**](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2). The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's not a bug in either — it's the protocol wearing its age on its sleeve.
+The 8-character cap: classic VNC authentication is a [**DES challenge-response**](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2). The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's a protocol limitation, not a bug in either server.
 
 ## Why VNC triggers hotkeys when SSH can't
 
@@ -681,31 +636,23 @@ Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry 
 
 ---
 
-# Where this landed
-
-Full chain confirmed working: VNC view and control from the phone on the home network — RealVNC Viewer against the Mac end to end (window switching, multi-key shortcuts, full keyboard including voice typing, through reboots and IP re-leases), the same standard handshake against x11vnc on Ubuntu — and the same control path verified live from a phone on **mobile data**, over a direct WireGuard path through the tailnet. The Mac's internet route has since run live as well, phone on cellular over the **DERP relay** (~125 ms, fully usable) with the `launchctl` on/off and `nc -vz` port check proven on Sequoia. Still honestly untested on this rig: only the escape-hatch alternatives (SSH reverse tunnel, Headscale, Cloudflare Tunnel); the verification steps in Part 2 are how to check them on yours.
-
-The rig is deliberately small: two servers you mostly already have (one built into the Mac, one `apt install` on Ubuntu), one phone app, and — only when you want off the LAN — one mesh VPN. No subscription, no cloud account in the control path, no ports opened to the internet. What it buys is a full second seat at the desk: see the actual screen, drive the actual apps, from the couch or from another city — and, when you'd rather talk than thumb-type, the keyboard's voice-typing mic button is right there in your pocket's own keyboard.
-
----
-
 ## Tools & licenses
 
 | Tool | Role | License / cost |
 |---|---|---|
 | [x11vnc](https://github.com/LibVNC/x11vnc) | VNC server, Ubuntu | GPL-2.0; actively maintained; past CVEs addressed by 0.9.17 |
 | macOS Screen Sharing | VNC server, macOS | Built-in |
-| [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | Phone client, both OSes | Free for personal use; used here in direct-connection mode with no account — nothing routed via the vendor's cloud |
-| [Tailscale](https://tailscale.com/) | Mesh VPN (Part 2) | Free personal plan; open clients ([Android](https://github.com/tailscale/tailscale-android), [iOS](https://github.com/tailscale/tailscale-ios), [macOS/CLI](https://github.com/tailscale/tailscale)); coordination service is closed; WireGuard end-to-end, SOC 2 Type II |
+| [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | Phone client, both OSes | Free for personal use; direct-connection mode, no account |
+| [Tailscale](https://tailscale.com/) | Mesh VPN (Part 2) | Free personal plan; WireGuard end-to-end, SOC 2 Type II |
 | [Headscale](https://github.com/juanfont/headscale) | Self-hosted control plane (escape hatch) | Open source, BSD-3 |
 
-Security notes worth acting on: classic VNC auth is a DES challenge-response capped at 8 characters (Part 3 explains why) — fine behind a LAN rule or a tailnet, never fine exposed to the internet; and never port-forward 5900, on either OS, for any reason. The whole point of Part 2's design is that you never have to.
+Never port-forward 5900, on either OS, for any reason. Classic VNC auth is a DES challenge-response capped at 8 characters — fine behind a LAN rule or a tailnet, never fine exposed to the internet.
 
 ---
 
 ## Let's Connect
 
-Thank you for the time — genuinely. If you try any of this, I'd rather hear what broke than what worked:
+If you try any of this, I'd rather hear what broke than what worked:
 
 - **Website**: [encryptioner.github.io](https://encryptioner.github.io)
 - **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)

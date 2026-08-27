@@ -1,51 +1,23 @@
-# When Your Desktop Needs You — Free Notifications From Mac & Ubuntu to Your Phone (and Why You'll Never Hear Its Speakers)
+# When Your Desktop Needs You — Free Notifications From Mac & Ubuntu to Your Phone
 
-> The phone already controls the desk. The missing half is the desk tapping you back — without you holding a VNC session open all day to find out.
+> The phone already controls the desk. The missing half is the desk tapping you back.
 
-[Your Desk in Your Pocket](./Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md) built one arrow: the phone drives the Mac and the Ubuntu box from the couch or from another city. But every scenario in that post starts the same way — *you* open the app, *you* look. The reverse arrow never existed. So this happens:
+A build's been running for twenty minutes. An agent is waiting on your "looks good." A backup either succeeded at 2 a.m. or didn't. Your phone is in your pocket, perfectly capable of making a sound — and it stays silent, because the desktop has no way to reach it. You poll. You unlock the phone, open the VNC app, squint at a terminal, close it. Twenty minutes later, again.
 
-A build's been running for twenty minutes. An agent is mid-task and waiting on your "looks good." A backup job either succeeded at 2 a.m. or didn't. Your phone is in your pocket the whole time, perfectly capable of making a sound — and it stays silent, because the desktop has no way to reach it. You poll. You unlock the phone, open the VNC app, squint at a terminal, close it. Twenty minutes later, again. That's not remote control; that's a watchman's shift.
+This post fixes that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an open-source notification service that speaks plain HTTP:
 
-This post fixes exactly that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an open-source notification service that speaks plain HTTP:
+- **Path A — Mac, zero setup.** `curl` publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular.
+- **Path B — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification and forwards them all to your phone. Self-hosted on your tailnet. Nothing leaves your machines.
 
-- **Path A — Mac, zero setup.** `curl` (already installed) publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular. No server, no Docker, no account.
-- **Path B — Windows, full auto.** Windows, unlike macOS, exposes a public API to read other apps' notifications. A small Python script taps it and mirrors every toast — Slack, Teams, Outlook — to your phone.
-- **Path C — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification — Slack, email, system alerts, build agents — and forwards them all to your phone automatically. Self-hosted on your tailnet. Nothing leaves your machines.
+Both paths are free. Both work over Tailscale. One principle makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
 
-Both paths are free. Both work over Tailscale (same room or another city). One sentence makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
-
-## Topic flow
-
-```
-PATH A — MAC                PATH B — WINDOWS              PATH C — UBUNTU
-(30 seconds)                (full auto)                   (full auto)
-───────────────────         ──────────────────────        ─────────────────────
-Phone subscribes to         UserNotificationListener      Intercept ALL desktop
-  ntfy.sh                   Python script + ntfy          notifications (D-Bus)
-Mac publishes with curl       forward                    Self-hosted on your tailnet
-Works everywhere —          Mirrors every toast           Agent + build + cron wiring
-  no server needed          One-time permission           Reference — troubleshooting
-                                                          & security
-───────────────────         ──────────────────────        ─────────────────────
-Start here if you're        Windows box? Full             Ubuntu box? This is the
-  on Mac. 30 seconds          mirror, no hacks.          prize. Every notification,
-  to first buzz.                                           auto-mirrored.
-```
-
-## What it actually looks like
-
-- **A build finishes.** Phone buzzes. You glance, you decide — open the VNC app and act, or keep resting. The desk waited politely instead of being polled.
-- **An agent needs your nudge.** "Tests pass; awaiting approval" arrives as a notification. The B-26 rig handles the reply; this post handles the *summons*.
-- **The 2 a.m. backup failed.** You find out at 2:00:01, not when you happen to log in Tuesday. `systemd` fires the same one-line curl.
-- **Slack pings you on the desktop.** On Ubuntu, you see it on your phone too — automatically, without configuring anything per-app.
-- **You're on cellular, another city.** Same buzz, same second — because the message rides the same tailnet B-26 already built.
-- **Nothing new to babysit.** No account, no monthly anything, no third-party cloud holding your messages — the notification server is your own Ubuntu box.
+A build finishes — phone buzzes, you glance, you decide. An agent needs your nudge — the notification arrives, the B-26 rig handles the reply. Slack pings you on the desktop — on Ubuntu, you see it on your phone too, automatically.
 
 ---
 
 # Path A — Mac: 30 seconds to first buzz
 
-No server. No Docker. No apt. The Mac publishes, the phone subscribes, ntfy.sh carries the message. This is the path to try first.
+No server. No Docker. No apt. The Mac publishes, the phone subscribes, ntfy.sh carries the message.
 
 ## Why Mac can't do full auto (and why that's fine)
 
@@ -72,7 +44,7 @@ curl -d "build done ✓" \
      https://ntfy.sh/your-unguessable-topic-name
 ```
 
-Phone buzzes within a second. That's the whole system.
+Phone buzzes within a second. That's the whole setup.
 
 **With the ntfy CLI** (optional, `brew install ntfy`):
 
@@ -117,7 +89,7 @@ Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — wal
 
 ## What you're trading for simplicity
 
-Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path C** keeps every message on your own machines.
+Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path B** keeps every message on your own machines.
 
 **One caution:** if your topic name is guessable (like `desk` or `alerts`), strangers can subscribe and read your messages. Use a random string: `ntfy.sh/xk7-qt9-mbp` is fine.
 
@@ -125,180 +97,9 @@ Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but no
 
 ---
 
-# Path B — Windows: full auto-mirror (yes, Windows can do it)
+# Path B — Ubuntu: every notification, auto-mirrored (full privacy)
 
-Unlike macOS, Windows has a **public API** for reading other apps' notifications. The `UserNotificationListener` API lets any app intercept every desktop notification — Slack, Teams, Outlook, system alerts, everything. This means Windows gets the full auto-mirror path, just like Ubuntu.
-
-## How it works
-
-Windows notifications go through the Action Center. The `UserNotificationListener` API taps into that stream:
-
-```
-┌─────────────────────────────┐
-│  Any app sends a notification│
-│  → Windows Action Center     │
-│    UserNotificationListener  │
-├─────────────────────────────┤
-│  notify-forward script       │
-│  intercepts all toasts       │
-│  extracts: app, title, body  │
-├─────────────────────────────┤
-│  curl → ntfy server          │
-│  (self-hosted or ntfy.sh)   │
-├─────────────────────────────┤
-│  Phone ntfy app              │
-│  buzzes with native sound    │
-└─────────────────────────────┘
-```
-
-## Phone — subscribe (same as Mac)
-
-Same 30-second setup. Install ntfy app, subscribe to your topic.
-
-## Windows — publish (PowerShell)
-
-PowerShell ships with Windows. Publishing is just HTTP POST:
-
-```powershell
-Invoke-RestMethod -Uri "https://ntfy.sh/your-unguessable-topic-name" `
-    -Method Post `
-    -Body "build done" `
-    -Headers @{ Title = "Deploy"; Tags = "white_check_mark" }
-```
-
-**With the ntfy CLI** (optional, `winget install binwiederhier.ntfy`):
-
-```powershell
-ntfy publish --title "Deploy" --tags white_check_mark `
-    your-unguessable-topic-name "build done"
-```
-
-## Full auto-mirror — Python script
-
-This script uses the `winrt` package to intercept all Windows notifications and forward them to ntfy:
-
-```python
-# notify_forward.py
-# Intercepts ALL Windows desktop notifications and forwards to phone via ntfy
-# Usage: python notify_forward.py
-
-import asyncio
-import requests
-from winrt.windows.ui.notifications.management import UserNotificationListener
-from winrt.windows.ui.notifications import NotificationKinds
-
-TOPIC = "your-unguessable-topic-name"
-SERVER = "https://ntfy.sh"
-
-async def main():
-    listener = UserNotificationListener.get_current()
-
-    # Request access (one-time, user must approve)
-    access_status = await listener.request_access_async()
-    if access_status != 1:  # ALLOWED
-        print("Notification access denied. Enable in Settings → Notifications.")
-        return
-
-    print(f"Listening for notifications → {SERVER}/{TOPIC}")
-
-    # Get current notifications
-    notifications = await listener.get_notifications_async(NotificationKinds.TOAST)
-
-    seen_ids = set()
-    for notif in notifications:
-        seen_ids.add(notif.id)
-
-    # Poll for new notifications every 2 seconds
-    while True:
-        await asyncio.sleep(2)
-        notifications = await listener.get_notifications_async(NotificationKinds.TOAST)
-
-        for notif in notifications:
-            if notif.id in seen_ids:
-                continue
-            seen_ids.add(notif.id)
-
-            # Extract info
-            app = notif.app_info.display_name or "Unknown"
-            binding = notif.notification.visual.get_binding_at(0)
-            if binding:
-                texts = binding.get_text_elements()
-                title = texts.get_at(0) if texts.size > 0 else ""
-                body = texts.get_at(1) if texts.size > 1 else ""
-            else:
-                title = ""
-                body = ""
-
-            if not title and not body:
-                continue
-
-            message = body or title
-            try:
-                requests.post(
-                    f"{SERVER}/{TOPIC}",
-                    data=message.encode("utf-8"),
-                    headers={"Title": title or app, "Tags": app},
-                    timeout=5,
-                )
-                print(f"→ [{app}] {title}: {body}")
-            except Exception as e:
-                print(f"Failed: {e}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### Install and run
-
-```powershell
-# Install dependencies (one-time)
-pip install winrt-python requests
-
-# Run
-python notify_forward.py
-```
-
-**Windows will prompt you** to allow notification access. Click "Allow". This is a one-time permission — the script can now read all notifications.
-
-### Run on startup
-
-Create a shortcut to the script in your Startup folder:
-
-```powershell
-# Open Startup folder
-shell:startup
-
-# Create shortcut to your script
-# Right-click → New → Shortcut → browse to python.exe + script path
-```
-
-## Option 1 — ntfy.sh public server (simplest)
-
-Zero server setup. The script publishes to ntfy.sh. Works immediately.
-
-**Trade-off:** Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade.
-
-## Option 2 — Self-hosted ntfy (full privacy)
-
-Messages never leave your tailnet. The Ubuntu box (or any machine) is the ntfy server. See **Path C** for server setup.
-
-On Windows, just change the `SERVER` variable in the script:
-
-```python
-SERVER = "http://100.x.y.z:8090"  # Your Ubuntu ntfy server on tailnet
-```
-
-Inside the tailnet, WireGuard encrypts plain HTTP traffic. Never port-forward 8090 to the internet.
-
-## What you're trading for simplicity
-
-The `UserNotificationListener` API requires user permission — Windows will prompt you once. Some security-sensitive apps (banking, password managers) may not show full notification content. This is a Windows security feature, not a bug.
-
----
-
-# Path C — Ubuntu: every notification, auto-mirrored (full privacy)
-
-This is the full prize. A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. It just works. This path keeps every message on your own machines — no third-party servers.
+A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. This path keeps every message on your own machines — no third-party servers.
 
 ## How it works
 
@@ -548,84 +349,20 @@ ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reser
 
 ---
 
-# Where this landed
-
-Verified live: ntfy publish via curl and CLI on macOS, JSON receipts, priority/tags/click headers, the subscribe command's environment variables, and the D-Bus `org.freedesktop.Notifications` interface on Linux. The ntfy.sh public server received and stored every test message. The macOS notification interception limitation confirmed by Apple's own developer forums.
-
-Ubuntu verified on real hardware: Ubuntu 22.04, GNOME, X11 session, dbus 1.12.20. Captured raw `dbus-monitor` output for live `notify-send` calls — which exposed the GNOME double-forward (every notification hits the bus twice, ~1.5 ms apart) and the `GetServerInformation` trap (zero-arg method calls on the same interface that desync naive line parsers). The fixed script in Path C was then run end-to-end against a stubbed publisher: two test notifications produced four bus events and exactly two forwards, with correct app/title/body extraction and the duplicate suppressed. The member-filter match rule works unmodified on Ubuntu 20.04 (dbus 1.12.2) and 24.04 (dbus 1.14.10) — all three use the same monitor API introduced in dbus 1.10. The apt install block matches ntfy's official docs verbatim (the repository moved to `archive.ntfy.sh` in September 2025), and the keyring URL is live. The ntfy server install itself was not run on the test box (needs sudo); the server-side steps are doc-verified, the interception side is hardware-verified.
-
-What this adds to the B-26 rig is the missing direction. The pocket could already reach the desk; now the desk can reach the pocket — in ~40 bytes instead of a video stream, through a channel that makes no sound of its own because it borrows the phone's, and at a price of one `curl` or one `apt install`. The couch was already a valid place to get something done. Now it's also a valid place to *not watch* something get done — the build will call you when it matters.
-
----
-
 ## Tools & licenses
 
 | Tool | Role | License / cost |
 |---|---|---|
-| [ntfy](https://github.com/binwiederhier/ntfy) | Notification server + publish CLI + phone apps | Apache-2.0 / GPL-2.0 mixed; server and apps free, no account needed for self-host |
+| [ntfy](https://github.com/binwiederhier/ntfy) | Notification server + publish CLI + phone apps | Apache-2.0 / GPL-2.0 mixed; server and apps free |
 | [Tailscale](https://tailscale.com/) | The transport (unchanged from B-26) | Free personal plan; WireGuard end-to-end |
-| curl | The publisher, both OSes | Ships with macOS and Ubuntu |
-| D-Bus | Linux notification bus (intercept layer) | Built into every Linux desktop |
-| [RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) | Referenced (the rig it extends) | Free for personal use, direct-connection mode |
-| [x11vnc](https://github.com/LibVNC/x11vnc), macOS Screen Sharing | Referenced (whose audio limits B-26 Part 1 documents) | GPL-2.0 / built-in |
-
-Sources for the no-audio claims, all cited in place: [RealVNC — Audio in RealVNC Connect](https://help.realvnc.com/hc/en-us/articles/360002504358-Audio-in-RealVNC-Connect) · [x11vnc FAQ Q-129](https://github.com/LibVNC/x11vnc/blob/master/doc/FAQ.md) · [RealVNC Lite plan](https://www.realvnc.com/en/connect/plan/lite/) · [Apple — High Performance screen sharing](https://support.apple.com/guide/remote-desktop/use-high-performance-screen-sharing-apdf8e09f5a9/mac).
-
-Sources for the macOS notification limitation: [Apple Developer Forums #758451](https://forums.developer.apple.com/forums/thread/758451) · [macos-notification-cli](https://github.com/coryfklein/macos-notification-cli) (Accessibility API workaround, fragile and permission-dependent).
-
-Sources for the D-Bus approach: [freefd/ntfy-dbus](https://github.com/freefd/ntfy-dbus) · [polographer/go-notify-forwarder](https://github.com/polographer/go-notify-forwarder) · [krafi.org — Linux Desktop Notifications on Telegram](https://krafi.org/blog/automation/3.Linux_Desktop_Notifications_on_Telegram) · [sleeplessbeastie — eavesdrop D-Bus notifications](https://sleeplessbeastie.eu/2025/06/03/how-to-eavesdrop-and-log-d-bus-notifications/).
-
----
-
-## Which Tool Should You Choose?
-
-This blog recommends only tools with verified security properties. Here's why:
-
-### What We Tested
-
-| Tool | Security Verdict | Why |
-|---|---|---|
-| **ntfy** | ✅ Recommended | Fixed CVE-2026-39087 (v2.22.0+), current version v2.27.0. Open source (Apache 2.0/GPL 2.0), ACL system with per-topic permissions, bcrypt password hashing, rate limiting. Self-hosted option keeps all data on your tailnet. |
-| **Gotify** | ✅ Recommended | Fixed CVE-2022-46181 and CVE-2023-24689 (v2.2.2+), current version v2.6.0. Open source (MIT), self-hosted binary (no Docker required). Android + web only — no iOS app. |
-| **Pushover** | ⚠️ Closed Source | AES-256 encryption for iOS/Android payloads, TLS in transit. Hosted SaaS (US-based), $5 one-time per platform. No E2EE for desktop/browser clients. Proprietary — cannot audit. |
-| **Telegram Bot API** | ❌ Not Recommended | No end-to-end encryption. Bots don't use MTProto — messages decrypted on Telegram servers. Post-2024 data sharing with governments on valid legal orders. Russian-linked infrastructure concerns. |
-| **Hook.Notifier** | ❌ Not Recommended | Newer, less audited. Privacy policy is vague ("third party service providers"). No independent security review. |
-| **KDE Connect** | ❌ Broken | Relies on UDP broadcast — doesn't work over Tailscale. No macOS support for notification mirroring to phone. |
-
-### Security Comparison
-
-| Property | ntfy | Gotify | Pushover | Telegram Bot | Hook.Notifier |
-|---|---|---|---|---|---|
-| **Open source** | ✅ Apache 2.0 | ✅ MIT | ❌ Proprietary | ❌ Proprietary | ✅ MIT |
-| **Self-hostable** | ✅ | ✅ | ❌ | ❌ | ✅ |
-| **TLS in transit** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Encryption at rest** | ⚠️ HTTPS only | ⚠️ HTTPS only | ✅ AES-256 | ✅ Server-side | ❓ Unknown |
-| **E2EE** | ❌ Not yet | ❌ No | ❌ No | ❌ Bots only | ❌ No |
-| **CVE history** | 1 (fixed) | 2 (fixed) | None | N/A | None |
-| **Community** | Large | Medium | Small | Large | Small |
-| **Privacy** | ✅ Self-hosted = full control | ✅ Self-hosted = full control | ⚠️ Hosted (US) | ❌ Hosted (Russia-linked) | ❓ Vague policy |
-
-### Our Recommendation
-
-**For most people**: Use **ntfy** (Path A for Mac, Path B for Windows, Path C for Ubuntu). It's open source, self-hostable, has a large community, and the latest version (v2.27.0) has all known CVEs patched. The ntfy.sh public server is also patched and safe to use.
-
-**If you want Android push notifications without FCM**: Use **Gotify**. Self-hosted binary (no Docker), open source, all CVEs fixed. Just note: no iOS app.
-
-**If you want iOS push notifications**: Use **ntfy** with `upstream-base-url` configured for FCM/APNs, or use **Pushover** ($5 one-time). Telegram Bot API is not recommended due to privacy concerns.
-
-**Avoid**: Telegram Bot API (no E2EE, privacy concerns), Hook.Notifier (less audited), KDE Connect (broken over Tailscale).
-
-### UnifiedPush (KDE)
-
-[UnifiedPush](https://unifiedpush.org/) is an open standard for push notifications on Linux. It abstracts the push backend (ntfy, Gotify, or others) behind a common interface. If you're on KDE Plasma, `apt install kunifiedpush` gives you a system-level push service. However, it requires compatible apps on your phone — ntfy and Gotify already work as UnifiedPush distributors.
-
-For this blog, we recommend ntfy directly because it's simpler and doesn't require UnifiedPush compatibility.
+| curl | The publisher | Ships with macOS and Ubuntu |
+| D-Bus | Linux notification bus | Built into every Linux desktop |
 
 ---
 
 ## Let's Connect
 
-Thank you for the time — genuinely. If you try any of this, I'd rather hear what broke than what worked:
+If you try any of this, I'd rather hear what broke than what worked:
 
 - **Website**: [encryptioner.github.io](https://encryptioner.github.io)
 - **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
