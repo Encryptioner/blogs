@@ -35,7 +35,7 @@ Security and license notes for every tool close the post.
 
 If you've remoted into a machine before, it was probably SSH — and SSH can't do this job. An SSH session drops you into a *new* text shell: it can't show you the desktop you left running, can't click anything, can't type into the apps already open, and can't fire global hotkeys. It's a parallel door into the basement.
 
-VNC is a mirror plus a hand: the phone sees the **actual desktop** — your apps, your windows, exactly as you left them — and every tap and keystroke is injected as a **real input event**, indistinguishable to every app and every hotkey listener from sitting at the keyboard. That single property is what makes the whole rig work: switch apps, run shortcuts, check a build, drag a slider — all with the same mechanism you'd use in person.
+VNC is a mirror plus a hand: the phone sees the **actual desktop** — your apps, your windows, exactly as you left them — and every tap and keystroke is injected as a **real input event**, indistinguishable to every app and every hotkey listener from sitting at the keyboard. That property is what makes the whole rig work: switch apps, run shortcuts, check a build, drag a slider — all with the same mechanism you'd use in person.
 
 Both halves are standard: macOS and Ubuntu can each serve VNC with built-in or one-command-free tooling, and any standards-compliant client can connect. That's why one phone app is enough for both machines.
 
@@ -260,9 +260,9 @@ Two cautions from the terminal-shaped parts of this rig:
 
 Any app that listens for a global hotkey (a launcher, a window manager action, a screenshot tool, an app-specific shortcut utility) can be triggered from the phone — VNC delivers the key to the desktop's real input stack, and the listener fires. The practical rule for *which* hotkey to pick for phone use: a **single key with no modifier** (`End`, `Insert`, `Home`, `Page Up/Down`) beats any combo, because a combo means arming a toggle button and then tapping a second key — two taps instead of one, every single time.
 
-## Part 1 — Reference: troubleshooting & security
+## Part 1 — Troubleshooting & security
 
-Everything above gets the phone driving either machine. What follows is what to check when a step doesn't behave, plus the security notes for Part 1 — read now, or bookmark it for later.
+Everything above gets the phone driving either machine. What follows is what to check when a step doesn't behave, plus the security notes for Part 1 — read now, or bookmark for later.
 
 ### If the phone client won't connect (macOS)
 
@@ -350,7 +350,7 @@ So the real goal was never "forward port 5900." It's this:
 
 > **Put the phone and the desktop on the same private network no matter where either of them physically is — and let VNC keep believing it's on a LAN, exactly like Part 1.**
 
-## The candidate approaches
+## The options
 
 | Approach | Setup effort | Ongoing cost | Survives CGNAT | Exposes anything raw to the internet |
 |---|---|---|---|---|
@@ -441,17 +441,17 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 | ufw rule (Ubuntu) | `allow from 192.168.x.0/24` | `allow from 100.64.0.0/10` (or the phone's tailnet IP) |
 | hotkeys, everything else | working | **unchanged** |
 
-The one-line summary: **Part 2 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, one edited IP.
+In short: **Part 2 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, one edited IP.
 
 ## Verified from cellular
 
 The off-LAN path was tested end to end: phone on **mobile data** (WiFi off) driving the desktop over VNC through the tailnet, on a **direct** WireGuard path. `tailscale ping` answered in ~66 ms — not even the relay was needed. The Mac's internet route has since been tested too, over the **DERP relay** at ~125 ms, fully usable.
 
-**When you verify it on your networks, verify the interaction, not just the connection.** Connect, tap the hot corner, open a terminal, type a line, fire a `Ctrl+key` combo. Every one of those exercising the real-input path is the proof the rig works.
+**When you verify it on your own networks:** Connect, tap the hot corner, open a terminal, type a line, fire a `Ctrl+key` combo. Every one of those exercising the real-input path is the proof the rig works.
 
-## Part 2 — Reference: security recap & escape hatches
+## Part 2 — Security and alternatives
 
-The build above is everything needed to run off the LAN. What follows is what to keep in mind about the trust boundary, and where to look if Tailscale ever isn't the right fit.
+That's everything needed to run off the LAN. What follows is the trust boundary to keep in mind, and where to look if Tailscale ever isn't the right fit.
 
 ### Security recap
 
@@ -460,7 +460,7 @@ The build above is everything needed to run off the LAN. What follows is what to
 - Still true from Part 1: VNC auth is one shared password. Over the tailnet that's acceptable to many people — an attacker needs tailnet membership *first*, which means your Tailscale account, which has MFA and device approval. Layered, the 8-character cap stops being the outer wall.
 - And the classic still applies: **never** port-forward 5900 on the router to "make Tailscale unnecessary." You'd be re-opening exactly what Part 2 closed.
 
-### Escape hatches: if Tailscale ever isn't the answer
+### If Tailscale isn't the right fit
 
 - **SSH reverse tunnel to a VPS** — the fallback that removes the VPN vendor entirely: `ssh -R 5900:localhost:5900 user@your-vps` (or a persistent `autossh`/systemd unit). Outbound-only, so CGNAT is irrelevant; the phone dials the VPS. Costs a VPS (~$4–6/mo or free tier), needs key-only SSH and careful `GatewayPorts`, and adds a box you must keep alive.
 - **Headscale** — self-hosted Tailscale control plane, same clients, your server, your rules. The "nothing outside my control" property, at the price of running the coordination layer yourself.
@@ -525,9 +525,9 @@ The internet build adds one more layer to trace, and its mental model is small:
 
 You can see which path you're on: `tailscale status` on the desktop prints, per peer, `direct` or `relay "..."` — worth checking once when you set up, because it explains the latency you feel.
 
-## Part 3 — Reference: failure-mode map
+## Part 3 — Troubleshooting
 
-The mechanics above explain *why* the rig works. This table is for when it doesn't — symptom to layer, so a broken rig debugs in the right order instead of by guesswork:
+The table below is for when something breaks — symptom to layer, so you debug in the right order instead of by guesswork:
 
 | Symptom | Suspect layer | Check |
 |---|---|---|
@@ -615,7 +615,7 @@ Even faster, from any machine that can already reach the desktop (tailnet or LAN
 nc -vz <desktop-ip> 5900
 ```
 
-An instant **"refused"** means the packets arrived and nothing is listening — server off, start it (on the Mac, check the Screen Sharing toggle; on Ubuntu, `pgrep -af x11vnc`). **Silence, then timeout** means a path problem — VPN down, firewall, wrong network. **"succeeded"** means go: the phone will connect. `nc` is the built-in on macOS (there's no `telnet` there anymore); on Ubuntu it ships with the default `netcat-openbsd` package. Verified live on the Mac's internet route — it's the single command worth remembering from this whole section.
+An instant **"refused"** means the packets arrived and nothing is listening — server off, start it (on the Mac, check the Screen Sharing toggle; on Ubuntu, `pgrep -af x11vnc`). **Silence, then timeout** means a path problem — VPN down, firewall, wrong network. **"succeeded"** means go: the phone will connect. `nc` is the built-in on macOS (there's no `telnet` there anymore); on Ubuntu it ships with the default `netcat-openbsd` package. Verified live on the Mac's internet route — it's the command worth remembering from this section.
 
 ### 6. Why the LAN IP drifts, and the fix
 

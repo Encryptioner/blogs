@@ -9,9 +9,7 @@ This post fixes that. Two paths, one tool — **[ntfy](https://ntfy.sh/)**, an o
 - **Path A — Mac, zero setup.** `curl` publishes to ntfy.sh's free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular.
 - **Path B — Ubuntu, full auto.** A D-Bus script intercepts *every* desktop notification and forwards them all to your phone. Self-hosted on your tailnet. Nothing leaves your machines.
 
-Both paths are free. Both work over Tailscale. One principle makes the whole thing work: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
-
-A build finishes — phone buzzes, you glance, you decide. An agent needs your nudge — the notification arrives, the B-26 rig handles the reply. Slack pings you on the desktop — on Ubuntu, you see it on your phone too, automatically.
+Both paths are free. Both work over Tailscale. The core idea: **don't ship the sound, ship the sentence.** The phone's notification system makes sounds natively, for free, better than any audio stream would.
 
 ---
 
@@ -85,15 +83,15 @@ pingdesk() {
 }
 ```
 
-Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — walk away; the verdict finds you.
+Then `pingdesk ./build.sh`, `pingdesk npm test`, `pingdesk ./migrate.sh` — walk away; the result finds you.
 
-## What you're trading for simplicity
+## Privacy trade-off
 
-Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's a reasonable trade. When you're ready for full privacy, **Path B** keeps every message on your own machines.
+Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that's fine. When you want full privacy, **Path B** keeps every message on your own machines.
 
-**One caution:** if your topic name is guessable (like `desk` or `alerts`), strangers can subscribe and read your messages. Use a random string: `ntfy.sh/xk7-qt9-mbp` is fine.
+**One caution:** if your topic name is guessable (like `desk` or `alerts`), strangers can subscribe. Use a random string: `ntfy.sh/xk7-qt9-mbp` is fine.
 
-**Works everywhere** — same WiFi, different city, cellular — because ntfy.sh is on the public internet. No Tailscale needed for this path (though you'll want it for the VNC rig in B-26 anyway).
+Works on same WiFi, different city, or cellular — ntfy.sh is on the public internet. No Tailscale needed for this path (though you'll want it for the VNC rig in B-26 anyway).
 
 ---
 
@@ -101,30 +99,11 @@ Messages pass through ntfy.sh's servers — encrypted in transit (HTTPS), but no
 
 A script on the Ubuntu box intercepts **every** desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. This path keeps every message on your own machines — no third-party servers.
 
-## How it works
+## What D-Bus gives you
 
-Linux desktops use **D-Bus** for notifications. Every app that shows a notification — Slack, Thunderbird, Firefox, system updates, build agents — sends it through `org.freedesktop.Notifications` on the session bus. A small script listens on that bus, grabs every notification, and publishes it to ntfy:
+Linux desktops use **D-Bus** for notifications. Every app that shows a notification — Slack, Thunderbird, Firefox, system updates, build agents — sends it through `org.freedesktop.Notifications` on the session bus. A small script listens on that bus, grabs every notification, and publishes it to ntfy.
 
-```
-┌─────────────────────────────┐
-│  Any app sends a notification│
-│  → D-Bus session bus         │
-│    org.freedesktop.Notifications│
-│    member=Notify             │
-├─────────────────────────────┤
-│  notify-forward script       │
-│  intercepts every Notify    │
-│  extracts: app, title, body │
-├─────────────────────────────┤
-│  curl → ntfy server          │
-│  (self-hosted or ntfy.sh)   │
-├─────────────────────────────┤
-│  Phone ntfy app              │
-│  buzzes with native sound    │
-└─────────────────────────────┘
-```
-
-**Two things I learned testing this on a live Ubuntu 22.04 (GNOME) session — both are baked into the script below:**
+Two gotchas from live testing on Ubuntu 22.04 GNOME — both baked into the script below:
 
 1. **GNOME fires every notification twice.** The app calls `Notify` on gnome-shell, and gnome-shell *re-forwards* the same `Notify` to the display daemon ~1.5 ms later. A naive listener double-buzzes your phone for every Slack message. The script dedupes identical title+body within a 5-second window.
 2. **Filter on `member=Notify`, not just the interface.** Other traffic rides the same interface — `GetServerInformation` calls (zero arguments), returns, close events. A parser that greps only "method call" reads eight lines after a zero-arg call and consumes the *real* notification's lines. The match rule `interface=...,member=Notify` plus the `method call.*member=Notify` grep keeps only actual notifications.
@@ -271,9 +250,7 @@ systemctl --user status notify-forward.service
 
 # Wiring it in
 
-## The everyday patterns
-
-**Agents and long jobs** — the single highest-value wiring for the B-26 reader. Wrap the agent run; the "awaiting your approval" moment becomes a buzz instead of a polling ritual:
+**Agents and long jobs** — the highest-value wiring. Wrap the agent run; the "awaiting your approval" moment becomes a buzz instead of a polling ritual:
 
 ```bash
 pingdesk claude "refactor the payments module and run tests"
@@ -306,17 +283,13 @@ ExecStart=curl -sf -H "Priority: urgent" -d "unit %i failed on $(hostname)" http
 # OnFailure=notify-failed@%n.service
 ```
 
-**Mac** — same `pingdesk` in any terminal, Script Editor shell snippets, or a Shortcuts automation that runs a shell script; the Mac side needs no daemon because it's only ever the sender.
+**Mac** — same `pingdesk` in any terminal, Script Editor shell snippets, or a Shortcuts automation that runs a shell script. No daemon on the Mac; it's only ever the sender.
 
-## Choosing priorities and tags
-
-ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reserve 4–5 for "act now," or the phone trains you to ignore it. Tags render as emoji on the notification itself (`fire`, `white_check_mark`, `floppy_disk`, `skull`), a free visual triage layer. `Title` is the bold line; the `-d` body is the detail. The full header set — `Click` to attach a URL, `Attach` for files, even `At`/`In` for scheduled delivery — is in the [publish docs](https://docs.ntfy.sh/publish/).
+ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reserve 4–5 for "act now," or the phone trains you to ignore it. Tags render as emoji on the notification itself (`fire`, `white_check_mark`, `floppy_disk`, `skull`), a free visual triage layer. The full header set — `Click` for a URL, `Attach` for files, `At`/`In` for scheduled delivery — is in the [publish docs](https://docs.ntfy.sh/publish/).
 
 ---
 
-# Reference: troubleshooting & security
-
-## Symptom → cause → fix
+# Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -331,20 +304,20 @@ ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reser
 | Forward works but every buzz arrives twice | GNOME's daemon re-forwards each `Notify` to its display daemon — the bus legitimately sees it twice | Already handled by the 5-second dedup window in the script; if you wrote your own, add one |
 | One specific app never forwards (others fine) | That app bypasses the session bus — some Electron/Chromium builds ship their own notification path | Verify with the `dbus-monitor` test above; if the app never hits the bus, wire that app's own webhook/command to `curl` instead |
 
-## Security recap
+## Security notes
 
-- **The server is only as exposed as you make it.** With the apt install's `listen-http: ":8090"`, the port answers on the Ubuntu box's home-LAN IP *and* its tailnet IP — the same trust posture as B-26's port 5900, fine behind a home router. Want it tailnet-only? Bind it: `listen-http: "100.x.y.z:8090"` (the box's tailnet IP), or firewall it to the tailscale interface (`ufw allow in on tailscale0 to any port 8090`).
-- **Inside the tailnet, traffic is WireGuard-encrypted anyway** — plain HTTP to the tailnet IP is encrypted in transit by the tunnel. TLS on top (via a reverse proxy or `tailscale serve`) is polish, not a hole.
-- **Self-hosted ntfy runs without accounts by default** — correct for a tailnet-only deployment, because reaching the port already required being one of *your* devices. If you ever expose it beyond the tailnet, add ntfy's access-control (`auth-file`) first; topic names are not secrets a stranger can't guess.
-- **Never port-forward 8090 to the internet.** Same rule as 5900 in B-26, same reason: the tailnet already reaches everywhere you are.
-- **ntfy.sh public topics** — the topic name *is* the password. Use a random string (e.g., `ntfy.sh/xk7-qt9-mbp`), never a dictionary word. Anyone who guesses the topic can read your messages.
-- **D-Bus monitoring** — the forward script runs `dbus-monitor` with a plain match rule (`interface=...,member=Notify`), which needs no extra permissions on stock Ubuntu 20.04/22.04/24.04: dbus ≥ 1.10 switches `dbus-monitor` to the bus's monitor API. If your distro hardens the session bus policy, the script silently sees nothing (no security hole, just no notifications forwarded).
+- **The server is only as exposed as you make it.** With the apt install's `listen-http: ":8090"`, the port answers on the Ubuntu box's home-LAN IP *and* its tailnet IP — fine behind a home router. Want it tailnet-only? Bind it: `listen-http: "100.x.y.z:8090"`, or firewall it to the tailscale interface (`ufw allow in on tailscale0 to any port 8090`).
+- **Inside the tailnet, traffic is WireGuard-encrypted anyway** — plain HTTP to the tailnet IP is encrypted in transit by the tunnel. TLS on top is polish, not a hole.
+- **Self-hosted ntfy runs without accounts by default** — fine for a tailnet-only deployment, because reaching the port already required being one of *your* devices. If you ever expose it beyond the tailnet, add ntfy's access-control (`auth-file`) first.
+- **Never port-forward 8090 to the internet.** Same rule as 5900 in B-26, same reason.
+- **ntfy.sh public topics** — the topic name *is* the password. Use a random string (e.g., `ntfy.sh/xk7-qt9-mbp`), never a dictionary word.
+- **D-Bus monitoring** — the forward script runs `dbus-monitor` with a plain match rule, which needs no extra permissions on stock Ubuntu 20.04/22.04/24.04. If your distro hardens the session bus policy, the script silently sees nothing (no security hole, just no notifications forwarded).
 
-## Escape hatches
+## What if ntfy isn't right for you
 
-- **No Ubuntu box, Mac only?** Use Path A (ntfy.sh public server). For auto-mirror, there's no clean solution on macOS — Apple confirmed there's no public API for cross-app notification interception ([source](https://forums.developer.apple.com/forums/thread/758451)).
-- **Hate self-hosting anything?** The `curl` shape of this entire post works unchanged against `https://ntfy.sh/your-unguessable-topic` — swap the URL, keep every one-liner. You lose "never leaves your machines," gain nothing to maintain.
-- **KDE Connect** can mirror desktop notifications to an Android phone over an IP you give it, tailnet IPs included per community reports — plausible, elegant, but doesn't work reliably over Tailscale (UDP broadcast issues, [tailscale#14476](https://github.com/tailscale/tailscale/issues/14476)) and has no macOS support for the "send notifications to phone" direction.
+- **No Ubuntu box, Mac only?** Use Path A (ntfy.sh public server). For auto-mirror, there's no clean solution on macOS — Apple confirmed there's no public API ([source](https://forums.developer.apple.com/forums/thread/758451)).
+- **Hate self-hosting?** The `curl` shape works unchanged against `https://ntfy.sh/your-unguessable-topic` — swap the URL, keep every one-liner. You lose "never leaves your machines," gain nothing to maintain.
+- **KDE Connect** can mirror notifications over an IP you give it, but doesn't work reliably over Tailscale (UDP broadcast issues, [tailscale#14476](https://github.com/tailscale/tailscale/issues/14476)) and has no macOS support.
 - **Need the actual audio, not the notification?** Re-read Part 1 of B-26's "what would actually get me audio" — it's a different rig, and now you know exactly why.
 
 ---
