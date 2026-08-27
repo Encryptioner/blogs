@@ -37,9 +37,9 @@ Reference — security recap & escape hatches
 
 ---
 
-# Part 3 — Off the LAN: the same rig over the internet
+## Part 3 — Off the LAN: the same rig over the internet
 
-## First, the check most people skip: can you even port-forward?
+### First, the check most people skip: can you even port-forward?
 
 The traditional answer to "reach my home machine from outside" is: open the router's admin panel, forward port 5900 to the desktop, point the phone at your public IP. Before considering that path, run a five-minute check — because on a large share of modern connections it's dead on arrival:
 
@@ -49,7 +49,7 @@ The traditional answer to "reach my home machine from outside" is: open the rout
 
 CGNAT is now standard on many fiber and 5G home connections, which is exactly why "just forward the port" advice from 2010 blog posts fails silently today: everything on your side is configured correctly, and the packets still never arrive.
 
-## Even if you can port-forward, don't — not raw VNC
+### Even if you can port-forward, don't — not raw VNC
 
 Suppose the check comes back clean and you *do* have a real public IP. Port 5900 open to the whole internet is still the wrong move:
 
@@ -61,7 +61,7 @@ So the real goal was never "forward port 5900." It's this:
 
 > **Put the phone and the desktop on the same private network no matter where either of them physically is — and let VNC and DroidCam keep believing they're on a LAN, exactly like Parts 1–2.**
 
-## The candidate approaches
+### The candidate approaches
 
 | Approach | Setup effort | Ongoing cost | Survives CGNAT | Exposes anything raw to the internet |
 |---|---|---|---|---|
@@ -73,7 +73,7 @@ So the real goal was never "forward port 5900." It's this:
 
 The rest of Part 3 builds the first row. The alternatives get a short honest treatment in the Reference section below ("Escape hatches") — worth knowing even if you never need them.
 
-## Tailscale: what it is and why it fits
+### Tailscale: what it is and why it fits
 
 Tailscale is a **mesh VPN built on WireGuard**. You install it on each device, log them into the same account (a "tailnet"), and every device gets a stable private address in the `100.x.y.z` range. That address doesn't change when the device moves networks — laptop on café WiFi, phone on mobile data, desktop at home: same tailnet IPs, as if they were all plugged into one switch in your living room.
 
@@ -91,7 +91,7 @@ The properties that matter for this rig:
   <sub>Part 3 in one picture: the tailnet replaces "same WiFi" — x11vnc and DroidCam keep believing they're on a LAN.</sub>
 </div>
 
-### Is Tailscale safe to trust?
+#### Is Tailscale safe to trust?
 
 This deserves its own answer, not a hand-wave — the rig's VNC password would be one tailnet membership away from the desktop. The case, from [Tailscale's own security documentation](https://tailscale.com/security) and its public record:
 
@@ -103,7 +103,7 @@ This deserves its own answer, not a hand-wave — the rig's VNC password would b
 
 The remaining honest caveat is the one from the trade-off above: coordination is a third-party closed service. If that ever bothers you, Headscale swaps it for your own server and nothing else changes.
 
-### On the desktop
+#### On the desktop
 
 Ubuntu and macOS both get the same one-liner or installer:
 
@@ -135,13 +135,13 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 
 `x11vnc` itself: **no change.** Same command, same flags, same `~/.vnc/passwd`. macOS Screen Sharing: **no change.** Same toggle, same VNC password.
 
-### On the phone
+#### On the phone
 
 1. Install **Tailscale** from the Play Store, log into the same account, toggle it on. Read the phone's tailnet IP from the app (or the admin console).
 2. **RealVNC Viewer**: edit the saved connection, point it at the desktop's **tailnet IP** instead of the LAN IP. Port still 5900 (or implied). Same VNC password. (bVNC on the Ubuntu machine: same swap.)
 3. **DroidCam** app: no change on the phone side — the *desktop* client is what points at the phone. Update `droidcam-cli -a <phone-tailnet-ip> 4747` to use the phone's tailnet IP (mind the flag order gotcha from Part 2 — `-a` before the address).
 
-## The ten-second check: is the desktop actually reachable?
+### The ten-second check: is the desktop actually reachable?
 
 Setup done, phone somewhere else — before blaming the client app, run the ladder. It's the same on both OSes; only the port-probe tool differs, and on the Mac that tool is `nc`, because **macOS dropped `telnet` years ago** — every "just telnet to the port" troubleshooting guide predates that. `nc -vz` is the built-in replacement:
 
@@ -163,7 +163,7 @@ That one line gives you the same refused-vs-timeout split Part 1 taught you to r
 
 (That `.889` is Apple's variant-version flourish — plain `003.008` from x11vnc; Part 4 opens up the handshake it begins.)
 
-### The Mac's on/off lifecycle: headless once the password exists
+#### The Mac's on/off lifecycle: headless once the password exists
 
 Part 1 turned Screen Sharing on through System Settings because Sequoia insists on the GUI for the *first* enable and the VNC password. After that one visit, the whole lifecycle is two sudo lines — both verified live on the rig Mac for this post, port checked with `nc` either way:
 
@@ -180,7 +180,7 @@ Tailscale's own run/stop is symmetric: disconnect from the menu bar and the Mac 
 /Applications/Tailscale.app/Contents/MacOS/Tailscale login   # prints the auth URL
 ```
 
-## The daily loop: start, check, stop
+### The daily loop: start, check, stop
 
 Everything above was one-time. Day to day, the internet rig is *nothing to type* — Tailscale runs as a system service on both desktops, x11vnc autostarts at graphical login, the Mac's launchd state persists, the ufw rule persists. The commands below are the only ones left in your week, and only when you deliberately turned something off or something feels wrong.
 
@@ -209,7 +209,7 @@ sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.p
 
 Ubuntu has no daily start/stop at all — server, VPN, and firewall all persist; Part 2's stop script covers the audio side, which is the one piece genuinely worth stopping daily (it holds the phone's mic and battery). The Mac's `launchctl` pair is the only on/off in the whole internet rig, and both directions are a single line that survives reboots.
 
-## What changes, what doesn't
+### What changes, what doesn't
 
 | Piece | Part 1–2 (LAN) | Part 3 (internet) |
 |---|---|---|
@@ -224,7 +224,7 @@ Ubuntu has no daily start/stop at all — server, VPN, and firewall all persist;
 
 The one-line summary: **Part 3 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, two edited IPs.
 
-## Dictation over the internet: tested from cellular
+### Dictation over the internet: tested from cellular
 
 The audio path was the piece with a genuine unknown — LAN latency is single-digit milliseconds, and dictation over a real internet path had never been exercised here. It has now, end to end: phone on **mobile data** (WiFi off), DroidCam streaming to the desktop's tailnet IP, audio captured from the rig's usual `16 kHz` virtual source.
 
@@ -263,11 +263,11 @@ The build above is everything needed to run off the LAN. What follows is what to
 
 ---
 
-# Part 4 — Deep dive: how the rig actually works
+## Part 4 — Deep dive: how the rig actually works
 
 Part 1–2 said "trust me, taps become real keystrokes" and "trust me, the wrong loopback half is silent." This part cashes those checks. Nothing here is new setup — it's the working rig, opened up.
 
-## The wire protocol: RFB, and the 8-character password
+### The wire protocol: RFB, and the 8-character password
 
 VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Framebuffer). A session is a short fixed conversation, and knowing its shape explains several behaviors you met in Part 1 without explanation:
 
@@ -277,7 +277,7 @@ VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Fram
 
 The 8-character cap: classic VNC authentication is a [**DES challenge-response**](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2). The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's not a bug in either — it's the protocol wearing its age on its sleeve.
 
-## Why VNC triggers hotkeys when SSH can't
+### Why VNC triggers hotkeys when SSH can't
 
 Part 1's rule was: "global hotkeys fire from the phone." Here's the mechanism underneath.
 
@@ -292,7 +292,7 @@ That's the whole trick the rig rests on:
 
 macOS runs the same play with different plumbing: Screen Sharing injects events through the window server's event path — equivalent to a physical event to every listener, which is why the same hotkey rule held on the Mac (verified live in Part 2's dictation round-trip).
 
-## The audio path, end to end — and the wrong-half bug
+### The audio path, end to end — and the wrong-half bug
 
 Part 2 told you the fix (`hw:Loopback,1,0`, not the udev auto-source) without the full picture. Here it is.
 
@@ -319,11 +319,11 @@ The wrong-half bug, then, in one sentence: the udev rule auto-creates a source f
 
 Why macOS needs the BlackHole hop for the same job: Linux has a loopback module in the kernel; macOS has no built-in "virtual audio cable" at all. BlackHole is a third-party driver that creates one — a 2-channel virtual device whose playback side and capture side play the same device-0/device-1 game (AudioRelay plays into it, its input side appears to the system as a normal microphone). The Mac route (AudioRelay → BlackHole → default input) and the Ubuntu route (DroidCam → snd_aloop → module-alsa-source → default input) are the *same architecture* with different brand names on the cable.
 
-## What Handy does with the audio
+### What Handy does with the audio
 
 Once the phone is the system default input, Handy's job is the same as with any desk microphone: when its global hotkey fires (a real key event — see above), it records from the default source, runs the clip through a local speech-to-text model (Parakeet or Whisper, running on the machine's own CPU/GPU — no network), and pastes the transcription as synthesized input into whatever is focused. The rig's whole trick is that "the default input" is now a phone on a WiFi, and "whatever is focused" is now decided by VNC taps — Handy itself needed zero remote-specific features.
 
-## Part 3's layer: WireGuard, NAT traversal, and DERP
+### Part 3's layer: WireGuard, NAT traversal, and DERP
 
 The internet build adds one more layer to trace, and its mental model is small:
 
@@ -354,7 +354,7 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 
 ---
 
-# Where the series lands
+### Where the series lands
 
 - **Part 1**: control — the phone drives the desktop over VNC, both macOS and Ubuntu, one client app.
 - **Part 2**: dictation — the phone's mic becomes the desktop's input, Handy transcribes locally, any app receives the text.
@@ -363,7 +363,7 @@ The mechanics above explain *why* the rig works. This table is for when it doesn
 
 The progression is deliberate: each part removed exactly one constraint — *the desk* (Part 1), *the keyboard* (Part 2), *the building* (Part 3) — and Part 4 repaid the "trust me" notes accumulated along the way.
 
-## Tools & licenses
+### Tools & licenses
 
 | Tool | Role | License / cost |
 |---|---|---|
@@ -382,7 +382,7 @@ The progression is deliberate: each part removed exactly one constraint — *the
 
 ---
 
-## New here? Start from Part 1
+### New here? Start from Part 1
 
 This post assumes the rig from Parts 1–2 — the phone driving the desktop over VNC on the home WiFi, with local voice dictation wired in. If any of that is unfamiliar, that's where to start:
 
@@ -391,7 +391,7 @@ This post assumes the rig from Parts 1–2 — the phone driving the desktop ove
 
 ---
 
-## Let's Connect
+### Let's Connect
 
 Thank you for the time — genuinely. If you try any of this, I'd rather hear what broke than what worked:
 

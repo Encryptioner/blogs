@@ -68,9 +68,9 @@ Security and license notes for every tool close the post.
 
 ---
 
-# Part 1 — Remote control from the phone
+## Part 1 — Remote control from the phone
 
-## Why VNC, and not just SSH
+### Why VNC, and not just SSH
 
 If you've remoted into a machine before, it was probably SSH — and SSH can't do this job. An SSH session drops you into a *new* text shell: it can't show you the desktop you left running, can't click anything, can't type into the apps already open, and can't fire global hotkeys (which Part 2's dictation engine depends on). It's a parallel door into the basement.
 
@@ -78,7 +78,7 @@ VNC is a mirror plus a hand: the phone sees the actual desktop, and every tap an
 
 Both halves are standard: macOS and Ubuntu can each serve VNC with either built-in or one-command-free tooling, and any standards-compliant client can connect. That's why one phone app is enough for both machines.
 
-## The macOS machine: Screen Sharing, already installed
+### The macOS machine: Screen Sharing, already installed
 
 The Mac ships with the VNC server — this is mostly a matter of turning it on. This route was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on port 5900, a phone client driving the screen, everything below marked "tested live" came off that machine.
 
@@ -102,7 +102,7 @@ Three auth behaviors worth knowing before a phone client rejects a correct-looki
 
 What you *don't* need, relative to Ubuntu below: no display-number hunting, no Xauthority chase, no autostart file, no reconnect/key-repeat flag tuning — Apple's server handles those correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu route can't do that (x11vnc only starts after a graphical login).
 
-## The Ubuntu machine: x11vnc
+### The Ubuntu machine: x11vnc
 
 x11vnc shares and drives the **existing** desktop session — the one you're actually logged into, with your apps already open — rather than spawning a fresh virtual one. It's in the standard repos:
 
@@ -116,7 +116,7 @@ x11vnc shares and drives the **existing** desktop session — the one you're act
 sudo apt install -y x11vnc
 ```
 
-### Run it
+#### Run it
 
 ```bash
 x11vnc -display :<real-display-number> -auth guess -usepw -shared -repeat -forever
@@ -134,7 +134,7 @@ Find `<real-display-number>` with `who` (look for `<user>  :N  <date>`) from a t
 
 **What the VNC password actually is** — easy to conflate with the WiFi password, but it's a separate thing: it's set by you via `x11vnc -storepasswd` (not your router), it controls who can drive *this* desktop once already on the network (not who can join the network), and it doesn't change when you switch WiFi networks — phone and desktop just need to be on the *same* network at connection time, whichever one that is. Like the Mac's, it's capped at 8 effective characters by the classic VNC auth protocol.
 
-### Persist across reboots — the autostart file
+#### Persist across reboots — the autostart file
 
 There's no separate script to write here — GNOME (and most desktops) autostarts anything dropped as a `.desktop` file in `~/.config/autostart/`, once per graphical login, which is the earliest point a display actually exists to serve. Set the password once first (`x11vnc -storepasswd`), then create this file:
 
@@ -151,7 +151,7 @@ X-GNOME-Autostart-enabled=true
 
 One consequence of the after-login design: if the machine reboots (or loses power) and sits at a lock screen, nothing's listening yet — someone has to log in locally once before the phone can reach it. The Mac's Screen Sharing doesn't have that limitation; this is the one thing it does better.
 
-## The phone client: RealVNC Viewer (one app, both machines)
+### The phone client: RealVNC Viewer (one app, both machines)
 
 **[RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/)** (free on Android and iOS) is the client this post standardizes on, for one reason that matters more than any feature list: **it speaks the classic VNC authentication that both servers above serve**, so the same app — the same UI, the same gestures, the same saved-entries list — drives the Mac and the Ubuntu box. Two entries, one muscle memory. On the Mac side that's live-tested end to end; against x11vnc it's the same standard handshake (the one `x11vnc -storepasswd` sets), so it connects the same way — and if your phone-side app ever refuses, the fallback below is proven on Ubuntu.
 
@@ -171,7 +171,7 @@ Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected
 
 **Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the Reference section's troubleshooting tables are ordered by likelihood; start at the top.
 
-## Driving the desktop from the phone
+### Driving the desktop from the phone
 
 Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu machine and the Mac. Client-specific bits are labeled. The connection details, in one place:
 
@@ -189,7 +189,7 @@ VNC just mirrors real mouse and keyboard input — there's no VNC-specific "sele
 - **Type**: tap the field to focus it, tap the keyboard icon to bring up the phone's soft keyboard. Everything typed sends as real keystrokes — no special "VNC mode."
 - **Modifier combos** (Ctrl+key, Alt+key, Cmd+key): use the client's extra-keys toolbar, the row of dedicated `Ctrl`/`Alt`/`Shift`/`Esc`/`Tab` buttons you tap to hold, then tap the other key.
 
-### Switching between applications
+#### Switching between applications
 
 Three ways, in the order actually worth trying on a phone:
 
@@ -199,7 +199,7 @@ Three ways, in the order actually worth trying on a phone:
 
 All three are the same underlying trick: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
 
-### Multi-key shortcuts, e.g. `Super+A`
+#### Multi-key shortcuts, e.g. `Super+A`
 
 A touchscreen can't physically hold two keys down at once, so the extra-keys toolbar buttons don't work like a normal press-and-release key — they're **toggles**. Tapping a modifier arms it (it stays visually pressed/highlighted); tapping the next key sends both together as one combo, and the modifier releases automatically right after.
 
@@ -211,7 +211,7 @@ To fire `Super+A` (or any modifier combo — `Ctrl+Shift+T`, `Alt+F4`, `Cmd+Q` o
 
 Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, then tap the letter key, and all three go through together. If the client's default extra-keys row doesn't show a Super/Win button, check its settings for a toolbar/keys customization option before assuming the key isn't supported — most VNC clients that expose Ctrl/Alt as toggles expose Super the same way.
 
-### Right-click, and where Enter/Backspace live
+#### Right-click, and where Enter/Backspace live
 
 **Right-click** in RealVNC Viewer: **tap with two fingers at once**. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and **double-tap + hold + drag** = select text or drag-and-drop. ([RealVNC's gesture reference](https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device).) In **bVNC** it's the one gesture people assume and get wrong — right-click is *not* a plain long-press:
 
@@ -223,7 +223,7 @@ That hold-then-second-finger-tap gesture is bVNC's documented right-click in its
 
 **Enter and Backspace** — not special VNC buttons, just the ordinary keys on Android's own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows.
 
-### The everyday actions: new tab, Ctrl+C, close — both clients
+#### The everyday actions: new tab, Ctrl+C, close — both clients
 
 The four things you'll do a hundred times from the couch, in one place. Modifier mechanics in **both** clients are the toggles from the multi-key section above — tap the modifier, it arms, tap the key, the combo fires — so only the gestures differ:
 
@@ -273,11 +273,11 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 That's the quiet point of the whole rig: if the phone's keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.
 
-### Editing text in a terminal
+#### Editing text in a terminal
 
 Faster than arrow-key nudging on touch, works on both machines: standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
 
-### Typing on the desktop with your phone keyboard
+#### Typing on the desktop with your phone keyboard
 
 The soft keyboard that appears when you tap the keyboard icon is your phone's **normal keyboard app** — whatever you already use, nothing new installed. Everything the keyboard app is good at carries over, because VNC just receives whatever the keyboard commits and sends it as real keystrokes:
 
@@ -293,7 +293,7 @@ Two cautions from the terminal-shaped parts of this rig:
 - **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Your keyboard app's settings (its own toolbar, or Settings → System → Languages & input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
 - **Voice typing works — mind where it transcribes.** Any keyboard with voice-typing support works over VNC (tested live): the keyboard's speech engine does the transcribing, and the committed text arrives as keystrokes like any other typing. The catch isn't injection — it's that most keyboards dictate through their maker's cloud speech service, the opposite of this rig's offline promise. Part 2 exists for the local version: the phone's mic streaming to the desktop, transcribed **locally** by Handy, landing in any app — no cloud in the loop.
 
-### A note on global hotkeys
+#### A note on global hotkeys
 
 Any app that listens for a global hotkey (launcher, dictation engine, window manager action) can be triggered from the phone — VNC delivers the key to the desktop's real input stack, and the listener fires. The practical rule for *which* hotkey to pick for phone use: a **single key with no modifier** (`End`, `Insert`, `Home`, `Page Up/Down`) beats any combo, because a combo means arming a toggle button and then tapping a second key — two taps instead of one, every single time. Part 2 applies exactly this rule to Handy's dictation hotkey.
 
@@ -345,7 +345,7 @@ That's the control half done: the phone can see and drive either machine. But ev
 
 ---
 
-# Part 2 — Voice dictation: Handy + your phone's mic
+## Part 2 — Voice dictation: Handy + your phone's mic
 
 Typing on a phone is fine for a sentence. For a paragraph — a prompt for an AI agent, a code-review reply, a commit message with actual context — it's the bottleneck. This part removes it: **speak, and the words land in whatever desktop app is focused**, transcribed locally, offline, by [Handy](https://github.com/cjpais/Handy).
 
@@ -354,18 +354,18 @@ Two facts about Handy shape everything below:
 - **Handy has no always-listening mode** — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop's own input stack. This is the second reason the rig is VNC-based, not SSH-based: VNC's remote keyboard *does* synthesize real input events, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would. (Part 1's "global hotkeys" note is the generic version of this rule.)
 - **Handy has no in-app microphone picker** — it just uses whatever the OS default input device is. That's what makes swapping in the phone's mic possible without touching a single Handy setting: make the phone a default-able system input, and the integration is done.
 
-## Handy: the dictation engine (macOS and Ubuntu)
+### Handy: the dictation engine (macOS and Ubuntu)
 
 Handy runs natively on both macOS and Ubuntu — same app, same models, same settings structure. Set it up at the desk first; everything remote depends on it working locally.
 
-### macOS — install
+#### macOS — install
 
 - Official Homebrew cask: `brew install --cask handy` — confirmed it's maintained in the `homebrew-cask` repo itself, not a third-party tap, before running it.
 - The app bundle is small, ~40 MB, before any model download.
 - First launch asks for two one-time OS permissions (Microphone, Accessibility) — click-through, no config editing.
 - It works system-wide by design: hold the shortcut, speak, release, text pastes wherever the cursor currently is. Terminal included.
 
-### macOS — model choice: multilingual (English + Bangla)
+#### macOS — model choice: multilingual (English + Bangla)
 
 Handy's default model, Parakeet, only covers 25 European languages — no Bangla yet (an open feature request, unresolved). Whisper covers Bangla among 99 languages, from a single multilingual model file — no swapping per language, it detects (or can be pinned to) whichever one you're speaking.
 
@@ -374,17 +374,17 @@ Handy's default model, Parakeet, only covers 25 European languages — no Bangla
 
 Two decoding concepts worth knowing if you're picking a model yourself: **transcribe vs translate** — transcribe outputs the language you spoke, translate always outputs English regardless of input (skips a separate translation step, but Handy doesn't expose a UI toggle for it yet). And **auto-detect vs pinned language** — auto-detect guesses per clip (Whisper only; Parakeet-family models don't detect at all and silently default to English), pinning skips that step for speed and avoids misdetection on short clips.
 
-### macOS — speed fix: switch to a streaming model
+#### macOS — speed fix: switch to a streaming model
 
 Whisper Medium (picked for Bangla) felt slow for everyday English dictation. Handy added streaming model support in v0.9.0 — **Parakeet Unified EN (0.6B)** is the streaming-capable engine, now Handy's recommended default: English-only, ~160ms latency, live preview while you're still speaking. Set that as the daily driver, and switch to Whisper Medium/Large only for the occasional Bangla session — same one-click swap, no reinstall.
 
-### macOS — tuning that mattered
+#### macOS — tuning that mattered
 
 - **Custom vocabulary**: Settings → Advanced → Transcription → Custom Words — a `misheard → corrected` pair list for names and jargon the model gets wrong (e.g. "nerd devs" → "NerdDevs"). For cleanup beyond a fixed word list, Experimental → Post-Processing runs a second AI pass over the transcript, at the cost of a bit more latency.
 - **RAM**: idle process measured **~823 MB RSS** with a model resident in memory. Noticeable if you keep it always-on on an 8 GB machine — Settings → Advanced → Unload Model frees that after a configurable idle timeout, at the cost of first-word latency on the next dictation.
 - **Shortcut conflict**: default `Option+Space` clashed with Spotlight's own binding. Switched to Right Option held alone (not a macOS system action by itself, no collision). Alternative that's popular in Handy's own docs: hold `Fn`, with System Settings → Keyboard → "Press Globe key to…" → *Do Nothing* so its default tap-action doesn't also fire.
 
-### Ubuntu — install, and the Wayland question
+#### Ubuntu — install, and the Wayland question
 
 Check the session type first — the Wayland notes below only apply if you're actually on Wayland:
 
@@ -419,7 +419,7 @@ Wayland breaks Handy's default paste/typing out of the box, with known fixes:
 
 Model choice carries over unchanged: Parakeet Unified EN as the daily default, Whisper for occasional Bangla.
 
-## The hotkey and the mode: tuning Handy for phone use
+### The hotkey and the mode: tuning Handy for phone use
 
 Two settings decide whether dictation works from the couch. Both are in Handy's settings; both were tuned specifically against a VNC soft keyboard.
 
@@ -429,7 +429,7 @@ Two settings decide whether dictation works from the couch. Both are in Handy's 
 
 Two Mac-specific notes from testing: Mac keyboards have no dedicated `End` — it's `Fn`+`→`, and Handy registers the *keysym*, so `Fn`+`→` at the desk and `End` in the client's key panel both trigger it. And don't pick a bare *modifier* like right-Option just because it's comfy locally — VNC soft keyboards can't send side-specific modifiers, so it will never fire from the phone. (This is Part 1's global-hotkey rule applied; the OS-level conflict fixes above — Spotlight on Mac, Wayland's single-key restrictions — are the other half of picking a hotkey that fires at all.)
 
-## Ubuntu mic relay: DroidCam + PulseAudio loopback
+### Ubuntu mic relay: DroidCam + PulseAudio loopback
 
 The mic half of the Ubuntu rig: **DroidCam** (Android app + Linux client) streams the phone's mic over WiFi into a virtual PulseAudio source. Since Handy just follows the system default input device, setting that virtual source as default *is* the entire integration.
 
@@ -458,7 +458,7 @@ Three gotchas here, in the order they'll actually bite:
    ```
 3. **Two DroidCam Android apps exist, only one works here.** "DroidCam Webcam (Classic)" is what `droidcam-cli` is built for. The OBS-companion variant connects fine for video but sends silent audio — the handshake answers, no mic samples ever flow. If both are installed, force-close both and open only Classic; they also fight over port 4747.
 
-### Audio-only mode — worth it for phone battery
+#### Audio-only mode — worth it for phone battery
 
 `-v` streams the camera continuously (capture, encode, WiFi upload) for the entire session, which drains the phone noticeably faster than audio alone — if all you want is the mic, skip it. `-a` alone is a *separate* code path in the client (its own `AudioThreadProc` thread, independent of the video path — confirmed reading `droidcam-cli.c`), so it doesn't need `-v` running alongside it to work:
 
@@ -468,7 +468,7 @@ droidcam-cli -a <phone-lan-ip> 4747
 
 The `install-video` step from above is still required once at setup time regardless — the client checks that the `v4l2loopback-dc` kernel module exists at startup and refuses to run without it, even when you never pass `-v`. That's a one-time install-time dependency, not an ongoing battery cost — once the module's installed, `-a` alone never touches the camera or the video path at runtime. If `-a` alone doesn't produce audio on your setup after the loopback-source fix below, add `-v` back as a fallback (some app-version combinations reportedly need it to keep the mic thread alive) — but confirm with the `parecord`/`sox` check further down before assuming you need it.
 
-### Wiring the mic through correctly
+#### Wiring the mic through correctly
 
 After `install-sound`, PulseAudio claims the new "Loopback" ALSA card in full duplex (`output:analog-stereo+input:analog-stereo`) — but `droidcam-cli` needs to open the playback side itself, so free it:
 
@@ -502,7 +502,7 @@ load-module module-alsa-source device=hw:Loopback,1,0
 
 (A user `default.pa` *replaces* the system one, so the `.include` line matters. On systems running PipeWire instead, this file is ignored — check `pactl info | grep -i server`.)
 
-### Daily use on Ubuntu — scripts
+#### Daily use on Ubuntu — scripts
 
 Everything above assumes x11vnc autostarts at login (Part 1) and the corrected PulseAudio source is already in `default.pa` — only DroidCam needs a manual start each session. Rather than retyping the two commands every time, save them as a script:
 
@@ -572,7 +572,7 @@ chmod +x ~/bin/dictation-remote-stop.sh
 
 DroidCam's phone app stops streaming on its own once the client disconnects.
 
-## macOS mic relay: AudioRelay + BlackHole, or an iPhone
+### macOS mic relay: AudioRelay + BlackHole, or an iPhone
 
 Handy's limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is "make the phone a default-able input device":
 
@@ -590,18 +590,18 @@ Handy's limitation is the same on both OSes — it uses whatever the system defa
   <sub>The macOS rig: same two paths — VNC carries control (blue), AudioRelay carries audio (green).</sub>
 </div>
 
-### Switching input devices on macOS — the move you'll make daily
+#### Switching input devices on macOS — the move you'll make daily
 
 The two names that matter: `BlackHole 2ch` *is* the phone's mic (via AudioRelay), `MacBook Air Microphone` (or your Mac's model name) is the built-in one.
 
 - **GUI**: **System Settings → Sound → Input** → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest "is anything hearing me" check there is. Note Control Center's sound module switches *output* (speakers) only — input always lives in Sound settings, and mixing the two up is the classic "Handy stopped hearing me" cause.
 - **CLI**: the `pactl set-default-source` equivalent is `SwitchAudioSource -t input -s "BlackHole 2ch"` (and `-s "MacBook Air Microphone"` to come back). `-c -t input` prints the current device, `-a -t input` lists them all.
 
-## Part 2 — Reference: troubleshooting, daily scenarios & teardown
+### Part 2 — Reference: troubleshooting, daily scenarios & teardown
 
 The setup above is a one-time build. What follows is what to check when dictation goes quiet, the day-to-day scenario table, and how to stop or remove it all — none of it needed on a first pass, all of it worth bookmarking.
 
-### Dictation troubleshooting quick reference
+#### Dictation troubleshooting quick reference
 
 **Ubuntu:**
 
@@ -620,7 +620,7 @@ The setup above is a one-time build. What follows is what to check when dictatio
 - **Nothing lands when you tap the hotkey**: Handy is in push-to-talk instead of toggle mode — re-read the toggle-mode section above; that's the single most common phone-side failure.
 - **Hotkey taps do nothing at all**: it's a modifier combo, and the modifier toggle isn't being armed — rebind to a single key (`End`-style), per the hotkey section.
 
-### Common real-life scenarios (whole rig)
+#### Common real-life scenarios (whole rig)
 
 | Scenario | What to do |
 |---|---|
@@ -634,7 +634,7 @@ The setup above is a one-time build. What follows is what to check when dictatio
 | Away from home / different WiFi | Nothing to do — the rig is firewalled to your home subnet, so it's simply unreachable from outside it. That's the intended behavior, not a setting to flip. (See the roadmap below for taking it past the LAN.) |
 | Quick "is this actually working" check | `pgrep -x x11vnc && pactl list sources short \| grep Loopback` (Ubuntu) — both should return something, the source line should say `RUNNING`. Mac: the Input level meter in Sound settings. |
 
-### Stopping, resuming, and removing it all (macOS)
+#### Stopping, resuming, and removing it all (macOS)
 
 **Stop for the evening.** The one step people get wrong (we did): switch the **input**, not just the speakers.
 
@@ -667,7 +667,7 @@ sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.p
 
 ---
 
-## Where this landed
+### Where this landed
 
 Full chain confirmed working over LAN: VNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access — RealVNC Viewer against both the Mac and the Ubuntu box end to end, bVNC as the long-standing Ubuntu alternative), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode, and on the Mac the Android mic route (AudioRelay → BlackHole) delivering clean speech with a full Handy dictation round-trip — toggle hotkey tapped from the phone's key panel, spoken sentence, transcription landing in the focused app. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I'd fall back to **nerd-dictation** or **Vocalinux** if Handy proves too fiddly. One piece remains honestly untested: the iPhone Continuity route.
 
@@ -675,7 +675,7 @@ The setup is more moving parts than a typical dictation write-up — a phone-mic
 
 ---
 
-## Where this goes next
+### Where this goes next
 
 Part 1 and Part 2 both live on one constraint: **phone and desktop on the same network.** That's the right scope for a couch rig — but it's not the end of the road. Both follow-ups now live in one post:
 
@@ -687,7 +687,7 @@ Part 1 and Part 2 both live on one constraint: **phone and desktop on the same n
 
 ---
 
-## Tool info, licenses, and security
+### Tool info, licenses, and security
 
 Every tool in this post, checked against primary sources — the repo's actual LICENSE file, not its README claim; CVE databases; and the vendor's own privacy policy. Two verdicts matter more than the rest and are called out below the table.
 
@@ -711,7 +711,7 @@ Every tool in this post, checked against primary sources — the repo's actual L
 
 ---
 
-## Appendix: other dictation tools considered
+### Appendix: other dictation tools considered
 
 Handy won on a specific bar — free, fully offline, no account, no mode caps, works in a terminal. For reference, what else was on the table:
 
@@ -728,7 +728,7 @@ One naming gotcha: `apt search handy` on Ubuntu surfaces `libhandy-1-0`/`gir1.2-
 
 ---
 
-## Let's Connect
+### Let's Connect
 
 Thank you for the time — genuinely. If you try any of this, I'd rather hear what broke than what worked:
 

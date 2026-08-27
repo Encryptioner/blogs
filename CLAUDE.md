@@ -76,11 +76,17 @@ When in doubt, grep for the previous deck (e.g. `P-7`) — every file it appears
 - If a title changes, update **every** listing that names it — `INDEX.md`, `README.md`, `presentations/docs/PUBLIC_LINKS.md`, and any deck card text in `presentations/index.html`
 - A version claim (e.g. the P-5 hub "through vX" badge) is a *coverage* signal, not a "latest tag" counter — bump it only when a new version's features actually land in a deck
 
-### Publishing Platforms
+### Publishing Platforms & Requirements
 Content from this repository is published to:
 - DEV Community (https://dev.to/mir_mursalin_ankur)
 - Medium (https://mir-mursalin-ankur.medium.com/)
 - Nerddevs (https://nerddevs.com/author/ankur/)
+
+### Accessibility Rules (enforce on every post)
+- **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.
+- **Every image needs meaningful alt text** — `![Description of content](path)` not `![](path)`. Screen readers read this aloud.
+- **Front matter**: `title`, `published`, `tags` (max 4, comma-separated), optional `cover_image` (1000×420), `series`, `canonical_url`.
+- Full reference: `docs/editor-guide.md`
 
 ## File Naming Conventions
 - Use descriptive, human-readable filenames for blog posts
@@ -92,6 +98,7 @@ Content from this repository is published to:
 - This is a content-only repository with no build process, tests, or runtime code
 - All content is in Markdown format
 - No package.json or dependencies to manage
+- Before publishing, verify heading hierarchy and alt text per `docs/editor-guide.md`
 
 ## Knowledge Graph
 This project has knowledge graph tools (graphify, code-review-graph) configured. Read `docs/agent/knowledge-graph.md` before exploring unfamiliar content or answering topic/structure questions.

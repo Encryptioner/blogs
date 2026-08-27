@@ -29,9 +29,9 @@ Security and license notes for every tool close the post.
 
 ---
 
-# Part 1 — Same network: the phone drives the desktop
+## Part 1 — Same network: the phone drives the desktop
 
-## Why VNC, and not just SSH
+### Why VNC, and not just SSH
 
 If you've remoted into a machine before, it was probably SSH — and SSH can't do this job. An SSH session drops you into a *new* text shell: it can't show you the desktop you left running, can't click anything, can't type into the apps already open, and can't fire global hotkeys. It's a parallel door into the basement.
 
@@ -39,7 +39,7 @@ VNC is a mirror plus a hand: the phone sees the **actual desktop** — your apps
 
 Both halves are standard: macOS and Ubuntu can each serve VNC with built-in or one-command-free tooling, and any standards-compliant client can connect. That's why one phone app is enough for both machines.
 
-## The macOS machine: Screen Sharing, already installed
+### The macOS machine: Screen Sharing, already installed
 
 The Mac ships with the VNC server — this is mostly a matter of turning it on. This route was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on port 5900, a phone client driving the screen, everything below marked "tested live" came off that machine.
 
@@ -63,7 +63,7 @@ Three auth behaviors worth knowing before a phone client rejects a correct-looki
 
 What you *don't* need, relative to Ubuntu below: no display-number hunting, no Xauthority chase, no autostart file, no reconnect/key-repeat flag tuning — Apple's server handles those correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the **login window** too, so after a reboot you can VNC in and log in remotely — the Ubuntu route can't do that (x11vnc only starts after a graphical login).
 
-## The Ubuntu machine: x11vnc
+### The Ubuntu machine: x11vnc
 
 x11vnc shares and drives the **existing** desktop session — the one you're actually logged into, with your apps already open — rather than spawning a fresh virtual one. It's in the standard repos:
 
@@ -77,7 +77,7 @@ x11vnc shares and drives the **existing** desktop session — the one you're act
 sudo apt install -y x11vnc
 ```
 
-### Run it
+#### Run it
 
 ```bash
 x11vnc -display :<real-display-number> -auth guess -usepw -shared -repeat -forever
@@ -95,7 +95,7 @@ Find `<real-display-number>` with `who` (look for `<user>  :N  <date>`) from a t
 
 **What the VNC password actually is** — easy to conflate with the WiFi password, but it's a separate thing: it's set by you via `x11vnc -storepasswd` (not your router), it controls who can drive *this* desktop once already on the network (not who can join the network), and it doesn't change when you switch WiFi networks — phone and desktop just need to be on the *same* network at connection time, whichever one that is. Like the Mac's, it's capped at 8 effective characters by the classic VNC auth protocol.
 
-### Persist across reboots — the autostart file
+#### Persist across reboots — the autostart file
 
 There's no separate script to write here — GNOME (and most desktops) autostarts anything dropped as a `.desktop` file in `~/.config/autostart/`, once per graphical login, which is the earliest point a display actually exists to serve. Set the password once first (`x11vnc -storepasswd`), then create this file:
 
@@ -112,7 +112,7 @@ X-GNOME-Autostart-enabled=true
 
 One consequence of the after-login design: if the machine reboots (or loses power) and sits at a lock screen, nothing's listening yet — someone has to log in locally once before the phone can reach it. The Mac's Screen Sharing doesn't have that limitation; this is the one thing it does better.
 
-## The phone client: RealVNC Viewer (one app, both machines)
+### The phone client: RealVNC Viewer (one app, both machines)
 
 **[RealVNC Viewer](https://www.realvnc.com/en/connect/download/viewer/)** (free on Android and iOS) is the client this post standardizes on, for one reason that matters more than any feature list: **it speaks the classic VNC authentication that both servers above serve**, so the same app — the same UI, the same gestures, the same saved-entries list — drives the Mac and the Ubuntu box. Two entries, one muscle memory. On the Mac side that's live-tested end to end; against x11vnc it's the same standard handshake (the one `x11vnc -storepasswd` sets), so it connects the same way.
 
@@ -120,7 +120,7 @@ Worth knowing where the line sits: RealVNC the *company* sells a cloud-connected
 
 **Try it now — first win.** Server on (either machine), Viewer installed: add an entry with the machine's LAN IP and port `5900`, connect, enter the VNC password with the username blank. Your desktop should fill the phone's screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn't, the Reference section's troubleshooting tables are ordered by likelihood; start at the top.
 
-### One session, multiple monitors
+#### One session, multiple monitors
 
 If the desktop has more than one display, nothing changes on the phone side: the VNC session mirrors **the whole desktop, both monitors side by side**, as one wide screen. Swipe/pan across to move between them, pinch out to see both at once, pinch in to work one monitor at full zoom — the monitors are just regions of one mirrored framebuffer. Verified live from the phone (a browser on one monitor, a terminal on the other, both driven in the same session):
 
@@ -128,7 +128,7 @@ If the desktop has more than one display, nothing changes on the phone side: the
 
 Works identically against both machines — the Mac's Screen Sharing serves all attached displays, and x11vnc serves the entire X session (`:0` spans whatever monitors it spans). One practical note: at phone scale a two-monitor desktop is wide, so the pan-and-pinch rhythm from the gestures section below is the everyday motion, not a workaround.
 
-## Driving the desktop from the phone
+### Driving the desktop from the phone
 
 Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu machine and the Mac. The connection details, in one place:
 
@@ -146,7 +146,7 @@ VNC just mirrors real mouse and keyboard input — there's no VNC-specific "sele
 - **Type**: tap the field to focus it, tap the keyboard icon to bring up the phone's soft keyboard. Everything typed sends as real keystrokes — no special "VNC mode."
 - **Modifier combos** (Ctrl+key, Alt+key, Cmd+key): use the client's extra-keys toolbar, the row of dedicated `Ctrl`/`Alt`/`Shift`/`Esc`/`Tab` buttons you tap to hold, then tap the other key.
 
-### Switching between applications
+#### Switching between applications
 
 Three ways, in the order actually worth trying on a phone:
 
@@ -156,7 +156,7 @@ Three ways, in the order actually worth trying on a phone:
 
 All three are the same underlying trick: VNC sends real input events, so every desktop-level shortcut or gesture you'd use at the keyboard works identically from the phone.
 
-### Multi-key shortcuts, e.g. `Super+A`
+#### Multi-key shortcuts, e.g. `Super+A`
 
 A touchscreen can't physically hold two keys down at once, so the extra-keys toolbar buttons don't work like a normal press-and-release key — they're **toggles**. Tapping a modifier arms it (it stays visually pressed/highlighted); tapping the next key sends both together as one combo, and the modifier releases automatically right after.
 
@@ -168,13 +168,13 @@ To fire `Super+A` (or any modifier combo — `Ctrl+Shift+T`, `Alt+F4`, `Cmd+Q` o
 
 Same mechanism for stacking more than one modifier — tap `Ctrl`, tap `Shift`, then tap the letter key, and all three go through together. If the client's default extra-keys row doesn't show a Super/Win button, check its settings for a toolbar/keys customization option before assuming the key isn't supported — most VNC clients that expose Ctrl/Alt as toggles expose Super the same way.
 
-### Right-click, and where Enter/Backspace live
+#### Right-click, and where Enter/Backspace live
 
 **Right-click** in RealVNC Viewer: **tap with two fingers at once**. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and **double-tap + hold + drag** = select text or drag-and-drop. ([RealVNC's gesture reference](https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device).) If you're doing anything right-click-heavy, a **Bluetooth mouse** pairs to the phone and its actual right button just works.
 
 **Enter and Backspace** — not special VNC buttons, just the ordinary keys on Android's own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a *normal* mobile keyboard doesn't have — Ctrl, Alt, Esc, Tab, arrows.
 
-### Scrolling — the most common gesture of all
+#### Scrolling — the most common gesture of all
 
 You'll scroll more than you'll click. **Two fingers swiped up/down sends real mouse-wheel events** — so anything that scrolls at the desk scrolls from the phone, identically on the Mac and Ubuntu: web pages, chat logs, file lists, code editors. There's no VNC-specific scroll mode to enable; the two-finger swipe *is* the wheel.
 
@@ -185,7 +185,7 @@ The one place it needs help is the terminal, and only because terminals handle w
 
 If a two-finger swipe ever pans the *view* instead of scrolling the *app*, you're zoomed out or in touch-drag mode — pinch back to 100% (or tap once to re-center the cursor) and the wheel behavior returns. And on a multi-monitor desktop, remember the two-finger swipe doubles as the pan across monitors when zoomed out.
 
-### The everyday actions: new tab, Ctrl+C, close
+#### The everyday actions: new tab, Ctrl+C, close
 
 The four things you'll do a hundred times, in one place. Modifier mechanics are the toggles from the multi-key section above — tap the modifier, it arms, tap the key, the combo fires:
 
@@ -235,11 +235,11 @@ More of the everyday, grouped by who's holding the phone — every row uses the 
 
 That's the quiet payoff: if the phone's keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.
 
-### Editing text in a terminal
+#### Editing text in a terminal
 
 Faster than arrow-key nudging on touch, works on both machines: standard readline bindings work over VNC exactly like they do locally — `Ctrl+A`/`Ctrl+E` jump to line start/end, `Ctrl+W` deletes the last word, `Ctrl+U` clears back to cursor.
 
-### Typing on the desktop with your phone keyboard — including voice typing
+#### Typing on the desktop with your phone keyboard — including voice typing
 
 The soft keyboard that appears when you tap the keyboard icon is your phone's **normal keyboard app** — whatever you already use, nothing new installed. Everything the keyboard app is good at carries over, because VNC just receives whatever the keyboard commits and sends it as real keystrokes:
 
@@ -256,7 +256,7 @@ Two cautions from the terminal-shaped parts of this rig:
 - **Autocorrect + terminals don't mix.** Suggestions will happily "fix" flags, paths, and `git` subcommands. Your keyboard app's settings (its own toolbar, or Settings → System → Languages & input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There's no desktop-side guard; the keystrokes arrive already "corrected."
 - **Voice typing lands wherever the cursor is.** Same rule as autocorrect, stronger stakes: check the focused window before you speak, because the words land as keystrokes the instant the keyboard commits them.
 
-### A note on global hotkeys
+#### A note on global hotkeys
 
 Any app that listens for a global hotkey (a launcher, a window manager action, a screenshot tool, an app-specific shortcut utility) can be triggered from the phone — VNC delivers the key to the desktop's real input stack, and the listener fires. The practical rule for *which* hotkey to pick for phone use: a **single key with no modifier** (`End`, `Insert`, `Home`, `Page Up/Down`) beats any combo, because a combo means arming a toggle button and then tapping a second key — two taps instead of one, every single time.
 
@@ -322,13 +322,13 @@ That's the whole control rig: the phone can see and drive either machine, from a
 
 ---
 
-# Part 2 — Over the internet: the same rig, anywhere
+## Part 2 — Over the internet: the same rig, anywhere
 
 > *"Wait — this only works on my WiFi. What if I'm at a coffee shop? What if the desktop is at home and I'm not?"*
 
 That's the question Part 1 leaves hanging. This part answers it: same phone, same desktop, same free tools — working from a coffee shop, a hotel room, or the back seat of a cab on mobile data, with nothing exposed to the open internet and nothing added to the bill.
 
-## First, the check most people skip: can you even port-forward?
+### First, the check most people skip: can you even port-forward?
 
 The traditional answer to "reach my home machine from outside" is: open the router's admin panel, forward port 5900 to the desktop, point the phone at your public IP. Before considering that path, run a five-minute check — because on a large share of modern connections it's dead on arrival:
 
@@ -338,7 +338,7 @@ The traditional answer to "reach my home machine from outside" is: open the rout
 
 CGNAT is now standard on many fiber and 5G home connections, which is exactly why "just forward the port" advice from 2010 blog posts fails silently today: everything on your side is configured correctly, and the packets still never arrive.
 
-## Even if you can port-forward, don't — not raw VNC
+### Even if you can port-forward, don't — not raw VNC
 
 Suppose the check comes back clean and you *do* have a real public IP. Port 5900 open to the whole internet is still the wrong move:
 
@@ -350,7 +350,7 @@ So the real goal was never "forward port 5900." It's this:
 
 > **Put the phone and the desktop on the same private network no matter where either of them physically is — and let VNC keep believing it's on a LAN, exactly like Part 1.**
 
-## The options
+### The options
 
 | Approach | Setup effort | Ongoing cost | Survives CGNAT | Exposes anything raw to the internet |
 |---|---|---|---|---|
@@ -362,7 +362,7 @@ So the real goal was never "forward port 5900." It's this:
 
 The rest of this part builds the first row. The alternatives get a short treatment in the Reference section below ("Escape hatches").
 
-## Tailscale: what it is and why it fits
+### Tailscale: what it is and why it fits
 
 Tailscale is a **mesh VPN built on WireGuard**. You install it on each device, log them into the same account (a "tailnet"), and every device gets a stable private address in the `100.x.y.z` range. That address doesn't change when the device moves networks — laptop on café WiFi, phone on mobile data, desktop at home: same tailnet IPs, as if they were all plugged into one switch in your living room.
 
@@ -380,7 +380,7 @@ The properties that matter for this rig:
   <sub>Part 2 in one picture: the tailnet replaces "same WiFi" — VNC keeps believing it's on a LAN.</sub>
 </div>
 
-### Is Tailscale safe to trust?
+#### Is Tailscale safe to trust?
 
 The VNC password is one tailnet membership away from your desktop, so this matters. The short version:
 
@@ -391,7 +391,7 @@ The VNC password is one tailnet membership away from your desktop, so this matte
 
 The remaining caveat: coordination is a third-party closed service. If that ever bothers you, [Headscale](https://github.com/juanfont/headscale) — the self-hosted control-plane replacement — keeps everything else identical.
 
-### On the desktop
+#### On the desktop
 
 Ubuntu and macOS both get the same one-liner or installer:
 
@@ -423,13 +423,13 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 
 `x11vnc` itself: **no change.** Same command, same flags, same `~/.vnc/passwd`. macOS Screen Sharing: **no change.** Same toggle, same VNC password. macOS's firewall needs no rule either — it permits Screen Sharing by default no matter which interface the traffic arrives on.
 
-### On the phone
+#### On the phone
 
 1. Install **Tailscale** from the Play Store, log into the same account, toggle it on. Read the phone's tailnet IP from the app (or the admin console).
 2. **RealVNC Viewer**: edit the saved connection, point it at the desktop's **tailnet IP** instead of the LAN IP. Port still 5900. Same VNC password.
 3. That's it — no other app on the phone changes.
 
-## What changes, what doesn't
+### What changes, what doesn't
 
 | Piece | Part 1 (LAN) | Part 2 (internet) |
 |---|---|---|
@@ -443,7 +443,7 @@ sudo ufw allow from 100.<phone-tailnet-ip> to any port 5900 proto tcp
 
 In short: **Part 2 is a re-addressing, not a rebuild.** Two new apps (Tailscale on each end), one firewall rule, one edited IP.
 
-## Verified from cellular
+### Verified from cellular
 
 The off-LAN path was tested end to end: phone on **mobile data** (WiFi off) driving the desktop over VNC through the tailnet, on a **direct** WireGuard path. `tailscale ping` answered in ~66 ms — not even the relay was needed. The Mac's internet route has since been tested too, over the **DERP relay** at ~125 ms, fully usable.
 
@@ -468,11 +468,11 @@ That's everything needed to run off the LAN. What follows is the trust boundary 
 
 ---
 
-# Part 3 — Deep dive: how the rig actually works
+## Part 3 — Deep dive: how the rig actually works
 
 Part 1 said "trust me, taps become real keystrokes." Part 2 said "trust me, two devices behind two different NATs find each other, encrypted." This part cashes those checks. Nothing here is new setup — it's the working rig, opened up. Read it when something breaks and you want to know *why*, or because you just like knowing how things work.
 
-## The wire protocol: RFB, and the 8-character password
+### The wire protocol: RFB, and the 8-character password
 
 VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Framebuffer). A session is a short fixed conversation, and knowing its shape explains several behaviors you met in Part 1 without explanation:
 
@@ -488,7 +488,7 @@ VNC speaks [**RFB**](https://datatracker.ietf.org/doc/html/rfc6143) (Remote Fram
 
 The 8-character cap: classic VNC authentication is a [**DES challenge-response**](https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2). The server sends a 16-byte challenge; the client encrypts it with DES using the *password itself* as the key — and DES keys are 8 bytes. Whatever you type beyond 8 characters never enters the computation. Every VNC implementation that speaks classic auth inherits the cap: the Mac's Screen Sharing password (Part 1's "first 8 are the real password" gotcha) and x11vnc's `-rfbauth` file alike. It's a protocol limitation, not a bug in either server.
 
-## Why VNC triggers hotkeys when SSH can't
+### Why VNC triggers hotkeys when SSH can't
 
 Part 1's rule was: "global hotkeys fire from the phone." Here's the mechanism underneath.
 
@@ -509,7 +509,7 @@ That's the whole trick the rig rests on:
 
 macOS runs the same play with different plumbing: Screen Sharing injects events through the window server's event path — equivalent to a physical event to every listener, which is why the same hotkey rule held on the Mac (verified live: shortcuts fired from the phone exactly as from the keyboard).
 
-## Part 2's layer: WireGuard, NAT traversal, and DERP
+### Part 2's layer: WireGuard, NAT traversal, and DERP
 
 The internet build adds one more layer to trace, and its mental model is small:
 
@@ -542,11 +542,11 @@ The table below is for when something breaks — symptom to layer, so you debug 
 
 ---
 
-## Quick start after first setup
+### Quick start after first setup
 
 The setup above happens once. This is the 30-second checklist for every session after — or for any "suddenly won't connect" moment. Run these on the desk.
 
-### 1. Find the desk's addresses
+#### 1. Find the desk's addresses
 
 ```bash
 hostname -I
@@ -567,7 +567,7 @@ On a Mac, the one-glance version is even shorter:
 ipconfig getifaddr en0    # Wi-Fi IP, nothing else; empty = not on Wi-Fi (desktop Macs: try en1)
 ```
 
-### 2. Tailscale side
+#### 2. Tailscale side
 
 ```bash
 tailscale ip -4      # the desk's permanent address — what the phone should dial
@@ -576,7 +576,7 @@ tailscale status     # every tailnet device + its IP; the phone's line must NOT 
 
 A phone showing `offline, last seen …` = its Tailscale VPN is off (Android's battery optimization kills it quietly) — nothing off-LAN will connect until it's back on.
 
-### 3. Is the server up?
+#### 3. Is the server up?
 
 ```bash
 pgrep -af x11vnc     # expect: x11vnc -display :N -auth guess ... -shared -repeat -forever
@@ -591,7 +591,7 @@ sudo lsof -iTCP:5900 -sTCP:LISTEN   # expect: screensharingd LISTEN
 
 Empty on either = the server side is down — Ubuntu: re-login graphically (autostart fires on login); Mac: System Settings → General → Sharing → Screen Sharing got flipped off — flip it back on (and re-check the "VNC viewers may control screen with password" setting).
 
-### 4. What the phone should dial
+#### 4. What the phone should dial
 
 | Situation | Address in RealVNC Viewer |
 |---|---|
@@ -600,7 +600,7 @@ Empty on either = the server side is down — Ubuntu: re-login graphically (auto
 
 Rule of thumb: **just use the Tailscale address always** — it works on the same WiFi too, and it never changes.
 
-### 5. Watch it live while the phone retries
+#### 5. Watch it live while the phone retries
 
 ```bash
 journalctl --user -f | grep -i x11vnc        # Ubuntu
@@ -617,7 +617,7 @@ nc -vz <desktop-ip> 5900
 
 An instant **"refused"** means the packets arrived and nothing is listening — server off, start it (on the Mac, check the Screen Sharing toggle; on Ubuntu, `pgrep -af x11vnc`). **Silence, then timeout** means a path problem — VPN down, firewall, wrong network. **"succeeded"** means go: the phone will connect. `nc` is the built-in on macOS (there's no `telnet` there anymore); on Ubuntu it ships with the default `netcat-openbsd` package. Verified live on the Mac's internet route — it's the command worth remembering from this section.
 
-### 6. Why the LAN IP drifts, and the fix
+#### 6. Why the LAN IP drifts, and the fix
 
 The router hands out LAN IPs by DHCP — after a router reboot or lease expiry the desk can get a new one, and the phone's saved entry keeps dialing the old address. Two permanent fixes:
 
@@ -626,7 +626,7 @@ The router hands out LAN IPs by DHCP — after a router reboot or lease expiry t
 
 Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry and this whole class of breakage disappears.
 
-### 7. Phone error text → cause
+#### 7. Phone error text → cause
 
 | Phone shows | Meaning | Fix |
 |---|---|---|
@@ -636,7 +636,7 @@ Option 2 is the better default: save `<tailscale-ip>:5900` as the primary entry 
 
 ---
 
-## Tools & licenses
+### Tools & licenses
 
 | Tool | Role | License / cost |
 |---|---|---|
@@ -650,7 +650,7 @@ Never port-forward 5900, on either OS, for any reason. Classic VNC auth is a DES
 
 ---
 
-## Let's Connect
+### Let's Connect
 
 If you try any of this, I'd rather hear what broke than what worked:
 
