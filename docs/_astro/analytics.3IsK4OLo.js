@@ -1,0 +1,1 @@
+function i(e,n={}){const t=typeof window<"u"?window.gtag:void 0;if(typeof t=="function")try{t("event",e,n)}catch{}}function u(e,n=600){let t;return(...o)=>{clearTimeout(t),t=setTimeout(()=>e(...o),n)}}export{u as d,i as t};
