@@ -256,6 +256,29 @@ systemctl --user status notify-forward.service
 pingdesk claude "refactor the payments module and run tests"
 ```
 
+**Agent permission pings, without the wrapper** — if your agent has a notification hook, wire the curl straight into it and skip `pingdesk` for the waiting game entirely. Claude Code fires a `Notification` event whenever it needs you (permission prompt waiting, input idle); a hook in `~/.claude/settings.json` turns each one into a phone buzz:
+
+```json
+{
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.message // \"Claude Code needs you\"' | { read -r m; curl -sf -H \"Title: Claude Code\" -H \"Tags: robot\" -d \"$m\" https://ntfy.sh/your-unguessable-topic-name; } 2>/dev/null || true",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Three details earn their keep: `async` so a slow connection never delays the prompt itself, `2>/dev/null || true` so a dead network fails quietly instead of stacking hook errors, and a fresh random topic per device so one stolen laptop means one rotated topic, not a fleet-wide re-key. The same shape works for anything with a lifecycle hook — git hooks, tmux hooks, CI webhooks: the event fires, the curl flies.
+
 **cron, Ubuntu** — the classic. A job that only *fails* loudly:
 
 ```bash
@@ -315,7 +338,7 @@ ntfy's priority runs 1–5 (`min`, `low`, `default`, `high`, `urgent`) — reser
 
 ### What if ntfy isn't right for you
 
-- **No Ubuntu box, Mac only?** Use Path A (ntfy.sh public server). For auto-mirror, there's no clean solution on macOS — Apple confirmed there's no public API ([source](https://forums.developer.apple.com/forums/thread/758451)).
+- **No Ubuntu box, Mac only?** Use Path A (ntfy.sh public server). For auto-mirror, there's no clean solution on macOS — Apple confirmed there's no public API ([source](https://forums.developer.apple.com/forums/thread/758451)). The one crack: delivered notifications land in a SQLite file under `/var/folders/…/com.apple.notificationcenter/db2/db`, and a poller with Full Disk Access can diff it and forward new rows. But the schema is undocumented, reshuffles across macOS releases, and the poller needs Full Disk Access to read anything at all — you'd be maintaining a rig that silently breaks on every upgrade, to mirror notifications from apps that mostly have iPhone apps of their own. For the events you actually script (builds, backups, agents), `pingdesk` and the hook wiring above cover you with none of that.
 - **Hate self-hosting?** The `curl` shape works unchanged against `https://ntfy.sh/your-unguessable-topic` — swap the URL, keep every one-liner. You lose "never leaves your machines," gain nothing to maintain.
 - **KDE Connect** can mirror notifications over an IP you give it, but doesn't work reliably over Tailscale (UDP broadcast issues, [tailscale#14476](https://github.com/tailscale/tailscale/issues/14476)) and has no macOS support.
 - **Need the actual audio, not the notification?** Re-read Part 1 of B-26's "what would actually get me audio" — it's a different rig, and now you know exactly why.
