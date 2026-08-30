@@ -1,4 +1,4 @@
-Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands
+# Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands
 
 Your Claude Code skill just finished a review pass. It read the diff, posted three `[must-fix]` comments and two `[suggestion]`s via `branchdiff agent comment`, and decided — based on your own gating rules — that the PR is clean enough to ship. Now what? Without a terminal path for those last steps, "now what" means tabbing over to GitHub, finding the PR, clicking Approve, then clicking Merge — the agent that can read a 40-file diff and reason about severity tags cannot press the one button that matters.
 
