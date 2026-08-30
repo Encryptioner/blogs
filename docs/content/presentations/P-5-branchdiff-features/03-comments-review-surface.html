@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 03 — Comments &amp; Review Surface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Comments &amp; Review Surface">
+    <span class="badge"><span class="dot"></span> Deck 03 · branchdiff features</span>
+    <h1 class="title">Comments with a <em>review surface</em>.</h1>
+    <h2 class="subtitle">Severity tags that filter and sort, a viewed counter that survives force-pushes, a WYSIWYG editor that drops the Write/Preview toggle, and AI-generated code tours that onboard a new engineer in minutes.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">tags</span> must-fix · suggestion · nit · question</span>
+      <span><span class="mono">state</span> SQLite · repo fingerprint</span>
+      <span><span class="mono">editor</span> Milkdown / ProseMirror</span>
+      <span><span class="mono">tours</span> agent tour-start/step/done</span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The native problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Review comments have <em>no taxonomy</em> — and no memory.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>No severity taxonomy.</b> <span class="muted">Every reviewer invents their own <span class="mono">[MUST-FIX]</span> / <span class="mono">nit:</span> / <span class="mono">⚠️</span> prefix; none of them filter or sort.</span></li>
+        <li><b>The "viewed" checkbox forgets.</b> <span class="muted">Push one commit and GitHub resets every file — start over on a 90-file PR.</span></li>
+        <li><b>Write / Preview toggle.</b> <span class="muted">Markdown by hand, then click to see what it looks like, then back to edit. Every comment, twice.</span></li>
+        <li><b>"Go read the codebase."</b> <span class="muted">Onboarding a new engineer means handing them a pile of folders with no map.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> reviewers triage in their head, lose their place after every push, and skip writing the small comments because the editor is in the way — so the PR ships with three loud nits buried in a wall of text.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">A real <em>review surface</em> — tags, state, editor, tours.</h3>
+    <p class="lead-p">branchdiff treats comments as structured data: every thread carries a severity tag and a lifecycle, every viewed file is hashed and persisted, and the editor is WYSIWYG so you write GFM the way it'll render.</p>
+    <div class="three-col">
+      <div class="stat"><div class="num">4</div><div class="label">Severity tags</div><div class="desc">must-fix · suggestion · nit · question</div></div>
+      <div class="stat"><div class="num">FNV-1a</div><div class="label">Stale detection</div><div class="desc">Content hash, not timestamp</div></div>
+      <div class="stat"><div class="num">∞</div><div class="label">Force-pushes</div><div class="desc">Viewed state survives</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>Same surface, both forges</b> — push a thread to GitHub or Bitbucket and the tag survives as the bracketed prefix the reviewer already uses, just standardized.
+    </div>
+  </section>
+
+  <!-- 4 · INLINE COMMENTS + TAGS -->
+  <section class="slide" data-title="Inline comments &amp; tags">
+    <div class="slide-num">04 · inline comments</div>
+    <h3 class="section">Click <em>+</em> on any diff line — tag as you type.</h3>
+    <div class="two-col">
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="images/04-inline-comment.png" alt="Inline suggestion thread on a diff line" loading="lazy" />
+        <div class="fig-caption">[suggestion] thread · colored badge · reply chain</div>
+      </div>
+      <ul class="bullets">
+        <li><b>One click on the line gutter.</b> <span class="muted">The <span class="mono">+</span> appears on hover for any line in the diff.</span></li>
+        <li><b>Multi-line threads.</b> <span class="muted">Pass <span class="mono">--end-line</span> from the CLI, or drag the end handle in the UI.</span></li>
+        <li><b>Tags render as colored badges.</b> <span class="muted">Red <span class="mono">[must-fix]</span>, green <span class="mono">[suggestion]</span>, blue <span class="mono">[question]</span>, grey <span class="mono">[nit]</span>.</span></li>
+        <li><b>Filterable in the sidebar.</b> <span class="muted">Tagged threads show up under the Commented filter with their severity counts.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · TAG TAXONOMY -->
+  <section class="slide" data-title="Tag taxonomy">
+    <div class="slide-num">05 · tag taxonomy</div>
+    <h3 class="section">Four tags every reviewer <em>already means</em>.</h3>
+    <div class="cols-3-2">
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-14/comment-tag-taxonomy.png" alt="Comment tag taxonomy diagram" loading="lazy" />
+        <div class="fig-caption">must-fix · suggestion · nit · question — semantics, not decoration</div>
+      </div>
+      <div class="vs">
+        <div class="box problem">
+          <h4>Before · ad-hoc</h4>
+          <p>"Critical:" / "⚠️" / "(nit)" / "<span class="mono">MUST-FIX:</span>" / "<span class="mono">minor:</span>" — every team, every reviewer, every PR a different dialect. Nothing filters, nothing sorts.</p>
+        </div>
+        <div class="box solve">
+          <h4>After · four tags</h4>
+          <p>One taxonomy. Tags become filter and sort keys in the sidebar, persist into the pushed comment as a bracketed prefix, and map cleanly to resolve vs. dismiss.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · WYSIWYG EDITOR -->
+  <section class="slide" data-title="WYSIWYG editor">
+    <div class="slide-num">06 · rich-text editor</div>
+    <h3 class="section">Write the comment <em>as it'll render</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>WYSIWYG Milkdown / ProseMirror.</b> <span class="muted">Bold, inline code, fenced blocks, headings, lists, quotes, strikethrough, links — formatted as you type.</span></li>
+        <li><b>No Write / Preview toggle.</b> <span class="muted">The editor is the preview. You see formatting live and edit it in place.</span></li>
+        <li><b>Stored as GitHub-Flavored Markdown.</b> <span class="muted">Round-trips losslessly through both forges; the comment on the PR is exactly what you wrote.</span></li>
+        <li><b>Same editor, both forges.</b> <span class="muted">Sync to GitHub or Bitbucket — the GFM payload is identical.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>Why it matters:</b> removing the Write/Preview tax means the small comments get written — the one-line nit, the quick question — instead of being skipped because formatting them was more work than the comment was worth.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · THREAD LIFECYCLE -->
+  <section class="slide" data-title="Thread lifecycle">
+    <div class="slide-num">07 · thread lifecycle</div>
+    <h3 class="section">Open → <em>Resolved</em> or <em>Dismissed</em> — with reasons.</h3>
+    <div class="stat-row">
+      <div class="stat"><div class="num">open</div><div class="label">Default state</div><div class="desc">New thread, awaiting action</div></div>
+      <div class="stat"><div class="num">✓</div><div class="label">Resolved</div><div class="desc">Addressed — fix landed</div></div>
+      <div class="stat"><div class="num">⊘</div><div class="label">Dismissed</div><div class="desc">Won't fix — reason recorded</div></div>
+    </div>
+    <div class="two-col" style="margin-top:22px">
+      <ul class="bullets">
+        <li><b>Reply chains on any thread.</b> <span class="muted">Discussion stays attached to the line and the tag.</span></li>
+        <li><b>Dismissed requires a reason.</b> <span class="muted">"Won't fix" is captured inline — no silent rejections.</span></li>
+        <li><b>Threads with replies stay local.</b> <span class="muted">Forge APIs don't map multi-reply chains, so push skips them rather than flattening the conversation.</span></li>
+        <li><b>Resolved, findable.</b> <span class="muted">A green <b>✓</b> pill on each file row counts resolved threads (a local resolve <em>or</em> one resolved on the PR); a <b>Resolved</b> sidebar filter narrows to just those files and jumps to the first resolved thread.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Honest scope:</b> multi-reply threads don't push to the forge — they live in your branchdiff session (and in the export bundle). Single comments resolve and sync normally.
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · GENERAL COMMENTS + VIEWED TRACKING -->
+  <section class="slide" data-title="General comments &amp; viewed tracking">
+    <div class="slide-num">08 · diff-wide comments</div>
+    <h3 class="section">General comments and a <em>viewed counter</em> that survives force-pushes.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>General (diff-wide) comments.</b> <span class="muted">PR-level notes pulled from the forge — count badge + jump button in the toolbar.</span></li>
+        <li><b>Eye icon or <kbd>r</kbd> key.</b> <span class="muted">Mark any file viewed from the row or the keyboard; auto-advance scrolls to the next.</span></li>
+        <li><b>"12 / 38 viewed" counter.</b> <span class="muted">Sidebar <span class="mono">👁 N</span> badge plus a progress line — always know what's left.</span></li>
+        <li><b>Persisted in SQLite.</b> <span class="muted">Keyed by repo fingerprint + branch pair — survives commits, force-pushes, and machine moves.</span></li>
+        <li><b>One comment per review pass.</b> <span class="muted">The AI summary, general remarks, and (in <span class="mono">auto</span>/verdict mode) the deterministic verdict join into a single general comment — one pass, one notification.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>The fix for "viewed resets on every push":</b> branchdiff doesn't trust the forge's checkbox. It signs each viewed file with a content hash and re-checks the signature on every render — so the counter only flips when the file actually changed.
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · VIEWED / STALE STATE MACHINE -->
+  <section class="slide" data-title="Viewed &amp; stale state">
+    <div class="slide-num">09 · viewed / stale state</div>
+    <h3 class="section">Stale detection by <em>content hash</em>, not timestamp.</h3>
+    <div class="two-col">
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-15/viewed-stale-state.png" alt="Viewed and stale file state machine" loading="lazy" />
+        <div class="fig-caption">viewed → stale → viewed · FNV-1a signature per file</div>
+      </div>
+      <ul class="bullets">
+        <li><b>FNV-1a hash of the diff signature.</b> <span class="muted">Content-based, so an unrelated commit that doesn't touch the file leaves it viewed.</span></li>
+        <li><b>Viewed → stale only when content changes.</b> <span class="muted">File flips to an amber dot the moment its diff signature differs.</span></li>
+        <li><b>Re-view in one click.</b> <span class="muted">Re-signs the hash so the file stays viewed until the content moves again.</span></li>
+        <li><b>Stale is its own filter.</b> <span class="muted">Combine <b>Stale</b> + search <span class="mono">auth</span> → exactly the auth files you need to re-read.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · COLLAPSE PERSISTENCE + WORKING-TREE TOGGLE -->
+  <section class="slide" data-title="Collapse persistence &amp; working tree">
+    <div class="slide-num">10 · collapse &amp; working tree</div>
+    <h3 class="section">Your <em>place</em> persists — and the working tree opens up.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Per-(branch_pair + view_mode) collapse.</b> <span class="muted">Collapse state is keyed by the pair you're comparing and the view (unified / split / full) — switch modes, your layout comes back.</span></li>
+        <li><b>1.5s debounced sync.</b> <span class="muted">UI state hooks batch writes to the server; offline suppression skips sync when the server is down.</span></li>
+        <li><b>Working-tree toggle.</b> <span class="muted">Staged / unstaged switch via <span class="mono">--staged</span>; <span class="mono">-p 0</span> shows unstaged-only.</span></li>
+        <li><b>Row badges <b>S</b> / <b>U</b>.</b> <span class="muted">See at a glance what's staged vs. still in your working tree — filterable in the sidebar.</span></li>
+        <li><b>Committed-only by default.</b> <span class="muted">A branch-pair diff no longer leaks untracked or uncommitted files in — <span class="mono">--include-staged</span> / <span class="mono">--include-unstaged</span> on the root command opt back in (they seed the share URL and reach the review/resolve skills, but never reach <span class="mono">auto</span>).</span></li>
+      </ul>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-15/sidebar-filters-grid.png" alt="Sidebar filters including Staged and Unstaged" loading="lazy" />
+        <div class="fig-caption">9 filters · Staged / Unstaged integrate with the working-tree toggle</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CODE TOURS -->
+  <section class="slide" data-title="Code tours">
+    <div class="slide-num">11 · code tours</div>
+    <h3 class="section">Onboard a new engineer with an <em>AI-generated tour</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Tour primitives in the agent.</b> <span class="muted"><span class="mono">agent tour-start</span>, <span class="mono">tour-step</span>, <span class="mono">tour-done</span> — a guided walk through the repo, not a README.</span></li>
+        <li><b>Rich steps.</b> <span class="muted">Each step supports Markdown prose, embedded Mermaid diagrams, and <span class="mono">focus:</span> refs that jump to a file or line.</span></li>
+        <li><b>Compass icon + badge in the toolbar.</b> <span class="muted">Open the tour drawer, step forward, see where you are in the arc.</span></li>
+        <li><b>Replace "go read the codebase."</b> <span class="muted">A new engineer follows a real path through the code — entry point, request flow, data model — written by someone who already knows it.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>Tours are first-class content</b> — Markdown + Mermaid + file refs, generated by the same agent that reviews PRs. The same primitives power both onboarding and reviewer context.
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · CLI -->
+  <section class="slide" data-title="CLI">
+    <div class="slide-num">12 · cli</div>
+    <h3 class="section">Comments, state, and tours — from the <em>terminal</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">comment · inline · tagged</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff agent comment \
+    --file src/auth/token.ts --line 42 --end-line 48 \
+    --body "[must-fix] Token expiry leaks into the response body. Strip it before serialize()."</div>
+      </div>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">tour · start · step · done</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff agent tour-start --topic "Auth flow"
+<span class="prompt">$</span> branchdiff agent tour-step \
+    --tour &lt;id&gt; --file src/auth/login.ts --line 12 \
+    --body "Entry point: validateCredentials()."
+<span class="prompt">$</span> branchdiff agent tour-done --tour &lt;id&gt;</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Tags live in the body, not a flag.</b> <span class="mono">[must-fix]</span> / <span class="mono">[suggestion]</span> / <span class="mono">[nit]</span> / <span class="mono">[question]</span> as a text prefix — same convention the AI review pipeline uses. <span class="mono">branchdiff info</span> prints the repo fingerprint and UI state size; <span class="mono">branchdiff state reset</span> clears viewed / collapse state for the current pair without touching comments.
+    </div>
+  </section>
+
+  <!-- 13 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">13 · recap</div>
+    <h3 class="section">The review surface, in one line.</h3>
+    <p class="lead-p">Tagged threads, persistent viewed state, a WYSIWYG editor, and AI-generated tours — comments become structured data with memory, and the editor stops being in the way.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Four severity tags — must-fix, suggestion, nit, question — that filter and sort.</li>
+      <li>WYSIWYG Milkdown editor: write GFM the way it renders, no Write/Preview toggle.</li>
+      <li>Thread lifecycle — open / resolved / dismissed-with-reason — with reply chains.</li>
+      <li>Viewed counter that survives force-pushes; FNV-1a stale detection by content hash.</li>
+      <li>Per-(pair + mode) collapse persistence; staged / unstaged working-tree toggle.</li>
+      <li>AI-generated code tours — Markdown, Mermaid, focus refs — for onboarding and review context.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="04-ai-review-resolve.html" target="_blank" rel="noopener">Next deck → 04 · AI Review &amp; Resolve</a>
+      <a class="ghost" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-13">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>pnpm - A better package manager for Node.js — Ankur’s Writing</title><meta name="description" content="Node.js is a popular choice for developers which allows using JavaScript on both client and server side. Having a big community, node.Js provides numerous…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/pnpm-a-better-package-manager-for-node-js/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="pnpm - A better package manager for Node.js — Ankur’s Writing"><meta property="og:description" content="Node.js is a popular choice for developers which allows using JavaScript on both client and server side. Having a big community, node.Js provides numerous…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/pnpm-a-better-package-manager-for-node-js/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="pnpm - A better package manager for Node.js — Ankur’s Writing"><meta name="twitter:description" content="Node.js is a popular choice for developers which allows using JavaScript on both client and server side. Having a big community, node.Js provides numerous…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2024-01-28"><meta property="article:modified_time" content="2025-07-31"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Node.js">Node.js</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Node.js">Node.js</a>  </div> <h1>pnpm - A better package manager for Node.js</h1> <p class="article-meta mono"> <time datetime="2025-07-31">31 Jul 2025</time> <span>·</span> <span>4 min read</span> <span>·</span> <span>777 words</span> </p> </header>  <div class="prose"><h1 id="pnpm---a-better-package-manager-for-nodejs">pnpm - A better package manager for Node.js</h1>
+<div align="center">
+  <img loading="lazy" decoding="async" src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/konqmhymdp515yau8vcw.gif" alt="pnpm" />
+</div>
+<h3 id="we-will-talk-about-pnpm-but-first-lets-have-a-brief-introduction-on-package-manager">We will talk about pnpm, but first let’s have a brief introduction on package manager</h3>
+<p><code>Node.js</code> is a popular choice for developers which allows using JavaScript on both client and server side. Having a big community, node.Js provides numerous public and private packages to integrate into projects. To manage these projects, we have package manager. <code>npm</code> is the standard package manager for node.js</p>
+<h4 id="how-npm-works">How <code>npm</code> works</h4>
+<ol>
+<li>On a freshly installed device, <code>npm</code> reads <code>package.json</code> file and starts checking the defined version on <code>npm registry</code></li>
+<li>On matching the version, it firsts download the package in <code>global cache directory</code> of the device</li>
+<li>Later copies the package on the <code>node_modules</code> directory of the <code>project specific directory</code></li>
+<li>While running the project, packages in the <code>project specific directory</code> is used</li>
+<li>The <code>global cache directory</code> helps <code>npm</code> to find the specific version of <code>package</code> when that version is required again</li>
+</ol>
+<h4 id="its-kind-of-a-good-approach-however-there-are-some-cons-to-this-approach">It’s kind of a good approach. However, there are some <code>cons</code> to this approach</h4>
+<ul>
+<li>Redundant use of device space - I am pointing inefficient use of non-volatile memory (SSD, HDD). It is common that one can have multiple similar project. In that case, most of the packages (and their version) will be same. However, for each one of them, a package will be copied to multiple <code>project specific directory</code>. Those <code>node_modules</code> directories will gradually take up device space which u need to store other resources. U may all have seen this meme 😀</li>
+</ul>
+<div align="center">
+ <img loading="lazy" decoding="async" src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/zjskj9fk5z5nr31auh5s.jpg" alt="big-node-modules" height="200px" />
+ <img loading="lazy" decoding="async" src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/130c8dn74ox6idf0ma7x.jpg" alt="long-npm-install" height="200px" />
+</div>
+<ul>
+<li>Long installation time - U may not worry about disk space. But lengthy installation time will scare you. For a relatively simple project, required packages can be large. <code>npm install</code> requires a copy of the package twice. First in <code>global cache directory</code> and later in <code>project specific directory</code>. Copying this every time for every new project will surely kill your time</li>
+</ul>
+<h2 id="better-solution">Better solution</h2>
+<p>You need to reduce your disk space and installation time. So that, u can focus on development. Now <code>pnpm</code> comes into the picture. The way <code>pnpm</code> works is simple but brilliant.</p>
+<ol>
+<li><code>pnpm</code> download packages from <code>npm registry</code> similar to <code>npm</code></li>
+<li>It stores packages in <code>global cache directory</code> same as <code>npm</code></li>
+<li>Now the magic happens. Instead of copying the packages to <code>project specific directory</code> one by one according to <code>package.json</code> file, it hard links the package to <code>node_modules</code> of <code>project specific directory</code>.</li>
+<li>It seems copying, but it is not. As it just links (similar to file/folder shortcut) the package path from <code>global cache directory</code> to <code>project specific directory</code> without copying the whole file. Which saves both installation time and disk space.</li>
+</ol>
+<h3 id="using-pnpm-in-projects">Using <code>pnpm</code> in projects</h3>
+<ol>
+<li><a href="https://pnpm.io/installation" target="_blank" rel="noopener noreferrer">Install pnpm</a>. U may install stand alone script install <code>pnpm</code> globally using <code>npm</code></li>
+<li>With <code>node &amp; npm</code>, It is common to use <code>nvm (node version manager)</code> for different version of <code>node.Js</code>. Remember that, for each version of node, u need to install <code>pnpm</code> globally</li>
+<li>Ensure your pnpm executable path is in your global <code>bash PATH</code>. You can add it in your <code>.bashrc</code> or <code>.zshrc</code> file in following way:
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>export PNPM_HOME="/Users/ankur/Library/pnpm"</span></span>
+<span class="line"><span>export PATH="$PNPM_HOME:$PATH"</span></span></code></pre>
+</li>
+<li><code>pnpm</code> has a rich list of <a href="https://pnpm.io/cli/run" target="_blank" rel="noopener noreferrer">CLI commands</a> for installation, update, run script. Common commands are:</li>
+</ol>
+<div align="center">
+<table>
+ <thead>
+   <tr><th>Command</th><th>Meaning</th></tr>
+ </thead>
+ <tbody>
+   <tr><td><code>pnpm add sax</code></td><td>Save to <code>dependencies</code></td></tr>
+   <tr><td><code>pnpm add -D sax</code></td><td>Save to <code>devDependencies</code></td></tr>
+   <tr><td><code>pnpm add sax@3.0.0</code></td><td>Specify version <code>3.0.0</code></td></tr>
+   <tr><td><code>pnpm i</code></td><td>Install package from <code>package.json</code></td></tr>
+   <tr><td><code>pnpm rm sax</code></td><td>Remove package from <code>package.json</code></td></tr>
+   <tr><td><code>pnpm run &lt;command-name&gt;</code></td><td>Run command from <code>package.json</code></td></tr>
+   <tr><td><code>pnpm --filter &lt;package_selector&gt; &lt;command&gt;</code></td><td>Filtering allows you to restrict commands to specific subsets of packages.</td></tr>
+ </tbody>
+</table>
+</div>
+<ol>
+<li>
+<p>U can also create multiple workspaces inside your project and handle all the packages from from your root directory using <code>pnpm</code>. It is specially helpful for monorepo. To create workspace, just create a new <code>pnpm-workspace.yaml</code>. In that file you can define your workspaces. U can also use <code>glob pattern</code>. For example:</p></div>  <div class="prose">
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#E06C75">packages</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#ABB2BF">- </span><span style="color:#98C379">"packages/*"</span></span></code></pre>
+<p>Now in the <code>scripts</code> section of <code>package.json</code> filter the workspaces</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#98C379">"w:server"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"pnpm --filter server"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">"w:client"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"pnpm --filter client"</span><span style="color:#ABB2BF">,</span></span></code></pre>
+<p>Then u can easily run workspace specific command. Something like this <code>pnpm w:server build</code></p>
+</li>
+<li>
+<p>You can easily use <code>pnpm</code> in <a href="https://pnpm.io/docker" target="_blank" rel="noopener noreferrer">docker</a></p>
+</li>
+<li>
+<p><code>pnpm</code> can easily be used in various <a href="https://pnpm.io/continuous-integration" target="_blank" rel="noopener noreferrer">continuous integration</a> systems.</p>
+</li>
+</ol>
+<h2 id="bonus">Bonus 😀</h2>
+<p>U can easily debug your server side using <code>vscode</code> with <code>pnpm</code>. U just need to add configuration in your <code>.vscode/launch.json</code> file</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "name"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Launch server via pnpm"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"node"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "request"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"launch"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "cwd"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"${workspaceFolder}"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "runtimeVersion"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"18.11.0"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "runtimeExecutable"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"pnpm"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "runtimeArgs"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"w:server start"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h2 id="end">End:</h2>
+<p>That’s all!</p>
+<p>I hope you’ve found the article useful. U should try <code>pnpm</code> if u haven’t already. Feel free to share your thoughts in the comments below.</p>
+<p>Check more on</p>
+<ul>
+<li><a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">Website</a></li>
+<li><a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
+<li><a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">Github</a></li>
+<li><a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
+<li><a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Node.js">
+More on Node.js </a> </footer> </article> <section class="shell sec"> <h2>More in Node.js</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Node.js" data-slug="publishing-your-first-npm-package-a-real-world-guide-that-actually-helps" data-search="publishing your first npm package: a real-world guide that actually helps node.js you know that feeling when you've written a utility function for the third time across different projects and think, &#34;there's gotta be a better way&#34;? that's…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Node.js</span>  </div> <h3><a href="/blogs/blog/publishing-your-first-npm-package-a-real-world-guide-that-actually-helps">Publishing Your First NPM Package: A Real-World Guide That Actually Helps</a></h3> <p class="excerpt">You know that feeling when you&#39;ve written a utility function for the third time across different projects and think, &quot;There&#39;s gotta be a better way&quot;? That&#39;s…</p> <div class="meta"> <time datetime="2025-11-22">22 Nov 2025</time> <span>11 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Give Google Sheet Access Only to Form Submitters — With Apps Script — Ankur’s Writing</title><meta name="description" content="As a lead software engineer, I've seen teams across companies rely on Google Forms + Sheets for quick data collection — feedback surveys, attendance tracking,…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/give-google-sheet-access-only-to-form-submitters-with-apps-script/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Give Google Sheet Access Only to Form Submitters — With Apps Script — Ankur’s Writing"><meta property="og:description" content="As a lead software engineer, I've seen teams across companies rely on Google Forms + Sheets for quick data collection — feedback surveys, attendance tracking,…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/give-google-sheet-access-only-to-form-submitters-with-apps-script/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Give Google Sheet Access Only to Form Submitters — With Apps Script — Ankur’s Writing"><meta name="twitter:description" content="As a lead software engineer, I've seen teams across companies rely on Google Forms + Sheets for quick data collection — feedback surveys, attendance tracking,…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2025-07-20"><meta property="article:modified_time" content="2025-08-01"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a>  </div> <h1>Give Google Sheet Access Only to Form Submitters — With Apps Script</h1> <p class="article-meta mono"> <time datetime="2025-08-01">1 Aug 2025</time> <span>·</span> <span>7 min read</span> <span>·</span> <span>1,401 words</span> </p> </header>  <div class="prose"><h1 id="give-google-sheet-access-only-to-form-submitters--with-apps-script">Give Google Sheet Access Only to Form Submitters — With Apps Script</h1>
+<p>As a lead software engineer, I’ve seen teams across companies rely on <strong>Google Forms + Sheets</strong> for quick data collection — feedback surveys, attendance tracking, event registration, you name it.</p>
+<p>But here’s a common issue that comes up:
+<strong>How do you restrict access to the Google Sheet so only the people who submitted the form can view it?</strong></p>
+<p>Google Forms doesn’t offer this natively (which is honestly surprising given how common this need is). But with a little Apps Script magic, you can make it happen.</p></div>  <div class="prose">
+<hr />
+<h2 id="the-problem">The Problem</h2>
+<p>Let’s say you’re running a private beta program. You collect sign-ups via Google Form. Now you want only those who signed up (and no one else) to see the list.</p>
+<p>Manually adding viewers to the Sheet? Not scalable.
+Leaving it public? Not secure.
+The goal:</p>
+<ul>
+<li>Give <strong>view access only</strong> to people who submit the form.</li>
+<li>Remove access from people who are no longer in the list.</li>
+<li>Keep certain admin/owner access always intact.</li>
+</ul>
+<hr />
+<h2 id="the-approach">The Approach</h2>
+<p>We hook into <a href="https://developers.google.com/apps-script" target="_blank" rel="noopener noreferrer">Google Apps Script</a> and:</p>
+<ol>
+<li>Read the email column from the sheet.</li>
+<li>Add new emails as viewers.</li>
+<li>Remove emails who shouldn’t have access anymore.</li>
+<li>Always preserve admin users (like yourself).</li>
+</ol>
+<p>Here’s the battle-tested script I’ve used in my projects:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="js"><code><span class="line"><span style="color:#C678DD">function</span><span style="color:#61AFEF"> updateSheetSharing</span><span style="color:#ABB2BF">() {</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> spreadsheet</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> SpreadsheetApp</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getActiveSpreadsheet</span><span style="color:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> sheet</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> spreadsheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getSheets</span><span style="color:#ABB2BF">()[</span><span style="color:#D19A66">0</span><span style="color:#ABB2BF">]; </span><span style="color:#7F848E;font-style:italic">// First sheet</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">  // update this column according to your sheet</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> emailColumnIndex</span><span style="color:#56B6C2"> =</span><span style="color:#D19A66"> 2</span><span style="color:#ABB2BF">; </span><span style="color:#7F848E;font-style:italic">// Column B = 2</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> startRow</span><span style="color:#56B6C2"> =</span><span style="color:#D19A66"> 2</span><span style="color:#ABB2BF">; </span><span style="color:#7F848E;font-style:italic">// Header on row 1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> lastRow</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> sheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getLastRow</span><span style="color:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#C678DD">  if</span><span style="color:#ABB2BF"> (</span><span style="color:#E06C75">lastRow</span><span style="color:#56B6C2"> &lt;</span><span style="color:#E06C75"> startRow</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">    return</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> ownerEmails</span><span style="color:#56B6C2"> =</span><span style="color:#ABB2BF"> [</span><span style="color:#98C379">'admin@gmail.com'</span><span style="color:#ABB2BF">]; </span><span style="color:#7F848E;font-style:italic">// Add your admin email(s)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> emails</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> sheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getRange</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">startRow</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">emailColumnIndex</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">lastRow</span><span style="color:#56B6C2"> -</span><span style="color:#E06C75"> startRow</span><span style="color:#56B6C2"> +</span><span style="color:#D19A66"> 1</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#ABB2BF">    .</span><span style="color:#61AFEF">getValues</span><span style="color:#ABB2BF">()</span></span>
+<span class="line"><span style="color:#ABB2BF">    .</span><span style="color:#61AFEF">flat</span><span style="color:#ABB2BF">()</span></span>
+<span class="line"><span style="color:#ABB2BF">    .</span><span style="color:#61AFEF">filter</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75;font-style:italic">email</span><span style="color:#C678DD"> =&gt;</span><span style="color:#E06C75"> email</span><span style="color:#56B6C2"> &amp;&amp;</span><span style="color:#C678DD"> typeof</span><span style="color:#E06C75"> email</span><span style="color:#56B6C2"> ===</span><span style="color:#98C379"> 'string'</span><span style="color:#56B6C2"> &amp;&amp;</span><span style="color:#E5C07B"> email</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">includes</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">'@'</span><span style="color:#ABB2BF">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> uniqueEmails</span><span style="color:#56B6C2"> =</span><span style="color:#ABB2BF"> [...</span><span style="color:#C678DD">new</span><span style="color:#61AFEF"> Set</span><span style="color:#ABB2BF">(</span><span style="color:#E5C07B">emails</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">map</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75;font-style:italic">email</span><span style="color:#C678DD"> =&gt;</span><span style="color:#E5C07B"> email</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">trim</span><span style="color:#ABB2BF">()))];</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> currentViewers</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> spreadsheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getViewers</span><span style="color:#ABB2BF">().</span><span style="color:#61AFEF">map</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75;font-style:italic">user</span><span style="color:#C678DD"> =&gt;</span><span style="color:#E5C07B"> user</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">getEmail</span><span style="color:#ABB2BF">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">  // Add new viewers</span></span>
+<span class="line"><span style="color:#C678DD">  for</span><span style="color:#ABB2BF"> (</span><span style="color:#C678DD">const</span><span style="color:#E5C07B"> email</span><span style="color:#C678DD"> of</span><span style="color:#E06C75"> uniqueEmails</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (</span><span style="color:#E5C07B">ownerEmails</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">includes</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">) </span><span style="color:#56B6C2">||</span><span style="color:#E5C07B"> currentViewers</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">includes</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">)) {</span></span>
+<span class="line"><span style="color:#C678DD">      continue</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">    try</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#E5C07B">      spreadsheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">addViewer</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">    } </span><span style="color:#C678DD">catch</span><span style="color:#ABB2BF"> (</span><span style="color:#E06C75">e</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#E5C07B">      Logger</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">log</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">`Failed to add </span><span style="color:#C678DD">${</span><span style="color:#E06C75">email</span><span style="color:#C678DD">}</span><span style="color:#98C379">: </span><span style="color:#C678DD">${</span><span style="color:#E06C75">e</span><span style="color:#C678DD">}</span><span style="color:#98C379">`</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">  // Remove viewers not on the list</span></span>
+<span class="line"><span style="color:#C678DD">  for</span><span style="color:#ABB2BF"> (</span><span style="color:#C678DD">const</span><span style="color:#E5C07B"> email</span><span style="color:#C678DD"> of</span><span style="color:#E06C75"> currentViewers</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (</span><span style="color:#E5C07B">ownerEmails</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">includes</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">) </span><span style="color:#56B6C2">||</span><span style="color:#E5C07B"> uniqueEmails</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">includes</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">)) {</span></span>
+<span class="line"><span style="color:#C678DD">      continue</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">    try</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#E5C07B">      spreadsheet</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">removeViewer</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">email</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">    } </span><span style="color:#C678DD">catch</span><span style="color:#ABB2BF"> (</span><span style="color:#E06C75">e</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#E5C07B">      Logger</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">log</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">`Failed to remove </span><span style="color:#C678DD">${</span><span style="color:#E06C75">email</span><span style="color:#C678DD">}</span><span style="color:#98C379">: </span><span style="color:#C678DD">${</span><span style="color:#E06C75">e</span><span style="color:#C678DD">}</span><span style="color:#98C379">`</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="deployment-tips">Deployment Tips</h2>
+<ul>
+<li>
+<p><strong>Trigger it on Form Submit</strong>:
+Go to <strong>Triggers → Add Trigger</strong> → Choose <code>updateSheetSharing</code> → Event: <code>On form submit</code>. See <a href="https://developers.google.com/apps-script/guides/triggers" target="_blank" rel="noopener noreferrer">Google’s trigger documentation</a> for more details.</p>
+</li>
+<li>
+<p><strong>Avoid Too Many Writes</strong>:
+If your form gets hundreds of submissions daily, consider adding debounce logic or batching updates periodically.</p>
+</li>
+<li>
+<p><strong>Error Handling</strong>:
+Some domains may block sharing or throw quota errors — log and monitor failures via <code>Logger</code>.</p>
+</li>
+<li>
+<p><strong>Security Reminder</strong>:
+Never share sheet access based on user input <em>unless you validate the email</em> (i.e., restrict form to logged-in users and auto-capture email).</p>
+</li>
+<li>
+<p><strong>“Google hasn’t verified this app” Warning</strong>:
+You’ll likely see this warning when first running the script. This happens because Apps Script is accessing sensitive Google services (Sheets, Drive) and requesting OAuth scopes that Google considers sensitive.</p>
+<p><strong>Solution for Personal/Internal Use:</strong>
+When you see the warning screen:</p>
+<ol>
+<li>Click “Advanced” at the bottom</li>
+<li>Click “Go to [your project name] (unsafe)”</li>
+<li>Accept the permissions manually for your account</li>
+</ol>
+<p>This is safe for personal scripts or internal organizational use. The warning appears because Google hasn’t reviewed your specific script, but you can authorize it yourself.</p>
+</li>
+<li>
+<p><strong>Domain Restrictions</strong>:
+Some organizations block external sharing entirely. If you’re in a corporate environment, check with your IT team about Google Workspace sharing policies.</p>
+</li>
+<li>
+<p><strong>Quota Limits</strong>:
+Apps Script has daily quotas for API calls. For high-volume forms, monitor your usage in the Apps Script dashboard under “Quotas” to avoid hitting limits. Check <a href="https://developers.google.com/apps-script/guides/services/quotas" target="_blank" rel="noopener noreferrer">Google’s quota limits</a> for current limits.</p>
+</li>
+<li>
+<p><strong>Testing in Development</strong>:
+Test the script on a copy of your sheet first. Create a test form and sheet to verify everything works before deploying to production.</p>
+</li>
+<li>
+<p><strong>Execution Time Limits</strong>:
+Apps Script has a maximum execution time of 6 minutes per invocation. If your script processes a large number of emails, it might timeout. For high-volume scenarios, consider batching operations or using time-based triggers instead of form submission triggers. See <a href="https://developers.google.com/apps-script/guides/services/quotas#current_limitations" target="_blank" rel="noopener noreferrer">Google’s execution limits</a> for detailed information.</p>
+</li>
+<li>
+<p><strong>Monitoring Executions</strong>:
+After setting up triggers, you can monitor their execution in the Apps Script dashboard:</p>
+<ul>
+<li>Go to <strong>Executions</strong> in the left sidebar</li>
+<li>See a list of all recent trigger runs with timestamps</li>
+<li>Check execution status (success/failed)</li>
+<li>Click on any execution to view detailed logs</li>
+<li>Failed executions show error messages and stack traces</li>
+<li>Successful runs show “Execution completed” status</li>
+</ul>
+<p>This is crucial for debugging. If your script isn’t working as expected, check the Executions menu first to see if triggers are firing and what errors might be occurring.</p>
+</li>
+</ul>
+<hr />
+<h2 id="deep-dive-how-google-handles-millions-of-triggers">Deep Dive: How Google Handles Millions of Triggers</h2>
+<p>Ever wonder how Google manages Apps Script triggers for millions of users worldwide? Here’s what’s happening behind the scenes:</p>
+<h3 id="googles-trigger-infrastructure">Google’s Trigger Infrastructure</h3>
+<p><strong>Event-Driven Architecture</strong>: Google uses a sophisticated event-driven system where every Google Workspace action (form submission, sheet edit, time-based events) generates events that flow through their infrastructure.</p>
+<p><strong>Distributed Processing</strong>: When you submit a form, Google’s systems:</p>
+<ol>
+<li>Detect the form submission event</li>
+<li>Route it to the appropriate Apps Script project</li>
+<li>Execute your script in a sandboxed environment</li>
+<li>Handle the response and any side effects (like sharing permissions)</li>
+</ol>
+<p><strong>Scalability Challenges</strong>: Google processes billions of events daily across:</p>
+<ul>
+<li>Form submissions</li>
+<li>Sheet modifications</li>
+<li>Time-based triggers</li>
+<li>Calendar events</li>
+<li>Email triggers</li>
+</ul>
+<h3 id="why-the-6-minute-limit">Why the 6-Minute Limit?</h3>
+<p>The execution time limit isn’t arbitrary. Google’s infrastructure needs to:</p>
+<ul>
+<li><strong>Resource Management</strong>: Prevent runaway scripts from consuming excessive resources</li>
+<li><strong>Fair Usage</strong>: Ensure all users get reasonable access to computing resources</li>
+<li><strong>Cost Control</strong>: Apps Script runs on Google’s infrastructure, and they need to manage operational costs</li>
+<li><strong>Reliability</strong>: Shorter execution times mean faster recovery from failures</li>
+</ul>
+<h3 id="event-processing-pipeline">Event Processing Pipeline</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Form Submission → Event Queue → Trigger Router → Script Execution → Result Handler</span></span></code></pre>
+<ol>
+<li><strong>Event Queue</strong>: Google maintains massive queues of events waiting to be processed</li>
+<li><strong>Trigger Router</strong>: Routes events to the correct Apps Script projects</li>
+<li><strong>Script Execution</strong>: Runs your code in isolated containers</li>
+<li><strong>Result Handler</strong>: Processes the output and applies changes (like sharing permissions)</li>
+</ol>
+<h3 id="why-triggers-sometimes-fail">Why Triggers Sometimes Fail</h3>
+<p><strong>Rate Limiting</strong>: Google implements sophisticated rate limiting to prevent abuse and ensure fair resource distribution.</p>
+<p><strong>Resource Contention</strong>: During peak hours, the system might be under higher load, causing occasional delays or failures.</p>
+<p><strong>Network Issues</strong>: Between Google’s internal services (Forms → Sheets → Apps Script), network hiccups can cause temporary failures.</p>
+<p><strong>Quota Management</strong>: Google tracks usage across all services to prevent any single user from overwhelming the system.</p>
+<h3 id="the-magic-of-eventually-consistent">The Magic of “Eventually Consistent”</h3>
+<p>Google’s systems are designed for “eventual consistency” - meaning:</p>
+<ul>
+<li>Your trigger might not fire immediately</li>
+<li>There might be a few seconds delay</li>
+<li>But the system guarantees it will eventually process your event</li>
+</ul>
+<p>This design allows Google to handle massive scale while maintaining reliability.</p>
+<hr />
+<h2 id="why-i-use-this">Why I Use This</h2>
+<p>I’ve used this in social group’s data collection, closed feedback loops, and classroom setups. It works beautifully when:</p>
+<ul>
+<li>You want lightweight access control without complex infrastructure</li>
+<li>You trust the form submitters (or validate their identity)</li>
+<li>You don’t want to set up a whole database + auth system</li>
+<li>You need something that “just works” without ongoing maintenance</li>
+</ul>
+<p>It’s not enterprise-grade security — but for small teams and quick workflows, it’s a surprisingly robust solution that I’ve seen work reliably in production.</p>
+<hr />
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>Apps Script has a <em>quiet superpower</em>: It brings automation to everyday Google tools that teams already use daily.</p>
+<p>What I love about this approach is its simplicity. With just ~50 lines of code, you can build a simple access control system that feels like it was always meant to be there — tailored to your specific workflow.</p>
+<p>And that’s why I still reach for Apps Script for glue code like this — it’s the Swiss Army knife of Google Workspace automation.</p>
+<hr />
+<p>Feel free to adapt this script for your own use case. If you’re dealing with something more complex (like edit permissions, or syncing to multiple sheets), you’ll want to add further checks — but this core pattern will get you a long way.</p>
+<h2 id="end">End</h2>
+<p>That’s all!</p>
+<p>I hope you’ve found the article useful. You should try to use <code>Apps Script</code> if you haven’t already. It has many interesting use cases. Feel free to share your thoughts and experiences.</p>
+<p>Check more on</p>
+<ul>
+<li><a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">Website</a></li>
+<li><a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
+<li><a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">Github</a></li>
+<li><a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
+<li><a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+</ul>
+<hr /></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

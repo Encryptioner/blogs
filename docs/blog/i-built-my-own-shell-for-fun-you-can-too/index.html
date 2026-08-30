@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>I Built My Own Shell for Fun. You Can Too — Ankur’s Writing</title><meta name="description" content="Ever wondered what happens when you type ls and hit Enter? I did too. So I built my own shell to find out."><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/i-built-my-own-shell-for-fun-you-can-too/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="I Built My Own Shell for Fun. You Can Too — Ankur’s Writing"><meta property="og:description" content="Ever wondered what happens when you type ls and hit Enter? I did too. So I built my own shell to find out."><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/i-built-my-own-shell-for-fun-you-can-too/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-6/Build-Your-Own-Shell.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="I Built My Own Shell for Fun. You Can Too — Ankur’s Writing"><meta name="twitter:description" content="Ever wondered what happens when you type ls and hit Enter? I did too. So I built my own shell to find out."><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-6/Build-Your-Own-Shell.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2025-08-01"><meta property="article:modified_time" content="2025-11-21"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Coding%20Challenges">Coding Challenges</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Coding%20Challenges">Coding Challenges</a>  </div> <h1>I Built My Own Shell for Fun. You Can Too</h1> <p class="article-meta mono"> <time datetime="2025-11-21">21 Nov 2025</time> <span>·</span> <span>8 min read</span> <span>·</span> <span>1,666 words</span> </p> </header>  <div class="prose"><h1 id="i-built-my-own-shell-for-fun-you-can-too">I Built My Own Shell for Fun. You Can Too</h1>
+<p align="center">
+    <img loading="lazy" decoding="async" src="/blogs/content/assets/B-6/Build-Your-Own-Shell.png" alt="Build-Your-Own-Shell" />
+</p>
+<p><em>Ever wondered what happens when you type <code>ls</code> and hit Enter? I did too. So I built my own shell to find out.</em></p>
+<h2 id="the-why-behind-the-madness">The “Why” Behind the Madness</h2>
+<p>As a lead software engineer, I’ve spent years working with shells—Bash, Zsh—but I never really understood what was happening under the hood. Sure, I knew about processes, file descriptors, and system calls, but the actual mechanics of how a shell works? That was a black box.</p></div>  <div class="prose">
+<p>Then I stumbled upon <a href="https://codingchallenges.fyi/challenges/intro" target="_blank" rel="noopener noreferrer">codingchallenges.fyi</a> and their <a href="https://codingchallenges.fyi/challenges/challenge-shell" target="_blank" rel="noopener noreferrer">shell challenge</a>. It gave motivation to uncover the invisible scene of most common functionalities. It was my chance to peel back the layers and understand the fundamentals that power every terminal session.</p>
+<h2 id="what-is-a-shell-really">What is a Shell, Really?</h2>
+<p>When you type <code>ls -la</code>, here’s what happens:</p>
+<ol>
+<li><strong>Read</strong>: The shell reads your input from stdin</li>
+<li><strong>Parse</strong>: It breaks your command into tokens (<code>ls</code>, <code>-la</code>)</li>
+<li><strong>Execute</strong>: It finds the <code>ls</code> program and runs it with <code>-la</code> as arguments</li>
+<li><strong>Wait</strong>: It waits for the program to finish</li>
+<li><strong>Repeat</strong>: It shows a new prompt, ready for your next command</li>
+</ol>
+<p>Simple, right? But the devil is in the details.</p>
+<h2 id="the-journey-begins-ccsh">The Journey Begins: <a href="https://github.com/Encryptioner/ccsh-shell" target="_blank" rel="noopener noreferrer">ccsh</a></h2>
+<p>I decided to build <strong>ccsh</strong> (Compact C Shell)—a minimal but functional Unix-like shell. Here’s what I learned along the way:</p>
+<h2 id="why-c">Why C?</h2>
+<p>C is the lingua franca of Unix systems. Every Linux distribution, macOS, and BSD variant comes with a C compiler. This means my shell can run anywhere without dependencies.</p>
+<p>But more importantly, C gives me direct access to the system calls that power everything:</p>
+<ul>
+<li><code>fork()</code> and <code>exec()</code> for process creation</li>
+<li><code>pipe()</code> for inter-process communication</li>
+<li><code>dup2()</code> for file descriptor manipulation</li>
+<li><code>waitpid()</code> for process synchronization</li>
+<li><code>signal()</code> for handling interrupts</li>
+</ul>
+<p>These are the same system calls that Bash, Zsh, and every other shell use under the hood.</p>
+<h2 id="ai-as-my-learning-partner">AI as My Learning Partner</h2>
+<p>Here’s the honest truth: <strong>AI generated most of my code, but I understood every line.</strong></p>
+<h3 id="how-ai-helped-me">How AI Helped Me:</h3>
+<ul>
+<li><strong>Generated boilerplate code structure</strong> - I didn’t start from scratch</li>
+<li><strong>Explained complex system calls</strong> - When I was stuck on <code>fork()</code> vs <code>exec()</code></li>
+<li><strong>Debugged memory management issues</strong> - C’s manual memory management is tricky</li>
+<li><strong>Suggested best practices</strong> - Error handling, code organization, security considerations</li>
+</ul>
+<h3 id="the-key-insight">The Key Insight:</h3>
+<p><strong>AI is a tool, not a replacement.</strong> Understanding the fundamentals is crucial. Here’s what I learned:</p>
+<ul>
+<li><strong>80% understanding is enough</strong> - If this isn’t your core job, you don’t need to memorize every system call</li>
+<li><strong>AI accelerates learning</strong> - When you know the basics, AI can help you build faster</li>
+<li><strong>Fundamentals matter</strong> - You still need to understand what <code>fork()</code> does, even if AI wrote the code</li>
+</ul>
+<h3 id="my-approach">My Approach:</h3>
+<ol>
+<li><strong>Start with understanding</strong> - Learn what each system call does conceptually</li>
+<li><strong>Use AI for implementation</strong> - Let AI handle the boilerplate and edge cases</li>
+<li><strong>Review and modify</strong> - Understand AI generated lines. If necessary, get clarification from alternate source</li>
+<li><strong>Test and debug</strong> - Break things to understand them better</li>
+</ol>
+<p><em>“AI generated the code, but I understood most of the lines. That’s the sweet spot.”</em></p>
+<h2 id="building-the-shell">Building the Shell</h2>
+<p>I chose to implement everything in a single <code>main.c</code> file for simplicity. Here’s how to build it:</p>
+<h3 id="what-is-a-makefile">What is a Makefile?</h3>
+<p>A Makefile is a configuration file that tells the <a href="https://faculty.cs.niu.edu/~hutchins/csci480/make.htm" target="_blank" rel="noopener noreferrer">make</a> utility how to build your project. It’s like a recipe that automates the compilation process. Instead of typing long gcc commands, you just run <code>make</code>.</p>
+<h3 id="simple-build">Simple Build</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">gcc</span><span style="color:#D19A66"> -Wall</span><span style="color:#D19A66"> -Wextra</span><span style="color:#D19A66"> -std=c99</span><span style="color:#D19A66"> -g</span><span style="color:#98C379"> main.c</span><span style="color:#D19A66"> -o</span><span style="color:#98C379"> ccsh</span><span style="color:#D19A66"> -lreadline</span></span></code></pre>
+<p><strong>What each flag does:</strong></p>
+<ul>
+<li><code>-Wall -Wextra</code>: Enable all warning messages</li>
+<li><code>-std=c99</code>: Use C99 standard</li>
+<li><code>-g</code>: Include debug symbols</li>
+<li><code>-lreadline</code>: Link against the readline library (for command history)</li>
+</ul>
+<h3 id="with-makefile">With Makefile</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="makefile"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Compiler and flags</span></span>
+<span class="line"><span style="color:#E06C75">CC</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> gcc</span></span>
+<span class="line"><span style="color:#E06C75">CFLAGS</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> -Wall -Wextra -std=c99 -g</span></span>
+<span class="line"><span style="color:#E06C75">LDFLAGS</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> -lreadline</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Build target: ccsh depends on main.c</span></span>
+<span class="line"><span style="color:#61AFEF">ccsh</span><span style="color:#ABB2BF">:</span><span style="color:#E06C75"> main.c</span></span>
+<span class="line"><span style="color:#98C379">	$(</span><span style="color:#E06C75">CC</span><span style="color:#98C379">)</span><span style="color:#98C379"> $(</span><span style="color:#E06C75">CFLAGS</span><span style="color:#98C379">)</span><span style="color:#E5C07B"> -o ccsh main.c </span><span style="color:#98C379">$(</span><span style="color:#E06C75">LDFLAGS</span><span style="color:#98C379">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Clean up build artifacts</span></span>
+<span class="line"><span style="color:#61AFEF">clean</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E5C07B">	rm -f ccsh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Install to system (optional)</span></span>
+<span class="line"><span style="color:#61AFEF">install</span><span style="color:#ABB2BF">:</span><span style="color:#E06C75"> ccsh</span></span>
+<span class="line"><span style="color:#E5C07B">	cp ccsh ~/.local/bin/</span></span></code></pre>
+<p><strong>How it works:</strong></p>
+<ul>
+<li><code>CC = gcc</code>: Define the compiler</li>
+<li><code>CFLAGS</code>: Compiler flags for warnings and standards</li>
+<li><code>LDFLAGS</code>: Linker flags for external libraries</li>
+<li><code>ccsh: main.c</code>: Target <code>ccsh</code> depends on <code>main.c</code></li>
+<li><code>clean</code>: Remove built files</li>
+</ul>
+<h3 id="building-and-running">Building and Running</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Build the shell</span></span>
+<span class="line"><span style="color:#61AFEF">make</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Run the shell</span></span>
+<span class="line"><span style="color:#61AFEF">./ccsh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Clean up</span></span>
+<span class="line"><span style="color:#61AFEF">make</span><span style="color:#98C379"> clean</span></span></code></pre>
+<h2 id="the-cool-features-i-added">The Cool Features I Added</h2>
+<h3 id="1-built-in-commands">1. Built-in Commands</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> /path/to/directory</span><span style="color:#7F848E;font-style:italic">    # Change directory</span></span>
+<span class="line"><span style="color:#56B6C2">pwd</span><span style="color:#7F848E;font-style:italic">                      # Print working directory</span></span>
+<span class="line"><span style="color:#56B6C2">exit</span><span style="color:#7F848E;font-style:italic">                     # Exit shell</span></span>
+<span class="line"><span style="color:#56B6C2">jobs</span><span style="color:#7F848E;font-style:italic">                     # List background jobs</span></span>
+<span class="line"><span style="color:#56B6C2">fg</span><span style="color:#98C379"> %1</span><span style="color:#7F848E;font-style:italic">                    # Bring job to foreground</span></span>
+<span class="line"><span style="color:#61AFEF">help</span><span style="color:#7F848E;font-style:italic">                     # Show help information</span></span></code></pre>
+<h3 id="2-alias-system">2. Alias System</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#C678DD">alias</span><span style="color:#E06C75"> ll</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"ls -lah"</span><span style="color:#7F848E;font-style:italic">       # Create alias</span></span>
+<span class="line"><span style="color:#56B6C2">alias</span><span style="color:#7F848E;font-style:italic">                    # List all aliases</span></span>
+<span class="line"><span style="color:#56B6C2">unalias</span><span style="color:#98C379"> ll</span><span style="color:#7F848E;font-style:italic">               # Remove alias</span></span></code></pre>
+<h3 id="3-background-job-management">3. Background Job Management</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">sleep</span><span style="color:#D19A66"> 10</span><span style="color:#ABB2BF"> &amp;               </span><span style="color:#7F848E;font-style:italic"># Run in background</span></span>
+<span class="line"><span style="color:#56B6C2">jobs</span><span style="color:#7F848E;font-style:italic">                     # List background jobs</span></span>
+<span class="line"><span style="color:#56B6C2">fg</span><span style="color:#98C379"> %1</span><span style="color:#7F848E;font-style:italic">                    # Bring to foreground</span></span></code></pre>
+<h3 id="4-io-redirection">4. I/O Redirection</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">ls</span><span style="color:#ABB2BF"> &gt; </span><span style="color:#98C379">output.txt</span><span style="color:#7F848E;font-style:italic">          # Redirect output</span></span>
+<span class="line"><span style="color:#61AFEF">cat</span><span style="color:#ABB2BF"> &lt; </span><span style="color:#98C379">input.txt</span><span style="color:#7F848E;font-style:italic">          # Redirect input</span></span>
+<span class="line"><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "hello"</span><span style="color:#ABB2BF"> &gt;&gt; </span><span style="color:#98C379">log.txt</span><span style="color:#7F848E;font-style:italic">  # Append output</span></span></code></pre>
+<h3 id="5-globbing-support">5. Globbing Support</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">ls</span><span style="color:#E5C07B"> *</span><span style="color:#98C379">.txt</span><span style="color:#7F848E;font-style:italic">                 # List all .txt files</span></span>
+<span class="line"><span style="color:#61AFEF">cp</span><span style="color:#98C379"> file?.txt</span><span style="color:#98C379"> backup/</span><span style="color:#7F848E;font-style:italic">     # Copy files matching pattern</span></span></code></pre>
+<h2 id="the-aha-moments">The “Aha!” Moments</h2>
+<h3 id="process-groups-and-sessions">Process Groups and Sessions</h3>
+<p>I never fully understood how <code>Ctrl+C</code> works until I implemented it. When you press <code>Ctrl+C</code>, the kernel sends a SIGINT to the entire process group. The shell needs to:</p>
+<ol>
+<li>Create a new process group for each command</li>
+<li>Handle signals appropriately</li>
+<li>Restore the shell’s process group when the command finishes</li>
+</ol>
+<h3 id="environment-variables">Environment Variables</h3>
+<p>I always knew about <code>PATH</code>, but seeing how the shell searches for executables was enlightening. It’s just a simple loop through directories, checking if the file exists and is executable.</p>
+<h2 id="the-challenges-i-faced">The Challenges I Faced</h2>
+<h3 id="memory-management-nightmares">Memory Management Nightmares</h3>
+<p>C doesn’t have garbage collection, so every <code>malloc()</code> needs a corresponding <code>free()</code>. With complex command parsing and multiple processes, memory leaks were a constant threat.</p>
+<h3 id="signal-handling-complexity">Signal Handling Complexity</h3>
+<p>Getting <code>Ctrl+C</code> to work correctly was surprisingly tricky. The shell needs to:</p>
+<ul>
+<li>Ignore SIGINT for itself</li>
+<li>Forward SIGINT to child processes</li>
+<li>Restore signal handlers after child completion</li>
+<li>Handle signals during pipeline execution</li>
+</ul>
+<h3 id="cross-platform-quirks">Cross-Platform Quirks</h3>
+<p>While C is portable, Unix systems have subtle differences:</p>
+<ul>
+<li>Different signal behavior between Linux and macOS</li>
+<li>Varying limits on file descriptors</li>
+<li>Different implementations of <code>readline</code></li>
+</ul>
+<h2 id="deep-dive-how-c-talks-to-the-operating-system">Deep Dive: How C Talks to the Operating System</h2>
+<p>Let’s trace through what happens when you type <code>ls -la</code> in my shell:</p>
+<h3 id="1-the-fork-exec-dance">1. The Fork-Exec Dance</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="c"><code><span class="line"><span style="color:#C678DD">pid_t</span><span style="color:#ABB2BF"> pid </span><span style="color:#C678DD">=</span><span style="color:#61AFEF"> fork</span><span style="color:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> (pid </span><span style="color:#C678DD">==</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    // Child process</span></span>
+<span class="line"><span style="color:#61AFEF">    execvp</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">expanded</span><span style="color:#ABB2BF">[</span><span style="color:#D19A66">0</span><span style="color:#ABB2BF">], expanded);</span></span>
+<span class="line"><span style="color:#61AFEF">    perror</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">"execvp"</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#61AFEF">    exit</span><span style="color:#ABB2BF">(</span><span style="color:#D19A66">1</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">} </span><span style="color:#C678DD">else</span><span style="color:#C678DD"> if</span><span style="color:#ABB2BF"> (pid </span><span style="color:#C678DD">&gt;</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    // Parent process</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (background) {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">        // Background job</span></span>
+<span class="line"><span style="color:#61AFEF">        printf</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">"[</span><span style="color:#D19A66">%d</span><span style="color:#98C379">] </span><span style="color:#D19A66">%d</span><span style="color:#56B6C2">\n</span><span style="color:#98C379">"</span><span style="color:#ABB2BF">, job_count, pid);</span></span>
+<span class="line"><span style="color:#61AFEF">        add_job</span><span style="color:#ABB2BF">(pid, line);</span></span>
+<span class="line"><span style="color:#ABB2BF">    } </span><span style="color:#C678DD">else</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">        // Foreground job - wait for completion</span></span>
+<span class="line"><span style="color:#C678DD">        int</span><span style="color:#ABB2BF"> status;</span></span>
+<span class="line"><span style="color:#61AFEF">        waitpid</span><span style="color:#ABB2BF">(pid, </span><span style="color:#C678DD">&amp;</span><span style="color:#ABB2BF">status, </span><span style="color:#D19A66">0</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>What’s happening:</strong></p>
+<ul>
+<li><code>fork()</code> creates an exact copy of the current process</li>
+<li>The child gets a new process ID but identical memory</li>
+<li><code>execvp()</code> replaces the child’s memory with the <code>ls</code> program</li>
+<li>The parent waits for the child to finish</li>
+</ul>
+<h3 id="2-how-redirection-works">2. How Redirection Works</h3>
+<p>When you type <code>ls &gt; output.txt</code>, here’s what happens:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="c"><code><span class="line"><span style="color:#7F848E;font-style:italic">/* Handle output redirection */</span></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> (outfile) {</span></span>
+<span class="line"><span style="color:#C678DD">    int</span><span style="color:#ABB2BF"> flags </span><span style="color:#C678DD">=</span><span style="color:#ABB2BF"> O_WRONLY </span><span style="color:#C678DD">|</span><span style="color:#ABB2BF"> O_CREAT;</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (append) flags </span><span style="color:#C678DD">|=</span><span style="color:#ABB2BF"> O_APPEND;</span></span>
+<span class="line"><span style="color:#C678DD">    else</span><span style="color:#ABB2BF"> flags </span><span style="color:#C678DD">|=</span><span style="color:#ABB2BF"> O_TRUNC;</span></span>
+<span class="line"><span style="color:#ABB2BF">    </span></span>
+<span class="line"><span style="color:#C678DD">    int</span><span style="color:#ABB2BF"> fd </span><span style="color:#C678DD">=</span><span style="color:#61AFEF"> open</span><span style="color:#ABB2BF">(outfile, flags, </span><span style="color:#E06C75">0</span><span style="color:#D19A66">644</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (fd </span><span style="color:#C678DD">==</span><span style="color:#C678DD"> -</span><span style="color:#D19A66">1</span><span style="color:#ABB2BF">) { </span></span>
+<span class="line"><span style="color:#61AFEF">        perror</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">"output"</span><span style="color:#ABB2BF">); </span></span>
+<span class="line"><span style="color:#61AFEF">        exit</span><span style="color:#ABB2BF">(</span><span style="color:#D19A66">1</span><span style="color:#ABB2BF">); </span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#61AFEF">    dup2</span><span style="color:#ABB2BF">(fd, STDOUT_FILENO);</span></span>
+<span class="line"><span style="color:#61AFEF">    close</span><span style="color:#ABB2BF">(fd);</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>The magic is <code>dup2(fd, STDOUT_FILENO)</code>. This makes file descriptor 1 (stdout) point to the same place as our file descriptor.</p>
+<h3 id="3-globbing-implementation">3. Globbing Implementation</h3>
+<p>For <code>ls *.txt</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="c"><code><span class="line"><span style="color:#C678DD">void</span><span style="color:#61AFEF"> expand_globs</span><span style="color:#ABB2BF">(</span><span style="color:#C678DD">char**</span><span style="color:#E06C75;font-style:italic"> args</span><span style="color:#ABB2BF">,</span><span style="color:#C678DD"> char**</span><span style="color:#E06C75;font-style:italic"> expanded_args</span><span style="color:#ABB2BF">,</span><span style="color:#C678DD"> int*</span><span style="color:#E06C75;font-style:italic"> expanded_count</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">    *</span><span style="color:#ABB2BF">expanded_count </span><span style="color:#C678DD">=</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#56B6C2">    glob_t</span><span style="color:#ABB2BF"> results;</span></span>
+<span class="line"><span style="color:#E5C07B">    results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_offs</span><span style="color:#C678DD"> =</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#E5C07B">    results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_pathc</span><span style="color:#C678DD"> =</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#E5C07B">    results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_pathv</span><span style="color:#C678DD"> =</span><span style="color:#D19A66"> NULL</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">    for</span><span style="color:#ABB2BF"> (</span><span style="color:#C678DD">int</span><span style="color:#ABB2BF"> i </span><span style="color:#C678DD">=</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">; </span><span style="color:#E06C75">args</span><span style="color:#ABB2BF">[i] </span><span style="color:#C678DD">!=</span><span style="color:#D19A66"> NULL</span><span style="color:#ABB2BF">; i</span><span style="color:#C678DD">++</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">        int</span><span style="color:#ABB2BF"> flags </span><span style="color:#C678DD">=</span><span style="color:#ABB2BF"> GLOB_TILDE;</span><span style="color:#7F848E;font-style:italic">  /* Expand ~ to home directory */</span></span>
+<span class="line"><span style="color:#C678DD">        if</span><span style="color:#ABB2BF"> (</span><span style="color:#61AFEF">strchr</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">args</span><span style="color:#ABB2BF">[i], </span><span style="color:#98C379">'*'</span><span style="color:#ABB2BF">) </span><span style="color:#56B6C2">||</span><span style="color:#61AFEF"> strchr</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">args</span><span style="color:#ABB2BF">[i], </span><span style="color:#98C379">'?'</span><span style="color:#ABB2BF">)) {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">            /* Pattern contains glob characters */</span></span>
+<span class="line"><span style="color:#C678DD">            if</span><span style="color:#ABB2BF"> (</span><span style="color:#C678DD">*</span><span style="color:#ABB2BF">expanded_count </span><span style="color:#C678DD">&gt;</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">) flags </span><span style="color:#C678DD">|=</span><span style="color:#ABB2BF"> GLOB_APPEND;</span></span>
+<span class="line"><span style="color:#C678DD">            if</span><span style="color:#ABB2BF"> (</span><span style="color:#61AFEF">glob</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">args</span><span style="color:#ABB2BF">[i], flags, </span><span style="color:#D19A66">NULL</span><span style="color:#ABB2BF">, </span><span style="color:#C678DD">&amp;</span><span style="color:#ABB2BF">results) </span><span style="color:#C678DD">!=</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">                /* Glob failed, use original argument */</span></span>
+<span class="line"><span style="color:#E06C75">                expanded_args</span><span style="color:#ABB2BF">[(</span><span style="color:#C678DD">*</span><span style="color:#ABB2BF">expanded_count)</span><span style="color:#C678DD">++</span><span style="color:#ABB2BF">] </span><span style="color:#C678DD">=</span><span style="color:#E06C75"> args</span><span style="color:#ABB2BF">[i];</span></span>
+<span class="line"><span style="color:#ABB2BF">            } </span><span style="color:#C678DD">else</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">                /* Add all matched files */</span></span>
+<span class="line"><span style="color:#C678DD">                for</span><span style="color:#ABB2BF"> (</span><span style="color:#C678DD">size_t</span><span style="color:#ABB2BF"> j </span><span style="color:#C678DD">=</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">; j </span><span style="color:#C678DD">&lt;</span><span style="color:#E5C07B"> results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_pathc</span><span style="color:#ABB2BF">; j</span><span style="color:#C678DD">++</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#E06C75">                    expanded_args</span><span style="color:#ABB2BF">[(</span><span style="color:#C678DD">*</span><span style="color:#ABB2BF">expanded_count)</span><span style="color:#C678DD">++</span><span style="color:#ABB2BF">] </span><span style="color:#C678DD">=</span><span style="color:#E5C07B"> results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_pathv</span><span style="color:#ABB2BF">[j];</span></span>
+<span class="line"><span style="color:#ABB2BF">                }</span></span>
+<span class="line"><span style="color:#ABB2BF">            }</span></span>
+<span class="line"><span style="color:#ABB2BF">        } </span><span style="color:#C678DD">else</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">            /* No glob characters, use as-is */</span></span>
+<span class="line"><span style="color:#E06C75">            expanded_args</span><span style="color:#ABB2BF">[(</span><span style="color:#C678DD">*</span><span style="color:#ABB2BF">expanded_count)</span><span style="color:#C678DD">++</span><span style="color:#ABB2BF">] </span><span style="color:#C678DD">=</span><span style="color:#E06C75"> args</span><span style="color:#ABB2BF">[i];</span></span>
+<span class="line"><span style="color:#ABB2BF">        }</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#E06C75">    expanded_args</span><span style="color:#ABB2BF">[</span><span style="color:#C678DD">*</span><span style="color:#ABB2BF">expanded_count] </span><span style="color:#C678DD">=</span><span style="color:#D19A66"> NULL</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#ABB2BF">    </span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    /* Free the glob structure */</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> (</span><span style="color:#E5C07B">results</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">gl_pathv</span><span style="color:#C678DD"> !=</span><span style="color:#D19A66"> NULL</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#61AFEF">        globfree</span><span style="color:#ABB2BF">(</span><span style="color:#C678DD">&amp;</span><span style="color:#ABB2BF">results);</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h2 id="what-i-learned-about-real-shells">What I Learned About Real Shells</h2>
+<p>Building my own shell gave me a new appreciation for tools like Bash and Zsh. They handle edge cases I never considered:</p>
+<ul>
+<li>Complex quoting rules</li>
+<li>Job control with multiple background processes</li>
+<li>Signal handling in pipelines</li>
+<li>Performance optimizations</li>
+<li>Cross-platform compatibility</li>
+</ul>
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>Building your own shell isn’t just an academic exercise. It’s a practical way to understand:</p>
+<ul>
+<li><strong>Process management</strong>: How the OS handles processes</li>
+<li><strong>I/O systems</strong>: File descriptors, pipes, redirection</li>
+<li><strong>Signal handling</strong>: How programs communicate with the OS</li>
+<li><strong>System calls</strong>: The interface between user and kernel space</li>
+<li><strong>Build systems</strong>: How to create robust, portable software</li>
+</ul>
+<h2 id="try-it-yourself">Try It Yourself</h2>
+<p>If you’re interested in low-level programming, I highly recommend building a shell. Start simple:</p>
+<ol>
+<li>Basic command execution</li>
+<li>Add argument parsing</li>
+<li>Implement I/O redirection</li>
+<li>Add pipes</li>
+<li>Build in job control</li>
+</ol>
+<p>The <a href="https://codingchallenges.fyi/challenges/challenge-shell" target="_blank" rel="noopener noreferrer">codingchallenges.fyi shell challenge</a> is an excellent starting point. you can also check:</p>
+<ul>
+<li><a href="https://github.com/Encryptioner/ccsh-shell" target="_blank" rel="noopener noreferrer">My Shell Implementation</a></li>
+<li><a href="https://man7.org/linux/man-pages/" target="_blank" rel="noopener noreferrer">Unix Programming Manual</a></li>
+</ul>
+<h2 id="whats-next">What’s Next?</h2>
+<p>I’m thinking about adding:</p>
+<ul>
+<li>Tab completion</li>
+<li>Better error handling</li>
+<li>More built-in commands</li>
+<li>Scripting capabilities</li>
+<li>Performance optimizations</li>
+</ul>
+<p>But honestly, the learning experience was the real reward. Understanding how the tools I use daily actually work has made me a better engineer.</p>
+<hr />
+<p><em>The next time you type a command, take a moment to appreciate the complexity hidden behind that simple prompt. And maybe, just maybe, consider building your own shell to see what’s really happening under the hood.</em></p>
+<p><em>Happy coding! 🐚</em></p>
+<h2 id="end">End:</h2>
+<p>That’s all!</p>
+<p>I hope you’ve found the article useful. You should try building your own shell if you haven’t already. Feel free to share your thoughts in the comments below.</p>
+<p>Check more on</p>
+<ul>
+<li><a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">Website</a></li>
+<li><a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
+<li><a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">Github</a></li>
+<li><a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
+<li><a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Coding%20Challenges">
+More on Coding Challenges </a> </footer> </article> <button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

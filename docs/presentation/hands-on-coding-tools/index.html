@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hands-On Coding: Building Basic Application Tools — Ankur’s Writing</title><meta name="description" content="&#34;The best way to understand a tool is to build it yourself.&#34;"><link rel="canonical" href="https://encryptioner.github.io/blogs/presentation/hands-on-coding-tools/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Hands-On Coding: Building Basic Application Tools — Ankur’s Writing"><meta property="og:description" content="&#34;The best way to understand a tool is to build it yourself.&#34;"><meta property="og:url" content="https://encryptioner.github.io/blogs/presentation/hands-on-coding-tools/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Hands-On Coding: Building Basic Application Tools — Ankur’s Writing"><meta name="twitter:description" content="&#34;The best way to understand a tool is to build it yourself.&#34;"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-07-28"><meta property="article:modified_time" content="2026-08-02"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css">
+<style>.deck{padding-block:clamp(28px,5vh,52px) 0}.deck-head{max-width:900px;margin:0 auto 26px;display:flex;flex-direction:column;gap:12px}.deck-head h1{font-size:clamp(27px,4vw,40px);line-height:1.18;font-weight:800;letter-spacing:-.025em}.deck-frame{position:relative;max-width:1100px;margin:0 auto;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;height:min(78vh,760px);min-height:460px}.deck-frame iframe{position:relative;z-index:1;width:100%;height:100%;border:0;display:block;background:var(--bg)}.deck-loading{position:absolute;inset:0;z-index:0;display:grid;place-content:center;gap:12px;justify-items:center;color:var(--muted);font-family:var(--font-mono);font-size:13px;text-align:center;padding:24px}.deck-loading .spinner{width:26px;height:26px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:deck-spin .9s linear infinite}@keyframes deck-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.deck-loading .spinner{animation-duration:3s}}.deck-actions{max-width:1100px;margin:14px auto 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}.deck-actions .hint{font-family:var(--font-mono);font-size:12px;color:var(--dim)}@media(max-width:640px){.deck-frame{height:min(70vh,560px);min-height:380px}}.slides{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:20px}.slide{position:relative;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:var(--radius);padding:28px clamp(18px,4vw,36px) 30px}.slide .slide-no{font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(0,227,168,.3);padding:3px 10px;border-radius:7px;display:inline-block;margin-bottom:14px}.slide .prose{max-width:none}.slide .prose>:first-child{margin-top:0}.slide .prose h1{font-size:1.55em;margin-top:.4em}.slide .prose h2{font-size:1.25em;border-bottom:0}.deck-docs{max-width:900px;margin:40px auto 0;display:flex;flex-direction:column;gap:14px}.deck-docs>h2{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border-soft)}.deck-docs details{background:var(--bg-elev-1);border:1px solid var(--border);border-radius:var(--radius);padding:4px 20px}.deck-docs summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;gap:10px}.deck-docs summary::marker{color:var(--accent)}.deck-docs details[open] summary{border-bottom:1px solid var(--border-soft);margin-bottom:12px}.deck-docs .prose{max-width:none;padding-bottom:18px}
+</style></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog"> Blogs </a><a href="/blogs/?type=presentation" aria-current="page"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <section class="shell deck"> <header class="deck-head"> <div class="tags"> <span class="tag tag--type tag--deck">🎤 Presentation</span> <span class="tag">17 slides</span> </div> <h1>Hands-On Coding: Building Basic Application Tools</h1> <p class="article-meta mono"> <time datetime="2026-08-02">2 Aug 2026</time> <span>·</span> <span>~5 min</span> </p> <p class="lead">&quot;The best way to understand a tool is to build it yourself.&quot;</p> </header> <div class="slides"> <section class="slide" aria-label="Slide 1"> <span class="slide-no">01</span> <div class="prose"><h2 id="slide-1-title-slide">Slide 1: Title Slide</h2>
+<h1 id="hands-on-coding-building-basic-application-tools">Hands-On Coding: Building Basic Application Tools</h1>
+<h2 id="from-theory-to-practice---understanding-the-fundamentals">From Theory to Practice - Understanding the Fundamentals</h2>
+<p><strong>Presented by:</strong> Ankur Mursalin<br />
+<strong>Lead Software Engineer, Nerddevs</strong></p>
+<p><em>“The best way to understand a tool is to build it yourself.”</em></p>
+<p><strong>5-Minute Journey Through Low-Level Programming</strong></p></div> </section><section class="slide" aria-label="Slide 2"> <span class="slide-no">02</span> <div class="prose"><h2 id="slide-2-the-journey-begins">Slide 2: The Journey Begins</h2>
+<h1 id="-my-coding-challenge-adventure">🎯 <a href="https://github.com/Encryptioner/blogs/tree/master/topics/Coding%20Challenges" target="_blank" rel="noopener noreferrer">My Coding Challenge Adventure</a></h1>
+<p><strong>Two challenges that changed everything:</strong></p>
+<ol>
+<li>
+<p><strong><a href="https://codingchallenges.fyi/challenges/challenge-which" target="_blank" rel="noopener noreferrer">Challenge: Which</a></strong></p>
+<ul>
+<li>Simple: <code>echo $PATH</code> and extract executable paths</li>
+<li>My first coding challenge ever!</li>
+</ul>
+</li>
+<li>
+<p><strong><a href="https://codingchallenges.fyi/challenges/challenge-shell" target="_blank" rel="noopener noreferrer">Challenge: Shell</a></strong></p>
+<ul>
+<li>Complex: Build a functional Unix shell</li>
+<li>Low-level system programming</li>
+</ul>
+</li>
+</ol>
+<p><em>“I wanted to do both together - and it was the best decision I made.”</em></p></div> </section><section class="slide" aria-label="Slide 3"> <span class="slide-no">03</span> <div class="prose"><h2 id="slide-3-why-build-basic-tools">Slide 3: Why Build Basic Tools?</h2>
+<h1 id="-why-build-what-already-exists">🤔 Why Build What Already Exists?</h1>
+<p><strong>The Learning Paradox:</strong></p>
+<ul>
+<li>We use tools daily without understanding them</li>
+<li><code>ls</code>, <code>cd</code>, <code>which</code> - simple commands, complex internals</li>
+<li><strong>Understanding = Better Usage</strong></li>
+</ul>
+<p><strong>Real Benefits:</strong></p>
+<ul>
+<li>Debug system issues effectively</li>
+<li>Write better automation scripts</li>
+<li>Appreciate the elegance of Unix philosophy</li>
+<li><strong>AI can help, but fundamentals matter</strong></li>
+</ul>
+<p><em>“AI generated most of my code, but I learned the fundamentals.”</em></p>
+<p><strong>Question:</strong> How many of you have wondered what happens when you type <code>ls</code>?</p></div> </section><section class="slide" aria-label="Slide 4"> <span class="slide-no">04</span> <div class="prose"><h2 id="slide-4-the-which-challenge---simple-but-powerful">Slide 4: The “Which” Challenge - Simple but Powerful</h2>
+<h1 id="-challenge-1-building-which">🔍 Challenge 1: Building “Which”</h1>
+<p><strong>The Problem:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">$</span><span style="color:#98C379"> which</span><span style="color:#98C379"> python</span></span>
+<span class="line"><span style="color:#61AFEF">/usr/bin/python</span></span></code></pre>
+<p><strong>The Challenge:</strong> Recreate this functionality</p>
+<p><strong>My Approach:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="c"><code><span class="line"><span style="color:#7F848E;font-style:italic">// Parse PATH environment variable</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">// Check each directory for executable</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">// Return first match found</span></span></code></pre>
+<p><strong>Key Learning:</strong> Environment variables, file permissions, PATH parsing</p></div> </section><section class="slide" aria-label="Slide 5"> <span class="slide-no">05</span> <div class="prose"><h2 id="slide-5-what-is-a-shell">Slide 5: What is a Shell?</h2>
+<h1 id="-what-is-a-shell-really">🐚 What is a Shell, Really?</h1>
+<p><strong>A shell is your interface to the operating system:</strong></p>
+<ul>
+<li><strong>Command Interpreter</strong>: Reads your commands and executes them</li>
+<li><strong>Process Manager</strong>: Creates, manages, and monitors programs</li>
+<li><strong>Environment Controller</strong>: Manages variables, paths, and settings</li>
+</ul>
+<p><strong>When you type <code>ls -la</code>:</strong></p>
+<ol>
+<li>Shell reads your input</li>
+<li>Parses command into <code>ls</code> and <code>-la</code></li>
+<li>Searches PATH for <code>ls</code> executable</li>
+<li>Creates new process with <code>fork()</code></li>
+<li>Replaces process with <code>ls</code> using <code>exec()</code></li>
+<li>Waits for completion with <code>wait()</code></li>
+</ol>
+<p><em>“A shell is just a program that runs other programs.”</em></p></div> </section><section class="slide" aria-label="Slide 6"> <span class="slide-no">06</span> <div class="prose"><h2 id="slide-6-the-shell-challenge---going-deep">Slide 6: The Shell Challenge - Going Deep</h2>
+<h1 id="-challenge-2-building-a-shell">🐚 Challenge 2: Building a Shell</h1>
+<p><strong>The Problem:</strong> Understand what happens when you type <code>ls -la</code></p>
+<p><strong>The Solution:</strong> Build <strong>ccsh</strong> (Compact C Shell)</p>
+<p><strong>Core Features:</strong></p>
+<ul>
+<li>Command execution with <code>fork()</code> and <code>exec()</code></li>
+<li>I/O redirection (<code>&gt;</code>, <code>&lt;</code>, <code>&gt;&gt;</code>)</li>
+<li>Background job management</li>
+<li>Built-in commands (<code>cd</code>, <code>pwd</code>, <code>exit</code>)</li>
+<li>Signal handling (<code>Ctrl+C</code>)</li>
+</ul>
+<p><strong>Check it out:</strong> <a href="https://github.com/Encryptioner/ccsh-shell" target="_blank" rel="noopener noreferrer">github.com/Encryptioner/ccsh-shell</a></p></div> </section><section class="slide" aria-label="Slide 7"> <span class="slide-no">07</span> <div class="prose"><h2 id="slide-7-the-aha-moments">Slide 7: The “Aha!” Moments</h2>
+<h1 id="-what-i-discovered">💡 What I Discovered</h1>
+<p><strong>Process Management:</strong></p>
+<ul>
+<li><code>fork()</code> creates exact process copies</li>
+<li><code>exec()</code> replaces process memory</li>
+<li>File descriptors are just numbers</li>
+</ul>
+<p><strong>System Calls in Action:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="c"><code><span class="line"><span style="color:#C678DD">pid_t</span><span style="color:#ABB2BF"> pid </span><span style="color:#C678DD">=</span><span style="color:#61AFEF"> fork</span><span style="color:#ABB2BF">();</span></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> (pid </span><span style="color:#C678DD">==</span><span style="color:#D19A66"> 0</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#61AFEF">    execvp</span><span style="color:#ABB2BF">(command, args);</span><span style="color:#7F848E;font-style:italic">  // Child becomes new program</span></span>
+<span class="line"><span style="color:#ABB2BF">} </span><span style="color:#C678DD">else</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#61AFEF">    waitpid</span><span style="color:#ABB2BF">(pid, </span><span style="color:#C678DD">&amp;</span><span style="color:#ABB2BF">status, </span><span style="color:#D19A66">0</span><span style="color:#ABB2BF">);</span><span style="color:#7F848E;font-style:italic">  // Parent waits</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>The Magic:</strong> Understanding how <code>Ctrl+C</code> actually works!</p></div> </section><section class="slide" aria-label="Slide 8"> <span class="slide-no">08</span> <div class="prose"><h2 id="slide-8-building-with-makefiles">Slide 8: Building with Makefiles</h2>
+<h1 id="-how-makefiles-work">🔨 How Makefiles Work</h1>
+<p><strong>What is a Makefile?</strong></p>
+<ul>
+<li>A recipe for building software</li>
+<li>Automates compilation process</li>
+<li>Handles dependencies automatically</li>
+</ul>
+<p><strong>Simple Makefile Example:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="makefile"><code><span class="line"><span style="color:#E06C75">CC</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> gcc</span></span>
+<span class="line"><span style="color:#E06C75">CFLAGS</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> -Wall -Wextra -std=c99 -g</span></span>
+<span class="line"><span style="color:#E06C75">LDFLAGS</span><span style="color:#ABB2BF"> =</span><span style="color:#E5C07B"> -lreadline</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">ccsh</span><span style="color:#ABB2BF">:</span><span style="color:#E06C75"> ccsh.c</span></span>
+<span class="line"><span style="color:#98C379">	$(</span><span style="color:#E06C75">CC</span><span style="color:#98C379">)</span><span style="color:#98C379"> $(</span><span style="color:#E06C75">CFLAGS</span><span style="color:#98C379">)</span><span style="color:#E5C07B"> -o ccsh ccsh.c </span><span style="color:#98C379">$(</span><span style="color:#E06C75">LDFLAGS</span><span style="color:#98C379">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">clean</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E5C07B">	rm -f ccsh</span></span></code></pre>
+<p><strong>How it works:</strong></p>
+<ul>
+<li><code>make</code> reads the Makefile</li>
+<li>Checks if <code>ccsh</code> is newer than <code>ccsh.c</code></li>
+<li>Runs the compilation command if needed</li>
+<li><code>make clean</code> removes built files</li>
+</ul></div> </section><section class="slide" aria-label="Slide 9"> <span class="slide-no">09</span> <div class="prose"><h2 id="slide-9-ai-as-a-learning-partner">Slide 9: AI as a Learning Partner</h2>
+<h1 id="-ai--fundamentals--powerful-learning">🤖 AI + Fundamentals = Powerful Learning</h1>
+<p><strong>How AI Helped Me:</strong></p>
+<ul>
+<li>Generated boilerplate code structure</li>
+<li>Explained complex system calls</li>
+<li>Debugged memory management issues</li>
+<li>Suggested best practices</li>
+</ul>
+<p><strong>What I Learned:</strong></p>
+<ul>
+<li>AI is a tool, not a replacement</li>
+<li>Understanding fundamentals is crucial</li>
+<li>AI can accelerate learning when you know the basics</li>
+</ul>
+<p><em>“AI generated the code, but I understood every line.”</em></p></div> </section><section class="slide" aria-label="Slide 10"> <span class="slide-no">10</span> <div class="prose"><h2 id="slide-10-real-world-applications">Slide 10: Real-World Applications</h2>
+<h1 id="-beyond-the-challenges">🌍 Beyond the Challenges</h1>
+<p><strong>What This Knowledge Enables:</strong></p>
+<p><strong>System Administration:</strong></p>
+<ul>
+<li>Debug process issues effectively</li>
+<li>Understand file descriptor limits</li>
+<li>Write better automation scripts</li>
+</ul>
+<p><strong>Development:</strong></p>
+<ul>
+<li>Optimize build processes</li>
+<li>Create custom development tools</li>
+<li>Understand container internals</li>
+</ul>
+<p><strong>Career Growth:</strong></p>
+<ul>
+<li>Deeper system understanding</li>
+<li>Better problem-solving skills</li>
+<li>Confidence with low-level programming</li>
+</ul></div> </section><section class="slide" aria-label="Slide 11"> <span class="slide-no">11</span> <div class="prose"><h2 id="slide-11-the-learning-path">Slide 11: The Learning Path</h2>
+<h1 id="-your-journey-starts-here">📚 Your Journey Starts Here</h1>
+<p><strong>Phase 1: Simple Tools</strong></p>
+<ul>
+<li>Build <code>which</code> command</li>
+<li>Understand PATH and environment variables</li>
+<li>Learn file system operations</li>
+</ul>
+<p><strong>Phase 2: System Tools</strong></p>
+<ul>
+<li>Build basic shell</li>
+<li>Master process management</li>
+<li>Implement I/O redirection</li>
+</ul>
+<p><strong>Phase 3: Advanced Concepts</strong></p>
+<ul>
+<li>Signal handling</li>
+<li>Job control</li>
+<li>Pipeline implementation</li>
+</ul></div> </section><section class="slide" aria-label="Slide 12"> <span class="slide-no">12</span> <div class="prose"><h2 id="slide-12-getting-started">Slide 12: Getting Started</h2>
+<h1 id="-start-your-own-adventure">🚀 Start Your Own Adventure</h1>
+<p><strong>Begin with Simple Challenges:</strong></p>
+<ol>
+<li><a href="https://codingchallenges.fyi" target="_blank" rel="noopener noreferrer">Coding Challenges FYI</a> - Start with “which”</li>
+<li>Build incrementally - don’t jump to complex tools</li>
+<li>Use AI as a learning partner, not a crutch</li>
+</ol>
+<p><strong>Get Started:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> clone</span><span style="color:#98C379"> https://github.com/Encryptioner/ccsh-shell</span></span>
+<span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> ccsh-shell</span></span>
+<span class="line"><span style="color:#61AFEF">make</span></span>
+<span class="line"><span style="color:#61AFEF">./ccsh</span></span></code></pre>
+<p><strong>Demo:</strong> Let me show you what it looks like in action…</p></div> </section><section class="slide" aria-label="Slide 13"> <span class="slide-no">13</span> <div class="prose"><h2 id="slide-13-the-benefits-for-others">Slide 13: The Benefits for Others</h2>
+<h1 id="-why-this-matters-for-everyone">🎯 Why This Matters for Everyone</h1>
+<p><strong>For Junior Developers:</strong></p>
+<ul>
+<li>Build confidence with system concepts</li>
+<li>Understand tools you use daily</li>
+<li>Develop debugging skills</li>
+</ul>
+<p><strong>For Senior Developers:</strong></p>
+<ul>
+<li>Deepen system knowledge</li>
+<li>Mentor others effectively</li>
+<li>Solve complex system issues</li>
+</ul>
+<p><strong>For Teams:</strong></p>
+<ul>
+<li>Better system understanding</li>
+<li>Improved troubleshooting</li>
+<li>More robust automation</li>
+</ul></div> </section><section class="slide" aria-label="Slide 14"> <span class="slide-no">14</span> <div class="prose"><h2 id="slide-14-key-takeaways">Slide 14: Key Takeaways</h2>
+<h1 id="-key-takeaways">🎯 Key Takeaways</h1>
+<p><strong>1. Start Simple</strong></p>
+<ul>
+<li>Begin with basic tools like <code>which</code></li>
+<li>Build incrementally</li>
+<li>Don’t be afraid to use AI as a learning partner</li>
+</ul>
+<p><strong>2. Understand Fundamentals</strong></p>
+<ul>
+<li>System calls matter</li>
+<li>Process management is key</li>
+<li>File descriptors are powerful</li>
+</ul>
+<p><strong>3. Practice Makes Perfect</strong></p>
+<ul>
+<li>Code every day</li>
+<li>Break things to understand them</li>
+<li>Share your learnings</li>
+</ul></div> </section><section class="slide" aria-label="Slide 15"> <span class="slide-no">15</span> <div class="prose"><h2 id="slide-15-the-bottom-line">Slide 15: The Bottom Line</h2>
+<h1 id="-the-bottom-line">🎉 The Bottom Line</h1>
+<p><strong>Building basic tools teaches you:</strong></p>
+<ul>
+<li>How systems actually work</li>
+<li>Why certain design decisions were made</li>
+<li>How to debug complex issues</li>
+<li>The elegance of Unix philosophy</li>
+</ul>
+<p><strong>“The best way to master a tool is to understand how it works from the inside out.”</strong></p></div> </section><section class="slide" aria-label="Slide 16"> <span class="slide-no">16</span> <div class="prose"><h2 id="slide-16-resources--next-steps">Slide 16: Resources &amp; Next Steps</h2>
+<h1 id="-resources--next-steps">📚 Resources &amp; Next Steps</h1>
+<p><strong>Start Your Journey:</strong></p>
+<ul>
+<li><a href="https://codingchallenges.fyi" target="_blank" rel="noopener noreferrer">Coding Challenges FYI</a></li>
+<li><a href="https://github.com/Encryptioner/ccsh-shell" target="_blank" rel="noopener noreferrer">My Shell Implementation</a></li>
+<li><a href="https://man7.org/linux/man-pages/" target="_blank" rel="noopener noreferrer">Unix Programming Manual</a></li>
+<li><a href="https://github.com/Encryptioner/blogs/blob/master/topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md" target="_blank" rel="noopener noreferrer">Blog: I Built My Own Shell for Fun. You Can Too</a></li>
+</ul>
+<p><strong>Connect &amp; Learn:</strong></p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">linkedin.com/in/mir-mursalin-ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">github.com/Encryptioner</a></li>
+</ul>
+<p><strong>Next Challenge:</strong> Build your own version of <code>ls</code> or <code>cat</code>!</p>
+<p><strong>Call to Action:</strong> Start with one simple tool today!</p></div> </section><section class="slide" aria-label="Slide 17"> <span class="slide-no">17</span> <div class="prose"><h2 id="slide-17-thank-you">Slide 17: Thank You</h2>
+<h1 id="thank-you">Thank You!</h1>
+<p><strong>Questions &amp; Discussion</strong></p>
+<p><strong>Remember:</strong> Every expert was once a beginner who decided to build something simple.</p>
+<p><em>“The journey of a thousand miles begins with a single <code>echo $PATH</code>.”</em></p>
+<p><strong>Happy Coding! 🐚💻</strong></p></div> </section> </div>   <footer class="article-foot"> <a class="pill" href="/blogs/?type=presentation">← All presentations</a> </footer> </section>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html>

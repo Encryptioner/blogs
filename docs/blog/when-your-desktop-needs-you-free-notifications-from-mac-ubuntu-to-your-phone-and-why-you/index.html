@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>When Your Desktop Needs You — Free Notifications From Mac &amp; Ubuntu to Your Phone — Ankur’s Writing</title><meta name="description" content="A build's been running for twenty minutes. An agent is waiting on your &#34;looks good.&#34; A backup either succeeded at 2 a.m. or didn't. Your phone is in your…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/when-your-desktop-needs-you-free-notifications-from-mac-ubuntu-to-your-phone-and-why-you/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="When Your Desktop Needs You — Free Notifications From Mac &#38; Ubuntu to Your Phone — Ankur’s Writing"><meta property="og:description" content="A build's been running for twenty minutes. An agent is waiting on your &#34;looks good.&#34; A backup either succeeded at 2 a.m. or didn't. Your phone is in your…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/when-your-desktop-needs-you-free-notifications-from-mac-ubuntu-to-your-phone-and-why-you/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="When Your Desktop Needs You — Free Notifications From Mac &#38; Ubuntu to Your Phone — Ankur’s Writing"><meta name="twitter:description" content="A build's been running for twenty minutes. An agent is waiting on your &#34;looks good.&#34; A backup either succeeded at 2 a.m. or didn't. Your phone is in your…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-08-23"><meta property="article:modified_time" content="2026-08-27"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a>  </div> <h1>When Your Desktop Needs You — Free Notifications From Mac &amp; Ubuntu to Your Phone</h1> <p class="article-meta mono"> <time datetime="2026-08-27">27 Aug 2026</time> <span>·</span> <span>12 min read</span> <span>·</span> <span>2,438 words</span> </p> </header>  <div class="prose"><h1 id="when-your-desktop-needs-you--free-notifications-from-mac--ubuntu-to-your-phone">When Your Desktop Needs You — Free Notifications From Mac &amp; Ubuntu to Your Phone</h1>
+<blockquote>
+<p>The phone already controls the desk. The missing half is the desk tapping you back.</p>
+</blockquote>
+<p>A build’s been running for twenty minutes. An agent is waiting on your “looks good.” A backup either succeeded at 2 a.m. or didn’t. Your phone is in your pocket, perfectly capable of making a sound — and it stays silent, because the desktop has no way to reach it. You poll. You unlock the phone, open the VNC app, squint at a terminal, close it. Twenty minutes later, again.</p>
+<p>This post fixes that. Two paths, one tool — <strong><a href="https://ntfy.sh/" target="_blank" rel="noopener noreferrer">ntfy</a></strong>, an open-source notification service that speaks plain HTTP:</p></div>  <div class="prose">
+<ul>
+<li><strong>Path A — Mac, zero setup.</strong> <code>curl</code> publishes to ntfy.sh’s free server. Phone subscribes. Works in 30 seconds, same WiFi or cellular.</li>
+<li><strong>Path B — Ubuntu, full auto.</strong> A D-Bus script intercepts <em>every</em> desktop notification and forwards them all to your phone. Self-hosted on your tailnet. Nothing leaves your machines.</li>
+</ul>
+<p>Both paths are free. Both work over Tailscale. The core idea: <strong>don’t ship the sound, ship the sentence.</strong> The phone’s notification system makes sounds natively, for free, better than any audio stream would.</p>
+<hr />
+<h2 id="path-a--mac-30-seconds-to-first-buzz">Path A — Mac: 30 seconds to first buzz</h2>
+<p>No server. No Docker. No apt. The Mac publishes, the phone subscribes, ntfy.sh carries the message.</p>
+<h3 id="why-mac-cant-do-full-auto-and-why-thats-fine">Why Mac can’t do full auto (and why that’s fine)</h3>
+<p>macOS has no public API to read other apps’ notifications. An Apple DTS engineer confirmed it: the push/local notification system <em>“does not provide an API for managing or observing other applications’ notification data”</em> (<a href="https://forums.developer.apple.com/forums/thread/758451" target="_blank" rel="noopener noreferrer">Apple Developer Forums</a>). There are hacky workarounds using the Accessibility API (<a href="https://github.com/coryfklein/macos-notification-cli" target="_blank" rel="noopener noreferrer">macos-notification-cli</a>), but they require Accessibility permission, break across macOS releases, and can’t watch for new notifications in real time.</p>
+<p>So Mac gets the manual path: you publish when something happens. It’s one <code>curl</code> — and for build alerts, backup results, and agent status, that’s the right level of automation anyway.</p>
+<h3 id="phone--subscribe-30-seconds-once">Phone — subscribe (30 seconds, once)</h3>
+<ol>
+<li>Install the <strong>ntfy app</strong> — <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener noreferrer">Play Store</a> or <a href="https://f-droid.org/en/packages/io.heckel.ntfy/" target="_blank" rel="noopener noreferrer">F-Droid</a> (the F-Droid build has no Google-services dependency at all).</li>
+<li>Tap <strong>+</strong> → type <code>https://ntfy.sh/your-unguessable-topic-name</code>. Replace <code>your-unguessable-topic-name</code> with something random — <strong>the topic name is the password</strong>.</li>
+<li>Done. The app subscribes. You’ll see a “Connected” status.</li>
+</ol>
+<p><strong>iOS users:</strong> the same app works on iPhone (<a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener noreferrer">App Store</a>). Instant delivery on iOS requires Apple’s push service — for the public ntfy.sh server, this works out of the box. For self-hosted servers, you’d need <code>upstream-base-url: "https://ntfy.sh"</code> in the server config (<a href="https://docs.ntfy.sh/config/#ios-instant-notifications" target="_blank" rel="noopener noreferrer">details</a>).</p>
+<h3 id="mac--publish-nothing-to-install">Mac — publish (nothing to install)</h3>
+<p><code>curl</code> ships with macOS. Publishing to ntfy is just HTTP POST:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> "build done ✓"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">     -H</span><span style="color:#98C379"> "Title: Deploy"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">     -H</span><span style="color:#98C379"> "Tags: white_check_mark"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">     https://ntfy.sh/your-unguessable-topic-name</span></span></code></pre>
+<p>Phone buzzes within a second. That’s the whole setup.</p>
+<p><strong>With the ntfy CLI</strong> (optional, <code>brew install ntfy</code>):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">ntfy</span><span style="color:#98C379"> publish</span><span style="color:#D19A66"> --title</span><span style="color:#98C379"> "Deploy"</span><span style="color:#D19A66"> --tags</span><span style="color:#98C379"> white_check_mark</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">     your-unguessable-topic-name</span><span style="color:#98C379"> "build done ✓"</span></span></code></pre>
+<h3 id="real-world-one-liners">Real-world one-liners</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># success / failure pattern — the workhorse</span></span>
+<span class="line"><span style="color:#61AFEF">./build.sh</span><span style="color:#ABB2BF">  &amp;&amp; </span><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> "finished clean"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Title: Build"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Tags: white_check_mark"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">                  https://ntfy.sh/your-unguessable-topic-name</span></span>
+<span class="line"><span style="color:#61AFEF">./build.sh</span><span style="color:#ABB2BF">  || </span><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> "exit </span><span style="color:#E5C07B">$?</span><span style="color:#98C379"> — check logs"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Title: Build FAILED"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">                  -H</span><span style="color:#98C379"> "Priority: urgent"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Tags: fire"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">                  https://ntfy.sh/your-unguessable-topic-name</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># wait for a command, then notify (ntfy CLI)</span></span>
+<span class="line"><span style="color:#61AFEF">ntfy</span><span style="color:#98C379"> pub</span><span style="color:#D19A66"> --wait-cmd</span><span style="color:#98C379"> your-unguessable-topic-name</span><span style="color:#98C379"> ./deploy.sh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># wait for a PID, then notify (ntfy CLI)</span></span>
+<span class="line"><span style="color:#61AFEF">ntfy</span><span style="color:#98C379"> pub</span><span style="color:#D19A66"> --wait-pid</span><span style="color:#D19A66"> 1234</span><span style="color:#98C379"> your-unguessable-topic-name</span><span style="color:#98C379"> "process done"</span></span></code></pre>
+<h3 id="the-pingdesk-helper">The pingdesk() helper</h3>
+<p>A five-line shell function (<code>~/.zshrc</code> on the Mac) turns every long-running command into a notifying one:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pingdesk</span><span style="color:#ABB2BF">() {</span></span>
+<span class="line"><span style="color:#C678DD">  local</span><span style="color:#E06C75"> topic</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"your-unguessable-topic-name"</span></span>
+<span class="line"><span style="color:#61AFEF">  "</span><span style="color:#E06C75;font-style:italic">$@</span><span style="color:#61AFEF">"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#ABB2BF">    &amp;&amp; </span><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -sf</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Title: ✓ done"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Tags: white_check_mark"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">         -d</span><span style="color:#98C379"> "finished: </span><span style="color:#E5C07B">$*</span><span style="color:#98C379">"</span><span style="color:#98C379"> "https://ntfy.sh/</span><span style="color:#E06C75">$topic</span><span style="color:#98C379">"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#ABB2BF">    || </span><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -sf</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Title: ✗ FAILED"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Priority: urgent"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Tags: fire"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">         -d</span><span style="color:#98C379"> "exit </span><span style="color:#E5C07B">$?</span><span style="color:#98C379"> — </span><span style="color:#E5C07B">$*</span><span style="color:#98C379">"</span><span style="color:#98C379"> "https://ntfy.sh/</span><span style="color:#E06C75">$topic</span><span style="color:#98C379">"</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Then <code>pingdesk ./build.sh</code>, <code>pingdesk npm test</code>, <code>pingdesk ./migrate.sh</code> — walk away; the result finds you.</p>
+<h3 id="privacy-trade-off">Privacy trade-off</h3>
+<p>Messages pass through ntfy.sh’s servers — encrypted in transit (HTTPS), but not end-to-end on your tailnet. For build alerts and backup notifications, that’s fine. When you want full privacy, <strong>Path B</strong> keeps every message on your own machines.</p>
+<p><strong>One caution:</strong> if your topic name is guessable (like <code>desk</code> or <code>alerts</code>), strangers can subscribe. Use a random string: <code>ntfy.sh/xk7-qt9-mbp</code> is fine.</p>
+<p>Works on same WiFi, different city, or cellular — ntfy.sh is on the public internet. No Tailscale needed for this path (though you’ll want it for the VNC rig in B-26 anyway).</p>
+<hr />
+<h2 id="path-b--ubuntu-every-notification-auto-mirrored-full-privacy">Path B — Ubuntu: every notification, auto-mirrored (full privacy)</h2>
+<p>A script on the Ubuntu box intercepts <strong>every</strong> desktop notification — from any app — and forwards it to your phone via ntfy. No per-app configuration. No curl commands to remember. This path keeps every message on your own machines — no third-party servers.</p>
+<h3 id="what-d-bus-gives-you">What D-Bus gives you</h3>
+<p>Linux desktops use <strong>D-Bus</strong> for notifications. Every app that shows a notification — Slack, Thunderbird, Firefox, system updates, build agents — sends it through <code>org.freedesktop.Notifications</code> on the session bus. A small script listens on that bus, grabs every notification, and publishes it to ntfy.</p>
+<p>Two gotchas from live testing on Ubuntu 22.04 GNOME — both baked into the script below:</p>
+<ol>
+<li><strong>GNOME fires every notification twice.</strong> The app calls <code>Notify</code> on gnome-shell, and gnome-shell <em>re-forwards</em> the same <code>Notify</code> to the display daemon ~1.5 ms later. A naive listener double-buzzes your phone for every Slack message. The script dedupes identical title+body within a 5-second window.</li>
+<li><strong>Filter on <code>member=Notify</code>, not just the interface.</strong> Other traffic rides the same interface — <code>GetServerInformation</code> calls (zero arguments), returns, close events. A parser that greps only “method call” reads eight lines after a zero-arg call and consumes the <em>real</em> notification’s lines. The match rule <code>interface=...,member=Notify</code> plus the <code>method call.*member=Notify</code> grep keeps only actual notifications.</li>
+</ol>
+<p>The interception itself needs no special permissions on stock Ubuntu: <code>dbus-monitor</code> with a match rule switches to the bus’s monitor API (dbus ≥ 1.10 — so Ubuntu 20.04’s dbus 1.12, 22.04’s 1.12, and 24.04’s 1.14 all behave the same).</p>
+<h3 id="option-1--ntfysh-public-server-simplest">Option 1 — ntfy.sh public server (simplest)</h3>
+<p>Zero server setup. The script publishes to ntfy.sh. Works immediately.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># ~/scripts/notify-forward.sh</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Intercepts ALL desktop notifications and forwards to phone via ntfy</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Usage: nohup ~/scripts/notify-forward.sh &amp;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">TOPIC</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"your-unguessable-topic-name"</span></span>
+<span class="line"><span style="color:#E06C75">SERVER</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"https://ntfy.sh"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">dbus-monitor</span><span style="color:#98C379"> "interface='org.freedesktop.Notifications',member='Notify'"</span><span style="color:#ABB2BF"> |</span></span>
+<span class="line"><span style="color:#C678DD">while</span><span style="color:#98C379"> IFS</span><span style="color:#56B6C2">=</span><span style="color:#98C379"> read</span><span style="color:#D19A66"> -r</span><span style="color:#98C379"> line</span><span style="color:#ABB2BF">; </span><span style="color:#C678DD">do</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # Only the Notify method call itself — not GetServerInformation,</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # not method returns, not close signals</span></span>
+<span class="line"><span style="color:#56B6C2">    echo</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$line</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">grep</span><span style="color:#D19A66"> -q</span><span style="color:#98C379"> "method call.*member=Notify"</span><span style="color:#ABB2BF"> || </span><span style="color:#C678DD">continue</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # Notify args arrive one per line:</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # app_name, replaces_id, app_icon, summary (title), body</span></span>
+<span class="line"><span style="color:#61AFEF">    mapfile</span><span style="color:#D19A66"> -n</span><span style="color:#D19A66"> 5</span><span style="color:#D19A66"> -t</span><span style="color:#98C379"> args</span></span>
+<span class="line"><span style="color:#E06C75">    app</span><span style="color:#56B6C2">=</span><span style="color:#ABB2BF">$(</span><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "${</span><span style="color:#E06C75">args</span><span style="color:#98C379">[0]}"</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">sed</span><span style="color:#98C379"> 's/.*string "//;s/".*//'</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#E06C75">    title</span><span style="color:#56B6C2">=</span><span style="color:#ABB2BF">$(</span><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "${</span><span style="color:#E06C75">args</span><span style="color:#98C379">[3]}"</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">sed</span><span style="color:#98C379"> 's/.*string "//;s/".*//'</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#E06C75">    body</span><span style="color:#56B6C2">=</span><span style="color:#ABB2BF">$(</span><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "${</span><span style="color:#E06C75">args</span><span style="color:#98C379">[4]}"</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">sed</span><span style="color:#98C379"> 's/.*string "//;s/".*//'</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # Skip empty notifications</span></span>
+<span class="line"><span style="color:#ABB2BF">    [ </span><span style="color:#56B6C2">-z</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$title</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> ] &amp;&amp; [ </span><span style="color:#56B6C2">-z</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$body</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> ] &amp;&amp; </span><span style="color:#C678DD">continue</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # GNOME re-forwards every notification to its display daemon within</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # milliseconds — without this window you'd get every buzz twice</span></span>
+<span class="line"><span style="color:#E06C75">    now</span><span style="color:#56B6C2">=</span><span style="color:#ABB2BF">$(</span><span style="color:#61AFEF">date</span><span style="color:#98C379"> +%s</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#C678DD">    if</span><span style="color:#ABB2BF"> [ </span><span style="color:#98C379">"</span><span style="color:#E06C75">$title</span><span style="color:#98C379">|</span><span style="color:#E06C75">$body</span><span style="color:#98C379">"</span><span style="color:#56B6C2"> =</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$last_msg</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> ] &amp;&amp; [ $((</span><span style="color:#61AFEF">now</span><span style="color:#98C379"> -</span><span style="color:#98C379"> last_ts</span><span style="color:#ABB2BF">)) </span><span style="color:#56B6C2">-lt</span><span style="color:#D19A66"> 5</span><span style="color:#ABB2BF"> ]; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#C678DD">        continue</span></span>
+<span class="line"><span style="color:#C678DD">    fi</span></span>
+<span class="line"><span style="color:#E06C75">    last_msg</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"</span><span style="color:#E06C75">$title</span><span style="color:#98C379">|</span><span style="color:#E06C75">$body</span><span style="color:#98C379">"</span><span style="color:#ABB2BF">; </span><span style="color:#E06C75">last_ts</span><span style="color:#56B6C2">=</span><span style="color:#E06C75">$now</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">    # Forward to ntfy</span></span>
+<span class="line"><span style="color:#E06C75">    message</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"${</span><span style="color:#E06C75">body</span><span style="color:#ABB2BF">:-</span><span style="color:#E06C75">$title</span><span style="color:#98C379">}"</span></span>
+<span class="line"><span style="color:#61AFEF">    curl</span><span style="color:#D19A66"> -sf</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$message</span><span style="color:#98C379">"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">         -H</span><span style="color:#98C379"> "Title: ${</span><span style="color:#E06C75">title</span><span style="color:#ABB2BF">:-</span><span style="color:#E06C75">$app</span><span style="color:#98C379">}"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">         -H</span><span style="color:#98C379"> "Tags: </span><span style="color:#E06C75">$app</span><span style="color:#98C379">"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">         "</span><span style="color:#E06C75">$SERVER</span><span style="color:#98C379">/</span><span style="color:#E06C75">$TOPIC</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> &gt;</span><span style="color:#98C379">/dev/null</span><span style="color:#ABB2BF"> 2&gt;&amp;1 &amp;</span></span>
+<span class="line"><span style="color:#C678DD">done</span></span></code></pre>
+<p>Make it executable and run it:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">chmod</span><span style="color:#98C379"> +x</span><span style="color:#98C379"> ~/scripts/notify-forward.sh</span></span>
+<span class="line"><span style="color:#61AFEF">nohup</span><span style="color:#98C379"> ~/scripts/notify-forward.sh</span><span style="color:#ABB2BF"> &amp;</span></span></code></pre>
+<p><strong>Test it:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">notify-send</span><span style="color:#98C379"> "Test notification"</span><span style="color:#98C379"> "This should appear on your phone"</span></span></code></pre>
+<p>(<code>notify-send</code> lives in <code>libnotify-bin</code> — preinstalled on desktop Ubuntu; <code>sudo apt install libnotify-bin</code> if a minimal install lacks it.)</p>
+<p>Phone buzzes with the test message. Every notification from every app now goes to your phone.</p>
+<h3 id="option-2--self-hosted-ntfy-full-privacy">Option 2 — Self-hosted ntfy (full privacy)</h3>
+<p>Messages never leave your tailnet. The Ubuntu box is the ntfy server — no Docker needed.</p>
+<h4 id="install-ntfy-via-apt">Install ntfy via apt</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> /etc/apt/keyrings</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> curl</span><span style="color:#D19A66"> -L</span><span style="color:#D19A66"> -o</span><span style="color:#98C379"> /etc/apt/keyrings/ntfy.gpg</span><span style="color:#98C379"> https://archive.ntfy.sh/apt/keyring.gpg</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> apt</span><span style="color:#98C379"> install</span><span style="color:#98C379"> apt-transport-https</span></span>
+<span class="line"><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "deb [arch=amd64 signed-by=/etc/apt/keyrings/ntfy.gpg] https://archive.ntfy.sh/apt stable main"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#ABB2BF">  | </span><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> tee</span><span style="color:#98C379"> /etc/apt/sources.list.d/ntfy.list</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> apt</span><span style="color:#98C379"> update</span><span style="color:#ABB2BF"> &amp;&amp; </span><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> apt</span><span style="color:#98C379"> install</span><span style="color:#98C379"> ntfy</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> systemctl</span><span style="color:#98C379"> enable</span><span style="color:#D19A66"> --now</span><span style="color:#98C379"> ntfy</span></span></code></pre>
+<p>(Arm64 SBC readers: same block, <code>arch=arm64</code>; a Raspberry Pi makes a fine notification server.)</p>
+<h4 id="configure-for-your-tailnet">Configure for your tailnet</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># /etc/ntfy/server.yml</span></span>
+<span class="line"><span style="color:#61AFEF">base-url:</span><span style="color:#98C379"> "http://100.x.y.z:8090"</span></span>
+<span class="line"><span style="color:#61AFEF">listen-http:</span><span style="color:#98C379"> ":8090"</span></span>
+<span class="line"><span style="color:#61AFEF">cache-file:</span><span style="color:#98C379"> "/var/cache/ntfy/cache.db"</span></span></code></pre>
+<p>Restart: <code>sudo systemctl restart ntfy</code></p>
+<h4 id="point-the-forward-script-at-your-server">Point the forward script at your server</h4>
+<p>Change the <code>SERVER</code> variable in the script:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#E06C75">SERVER</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"http://100.x.y.z:8090"</span></span></code></pre>
+<h4 id="phone--subscribe-to-your-server">Phone — subscribe to your server</h4>
+<p>In the ntfy app, tap <strong>+</strong> → enter <code>http://100.x.y.z:8090/your-unguessable-topic-name</code> (the Ubuntu box’s tailnet IP, not ntfy.sh).</p>
+<h4 id="prove-its-alive">Prove it’s alive</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> "hello from the desk"</span><span style="color:#98C379"> http://localhost:8090/desk</span></span></code></pre>
+<p>You’ll get a JSON receipt — the message ID, the topic, the expiry. That JSON coming back is the server working.</p>
+<h3 id="running-as-a-service-auto-start-on-boot">Running as a service (auto-start on boot)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># ~/.config/systemd/user/notify-forward.service</span></span>
+<span class="line"><span style="color:#ABB2BF">[Unit]</span></span>
+<span class="line"><span style="color:#E06C75">Description</span><span style="color:#56B6C2">=</span><span style="color:#98C379">Forward</span><span style="color:#61AFEF"> desktop</span><span style="color:#98C379"> notifications</span><span style="color:#98C379"> to</span><span style="color:#98C379"> phone</span><span style="color:#98C379"> via</span><span style="color:#98C379"> ntfy</span></span>
+<span class="line"><span style="color:#E06C75">After</span><span style="color:#56B6C2">=</span><span style="color:#98C379">graphical-session.target</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">[Service]</span></span>
+<span class="line"><span style="color:#E06C75">Type</span><span style="color:#56B6C2">=</span><span style="color:#98C379">simple</span></span>
+<span class="line"><span style="color:#E06C75">ExecStart</span><span style="color:#56B6C2">=</span><span style="color:#98C379">%h/scripts/notify-forward.sh</span></span>
+<span class="line"><span style="color:#E06C75">Restart</span><span style="color:#56B6C2">=</span><span style="color:#98C379">always</span></span>
+<span class="line"><span style="color:#E06C75">RestartSec</span><span style="color:#56B6C2">=</span><span style="color:#98C379">5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">[Install]</span></span>
+<span class="line"><span style="color:#E06C75">WantedBy</span><span style="color:#56B6C2">=</span><span style="color:#98C379">default.target</span></span></code></pre>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">systemctl</span><span style="color:#D19A66"> --user</span><span style="color:#98C379"> daemon-reload</span></span>
+<span class="line"><span style="color:#61AFEF">systemctl</span><span style="color:#D19A66"> --user</span><span style="color:#98C379"> enable</span><span style="color:#D19A66"> --now</span><span style="color:#98C379"> notify-forward.service</span></span>
+<span class="line"><span style="color:#61AFEF">systemctl</span><span style="color:#D19A66"> --user</span><span style="color:#98C379"> status</span><span style="color:#98C379"> notify-forward.service</span></span></code></pre>
+<hr />
+<h3 id="wiring-it-in">Wiring it in</h3>
+<p><strong>Agents and long jobs</strong> — the highest-value wiring. Wrap the agent run; the “awaiting your approval” moment becomes a buzz instead of a polling ritual:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pingdesk</span><span style="color:#98C379"> claude</span><span style="color:#98C379"> "refactor the payments module and run tests"</span></span></code></pre>
+<p><strong>cron, Ubuntu</strong> — the classic. A job that only <em>fails</em> loudly:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># crontab -e</span></span>
+<span class="line"><span style="color:#61AFEF">0</span><span style="color:#D19A66"> 2</span><span style="color:#E5C07B"> *</span><span style="color:#E5C07B"> *</span><span style="color:#E5C07B"> *</span><span style="color:#98C379">  /home/you/scripts/backup.sh</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#ABB2BF">  || </span><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -sf</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Priority: urgent"</span><span style="color:#D19A66"> -H</span><span style="color:#98C379"> "Tags: floppy_disk"</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#D19A66">       -d</span><span style="color:#98C379"> "nightly backup FAILED on $(</span><span style="color:#61AFEF">hostname</span><span style="color:#98C379">)"</span><span style="color:#98C379"> http://100.x.y.z:8090/desk</span></span></code></pre>
+<p><strong>systemd units, Ubuntu</strong> — cleaner still, no wrapper needed; <code>OnFailure=</code> fires a one-shot unit when the main one dies (<a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html" target="_blank" rel="noopener noreferrer">systemd docs</a>):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="ini"><code><span class="line"><span style="color:#7F848E;font-style:italic"># /etc/systemd/system/notify-failed@.service</span></span>
+<span class="line"><span style="color:#61AFEF">[Unit]</span></span>
+<span class="line"><span style="color:#C678DD">Description</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">Notify phone that %i failed</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">[Service]</span></span>
+<span class="line"><span style="color:#C678DD">Type</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">oneshot</span></span>
+<span class="line"><span style="color:#C678DD">ExecStart</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">curl -sf -H </span><span style="color:#98C379">"Priority: urgent"</span><span style="color:#98C379"> -d </span><span style="color:#98C379">"unit %i failed on $(hostname)"</span><span style="color:#98C379"> http://100.x.y.z:8090/desk</span></span></code></pre>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># then, in any unit you care about:</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># [Unit]</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># OnFailure=notify-failed@%n.service</span></span></code></pre>
+<p><strong>Mac</strong> — same <code>pingdesk</code> in any terminal, Script Editor shell snippets, or a Shortcuts automation that runs a shell script. No daemon on the Mac; it’s only ever the sender.</p>
+<p>ntfy’s priority runs 1–5 (<code>min</code>, <code>low</code>, <code>default</code>, <code>high</code>, <code>urgent</code>) — reserve 4–5 for “act now,” or the phone trains you to ignore it. Tags render as emoji on the notification itself (<code>fire</code>, <code>white_check_mark</code>, <code>floppy_disk</code>, <code>skull</code>), a free visual triage layer. The full header set — <code>Click</code> for a URL, <code>Attach</code> for files, <code>At</code>/<code>In</code> for scheduled delivery — is in the <a href="https://docs.ntfy.sh/publish/" target="_blank" rel="noopener noreferrer">publish docs</a>.</p>
+<hr />
+<h3 id="troubleshooting">Troubleshooting</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td>Publish works, JSON receipt comes back, phone silent</td><td>App never subscribed to the right server (default is ntfy.sh)</td><td>Re-check the subscription URL: exact server, exact topic, exact port</td></tr><tr><td>Works, then randomly stops for hours</td><td>Android battery optimization killed the connection</td><td>Exempt ntfy from battery optimization; keep the foreground-service notification enabled</td></tr><tr><td>Nothing anywhere, even <code>curl</code> from the box fails</td><td>Server down / wrong port</td><td><code>systemctl status ntfy</code>; test with <code>curl -d hi http://localhost:8090/desk</code></td></tr><tr><td>Works on home WiFi, dead on cellular</td><td>Phone’s Tailscale is off</td><td>Same B-26 check: the key icon, <code>tailscale status</code> from a desk</td></tr><tr><td>Mac’s curl times out, phone fine</td><td>Mac left the tailnet</td><td><code>tailscale status</code> on the Mac; the Ubuntu box’s line must show connected</td></tr><tr><td>Message arrives but hours late</td><td>Phone was off / doze without foreground service</td><td>Reconnect; the 12h cache backfills what was missed — that’s the cache file earning its keep</td></tr><tr><td>“Connection refused” from curl</td><td>Right IP, server not listening on 8090</td><td>Check <code>ss -tlnp | grep 8090</code>; re-run the apt install / systemctl enable</td></tr><tr><td>D-Bus forward script sees nothing</td><td>Session bus restricts monitoring, or script not in your session</td><td>Test: <code>dbus-monitor "interface='org.freedesktop.Notifications',member='Notify'"</code>, then fire <code>notify-send hi there</code> — if the terminal stays empty while the toast appears, check <code>/usr/share/dbus-1/session.conf</code> for monitor/eavesdrop limits</td></tr><tr><td>Forward works but every buzz arrives twice</td><td>GNOME’s daemon re-forwards each <code>Notify</code> to its display daemon — the bus legitimately sees it twice</td><td>Already handled by the 5-second dedup window in the script; if you wrote your own, add one</td></tr><tr><td>One specific app never forwards (others fine)</td><td>That app bypasses the session bus — some Electron/Chromium builds ship their own notification path</td><td>Verify with the <code>dbus-monitor</code> test above; if the app never hits the bus, wire that app’s own webhook/command to <code>curl</code> instead</td></tr></tbody></table>
+<h3 id="security-notes">Security notes</h3>
+<ul>
+<li><strong>The server is only as exposed as you make it.</strong> With the apt install’s <code>listen-http: ":8090"</code>, the port answers on the Ubuntu box’s home-LAN IP <em>and</em> its tailnet IP — fine behind a home router. Want it tailnet-only? Bind it: <code>listen-http: "100.x.y.z:8090"</code>, or firewall it to the tailscale interface (<code>ufw allow in on tailscale0 to any port 8090</code>).</li>
+<li><strong>Inside the tailnet, traffic is WireGuard-encrypted anyway</strong> — plain HTTP to the tailnet IP is encrypted in transit by the tunnel. TLS on top is polish, not a hole.</li>
+<li><strong>Self-hosted ntfy runs without accounts by default</strong> — fine for a tailnet-only deployment, because reaching the port already required being one of <em>your</em> devices. If you ever expose it beyond the tailnet, add ntfy’s access-control (<code>auth-file</code>) first.</li>
+<li><strong>Never port-forward 8090 to the internet.</strong> Same rule as 5900 in B-26, same reason.</li>
+<li><strong>ntfy.sh public topics</strong> — the topic name <em>is</em> the password. Use a random string (e.g., <code>ntfy.sh/xk7-qt9-mbp</code>), never a dictionary word.</li>
+<li><strong>D-Bus monitoring</strong> — the forward script runs <code>dbus-monitor</code> with a plain match rule, which needs no extra permissions on stock Ubuntu 20.04/22.04/24.04. If your distro hardens the session bus policy, the script silently sees nothing (no security hole, just no notifications forwarded).</li>
+</ul>
+<h3 id="what-if-ntfy-isnt-right-for-you">What if ntfy isn’t right for you</h3>
+<ul>
+<li><strong>No Ubuntu box, Mac only?</strong> Use Path A (ntfy.sh public server). For auto-mirror, there’s no clean solution on macOS — Apple confirmed there’s no public API (<a href="https://forums.developer.apple.com/forums/thread/758451" target="_blank" rel="noopener noreferrer">source</a>).</li>
+<li><strong>Hate self-hosting?</strong> The <code>curl</code> shape works unchanged against <code>https://ntfy.sh/your-unguessable-topic</code> — swap the URL, keep every one-liner. You lose “never leaves your machines,” gain nothing to maintain.</li>
+<li><strong>KDE Connect</strong> can mirror notifications over an IP you give it, but doesn’t work reliably over Tailscale (UDP broadcast issues, <a href="https://github.com/tailscale/tailscale/issues/14476" target="_blank" rel="noopener noreferrer">tailscale#14476</a>) and has no macOS support.</li>
+<li><strong>Need the actual audio, not the notification?</strong> Re-read Part 1 of B-26’s “what would actually get me audio” — it’s a different rig, and now you know exactly why.</li>
+</ul>
+<hr />
+<h3 id="tools--licenses">Tools &amp; licenses</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>Role</th><th>License / cost</th></tr></thead><tbody><tr><td><a href="https://github.com/binwiederhier/ntfy" target="_blank" rel="noopener noreferrer">ntfy</a></td><td>Notification server + publish CLI + phone apps</td><td>Apache-2.0 / GPL-2.0 mixed; server and apps free</td></tr><tr><td><a href="https://tailscale.com/" target="_blank" rel="noopener noreferrer">Tailscale</a></td><td>The transport (unchanged from B-26)</td><td>Free personal plan; WireGuard end-to-end</td></tr><tr><td>curl</td><td>The publisher</td><td>Ships with macOS and Ubuntu</td></tr><tr><td>D-Bus</td><td>Linux notification bus</td><td>Built into every Linux desktop</td></tr></tbody></table>
+<hr />
+<h3 id="lets-connect">Let’s Connect</h3>
+<p>If you try any of this, I’d rather hear what broke than what worked:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+<li><strong>Support</strong>: <a href="https://www.supportkori.com/mirmursalinankur" target="_blank" rel="noopener noreferrer">SupportKori</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%8E%87%3C/text%3E%3C/svg%3E" />
+<title>branchdiff — Feature Decks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0D1117; --bg-elev-1:#161B22; --bg-elev-2:#1C2230; --bg-code:#0A0E14;
+    --border:#30363D; --border-soft:#21262D;
+    --text:#E6EDF3; --muted:#8B949E; --dim:#6E7681;
+    --accent:#00E3A8; --accent-soft:rgba(0,227,168,.12); --accent-glow:rgba(0,227,168,.28);
+    --warn:#F2CC60; --danger:#FF7B72; --info:#79C0FF; --purple:#BC8CFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,sans-serif; line-height:1.6;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+    background-image:
+      radial-gradient(900px 500px at 85% -10%, rgba(0,227,168,.08), transparent 60%),
+      radial-gradient(700px 400px at 5% 5%, rgba(121,192,255,.05), transparent 55%);
+  }
+  .mono{font-family:'JetBrains Mono',monospace}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px clamp(20px,5vw,64px);
+    background:rgba(13,17,23,.8);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
+  .brand .mark{
+    width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),#0bb389);
+    color:#031b14;font-weight:900;font-family:'JetBrains Mono',monospace;font-size:15px;
+    box-shadow:0 0 22px var(--accent-glow);
+  }
+  .brand span{font-size:18px}
+  .brand .sub{color:var(--muted);font-weight:500;font-size:13px;margin-left:2px}
+  .ver{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    color:var(--accent);background:var(--accent-soft);
+    border:1px solid rgba(0,227,168,.3);padding:4px 10px;border-radius:999px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(48px,8vh,96px) clamp(20px,5vw,64px) clamp(32px,5vh,56px);max-width:1200px;margin:0 auto}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);display:inline-flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:24px;height:1px;background:var(--accent)}
+  .hero h1{
+    font-size:clamp(34px,5.4vw,62px);line-height:1.05;font-weight:800;letter-spacing:-.03em;
+    margin:18px 0 18px;max-width:14ch;
+  }
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p.lead{font-size:clamp(16px,1.6vw,20px);color:var(--muted);max-width:62ch}
+  .hero .pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .pill{
+    font-size:13px;color:var(--text);background:var(--bg-elev-1);border:1px solid var(--border);
+    padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:7px;
+  }
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .pill .dot.b{background:var(--info)} .pill .dot.p{background:var(--purple)} .pill .dot.y{background:var(--warn)}
+
+  /* ---------- section heading ---------- */
+  .sec{padding:clamp(28px,4vh,48px) clamp(20px,5vw,64px);max-width:1200px;margin:0 auto}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+  .sec-head h2{font-size:clamp(22px,2.6vw,30px);font-weight:700;letter-spacing:-.02em}
+  .sec-head .hint{color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
+
+  /* ---------- deck grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+  .card{
+    position:relative;background:var(--bg-elev-1);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;display:flex;flex-direction:column;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+  }
+  .card:hover{transform:translateY(-4px);border-color:rgba(0,227,168,.5);box-shadow:0 18px 40px -18px var(--accent-glow)}
+  .card .thumb{aspect-ratio:16/9;background:var(--bg-code);overflow:hidden;border-bottom:1px solid var(--border-soft);position:relative}
+  .card .thumb img{width:100%;height:100%;object-fit:cover;object-position:top left;opacity:.92}
+  .card .thumb.no-thumb{display:grid;place-items:center;background:
+    radial-gradient(120% 120% at 80% 0%, rgba(0,227,168,.10), transparent 55%),
+    linear-gradient(135deg,var(--bg-elev-1),var(--bg-code))}
+  .card .thumb.no-thumb::after{content:"⎇";font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:800;color:rgba(0,227,168,.22)}
+  .card .thumb .num{
+    position:absolute;top:10px;left:10px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;
+    color:var(--accent);background:rgba(13,17,23,.78);border:1px solid var(--border);
+    padding:3px 9px;border-radius:7px;backdrop-filter:blur(4px);
+  }
+  .card .body{padding:18px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .card h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .card p{font-size:13.5px;color:var(--muted);flex:1}
+  .card .open{
+    margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;
+    color:var(--accent);display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  }
+  .card .open .arr{transition:transform .2s ease}
+  .card:hover .open .arr{transform:translateX(4px)}
+
+  /* ---------- install ---------- */
+  .install{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .pm{
+    background:var(--bg-elev-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .pm .label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.1em}
+  .pm .cmd{
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);background:var(--bg-code);
+    border:1px solid var(--border-soft);border-radius:8px;padding:9px 12px;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;cursor:pointer;transition:border-color .2s;
+  }
+  .pm .cmd:hover{border-color:var(--accent)}
+  .pm .cmd .copy{color:var(--dim);font-size:11px;flex-shrink:0}
+  .pm .cmd:hover .copy{color:var(--accent)}
+  .note{color:var(--muted);font-size:13px;margin-top:16px;display:flex;gap:9px;align-items:flex-start}
+  .note .mono{color:var(--accent)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--border-soft);margin-top:40px;padding:32px clamp(20px,5vw,64px)}
+  .foot-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;color:var(--muted);font-size:13.5px}
+  .links{display:flex;flex-wrap:wrap;gap:10px 22px}
+  .links a{color:var(--muted);transition:color .2s;display:inline-flex;align-items:center;gap:7px}
+  .links a:hover{color:var(--accent)}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--bg-elev-2);border:1px solid var(--accent);color:var(--text);
+    padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;
+    transition:opacity .25s,transform .25s;pointer-events:none;z-index:50;box-shadow:0 10px 30px -10px var(--accent-glow);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:560px){.hero h1{font-size:34px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">⎇</div>
+    <span>branchdiff</span>
+    <span class="sub">· feature decks</span>
+  </div>
+  <span class="ver">v2.1.0</span>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">A local cockpit for the PR workflow you already have</div>
+  <h1>Review code <em>beside</em> your editor, not through a cloud round-trip.</h1>
+  <p class="lead">branchdiff is a 100% local browser app that renders your git &amp; file diffs with AI-supported review and resolve, GitHub &amp; Bitbucket sync, and persistent sessions. No cloud, no telemetry, no second login. These decks walk through every feature, step by step — each one framed as a real pain in the native PR workflow and how branchdiff removes it.</p>
+  <div class="pills">
+    <span class="pill"><span class="dot"></span> 100% local-first</span>
+    <span class="pill"><span class="dot b"></span> GitHub &amp; Bitbucket</span>
+    <span class="pill"><span class="dot p"></span> AI review &amp; resolve</span>
+    <span class="pill"><span class="dot y"></span> SQLite sessions</span>
+  </div>
+  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v2.1.0</span> — multi-repo auto, detached server review, launchd-on-macOS / cron-on-Linux unattended runs, config file support, severity-gated approve, skip-PRs-by-size, a usage-stats dashboard with a Configs viewer, named reviewer-error reasons, click-to-open notifications.</p>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <h2>Eight decks · <em style="color:var(--accent);font-style:normal">one journey</em></h2>
+    <span class="hint">// click any card to open the deck</span>
+  </div>
+  <p class="note"><span class="mono">→</span> Read top-to-bottom, the decks are a path — each starts from a pinpoint pain in the native PR workflow and builds toward the next: <b>view a diff</b> → <b>trust it locally</b> → <b>comment &amp; review</b> → <b>AI review &amp; resolve</b> → <b>automatic &amp; unattended</b> → <b>full PR lifecycle</b> → <b>explore the repo</b> → <b>multi-repo at scale</b>.</p>
+  <div class="grid" id="deckGrid"></div>
+</section>
+
+<section class="sec">
+  <div class="sec-head">
+    <h2>Get started in one command</h2>
+    <span class="hint">// 8 install methods · self-updating</span>
+  </div>
+  <div class="install" id="install"></div>
+  <p class="note"><span class="mono">→</span> Already installed? <span class="mono">branchdiff update</span> auto-detects your package manager and upgrades. Run <span class="mono">branchdiff doctor</span> if anything looks off.</p>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div>branchdiff · 
+      <a 
+        class="mono" style="color:var(--accent)"
+        href="https://www.npmjs.com/package/@encryptioner/branchdiff" target="_blank" rel="noopener">@encryptioner/branchdiff
+      </a></div>
+    <div class="links">
+      <a href="https://encryptioner.github.io/branchdiff-releases/" target="_blank" rel="noopener">↗ Home</a>
+      <a href="https://encryptioner.github.io/branchdiff-releases/guideline" target="_blank" rel="noopener">↗ User guide</a>
+      <a href="https://encryptioner.github.io/branchdiff-releases/changelog" target="_blank" rel="noopener">↗ Changelog</a>
+      <a href="https://github.com/Encryptioner/branchdiff-releases" target="_blank" rel="noopener">↗ GitHub</a>
+    </div>
+    <div class="links">
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md" target="_blank" rel="noopener">↗ Blog: A Local Lens for the PR Workflow</a>
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md" target="_blank" rel="noopener">↗ Blog: Self-Review With AI Before the PR</a>
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Reviewing%20Teammates%20PRs%20Faster%20-%20branchdiff%20Sessions%2C%20AI%20Passes%2C%20and%20Sync%20Back.md" target="_blank" rel="noopener">↗ Blog: Reviewing Teammates' PRs Faster</a>
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Build%20Your%20Own%20CodeRabbit%20With%20branchdiff%20auto%20-%20Unattended%20AI%20PR%20Review%2C%20On%20Your%20Terms.md" target="_blank" rel="noopener">↗ Blog: Build Your Own CodeRabbit</a>
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md" target="_blank" rel="noopener">↗ Blog: Configure Once, Review Everywhere</a>
+      <a href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Manage%20the%20Whole%20PR%20Lifecycle%20Without%20Leaving%20the%20Terminal%20-%20branchdiff's%20pr%2C%20sync%2C%20and%20session%20Commands.md" target="_blank" rel="noopener">↗ Blog: Manage the Whole PR Lifecycle</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+  // ---- proxy link builder (see index.md §4) ----
+  const REPO = 'Encryptioner/blogs', BRANCH = 'master';
+  const DIR  = 'presentations/P-5-branchdiff-features';
+  const PROXY = 'https://encryptioner.github.io/public-websites/any-page/';
+  function deckUrl(file){
+    const raw = `https://raw.githubusercontent.com/${REPO}/refs/heads/${BRANCH}/${DIR}/${file}`;
+    return PROXY + '#' + encodeURI(raw).slice(8);
+  }
+
+  // ---- deck registry: add one entry per new deck ----
+  const DECKS = [
+    { n:'01', file:'01-local-diff-cockpit.html',       title:'The Local Diff Cockpit',          hook:'Whole-file context, vim keys, and a sidebar that actually filters — instead of fifty disconnected three-line hunk windows.', thumb:'images/01-diff-unified.png' },
+    { n:'02', file:'02-local-first-privacy.html',      title:'100% Local-First &amp; Private',  hook:'The diff never leaves your machine. SQLite sessions, repo fingerprint, no auth, no telemetry.', thumb:'../../assets/B-13/platform-vs-local-split.png' },
+    { n:'03', file:'03-comments-review-surface.html',  title:'Comments &amp; Review Surface',   hook:'Tagged inline threads, a viewed counter that survives force-pushes, and WYSIWYG comments.', thumb:'images/04-inline-comment.png' },
+    { n:'04', file:'04-ai-review-resolve.html',        title:'AI Review &amp; Resolve',         hook:'A controlled agent surface where AI comments land on real lines — and resolve verifies before claiming a fix.', thumb:'../../assets/B-14/self-review-before-after.png' },
+    { n:'05', file:'05-automatic-pr-review.html',      title:'Automatic PR Review',             hook:'Watch open PRs, review the ones with new commits, stay in control of every escalation — detach it or schedule it on cron and it runs unattended.', thumb:'../../assets/B-15/review-cadence.png' },
+    { n:'06', file:'06-sessions-sync-platform.html',   title:'Sessions, Sync &amp; Actions',    hook:'Persistent sessions, two-way comment sync, and the full PR lifecycle from one toolbar.', thumb:'../../assets/B-13/90-second-flow.png' },
+    { n:'07', file:'07-repo-exploration.html',         title:'Repo Exploration',                hook:'History, blame, tree, search, branches, and a commit graph — one tab, virtualized, read-only time-travel.', thumb:'images/06-commit-graph.png' },
+    { n:'08', file:'08-multi-repo-auto.html',          title:'Multi-Repo Auto Cycles',          hook:'One branchdiff auto run across every repo — one combined PR list, one cycle report, and servers tidied up after.', thumb:'' },
+  ];
+
+  const grid = document.getElementById('deckGrid');
+  DECKS.forEach(d=>{
+    const url = deckUrl(d.file);
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.className = 'card';
+    a.innerHTML = `
+      <div class="thumb${d.thumb ? '' : ' no-thumb'}">
+        <span class="num">${d.n}</span>
+        ${d.thumb ? `<img loading="lazy" src="${d.thumb}" alt="${d.title} preview" onerror="this.style.display='none'">` : ''}
+      </div>
+      <div class="body">
+        <h3>${d.title}</h3>
+        <p>${d.hook}</p>
+        <span class="open">Open deck <span class="arr">→</span></span>
+      </div>`;
+    grid.appendChild(a);
+  });
+
+  // ---- install methods ----
+  const PM = [
+    { label:'npm',     cmd:'npm i -g @encryptioner/branchdiff' },
+    { label:'pnpm',    cmd:'pnpm add -g @encryptioner/branchdiff' },
+    { label:'yarn',    cmd:'yarn global add @encryptioner/branchdiff' },
+    { label:'Homebrew',cmd:'brew install encryptioner/tap/branchdiff' },
+    { label:'pip / uv',cmd:'pipx install branchdiff' },
+    { label:'Scoop',   cmd:'scoop install branchdiff' },
+    { label:'apt',     cmd:'curl -fsSL https://encryptioner.github.io/branchdiff-releases/install.sh | bash' },
+    { label:'npx',     cmd:'npx @encryptioner/branchdiff' },
+  ];
+  const inst = document.getElementById('install');
+  PM.forEach(p=>{
+    const d = document.createElement('div'); d.className='pm';
+    d.innerHTML = `
+      <span class="label">${p.label}</span>
+      <div class="cmd" data-copy="${p.cmd.replace(/"/g,'&quot;')}">
+        <span>${p.cmd}</span><span class="copy">copy</span>
+      </div>`;
+    inst.appendChild(d);
+  });
+
+  // ---- copy-to-clipboard ----
+  const toast = document.getElementById('toast');
+  let t;
+  function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(t); t=setTimeout(()=>toast.classList.remove('show'),1400); }
+  document.addEventListener('click', e=>{
+    const c = e.target.closest('[data-copy]');
+    if(!c) return;
+    navigator.clipboard?.writeText(c.dataset.copy).then(()=>showToast('Copied — paste in your terminal'));
+  });
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://encryptioner.github.io/blogs/sitemap-index.xml

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>branchdiff · 08 — How It Grew Up</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>⎇</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="How branchdiff Grew Up">
+    <span class="badge"><span class="dot"></span> Deck 08 · the build story</span>
+    <h1 class="title">How branchdiff <em>grew up</em>.</h1>
+    <h2 class="subtitle">From one command that fixed a lie <span class="mono" style="color:var(--info)">git diff</span> was telling, to a self-hosted bot that reviews pull requests across a whole directory of repos while you sleep. This is the build story — why each piece exists, not a feature tour.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">Apr → Aug</span> 2026</span>
+      <span><span class="mono">21</span> releases</span>
+      <span><span class="mono">1 command → 1 bot</span></span>
+      <span>GitHub + Bitbucket</span>
+    </div>
+  </section>
+
+  <!-- 2 · THE DIFF THAT LIED -->
+  <section class="slide" data-title="The diff that lied">
+    <div class="slide-num">02 · the origin</div>
+    <h3 class="section"><span class="mono" style="color:var(--danger)">git diff</span> compares commit paths. branchdiff compares <em>content</em>.</h3>
+    <p class="lead-p">Two branches can hold <b>identical bytes</b> and still produce a phantom diff — because Git's two-dot diff compares <em>commit history</em>, not file content. A rebase, a cherry-pick, a squash: Git reports a "change" where there is none. That phantom diff is the whole reason branchdiff exists.</p>
+    <div class="fig">
+      <img src="../../assets/B-23/commit-history-vs-content.png" alt="git diff compares commit paths; branchdiff compares content" loading="lazy" />
+      <div class="fig-caption">Same SHA-1 blob hash on both tips → no diff. Comparing maps of hashes is O(n) on files, not on history.</div>
+    </div>
+  </section>
+
+  <!-- 3 · DAY ONE -->
+  <section class="slide" data-title="Day one">
+    <div class="slide-num">03 · day one — a proof of concept</div>
+    <h3 class="section">Deliberately small. <em>Four flags.</em></h3>
+    <p class="lead-p">The default compared actual content — the thing Git's own diff gets wrong. Tab-completion came free from the built-in readline; the whole thing was one local page reading the diff from disk.</p>
+    <div class="code-block">
+      <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">terminal</span></div>
+      <div class="code-body"><span class="prompt">$</span> branchdiff                         <span class="c"># interactive prompt, tab-completion</span>
+<span class="prompt">$</span> branchdiff feat                    <span class="c"># current branch vs feat</span>
+<span class="prompt">$</span> branchdiff main feat               <span class="c"># two branches</span>
+<span class="prompt">$</span> branchdiff main feat --<span class="f">mode</span> git      <span class="c"># commit-history diff</span></div>
+    </div>
+    <div class="callout">A week later it was on npm as <b>v1.0.0</b>, renamed <span class="mono">@encryptioner/branchdiff</span>, licensed Commons Clause + MIT — open to use, not open to resell as a hosted product.</div>
+  </section>
+
+  <!-- 4 · EVERY FEATURE WAS AN ITCH -->
+  <section class="slide" data-title="Every feature was an itch">
+    <div class="slide-num">04 · every feature was a personal itch</div>
+    <h3 class="section">No roadmap. Each version was a <em>toe I kept stubbing</em>.</h3>
+    <p class="lead-p">The release notes read less like marketing and more like a diary of things that irritated me. Each feature starts with "I keep having to…"</p>
+    <ul class="bullets">
+      <li><b>Comments had to land on real lines.</b> <span class="muted">Reviewing meant typing into a disconnected text box. So: inline threads that pin to exact lines — and an AI pass that drops comments on those same lines. <span class="mono" style="color:var(--dim)">v1.1.0</span></span></li>
+      <li><b>Local work had to reach the remote PR.</b> <span class="muted">I'd write twelve careful comments, then retype them into GitHub. So: two-way sync — local pushes up, PR pulls back down. <span class="mono" style="color:var(--dim)">v1.2.0</span></span></li>
+      <li><b>"I don't have Node installed."</b> <span class="muted">Every time I told someone to try it, that was the reply. So: six install methods — npm, PyPI, Homebrew, Scoop, apt, binaries. <span class="mono" style="color:var(--dim)">v1.4.0</span></span></li>
+      <li><b>Approve and merge without leaving the terminal.</b> <span class="muted">The full PR lifecycle — approve, request changes, merge, close, reopen, mark ready — as CLI commands. <span class="mono" style="color:var(--dim)">v1.5.0</span></span></li>
+    </ul>
+  </section>
+
+  <!-- 5 · THE ITCH THAT BECAME V2 -->
+  <section class="slide" data-title="The itch that became version 2">
+    <div class="slide-num">05 · the itch that became version 2</div>
+    <h3 class="section">The unit of work is "<em>my open PRs</em>", not "this checkout's PRs".</h3>
+    <p class="lead-p">I keep about ten side projects going at once. Each has its own repo, each occasionally has an open PR. Pointing <span class="mono">auto</span> at a directory replaced an entire morning of context-switching:</p>
+    <div class="code-block">
+      <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">one line, ten repos</span></div>
+      <div class="code-body"><span class="prompt">$</span> <span class="k">cd</span> ~/work && branchdiff <span class="f">auto</span> --<span class="f">tool</span> claude</div>
+    </div>
+    <div class="callout accent"><b>What it does:</b> finds every open PR in every repo underneath, reviews <b>only the ones with new commits</b> since last time, and streams each session's URL as it goes. One numbered candidate list instead of ten terminals to reconcile by hand.</div>
+  </section>
+
+  <!-- 6 · AUTO SHAPED BY TOE-STUBS -->
+  <section class="slide" data-title="auto, shaped by toe-stubs">
+    <div class="slide-num">06 · auto, shaped by more toe-stubs</div>
+    <h3 class="section">Each flag is a sentence that ends with "<em>…so I added a flag</em>".</h3>
+    <div class="cols-3-2">
+      <ul class="bullets">
+        <li><b>The 900-file lockfile bump wastes a pass.</b> <span class="muted">So does a one-word typo fix. Size is the cheapest signal — <span class="mono">--max-files</span> / <span class="mono">--max-lines</span> skip the giants and leave them to a human.</span></li>
+        <li><b>I never want to review my own PR by accident.</b> <span class="muted"><span class="mono">--skip-author</span>.</span></li>
+        <li><b>A foreground terminal only reviews while it stays open.</b> <span class="muted">No good for a headless box or a fixed daily window — so <span class="mono">auto</span> learned to detach and to schedule itself.</span></li>
+        <li><b>I had no idea how much the tool had actually done for me.</b> <span class="muted">No telemetry, no summary. So <span class="mono">stats</span> was born — a dashboard over every local review database.</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">unattended</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff <span class="f">auto</span> --<span class="f">detach</span> \
+     --<span class="f">review</span> --<span class="f">tool</span> claude \
+     --<span class="f">repo-paths</span> ~/work --<span class="s">yes</span>
+
+<span class="prompt">$</span> branchdiff <span class="f">auto</span> <span class="n">cron</span> <span class="k">add</span> \
+     --<span class="f">start</span> <span class="s">"0 9 * * 1-5"</span> \
+     --<span class="f">review</span> --<span class="f">repo-paths</span> ~/work</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · FROM ONE PR TO A DIRECTORY OF REPOS -->
+  <section class="slide" data-title="From one PR to a directory of repos">
+    <div class="slide-num">07 · the company angle — review at scale</div>
+    <h3 class="section">The same command that reviews <em>one PR</em> reviews a <em>hundred</em>.</h3>
+    <p class="lead-p">The only difference is which directory you point it at. That is what makes it a self-hosted review bot a team can actually run.</p>
+    <div class="three-col">
+      <div class="stat"><div class="num">N repos</div><div class="label">Multi-repo scan</div><div class="desc">One directory → every open PR found, reviewed, deduped.</div></div>
+      <div class="stat"><div class="num">cron</div><div class="label">Runs unattended</div><div class="desc">Detach to the background, or schedule a fixed daily window.</div></div>
+      <div class="stat"><div class="num">2 forges</div><div class="label">GitHub + Bitbucket</div><div class="desc">Both real forges, one UX. (Not GitLab — built what was needed, no more.)</div></div>
+    </div>
+    <div class="three-col" style="margin-top:18px">
+      <div class="stat"><div class="num">any model</div><div class="label">Bring your own</div><div class="desc">Claude, Codex, Gemini, Cursor, opencode — reads context on stdin, prints comments on stdout.</div></div>
+      <div class="stat"><div class="num">gate</div><div class="label">Severity-gated</div><div class="desc">Auto-approve only if nothing crosses your threshold. A human still sees the rest.</div></div>
+      <div class="stat"><div class="num">stats</div><div class="label">Visibility</div><div class="desc">A dashboard shows what got reviewed, by whom, how much it helped.</div></div>
+    </div>
+  </section>
+
+  <!-- 8 · THE BUG THAT TAUGHT IDENTITY -->
+  <section class="slide" data-title="The bug that taught identity">
+    <div class="slide-num">08 · the bug that taught me about identity</div>
+    <h3 class="section">A review for PR <em>#2124</em> landed on PR <em>#2125</em>.</h3>
+    <p class="lead-p">Two sessions on the same repo, two ports. One shared <span class="mono">current-session</span> pointer — rewritten on <b>every browser status poll</b>. The other PR's tab, polling in the background, flipped the pointer mid-review. The fix: stop the flip at its source, pin the reviewer's identity explicitly, force one chokepoint.</p>
+    <div class="fig">
+      <img src="../../assets/B-23/wrong-pr-race.png" alt="The wrong-PR race: a shared pointer, repointed by a background poll, misroutes the review" loading="lazy" />
+      <div class="fig-caption">explicit identity beats ambient context — the reviewer checks its own pin before it ever reads the shared pointer.</div>
+    </div>
+  </section>
+
+  <!-- 9 · OTHER BUGS, OTHER LESSONS -->
+  <section class="slide" data-title="Other bugs, other lessons">
+    <div class="slide-num">09 · other bugs, other lessons</div>
+    <h3 class="section">Each bug left a <em>habit</em> behind.</h3>
+    <ul class="bullets">
+      <li><b>It hung people's machines.</b> <span class="muted">Synchronous Git calls blocked the single Node thread; on big repos the server froze, and on some setups the device hung on sleep. <b style="color:var(--accent)">Habit:</b> never block the hot path — go async, pass arg arrays (also closes a shell-injection door).</span></li>
+      <li><b>cron silently did nothing on macOS.</b> <span class="muted">Since Catalina, macOS blocks <span class="mono">cron</span> unless it has Full Disk Access — and fails silently. <b style="color:var(--accent)">Habit:</b> distrust the platform's defaults; "works on my Linux box" is not a test. On macOS it now writes launch agents instead.</span></li>
+      <li><b>Export and import were both broken — and silent.</b> <span class="muted">Server shipped bundles tagged v2; the import screen rejected anything but v1. The only live path was dead end to end, and nobody reported it. <b style="color:var(--accent)">Habit:</b> version your contracts out loud.</span></li>
+      <li><b>"Request Changes" did nothing on Bitbucket.</b> <span class="muted">It posted to the comments endpoint instead of the dedicated request-changes endpoint — a wrong URL that looked like it worked. <b style="color:var(--accent)">Habit:</b> verify the side effect, not the call.</span></li>
+    </ul>
+  </section>
+
+  <!-- 10 · WHERE IT LANDED -->
+  <section class="slide" data-title="Where it landed">
+    <div class="slide-num">10 · where it landed</div>
+    <h3 class="section">Four months, <em>twenty-one releases</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-23/v1-to-v2-timeline.png" alt="Four months, twenty-one releases: one diff command to a self-hosted review bot" loading="lazy" />
+      <div class="fig-caption">the leap — from reviewing one PR to reviewing a directory of repos unattended</div>
+    </div>
+  </section>
+
+  <!-- 11 · WHAT BUILDING IT TAUGHT -->
+  <section class="slide" data-title="What building it taught me">
+    <div class="slide-num">11 · what building it taught me</div>
+    <h3 class="section">The real payoff is the <em>habits</em>, not the features.</h3>
+    <ul class="checklist">
+      <li><b>Ship the itch you actually have.</b> Features that scratched a real, recurring annoyance are the ones people thank you for; the clever planned ones mostly didn't survive contact with how I really work.</li>
+      <li><b>Explicit identity beats ambient context.</b> Any component that figures out "who am I" by reading a shared mutable thing has a race condition pretending to be a feature.</li>
+      <li><b>Never block the hot path.</b> If a request waits for a subprocess, it waits asynchronously — or not at all.</li>
+      <li><b>Version your contracts out loud.</b> Silent disagreement between two parts is the worst bug: it looks alive and is dead.</li>
+      <li><b>Distrust the platform's defaults.</b> macOS cron, sync APIs, <span class="mono">0.0.0.0</span> bindings — the convenient default is frequently the wrong one.</li>
+      <li><b>Meet people where they are.</b> "I don't have Node" killed adoption; six package managers was tedious and also the difference between a toy and a tool.</li>
+      <li><b>Reuse your own commands.</b> v2 was largely built by composing v1 commands as child processes — less code, fewer bugs, every fix inherited for free.</li>
+    </ul>
+  </section>
+
+  <!-- 12 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">12 · recap</div>
+    <h3 class="section">One stubborn idea, <em>four months of Tuesdays</em>.</h3>
+    <p class="lead-p">branchdiff still does exactly what it did on day one — show you the real diff, not the phantom one. Everything else grew up around that single idea, each piece born from a friction I personally felt, over and over, until the friction was gone.</p>
+    <ul class="checklist" style="max-width:64ch">
+      <li><b>Origin:</b> <span class="mono">git diff</span> compares commit history; branchdiff compares content — no phantom diffs.</li>
+      <li><b>Growth:</b> every feature was a personal itch — comments, sync, six install methods, the PR lifecycle.</li>
+      <li><b>Version 2:</b> <span class="mono">auto</span> — one directory, every open PR, reviewed unattended, severity-gated.</li>
+      <li><b>The bugs:</b> a wrong-PR race, a frozen event loop, a silent macOS cron — each rewired how I build.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="https://github.com/Encryptioner/branchdiff" target="_blank" rel="noopener">↗ branchdiff on GitHub</a>
+      <a class="ghost" href="https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/How%20branchdiff%20Grew%20Up%20-%20One%20Diff%20Tool's%20Journey%20From%20a%20Proof%20of%20Concept%20to%20a%20Self-Hosted%20Review%20Bot.md" target="_blank" rel="noopener">↗ Read the full build story</a>
+      <a class="ghost" href="../P-5-branchdiff-features/index.html" target="_blank" rel="noopener">↗ branchdiff features (deck series)</a>
+      <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overlays -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-12">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-8-branchdiff-journey/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 02 — 100% Local-First &amp; Private</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Local-First &amp; Private">
+    <span class="badge"><span class="dot"></span> Deck 02 · branchdiff features</span>
+    <h1 class="title">100% local-first &amp; <em>private</em>.</h1>
+    <h2 class="subtitle">The diff never leaves your machine. No telemetry, no signup, no API key — and your comments, viewed markers, and UI state survive a reboot, a force-push, and a fresh clone.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">0</span> outbound calls</span>
+      <span><span class="mono">~/.branchdiff/</span> SQLite sessions</span>
+      <span><span class="mono">no</span> auth, no key, no signup</span>
+      <span><span class="mono">localhost:5391</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The native problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Cloud diff tools ship your code <em>to a third party</em>.</h3>
+    <div class="vs">
+      <div class="box problem">
+        <h4>The friction</h4>
+        <p>Reviewing proprietary code in a browser-based diff means every line travels to a third-party server. Compliance and security teams object — and they're right to.</p>
+      </div>
+      <div class="box problem">
+        <h4>The data loss</h4>
+        <p>PR comments vanish when you're offline or when a branch is deleted without merging. UI state (which file you'd scrolled to, which you'd marked viewed) is tied to a folder path and disappears the moment you clone elsewhere.</p>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:18px">
+      <b>The result:</b> "I can't use this tool on this repo" — and a draft review that took an hour evaporates the next morning because the tab refreshed or the branch was rebased.
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">The diff <em>never leaves</em> your machine.</h3>
+    <p class="lead-p">branchdiff runs as a plain Node HTTP server bound to localhost. It reads the diff from disk, persists everything to SQLite under <span class="mono">~/.branchdiff/</span>, and identifies your repo by a fingerprint that follows the repo — not the directory.</p>
+    <div class="three-col">
+      <div class="stat"><div class="num">0</div><div class="label">Outbound traffic</div><div class="desc">except user-triggered gh / Bitbucket REST</div></div>
+      <div class="stat"><div class="num">SQLite</div><div class="label">Local persistence</div><div class="desc">survives restarts, reboots, force-pushes</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">Repo fingerprint</div><div class="desc">state follows the repo, not the path</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>No telemetry, no API key, no signup.</b> The only network calls are the ones you explicitly trigger — approve a PR, post a comment, fetch a branch.
+    </div>
+  </section>
+
+  <!-- 4 · SOURCE OF TRUTH VS WORKING SURFACE -->
+  <section class="slide" data-title="Source of truth vs working surface">
+    <div class="slide-num">04 · mental model</div>
+    <h3 class="section">The forge is the <em>source of truth</em>. branchdiff is the working surface.</h3>
+    <div class="fig">
+      <img src="../../assets/B-13/platform-vs-local-split.png" alt="Source of truth vs working surface" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">GitHub / Bitbucket stay the source of truth · branchdiff is the fast, private, local working surface</div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Two-way sync, one-way authority.</b> Comments flow up to the forge on your action; everything else — drafts, viewed markers, collapse state — stays local until you decide otherwise.
+    </div>
+  </section>
+
+  <!-- 5 · 100% LOCAL EXECUTION -->
+  <section class="slide" data-title="100% local execution">
+    <div class="slide-num">05 · local execution</div>
+    <h3 class="section">A plain Node HTTP server — <em>bound to localhost</em>.</h3>
+    <div class="cols-3-2">
+      <ul class="bullets">
+        <li><b>No daemon listening on the open internet.</b> <span class="muted">The server binds to localhost; only your browser on the same machine can reach it.</span></li>
+        <li><b>No telemetry, no analytics.</b> <span class="muted">Zero outbound traffic in steady state — confirmable with any network monitor.</span></li>
+        <li><b>No API key, no signup.</b> <span class="muted">No account on a branchdiff server exists — there is no branchdiff server.</span></li>
+        <li><b>The only network calls</b> are user-triggered: <span class="mono">gh</span> for GitHub, Bitbucket REST for posting comments or PR actions.</li>
+        <li><b>Open source.</b> <span class="muted">You can read every line of the network path before you trust it with proprietary code.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>For compliance teams:</b> "the diff is processed on the engineer's laptop, by software we can audit, and the bytes never leave the machine." That sentence unblocks the review.
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · SQLITE SESSIONS -->
+  <section class="slide" data-title="SQLite sessions in ~/.branchdiff/">
+    <div class="slide-num">06 · persistence</div>
+    <h3 class="section">Everything lives in <em>~/.branchdiff/</em>.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="bullets">
+          <li><b>Comment threads, replies, viewed markers, collapse state, tours</b> — all in SQLite, one DB per repo.</li>
+          <li><b>Survives restarts and reboots.</b> <span class="muted">Close the laptop, fly home, reopen — your place is exactly where you left it.</span></li>
+          <li><b>Per-repo directory</b> keyed by the repo's own hash, so two repos never collide.</li>
+          <li><b>Repo fingerprint</b> (next slide) is a separate ID that travels with <span class="mono">export</span> / <span class="mono">import</span>, so moving a review to a new clone lands it correctly.</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/.branchdiff/</span>
+        </div>
+        <div class="code-body"><span class="c"># one directory per repo</span>
+<span class="f">~/.branchdiff/</span>
+├── <span class="s">a1b2c3d4e5f6/</span>          <span class="c"># this repo's data</span>
+│   └── <span class="f">reviews.db</span>           <span class="c"># everything — sessions, comments, tours</span>
+└── <span class="n">credentials.json</span>        <span class="c"># optional: Bitbucket token</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · REPO FINGERPRINT -->
+  <section class="slide" data-title="Repo fingerprint">
+    <div class="slide-num">07 · repo fingerprint</div>
+    <h3 class="section">Export a review, import it into the right repo — <em>even moved</em>.</h3>
+    <p class="lead-p">A stable ID is derived from the repo's remotes, so <span class="mono">export</span> / <span class="mono">import</span> can tell which repo a review belongs to even after the clone moved somewhere else.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Without it</h4>
+        <p>A folder-path match breaks the moment a clone lands somewhere new — exactly the case a portable export exists for.</p>
+      </div>
+      <div class="box solve">
+        <h4>With it</h4>
+        <p><span class="mono">~/src/project</span> on your laptop and <span class="mono">~/code/project</span> on a new machine both identify as the same repo — <span class="mono">import</span> lands the bundle correctly regardless of path.</p>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Portable, not auto-shared.</b> Two clones don't sync live — each keeps its own local store. The fingerprint just makes an explicit <span class="mono">export</span> / <span class="mono">import</span> land in the right place.
+    </div>
+  </section>
+
+  <!-- 8 · NO AUTH -->
+  <section class="slide" data-title="No auth — reuse what's already there">
+    <div class="slide-num">08 · no auth</div>
+    <h3 class="section">No login. <em>Reuse</em> the credentials you already have.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">GitHub · one-time</span>
+        </div>
+        <div class="code-body"><span class="prompt">$</span> gh auth login
+<span class="c"># ✓ Logged in as encryptioner</span>
+<span class="c"># branchdiff reads gh's token — nothing else to configure</span>
+
+<span class="prompt">$</span> branchdiff
+<span class="c"># → syncs comments, posts reviews via gh</span></div>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">Bitbucket · App Password</span>
+        </div>
+        <div class="code-body"><span class="c"># option A — env var</span>
+<span class="prompt">$</span> <span class="k">export</span> BITBUCKET_APP_PASSWORD=<span class="s">"…"</span>
+<span class="prompt">$</span> <span class="k">export</span> BITBUCKET_USERNAME=<span class="s">"encryptioner"</span>
+
+<span class="c"># option B — credentials file</span>
+<span class="f">~/.branchdiff/credentials.json</span>
+{ <span class="s">"bitbucket_app_password"</span>: <span class="s">"…"</span> }</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>No new account, ever.</b> GitHub users get a one-line <span class="mono">gh auth login</span>; Bitbucket users drop an App Password into env or a credentials file. That's the entire auth story.
+    </div>
+  </section>
+
+  <!-- 9 · EXPORT / IMPORT BUNDLE -->
+  <section class="slide" data-title="Export / import bundle">
+    <div class="slide-num">09 · portable bundles</div>
+    <h3 class="section">Take your work with you — <em>one JSON file</em>.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="bullets">
+          <li><b><span class="mono">export --all</span></b> writes sessions, threads, replies, tours, and uiState to a single JSON.</li>
+          <li><b>Bundle format v2</b> — includes UI state, LWW-merged on import by <span class="mono">updated_at</span>.</li>
+          <li><b>Three conflict modes:</b> <span class="mono">--conflict merge</span> (default), <span class="mono">skip</span>, <span class="mono">overwrite</span>.</li>
+          <li><b><span class="mono">--dry-run</span></b> previews the merge before touching anything.</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">export &amp; import</span>
+        </div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff export --all
+<span class="c"># → wrote branchdiff-bundle-2026-07-27.json</span>
+
+<span class="prompt">$</span> branchdiff import bundle.json
+<span class="c"># merged 47 threads, 312 viewed markers</span>
+<span class="c"># (LWW by updated_at, --conflict merge is the default)</span>
+
+<span class="prompt">$</span> branchdiff import bundle.json <span class="k">--dry-run</span>
+<span class="c"># preview: 2 conflicts, both newer locally</span></div>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Why it matters:</b> move a review in progress to a new machine, hand a draft to a teammate, or back up before a destructive operation — without losing a single viewed marker.
+    </div>
+  </section>
+
+  <!-- 10 · STALE-TAB PROTECTION -->
+  <section class="slide" data-title="Stale-tab protection">
+    <div class="slide-num">10 · stale-tab guard</div>
+    <h3 class="section">An old tab <em>can't</em> silently overwrite a fresh server.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Random <span class="mono">SERVER_ID</span> per boot</b> — assigned when the process starts, never reused.</li>
+        <li><b><span class="mono">X-Branchdiff-Server-Id</span> header</b> on every write request from the UI.</li>
+        <li><b>UI polls <span class="mono">/api/info</span></b> in the background; mismatch → amber banner, traffic blocked.</li>
+        <li><b>Server returns <span class="mono">409 STALE_SERVER</span></b> if the header doesn't match — writes refused, not silently applied.</li>
+      </ul>
+      <div class="callout danger">
+        <b>The scenario this prevents:</b> you restart branchdiff in tab A. Tab B — left open from yesterday — keeps writing comments against the old server ID. Without the guard, those writes hit the wrong session or get lost. With it, tab B shows the amber banner and refuses to send.
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CREDIBILITY / HONEST BOUNDARIES -->
+  <section class="slide" data-title="Honest boundaries">
+    <div class="slide-num">11 · honest boundaries</div>
+    <h3 class="section">What branchdiff <em>doesn't</em> do.</h3>
+    <p class="lead-p">Saying this out loud so the rest of the deck reads as honest, not salesy.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Not a silver bullet</h4>
+        <p><b>No CI.</b> Platform checks still gate the merge — branchdiff reads diffs, it doesn't run your pipeline.<br/><br/>
+        <b>No cloud storage.</b> Wipe <span class="mono">~/.branchdiff/</span> and unpushed local drafts are gone. Export/import is your backup.<br/><br/>
+        <b>Multi-reply threads stay local.</b> Forge APIs don't map a threaded reply tree, so only top-level comments push up.</p>
+      </div>
+      <div class="box solve">
+        <h4>Stays in its lane</h4>
+        <p><b>No branch-protection bypass.</b> Merge respects required reviews and status checks exactly as the forge enforces them.<br/><br/>
+        <b>Not a full PR-page replacement.</b> Description, linked issues, and the CI block stay on the forge — <span class="mono">Open in browser</span> is one click.<br/><br/>
+        <b>Local-first is a real trade-off.</b> No server means no shared workspace — which is the point, and the cost.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · INSPECT YOUR STATE -->
+  <section class="slide" data-title="Inspect &amp; reset your state">
+    <div class="slide-num">12 · hands-on</div>
+    <h3 class="section">Inspect and reset your local state — <em>from the CLI</em>.</h3>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">branchdiff info</span>
+      </div>
+      <div class="code-body"><span class="prompt">$</span> branchdiff info
+<span class="c">Repository   </span> payment-svc <span class="f">(main)</span>
+<span class="c">Fingerprint  </span> <span class="s">a1b2c3d4e5f6…</span> (portable via export/import)
+<span class="c">Data dir     </span> <span class="f">~/.branchdiff/9f8e7d6c5b4a</span>
+<span class="c">UI state     </span> <span class="n">312</span> rows
+
+<span class="prompt">$</span> branchdiff state reset
+<span class="c">✓ Reset 312 rows (was 312)</span></div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Nothing is hidden.</b> The store is plain SQLite on disk; <span class="mono">info</span> is the same data, summarised. You can also <span class="mono">cat</span> the file or open it in any SQLite browser.
+    </div>
+  </section>
+
+  <!-- 13 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">13 · recap</div>
+    <h3 class="section">Local-first, in one line.</h3>
+    <p class="lead-p">No outbound traffic, no telemetry, no signup. SQLite under <span class="mono">~/.branchdiff/</span> survives reboots and force-pushes. A repo fingerprint means state follows the repo. Stale tabs can't silently corrupt a fresh server.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Plain Node HTTP bound to localhost — compliance-friendly, auditable.</li>
+      <li>SQLite sessions: threads, replies, viewed markers, collapse state, tours.</li>
+      <li>Repo fingerprint: same repo, two machines, one logical store.</li>
+      <li>No auth — reuse <span class="mono">gh</span> or a Bitbucket App Password.</li>
+      <li>Export/import bundle v2 with LWW merge and <span class="mono">--dry-run</span>.</li>
+      <li>Stale-tab guard via <span class="mono">X-Branchdiff-Server-Id</span> + <span class="mono">409 STALE_SERVER</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="03-comments-review-surface.html" target="_blank" rel="noopener">Next deck → 03 · Comments &amp; Review Surface</a>
+      <a class="ghost" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-13">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

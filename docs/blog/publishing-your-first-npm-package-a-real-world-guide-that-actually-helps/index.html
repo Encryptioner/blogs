@@ -1,0 +1,433 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Publishing Your First NPM Package: A Real-World Guide That Actually Helps — Ankur’s Writing</title><meta name="description" content="You know that feeling when you've written a utility function for the third time across different projects and think, &#34;There's gotta be a better way&#34;? That's…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/publishing-your-first-npm-package-a-real-world-guide-that-actually-helps/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Publishing Your First NPM Package: A Real-World Guide That Actually Helps — Ankur’s Writing"><meta property="og:description" content="You know that feeling when you've written a utility function for the third time across different projects and think, &#34;There's gotta be a better way&#34;? That's…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/publishing-your-first-npm-package-a-real-world-guide-that-actually-helps/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-7/Publishing-Your-First-NPM-Package-2.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Publishing Your First NPM Package: A Real-World Guide That Actually Helps — Ankur’s Writing"><meta name="twitter:description" content="You know that feeling when you've written a utility function for the third time across different projects and think, &#34;There's gotta be a better way&#34;? That's…"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-7/Publishing-Your-First-NPM-Package-2.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2025-11-21"><meta property="article:modified_time" content="2025-11-22"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Node.js">Node.js</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Node.js">Node.js</a>  </div> <h1>Publishing Your First NPM Package: A Real-World Guide That Actually Helps</h1> <p class="article-meta mono"> <time datetime="2025-11-22">22 Nov 2025</time> <span>·</span> <span>11 min read</span> <span>·</span> <span>2,219 words</span> </p> </header>  <div class="prose"><h1 id="publishing-your-first-npm-package-a-real-world-guide-that-actually-helps">Publishing Your First NPM Package: A Real-World Guide That Actually Helps</h1>
+<p align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-7/Publishing-Your-First-NPM-Package-2.png" alt="Publishing Your First NPM Package" />
+</p>
+<hr />
+<p>You know that feeling when you’ve written a utility function for the third time across different projects and think, “There’s gotta be a better way”? That’s exactly where NPM packages come in.</p>
+<p>Let me tell you about turning a simple <em>HTML-to-PDF generator</em> into a proper <em>NPM package</em>. The process was exciting and journey of learning. A little difficult — but totally worth it.</p></div>  <div class="prose">
+<p>Here’s the thing: most tutorials out there are outdated. NPM deprecated classic tokens, changed their UI, and updated how organizational scoped packages work. So this guide is different. It’s the real deal — actual steps, real mistakes, and the stuff nobody tells you until you’re already stuck.</p>
+<hr />
+<h2 id="why-even-bother-publishing-a-package">Why Even Bother Publishing a Package?</h2>
+<p>Publishing a package does three magical things:</p>
+<ul>
+<li><strong>Reusability</strong>: Stop copy-pasting code between projects</li>
+<li><strong>Helping others</strong>: Someone out there is fighting the same problem right now</li>
+<li><strong>Learning</strong>: You’ll dive into open-source workflow, versioning, CI/CD, and documentation</li>
+</ul>
+<p>Plus, there’s something genuinely satisfying about typing <code>npm install your-package-name</code> and seeing your own work install. It’s a tiny piece of software craftsmanship that feels really good.</p>
+<hr />
+<h2 id="understanding-scopes-and-naming-before-you-start">Understanding Scopes and Naming (Before You Start)</h2>
+<p>NPM packages can be:</p>
+<ul>
+<li><strong>Unscoped</strong>: <code>your-package-name</code></li>
+<li><strong>Scoped</strong>: <code>@yourname/your-package-name</code></li>
+</ul>
+<p>Here’s what matters: if your *NPM username *is <code>cooldev</code>, then <code>@cooldev/anything</code> is automatically your namespace. You don’t need to create an organization unless your scope differs from your username.</p>
+<p>Check if a name is available:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> view</span><span style="color:#98C379"> @yourname/your-package-name</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># 404 means it's free to use</span></span></code></pre>
+<hr />
+<h2 id="step-1-set-up-the-project-structure">Step 1: Set Up the Project Structure</h2>
+<p>Start fresh. Create a clean directory and initialize it:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#98C379"> your-package-name</span></span>
+<span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> your-package-name</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> init</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> init</span><span style="color:#D19A66"> -y</span></span></code></pre>
+<p>Keep things organized with a <code>src/</code> folder for your code.</p>
+<hr />
+<h2 id="step-2-bring-in-your-source-files">Step 2: Bring in Your Source Files</h2>
+<p>Copy your working code into the new package structure:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> src</span></span>
+<span class="line"><span style="color:#61AFEF">cp</span><span style="color:#D19A66"> -r</span><span style="color:#98C379"> /path/to/your-project/src/lib/your-library/</span><span style="color:#E5C07B">*</span><span style="color:#98C379"> src/</span></span></code></pre>
+<p>This isolation keeps your package clean and focused.</p>
+<hr />
+<h2 id="step-3-configure-your-packagejson">Step 3: Configure Your package.json</h2>
+<p>This is the heart of your package. Update these critical fields:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "name"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"@yourname/your-package-name"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "version"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"1.0.0"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "main"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"dist/index.js"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "types"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"dist/index.d.ts"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "repository"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"git"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "url"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://github.com/yourname/your-package-name.git"</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "bugs"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "url"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://github.com/yourname/your-package-name/issues"</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "homepage"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://github.com/yourname/your-package-name#readme"</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Make sure:</p>
+<ul>
+<li><code>name</code> is unique (check NPM first)</li>
+<li><code>repository.url</code> points to your GitHub repo</li>
+<li><code>bugs.url</code> gives people a place to report issues</li>
+<li><code>homepage</code> links to documentation</li>
+</ul>
+<hr />
+<h2 id="step-4-connect-to-github">Step 4: Connect to GitHub</h2>
+<p>Get your code into version control:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> add</span><span style="color:#98C379"> .</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> commit</span><span style="color:#D19A66"> -m</span><span style="color:#98C379"> "Initial commit: My Library to NPM Package"</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> branch</span><span style="color:#D19A66"> -M</span><span style="color:#98C379"> master</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> remote</span><span style="color:#98C379"> add</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> https://github.com/yourname/your-package-name.git</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#D19A66"> -u</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span></span></code></pre>
+<hr />
+<h2 id="step-5-test-your-build-locally">Step 5: Test Your Build Locally</h2>
+<p>Before publishing anything, make sure it actually works:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> run</span><span style="color:#98C379"> build</span></span></code></pre>
+<p>Here’s the secret weapon most beginners don’t know about — test your package locally:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> pack</span></span></code></pre>
+<p>This creates a <code>.tgz</code> file — the exact same file that would go to NPM.</p>
+<p>Now test it in another project:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> install</span><span style="color:#98C379"> /path/to/your-package-1.0.0.tgz</span></span></code></pre>
+<p>This catches so many issues. Seriously, multiple problems only showed up after testing in a fresh environment.</p>
+<hr />
+<h2 id="step-6-login-to-npm-account">Step 6: Login to NPM Account</h2>
+<p align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-7/NPM-Profile.png" alt="NPM Profile Page" />
+</p>
+<p>You can login to npm from any browser by going to <a href="https://www.npmjs.com/login" target="_blank" rel="noopener noreferrer">npmjs.com</a>. Login is also straightforward by command line:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> login</span></span></code></pre>
+<p>You’ll be prompted for:</p>
+<ul>
+<li>Username</li>
+<li>Password</li>
+<li>Email</li>
+<li>One-time password (if you have 2FA enabled)</li>
+</ul>
+<h2 id="step-7-choose-your-publishing-strategy">Step 7: Choose Your Publishing Strategy</h2>
+<p>You have two ways to publish your package:</p>
+<ol>
+<li><strong>Manual Publishing</strong> - Quick start, publish from command line</li>
+<li><strong>Automated CI/CD</strong> - Professional, publish on git tag (recommended)</li>
+</ol>
+<p>Let’s start with manual to get you published quickly, then set up automation.</p>
+<h3 id="manual-publishing-quick-start">Manual Publishing (Quick Start)</h3>
+<p>Login to NPM from your terminal then publish:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> login</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> publish</span><span style="color:#D19A66"> --access</span><span style="color:#98C379"> public</span></span></code></pre>
+<p>The <code>--access public</code> flag is required for scoped packages (like <code>@yourname/package-name</code>).</p>
+<p>That’s it. Your package is live on NPM!</p>
+<p>But here’s the thing: manual publishing is error-prone. You might forget to build, or push the wrong version, or skip tests. Let’s set up automation.</p>
+<hr />
+<h2 id="step-8-set-up-automated-publishing-recommended">Step 8: Set Up Automated Publishing (Recommended)</h2>
+<p>Here’s where it gets interesting. <strong>Classic NPM tokens are deprecated</strong> — many old tutorials still reference them, which is confusing. You need to create a <strong>Granular Access Token</strong> instead. Then use github <code>CI/CD</code> workflow to publish the changes to <code>npm</code></p>
+<p align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-7/Classic-Token-Security-Notification.png" alt="NPM Classic Token Deprecation Notice" />
+</p>
+<h3 id="creating-a-granular-access-token">Creating a Granular Access Token</h3>
+<p>This token lets GitHub Actions publish your package automatically. Here’s how:</p>
+<p><strong>1. Go to <a href="https://www.npmjs.com/login" target="_blank" rel="noopener noreferrer">npmjs.com</a> and login</strong></p>
+<p>Navigate to your profile → <strong>Access Tokens</strong> → <strong>Generate New Token</strong> → Select <strong>Granular Access Token</strong></p>
+<p><strong>2. Configure the token:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Token Name: GitHub Actions CI/CD</span></span>
+<span class="line"><span>Expiration: 90 days (or your preference)</span></span></code></pre>
+<p><strong>3. Set permissions:</strong></p>
+<p>Under “Packages and scopes”:</p>
+<ul>
+<li>Select <strong>Read and write</strong></li>
+<li>Choose either:
+<ul>
+<li>“All packages” (easier), OR</li>
+<li>Select your specific package <code>@yourname/your-package-name</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>4. Copy the token immediately</strong></p>
+<p>You won’t be able to see it again! It starts with <code>npm_...</code></p>
+<p><strong>5. Add to GitHub Secrets:</strong></p>
+<p>Go to your GitHub repository:</p>
+<ul>
+<li><code>Settings</code> → <code>Secrets and variables</code> → <code>Actions</code></li>
+<li>Click “New repository secret”</li>
+<li>Name: <code>NPM_TOKEN</code></li>
+<li>Value: Paste your token</li>
+<li>Click “Add secret”</li>
+</ul>
+<p>Now GitHub Actions can publish on your behalf.</p>
+<hr />
+<h2 id="step-9-understanding-semantic-versioning">Step 9: Understanding Semantic Versioning</h2>
+<p>Before we automate, let’s talk about versioning. It’s not just numbers — it’s a promise to your users:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Command</th><th>Example</th><th>When to Use</th></tr></thead><tbody><tr><td><code>npm version patch</code></td><td>1.0.0 → 1.0.1</td><td>Bug fixes</td></tr><tr><td><code>npm version minor</code></td><td>1.0.0 → 1.1.0</td><td>New features</td></tr><tr><td><code>npm version major</code></td><td>1.0.0 → 2.0.0</td><td>Breaking changes</td></tr></tbody></table>
+<p>Here’s the magic: each <code>npm version</code> command does three things:</p>
+<ol>
+<li>Updates version in <code>package.json</code></li>
+<li>Creates a git commit</li>
+<li>Creates a git tag (like <code>v1.0.1</code>)</li>
+</ol>
+<p>That git tag is what triggers automated publishing.</p>
+<hr />
+<h2 id="step-10-create-the-github-actions-workflow">Step 10: Create the GitHub Actions Workflow</h2>
+<p>Now let’s set up the automation. This workflow:</p>
+<ul>
+<li>Triggers when you push a version tag (like <code>v1.2.3</code>)</li>
+<li>Runs your tests and builds</li>
+<li>Verifies the version matches</li>
+<li>Publishes to NPM with provenance (security feature)</li>
+<li>Creates a GitHub release</li>
+</ul>
+<p>Create <code>.github/workflows/publish.yml</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#E06C75">name</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">Publish to NPM</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D19A66">on</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">  push</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">    tags</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#98C379">'v*'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">jobs</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">  publish</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">    runs-on</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">ubuntu-latest</span></span>
+<span class="line"><span style="color:#E06C75">    permissions</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">      contents</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">write</span></span>
+<span class="line"><span style="color:#E06C75">      id-token</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">write</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">    steps</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">uses</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">actions/checkout@v4</span></span>
+<span class="line"><span style="color:#E06C75">        with</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">          fetch-depth</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">0</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">uses</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm/action-setup@v4</span></span>
+<span class="line"><span style="color:#E06C75">        with</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">          version</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">9.0.0</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">uses</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">actions/setup-node@v4</span></span>
+<span class="line"><span style="color:#E06C75">        with</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">          node-version</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">'18.20.0'</span></span>
+<span class="line"><span style="color:#E06C75">          registry-url</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">'https://registry.npmjs.org'</span></span>
+<span class="line"><span style="color:#E06C75">          cache</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">run</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm install --frozen-lockfile</span></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">run</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm run typecheck</span></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">run</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm run build</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">name</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">Verify version matches tag</span></span>
+<span class="line"><span style="color:#E06C75">        run</span><span style="color:#ABB2BF">: </span><span style="color:#C678DD">|</span></span>
+<span class="line"><span style="color:#98C379">          TAG="${GITHUB_REF#refs/tags/}"</span></span>
+<span class="line"><span style="color:#98C379">          VERSION="${TAG#v}"</span></span>
+<span class="line"><span style="color:#98C379">          FILE_VERSION=$(node -p "require('./package.json').version")</span></span>
+<span class="line"><span style="color:#98C379">          if [ "$VERSION" != "$FILE_VERSION" ]; then</span></span>
+<span class="line"><span style="color:#98C379">            echo "Version mismatch: tag=$VERSION, package.json=$FILE_VERSION"</span></span>
+<span class="line"><span style="color:#98C379">            exit 1</span></span>
+<span class="line"><span style="color:#98C379">          fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">      - </span><span style="color:#E06C75">name</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">Publish to NPM</span></span>
+<span class="line"><span style="color:#E06C75">        env</span><span style="color:#ABB2BF">:</span></span>
+<span class="line"><span style="color:#E06C75">          NODE_AUTH_TOKEN</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">${{ secrets.NPM_TOKEN }}</span></span>
+<span class="line"><span style="color:#E06C75">        run</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">pnpm publish --access public --provenance</span></span></code></pre>
+<p><strong>Important notes about this workflow:</strong></p>
+<ul>
+<li><code>permissions: id-token: write</code> enables NPM provenance (proves your package came from your GitHub repo)</li>
+<li>The version verification step prevents accidental publishes with mismatched versions</li>
+<li><code>--frozen-lockfile</code> ensures consistent installs</li>
+<li>Adjust <code>pnpm</code> to <code>npm</code> if you’re not using pnpm</li>
+</ul>
+<hr />
+<h2 id="step-11-publishing-with-the-automated-workflow">Step 11: Publishing with the Automated Workflow</h2>
+<p>Now that automation is set up, here’s your new publishing workflow:</p>
+<p><strong>1. Make sure all changes are committed:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> status</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> add</span><span style="color:#98C379"> .</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> commit</span><span style="color:#D19A66"> -m</span><span style="color:#98C379"> "feat: add new feature"</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span></span></code></pre>
+<p><strong>2. Create and push a version tag:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># For a patch release (bug fixes)</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> patch</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># For a minor release (new features)</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> minor</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># For a major release (breaking changes)</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> major</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span></code></pre>
+<p><strong>3. Watch it happen:</strong></p>
+<ul>
+<li>Go to your GitHub repository → “Actions” tab</li>
+<li>You’ll see the workflow running</li>
+<li>Within a few minutes, your package is published!</li>
+<li>GitHub automatically creates a release too</li>
+</ul>
+<p><strong>Pro tip:</strong> The moment you push the tag, GitHub Actions takes over. No manual <code>npm publish</code> needed.</p>
+<hr />
+<h2 id="step-12-control-what-gets-published">Step 12: Control What Gets Published</h2>
+<p>Want to see exactly what goes into your package?</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> pack</span><span style="color:#D19A66"> --dry-run</span></span></code></pre>
+<p>Typically you want:</p>
+<ul>
+<li><code>dist/</code> (your compiled code)</li>
+<li><code>README.md</code></li>
+<li><code>LICENSE</code></li>
+<li><code>package.json</code></li>
+</ul>
+<p>Use <code>.npmignore</code> to exclude:</p>
+<ul>
+<li>Source files (<code>src/</code>)</li>
+<li>Tests</li>
+<li>Config files</li>
+<li><code>.github/</code></li>
+<li>Development dependencies</li>
+</ul>
+<hr />
+<h2 id="step-13-write-documentation-that-actually-helps">Step 13: Write Documentation That Actually Helps</h2>
+<p>Your README is the first thing people see. Make it count:</p>
+<p><strong>Must-haves:</strong></p>
+<ul>
+<li>Quick installation command</li>
+<li>Basic usage example (copy-paste ready)</li>
+<li>API reference</li>
+<li>Common problems and solutions</li>
+</ul>
+<p><strong>Nice-to-haves:</strong></p>
+<ul>
+<li>Advanced examples</li>
+<li>Browser vs Node.js differences</li>
+<li>Performance tips</li>
+<li>Contribution guidelines</li>
+</ul>
+<p>Good documentation increases adoption way more than perfect code does.</p>
+<hr />
+<h2 id="step-14-licensing-and-collaboration">Step 14: Licensing and Collaboration</h2>
+<p><strong>Choose a license:</strong> MIT is the most permissive and common for open-source libraries.</p>
+<p><strong>Enable collaboration:</strong></p>
+<ul>
+<li>Add <code>CONTRIBUTING.md</code> with guidelines</li>
+<li>Use GitHub Issues for bug reports</li>
+<li>Consider GitHub Discussions for questions</li>
+<li>Tag releases properly</li>
+</ul>
+<p><strong>Note on releases:</strong>
+With GitHub Actions set up, you don’t need to manually create releases. The workflow automatically creates a GitHub release when you push a version tag. But you can still edit the release notes afterward to add detailed changelogs.</p>
+<p>If it is important to create <code>Releases</code> manually, follow this:</p>
+<ol>
+<li>Go to your repo’s “Releases” tab</li>
+<li>Click “Create new release”</li>
+<li>Tag it as <code>v1.x.x</code></li>
+<li>Add a changelog describing what changed</li>
+<li>Publish</li>
+</ol>
+<p>Once the tag is pushed, GitHub Actions takes over and handles publishing.</p>
+<hr />
+<h2 id="step-15-when-things-go-wrong">Step 15: When Things Go Wrong</h2>
+<p>Yes, mistakes happen. Accidentally published version 1.1.0 instead of 1.0.3? Been there.</p>
+<p><strong>Within 24 hours:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> unpublish</span><span style="color:#98C379"> @scope/package@version</span></span></code></pre>
+<p><strong>After 24 hours:</strong>
+NPM won’t let you unpublish for safety reasons. Instead:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> deprecate</span><span style="color:#98C379"> @scope/package@version</span><span style="color:#98C379"> "Broken release, use 1.0.4 instead"</span></span></code></pre>
+<p>Then publish the correct version and update your changelog.</p>
+<p>Wait a minute or two after unpublishing — NPM’s cache takes time to update.</p>
+<p>Lesson learned: always double-check before tagging and pushing.</p>
+<hr />
+<h2 id="bonus-one-command-publishing-scripts">Bonus: One-Command Publishing Scripts</h2>
+<p>Want to make publishing even easier? Create these helper scripts that combine versioning and pushing in one command:</p>
+<p><strong>publish-patch.sh:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> patch</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span></code></pre>
+<p><strong>publish-minor.sh:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> minor</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span></code></pre>
+<p><strong>publish-major.sh:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> version</span><span style="color:#98C379"> major</span></span>
+<span class="line"><span style="color:#61AFEF">git</span><span style="color:#98C379"> push</span><span style="color:#98C379"> origin</span><span style="color:#98C379"> master</span><span style="color:#D19A66"> --tags</span></span></code></pre>
+<p>Make them executable:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">chmod</span><span style="color:#98C379"> +x</span><span style="color:#98C379"> publish-</span><span style="color:#E5C07B">*</span><span style="color:#98C379">.sh</span></span></code></pre>
+<p>Now publishing is as simple as:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">./publish-patch.sh</span></span></code></pre>
+<p>The script bumps the version, creates the tag, and pushes it. GitHub Actions sees the tag and handles the rest — testing, building, and publishing to NPM automatically.</p>
+<hr />
+<h2 id="best-practices-checklist">Best Practices Checklist</h2>
+<p><strong>Before Publishing:</strong></p>
+<ul>
+<li>✅ Test with <code>npm pack</code> and install locally</li>
+<li>✅ Run all tests and type checks</li>
+<li>✅ Update README with latest features</li>
+<li>✅ Add or update CHANGELOG</li>
+</ul>
+<p><strong>Package Quality:</strong></p>
+<ul>
+<li>✅ Include TypeScript types (if applicable)</li>
+<li>✅ Add a LICENSE file</li>
+<li>✅ Set up CI/CD for automated testing</li>
+<li>✅ Use <code>.npmignore</code> to keep package lean</li>
+<li>✅ Include usage examples in README</li>
+</ul>
+<p><strong>Maintenance:</strong></p>
+<ul>
+<li>✅ Respond to issues promptly</li>
+<li>✅ Tag releases with semantic versions</li>
+<li>✅ Keep dependencies updated</li>
+<li>✅ Document breaking changes clearly</li>
+</ul>
+<hr />
+<h2 id="real-world-example-from-hobby-project-to-published-package">Real-World Example: From Hobby Project to Published Package</h2>
+<p>This guide is based on a real-world transformation: turning an HTML-to-PDF generator from a single-application solution into a framework-agnostic package that any developer can use.</p>
+<p><strong>The package:</strong> <a href="https://www.npmjs.com/package/@encryptioner/html-to-pdf-generator" target="_blank" rel="noopener noreferrer"><code>@encryptioner/html-to-pdf-generator</code></a></p>
+<p><strong>What it does:</strong> Modern multi-page PDF generator from HTML content with smart pagination and styling support.</p>
+<p><strong>The transformation journey:</strong></p>
+<ul>
+<li>Started as tightly coupled code in a single project</li>
+<li>Extracted the core logic into a standalone library</li>
+<li>Made it framework-agnostic (works with React, Vue, vanilla JS, Node.js)</li>
+<li>Added proper TypeScript types</li>
+<li>Set up automated publishing with GitHub Actions</li>
+<li>Documented everything in a useful README</li>
+</ul>
+<p><strong>The outcome:</strong>
+A package that solves a real problem for developers who need to generate clean, multi-page PDFs from HTML without fighting with browser print dialogs or complex PDF libraries.</p>
+<p>Installation:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> install</span><span style="color:#98C379"> @encryptioner/html-to-pdf-generator</span></span></code></pre>
+<p>This transition from “code that works for one project” to “code that works for everyone” demonstrates what successful package publishing looks like. The technical steps matter, but the mindset shift matters more — thinking about edge cases, documentation, and user experience.</p>
+<hr />
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>Publishing your first NPM package is a rite of passage. It’s messy, confusing, and occasionally frustrating — but incredibly rewarding.</p>
+<p>The moment you see someone install your package, report a bug, or (even better) contribute a feature — it all clicks. You’re not just writing code anymore. You’re building something that helps others build things.</p>
+<p>Don’t wait for the perfect moment or the perfect code. Start with something useful, document it well, and iterate. The tools are better than ever, and the community is welcoming.</p>
+<p>And when something breaks at 2 AM (it will), don’t panic. Unpublish within 24 hours, fix it, document what happened, and keep going.</p>
+<p>The open-source world needs more builders. So go ahead — publish that package you’ve been thinking about.</p>
+<p>Happy publishing! 🚀</p>
+<hr />
+<h2 id="lets-connect">Let’s Connect</h2>
+<p>I’m always excited to hear about what you’re building! If you found this guide helpful, have questions, or just want to share your NPM publishing journey:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+</ul>
+<p>Drop a message if you publish your first package using this guide — I’d love to check it out!</p></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Node.js">
+More on Node.js </a> </footer> </article> <section class="shell sec"> <h2>More in Node.js</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Node.js" data-slug="pnpm-a-better-package-manager-for-node-js" data-search="pnpm - a better package manager for node.js node.js node.js is a popular choice for developers which allows using javascript on both client and server side. having a big community, node.js provides numerous…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Node.js</span>  </div> <h3><a href="/blogs/blog/pnpm-a-better-package-manager-for-node-js">pnpm - A better package manager for Node.js</a></h3> <p class="excerpt">Node.js is a popular choice for developers which allows using JavaScript on both client and server side. Having a big community, node.Js provides numerous…</p> <div class="meta"> <time datetime="2025-07-31">31 Jul 2025</time> <span>4 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reviewing Teammates&#39; PRs Faster — branchdiff Sessions, AI Passes, and Sync Back — Ankur’s Writing</title><meta name="description" content="You open the PR. Thirty-eight files changed. You have already reviewed this one twice this week — the author addressed most of the comments but force-pushed…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/reviewing-teammates-prs-faster-branchdiff-sessions-ai-passes-and-sync-back/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Reviewing Teammates' PRs Faster — branchdiff Sessions, AI Passes, and Sync Back — Ankur’s Writing"><meta property="og:description" content="You open the PR. Thirty-eight files changed. You have already reviewed this one twice this week — the author addressed most of the comments but force-pushed…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/reviewing-teammates-prs-faster-branchdiff-sessions-ai-passes-and-sync-back/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-15/viewed-stale-state.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Reviewing Teammates' PRs Faster — branchdiff Sessions, AI Passes, and Sync Back — Ankur’s Writing"><meta name="twitter:description" content="You open the PR. Thirty-eight files changed. You have already reviewed this one twice this week — the author addressed most of the comments but force-pushed…"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-15/viewed-stale-state.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-05-09"><meta property="article:modified_time" content="2026-08-09"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>branchdiff</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">branchdiff</span> </div> <h1>Reviewing Teammates&#39; PRs Faster — branchdiff Sessions, AI Passes, and Sync Back</h1> <p class="article-meta mono"> <time datetime="2026-08-09">9 Aug 2026</time> <span>·</span> <span>11 min read</span> <span>·</span> <span>2,203 words</span> </p> </header>  <div class="prose"><h1 id="reviewing-teammates-prs-faster--branchdiff-sessions-ai-passes-and-sync-back">Reviewing Teammates’ PRs Faster — branchdiff Sessions, AI Passes, and Sync Back</h1>
+<p>You open the PR. Thirty-eight files changed. You have already reviewed this one twice this week — the author addressed most of the comments but force-pushed twice and now the diff is showing things you definitely already looked at. You scroll past the same unchanged files for the third time, trying to remember where you left off. Three tabs open: the PR, your editor, an AI assistant window you used to check that one regex. The PR description does not explain why this approach was chosen over the obvious alternative. You leave a comment asking. You tab-switch back to your editor to do something else while you wait.</p>
+<p>This is code review for most engineers, most of the time. Not because the code is bad. Because the <strong>mechanics around reading code</strong> are poorly designed. Re-reading unchanged files, losing place after a force-push, copy-pasting between a diff view and an AI — none of that is the actual work of understanding intent. It is friction that accumulates until you give the PR an “LGTM” you do not mean, because you are tired and you have a meeting in ten minutes.</p>
+<p>This post is about a workflow that keeps the mechanics out of your way so you can put your attention on the part that actually requires attention. The tool is <strong>branchdiff</strong>: a local browser app that opens beside your editor, reads the diff from disk, and talks to GitHub or Bitbucket through the same <code>gh</code> CLI or REST API you would use anyway. The canonical PR stays on the platform. branchdiff is just the cockpit.</p></div>  <div class="prose">
+<hr />
+<h2 id="step-1--open-the-pr-locally">Step 1 — open the PR locally</h2>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">branchdiff</span><span style="color:#98C379"> https://github.com/owner/repo/pull/123</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># or</span></span>
+<span class="line"><span style="color:#61AFEF">branchdiff</span><span style="color:#98C379"> https://bitbucket.org/workspace/repo/pull-requests/45</span></span></code></pre>
+<p>branchdiff fetches the PR head, opens a tab at <code>localhost:5391</code>, and shows the diff with split or unified view, syntax highlighting for 150+ languages, and a sidebar of changed files. The toolbar carries a <code>#123</code> badge with a state dot — green for open, purple for merged, red for closed/declined — so at a glance you know what kind of review you are about to do: fresh read, re-review, or post-merge audit.</p>
+<p>Because this compares two named refs, the session is <strong>persistent</strong>. Comments survive new commits to either branch — stored locally in SQLite under <code>~/.branchdiff/</code>. If the author force-pushes mid-review, your view markers and draft comments are still there when you reopen. That single property is what makes branchdiff usable for reviews that take more than one sitting.</p>
+<p>Multiple PRs at once is the default. Each ref pair opens on its own port — second session on <code>5392</code>, third on <code>5393</code> — so reviewing your colleague’s PR while iterating on your own branch in another tab is just two browser tabs. <code>branchdiff list</code> shows everything running. Same ref pair revisited? branchdiff reuses the existing session so you do not fragment the review across ports.</p>
+<p>If the PR already has comments from other reviewers, click <code>#123</code> → <strong>Pull from PR</strong>. Existing inline review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review in the same place, at the same time. That is the moment branchdiff stops feeling like a “diff viewer” and starts feeling like the actual review surface.</p>
+<hr />
+<h2 id="step-2--track-progress-with-viewed--stale-markers">Step 2 — track progress with viewed / stale markers</h2>
+<p>Big PRs are intimidating because progress is invisible. branchdiff borrows GitHub’s “viewed” idea and makes it meaningfully smarter:</p>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-15/viewed-stale-state.png" alt="Viewed / Stale State Machine" /></p>
+<ul>
+<li><strong>Mark a file viewed</strong> with the eye icon in the file header, right-click → <em>Mark viewed</em>, or from the keyboard. The sidebar shows a checkmark.</li>
+<li><strong>A counter</strong> — <code>12 / 38 viewed</code> — shows how far you are. On a forty-file PR, that counter is the difference between confident progress and the “I think I covered everything” feeling that produces “LGTM” comments written out of exhaustion.</li>
+<li><strong>Stale detection.</strong> If the author pushes a commit that changes a file you already marked viewed, branchdiff flips it to <em>stale</em> with an amber dot. You only re-read the parts that actually changed.</li>
+</ul>
+<p>Staleness uses an <strong>FNV-1a hash of the file’s diff signature</strong> — content-based, not timestamp-based. A rebase that does not touch the file will not invalidate your work. A force-push that changes one line flips exactly that file to stale.</p>
+<p>The state persists across sessions and machines via a stable <strong>repo fingerprint</strong> — branchdiff scans your remotes (upstream, then origin, then any other) to converge on a canonical ID across forks. <code>branchdiff info</code> prints the fingerprint and state-table size so you can audit what is being tracked.</p>
+<p>There is also a <strong>commit detail page</strong>. Click any commit in the history sidebar to open <code>/commit/:hash</code> with the full SHA, parent links, file list with <code>+N / -N</code> counts, and the same diff view. The back button returns you to the branch comparison without losing your position.</p>
+<hr />
+<h2 id="step-3--narrow-the-file-list-with-sidebar-filters">Step 3 — narrow the file list with sidebar filters</h2>
+<p>The sidebar has nine filter chips that stack with the search box. Each one answers a specific question reviewers ask out loud:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Filter</th><th>The question it answers</th></tr></thead><tbody><tr><td><strong>Commented</strong></td><td>Which files already have review threads on them?</td></tr><tr><td><strong>Uncommented</strong></td><td>Which files have I not commented on yet?</td></tr><tr><td><strong>Viewed</strong></td><td>Which files have I already marked as reviewed?</td></tr><tr><td><strong>Unviewed</strong></td><td>What’s left to read?</td></tr><tr><td><strong>Stale</strong></td><td>Which of my viewed files changed since I marked them?</td></tr><tr><td><strong>Collapsed</strong></td><td>Which diffs am I currently hiding?</td></tr><tr><td><strong>Expanded</strong></td><td>Which diffs am I actively reading?</td></tr><tr><td><strong>Staged</strong></td><td>Which working-tree files have staged changes?</td></tr><tr><td><strong>Unstaged</strong></td><td>Which working-tree files have unstaged changes?</td></tr></tbody></table>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-15/sidebar-filters-grid.png" alt="9 Sidebar Filters" /></p>
+<p>Filters auto-hide when inapplicable — no <code>Staged</code> chip on a branch comparison, no <code>Commented</code> chip when nothing is commented yet. They stack with the search box, so <em>Filter → Stale + search “auth”</em> gives you exactly the auth files that changed since you last looked.</p>
+<p>There is a tenth chip — <strong>Resolved</strong>. Files with a resolved thread (a local resolve, or one resolved on the PR) get a green ✓ pill on the row; click <strong>Resolved</strong> to jump to the first one. It earns its keep on a re-review, the exact moment you care which concerns the author has closed.</p>
+<p>Two toolbar helpers work alongside the filters: <strong>Collapse all</strong> folds every file for a high-level pass; <strong>Expand all</strong> opens everything for a deep read. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.</p>
+<p>For working-tree reviews, the <strong>staged / unstaged toggle</strong> flips between <code>git diff --staged</code> and <code>git diff</code> without re-running the command. File rows show inline status badges — <strong>S</strong> (staged), <strong>U</strong> (unstaged), amber dot (stale), checkmark (viewed and current).</p>
+<p>Note the other direction: a <em>branch</em> comparison (<code>main..feature</code>) is <strong>committed-only by default</strong> — untracked and uncommitted files do not leak into it. If you want them in, <code>--include-staged</code> / <code>--include-unstaged</code> on the root command opt back in (they seed the shareable URL and reach the review/resolve skills, but never <code>auto</code>).</p>
+<p>A typical second-pass workflow: <em>Filter → Stale</em>, re-read those files, mark viewed; <em>Filter → Unviewed</em>, finish those; <em>Filter → Commented</em>, sanity-check the threads. The PR shrinks from “38 files” to a list of seven that need attention right now.</p>
+<hr />
+<h2 id="step-4--full-file-view-with-the-change-minimap">Step 4 — full-file view with the change minimap</h2>
+<p>Inline diffs fall apart when the change depends on context far above or below the hunk — which describes most non-trivial changes. The toolbar’s <strong>Full-file view</strong> opens a VS Code-style side-by-side rendering of the entire file:</p>
+<ul>
+<li>All hunks expanded in place inside the full file. You see the whole function, not three lines ripped out of context.</li>
+<li>A <strong>minimap on the right</strong> marking added, removed, and modified regions. Scan a 1,000-line file in a glance and click straight to a change. The question “is there anywhere else this pattern appears?” becomes answerable in two seconds.</li>
+<li>Inline review threads anchored to the same lines they live on in hunk view — comments do not disappear when you switch modes. The <code>endLine</code> anchor keeps the two views consistent.</li>
+</ul>
+<p>For markdown files, a <strong>Preview</strong> toggle renders both old and new sides as formatted markdown side-by-side. Documentation PRs become readable instead of a maze of <code>**</code>, <code>&gt;</code>, and backtick noise.</p>
+<p>Full-file view + minimap together transform a “scrolling through hunks” review into a “reading the file with annotations” review. For refactor PRs — the kind where GitHub’s hunk view gives you fifty disconnected three-line windows — it is a genuinely different activity.</p>
+<hr />
+<h2 id="step-5--let-an-ai-take-the-first-pass">Step 5 — let an AI take the first pass</h2>
+<p>Reading a 40-file PR by hand is necessary work. Running an AI pass <em>on top of</em> that read is additive: the AI is bad at understanding intent but good at the mechanical sweep that human readers skim past under cognitive load.</p>
+<p>branchdiff exposes a small <code>branchdiff agent</code> command surface that any AI can drive — Claude Code via the <code>/branchdiff-review</code> skill, or any other model via the copy-paste prompt in the README, or a one-shot pipe:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">branchdiff</span><span style="color:#98C379"> review</span><span style="color:#98C379"> context</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">claude</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> "security audit"</span></span>
+<span class="line"><span style="color:#61AFEF">branchdiff</span><span style="color:#98C379"> review</span><span style="color:#98C379"> run</span><span style="color:#D19A66"> --exec</span><span style="color:#98C379"> "claude -p 'test coverage gaps'"</span><span style="color:#D19A66"> --mode</span><span style="color:#98C379"> review</span></span></code></pre>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-15/ai-passes-decision.png" alt="AI Passes Decision Tree" /></p>
+<p>For somebody else’s PR I usually run two passes:</p>
+<ul>
+<li><strong>Security audit</strong> when the diff touches auth, input handling, or anything web-facing. Looks only for security issues — injection, secret leaks, weak crypto, broken authorisation, deserialisation traps, path traversal, SSRF, dependency risk — skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.</li>
+<li><strong>Test coverage gaps</strong> for new logic. Walks every new function and branch, checks the test directory for coverage, flags uncovered paths with a stub <code>it(...)</code> suggestion. Priority is error branches → new public API → edge cases → happy path.</li>
+</ul>
+<p>For larger or riskier PRs I add <strong>breaking-change review</strong> or <strong>dependency review</strong>.</p>
+<p>Two improvements make these passes less noisy: <strong>constructive tone</strong> (comments lead with the problem, not a judgment) and <strong>nth-time review awareness</strong> (resolved and dismissed threads are not re-raised unless there is new evidence).</p>
+<p>You read the AI’s comments, decide which are real, dismiss the rest with reasons (<code>branchdiff agent dismiss &lt;id&gt; --reason "..."</code>), and keep the ones worth escalating. The AI is a first-pass filter — it lets you put your real attention on the parts that require understanding intent.</p>
+<hr />
+<h2 id="step-6--push-comments-and-act-on-the-review">Step 6 — push comments and act on the review</h2>
+<p>When you are happy with the threads, click the PR badge in the toolbar and choose <strong>Push to PR</strong>. Each single-comment thread is posted as an inline review comment on GitHub or Bitbucket. Duplicates (same file, line, body) are skipped. Threads with replies stay local — those conversations belong on the PR.</p>
+<p>The toast tells you what happened: <code>Pushed 4, skipped 1 duplicate, skipped 2 multi-reply threads</code>. Failures keep the local thread intact so you can fix the anchor and retry.</p>
+<p>The same dropdown carries every lifecycle action — Approve / Request Changes / Comment, Merge with strategy picker, Close / Reopen / Mark Draft / Mark Ready, Edit title and description. <strong>Reviewer pills</strong> in the dropdown header show every reviewer’s latest state — approved, changes requested, commented, pending, or dismissed — at a glance. Errors stay inline in the confirm dialog so a typed comment is not lost when the network blips.</p>
+<hr />
+<h2 id="a-reasonable-cadence-for-a-30-file-pr">A reasonable cadence for a 30-file PR</h2>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-15/review-cadence.png" alt="Review Cadence in 6 Steps" /></p>
+<p>The total wall-clock time on a careful review goes down enough that you can afford to be more thorough on the parts that matter — flow control, contracts, edge cases, the “is this the right abstraction?” question — instead of burning attention on mechanics.</p>
+<hr />
+<h2 id="where-it-stops">Where it stops</h2>
+<ul>
+<li><strong>No CI.</strong> The platform’s checks are still the gate.</li>
+<li><strong>No multi-reply thread push.</strong> Back-and-forth conversations belong on the PR.</li>
+<li><strong>No cloud storage.</strong> Wipe <code>~/.branchdiff/</code> and local drafts that have not been pushed are gone.</li>
+<li><strong>No branch protection bypass.</strong> Merge actions still respect required reviews, status checks, and protected branches on the platform.</li>
+<li><strong>No full PR page replacement.</strong> The PR description, linked issues, and CI block still live on the platform. <em>Open in browser</em> in the toolbar is one click away.</li>
+</ul>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<p>Full install guide, changelog, and uninstall steps on the <a href="https://encryptioner.github.io/branchdiff-releases/" target="_blank" rel="noopener noreferrer">branchdiff releases page</a>.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> install</span><span style="color:#D19A66"> -g</span><span style="color:#98C379"> @encryptioner/branchdiff</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># or: pip install branchdiff</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># or: brew tap encryptioner/branchdiff https://github.com/encryptioner/branchdiff-releases \</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#          &amp;&amp; brew install branchdiff</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">branchdiff</span><span style="color:#98C379"> https://github.com/your-org/your-repo/pull/123</span></span></code></pre>
+<p>Add <code>branchdiff skill add</code> if you want the Claude Code slash commands. Everything else is in the toolbar.</p>
+<p>The next time a teammate posts a 40-file PR in Slack, try opening it locally. Mark a few files viewed. Run a security audit pass. Push the comments back. See whether the review felt different — and whether you have more attention left for the parts that need it.</p>
+<hr />
+<h2 id="lets-connect">Let’s Connect</h2>
+<p>I am always excited to hear what you are building. If this guide helped, or if you want to talk through AI-augmented code review strategies:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+<li><strong>Support</strong>: <a href="https://www.supportkori.com/mirmursalinankur" target="_blank" rel="noopener noreferrer">SupportKori</a></li>
+</ul>
+<p><em>branchdiff releases, install guide, and changelog: <a href="https://encryptioner.github.io/branchdiff-releases/" target="_blank" rel="noopener noreferrer">encryptioner.github.io/branchdiff-releases</a></em></p></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

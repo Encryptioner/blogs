@@ -1,0 +1,1257 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Claude Code Permissions Management: The Ninja Guide — Ankur’s Writing</title><meta name="description" content="You've experienced the nightmare: --dangerously-skip-permissions seemed convenient, then Claude deleted your Chrome cache during Playwright testing. Without…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/claude-code-permissions-management-the-ninja-guide/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Claude Code Permissions Management: The Ninja Guide — Ankur’s Writing"><meta property="og:description" content="You've experienced the nightmare: --dangerously-skip-permissions seemed convenient, then Claude deleted your Chrome cache during Playwright testing. Without…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/claude-code-permissions-management-the-ninja-guide/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Code Permissions Management: The Ninja Guide — Ankur’s Writing"><meta name="twitter:description" content="You've experienced the nightmare: --dangerously-skip-permissions seemed convenient, then Claude deleted your Chrome cache during Playwright testing. Without…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Global Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Global Research</span> </div> <h1>Claude Code Permissions Management: The Ninja Guide</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>15 min read</span> <span>·</span> <span>2,937 words</span> </p> </header>  <div class="prose"><h1 id="claude-code-permissions-management-the-ninja-guide">Claude Code Permissions Management: The Ninja Guide</h1>
+<blockquote>
+<p>How to configure Claude Code permissions for maximum safety without being overwhelmed by prompts. Prevent out-of-scope changes, use custom providers like z.ai, configure model mappings, and become a Claude Code productivity ninja.</p>
+</blockquote>
+<hr />
+<h2 id="the-problem-permission-overwhelm-vs-safety-danger">The Problem: Permission Overwhelm vs. Safety DANGER</h2>
+<p>You’ve experienced the nightmare: <code>--dangerously-skip-permissions</code> seemed convenient, then Claude deleted your Chrome cache during Playwright testing. Without proper permission guards, Claude can:</p>
+<ul>
+<li>Delete files outside your project</li>
+<li>Install software you didn’t approve</li>
+<li>Run scripts with destructive side effects</li>
+<li>Modify system configuration</li>
+<li>Access secrets and credentials</li>
+</ul>
+<p>But the opposite extreme is equally painful: being prompted for <strong>every single action</strong> makes Claude unusable.</p></div>  <div class="prose">
+<p><code>★ Insight ─────────────────────────────────────</code>
+<strong>The sweet spot is broad allow-lists for safe operations + strict deny-lists for dangerous ones.</strong> Claude Code’s permission system is designed for this: you pre-approve the 95% of operations you do every day (test, lint, git status, file reads), while protecting the 5% that could cause harm (deletes outside project, system installs, secrets access).
+<code>─────────────────────────────────────────────────</code></p>
+<hr />
+<h2 id="the-permission-hierarchy-what-overrides-what">The Permission Hierarchy (What Overrides What)</h2>
+<p>Settings are evaluated in this order (highest to lowest priority):</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Priority</th><th>Source</th><th>Scope</th><th>Use Case</th></tr></thead><tbody><tr><td>1</td><td><code>managed-settings.json</code></td><td>System</td><td>Enterprise IT policies (cannot be overridden)</td></tr><tr><td>2</td><td>CLI flags</td><td>Session</td><td>Temporary: <code>--allowedTools</code>, <code>--dangerously-skip-permissions</code></td></tr><tr><td>3</td><td><code>.claude/settings.local.json</code></td><td>Project personal</td><td>Your personal overrides (gitignored)</td></tr><tr><td>4</td><td><code>.claude/settings.json</code></td><td>Project shared</td><td>Team settings (in git)</td></tr><tr><td>5</td><td><code>~/.claude/settings.json</code></td><td>User global</td><td>Your personal defaults</td></tr></tbody></table>
+<p><strong>Key insight:</strong> Project shared settings (4) override user global settings (5). So your project can enforce stricter rules than your personal defaults.</p>
+<hr />
+<h2 id="the-three-rule-types-deny--ask--allow">The Three Rule Types: Deny → Ask → Allow</h2>
+<p>Rules are evaluated in THIS ORDER:</p>
+<ol>
+<li><strong>Deny</strong> - Always blocks, even if also in allow</li>
+<li><strong>Ask</strong> - Prompts for confirmation</li>
+<li><strong>Allow</strong> - Proceeds without prompts</li>
+</ol>
+<p><strong>Deny always wins.</strong> If a command matches both <code>allow</code> and <code>deny</code>, it’s blocked.</p>
+<h3 id="pattern-syntax-crucial-knowledge">Pattern Syntax (Crucial Knowledge)</h3>
+<h4 id="bash-commands">Bash Commands</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Pattern</th><th>Matches</th><th>Example</th></tr></thead><tbody><tr><td><code>Bash</code></td><td>ALL bash commands</td><td>Dangerous as allow</td></tr><tr><td><code>Bash(npm run test)</code></td><td>Exact match only</td><td>Safe</td></tr><tr><td><code>Bash(npm run test *)</code></td><td>Commands starting with “npm run test ”</td><td>Safe-ish</td></tr><tr><td><code>Bash(npm run *)</code></td><td>All <code>npm run</code> commands</td><td>Good middle ground</td></tr><tr><td><code>Bash(pnpm test)</code></td><td>Exact match</td><td>Safe</td></tr><tr><td><code>Bash(pnpm test:*)</code></td><td>All test scripts starting with <code>pnpm test:</code></td><td>Safe</td></tr><tr><td><code>Bash(git status)</code></td><td>Exact match</td><td>Safe</td></tr><tr><td><code>Bash(git diff *)</code></td><td><code>git diff</code> with any args</td><td>Safe</td></tr><tr><td><code>Bash(git push *)</code></td><td>Any <code>git push</code> command</td><td>Ask or deny</td></tr><tr><td><code>Bash(rm -rf *)</code></td><td>Any command starting with <code>rm -rf </code></td><td><strong>DENY</strong></td></tr><tr><td><code>Bash(curl *)</code></td><td>Any curl command</td><td><strong>DENY</strong> (code execution risk)</td></tr><tr><td><code>Bash(* --version)</code></td><td>Commands ending with <code>--version</code></td><td>Safe</td></tr><tr><td><code>Bash(* --help *)</code></td><td>Commands with <code>--help</code></td><td>Safe</td></tr></tbody></table>
+<p><strong>Critical:</strong> Space before <code>*</code> matters!</p>
+<ul>
+<li><code>Bash(ls *)</code> matches <code>ls -la</code> but NOT <code>lsof</code></li>
+<li><code>Bash(ls*)</code> matches both (prefix match)</li>
+</ul>
+<h4 id="readedit-rules-gitignore-style-patterns">Read/Edit Rules (gitignore-style patterns)</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Pattern</th><th>Meaning</th><th>Example</th></tr></thead><tbody><tr><td><code>./src/**</code></td><td>Relative to current directory</td><td>Reads <code>&lt;cwd&gt;/src/**</code></td></tr><tr><td><code>/src/**</code></td><td>Relative to settings file location</td><td>Reads <code>&lt;settings-file-parent&gt;/src/**</code></td></tr><tr><td><code>~/Documents/**</code></td><td>Home directory</td><td>Reads <code>~/Documents/**</code></td></tr><tr><td><code>//tmp/**</code></td><td>Absolute path from filesystem root</td><td>Reads <code>/tmp/**</code></td></tr><tr><td><code>*.env</code></td><td>Any <code>.env</code> file in current directory</td><td>Block these</td></tr><tr><td><code>./.env*</code></td><td>Files starting with <code>.env</code> in current directory</td><td>Block these</td></tr><tr><td><code>~/.ssh/**</code></td><td>SSH keys directory</td><td><strong>DENY</strong></td></tr></tbody></table>
+<h4 id="webfetch-rules">WebFetch Rules</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Pattern</th><th>Meaning</th></tr></thead><tbody><tr><td><code>WebFetch(domain:github.com)</code></td><td>Only that domain</td></tr><tr><td><code>WebFetch(domain:*.anthropic.com)</code></td><td>Subdomain wildcard</td></tr><tr><td><code>WebFetch</code></td><td>ALL web fetches (dangerous as allow)</td></tr></tbody></table>
+<hr />
+<h2 id="the-ninja-configuration-safe-but-not-overwhelming">The Ninja Configuration: Safe But Not Overwhelming</h2>
+<p>Here’s a production-ready <code>.claude/settings.json</code> that prevents the Chrome cache disaster while remaining productive:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "$schema"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://json.schemastore.org/claude-code-settings.json"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "defaultMode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"acceptEdits"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Read(src/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(tests/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(lib/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(docs/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.md)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.json)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.ts)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.tsx)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.js)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.jsx)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test:*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test:e2e *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm validate)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm dev *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm run test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm run lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm run build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git log *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git branch *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git show *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git blame *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git add *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git reset *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git restore *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git checkout *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Bash(* --version)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(* --help *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(ls *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(cat *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(echo *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pwd)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(which *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(head *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(tail *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(grep *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(find *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(Glob *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rg *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git push *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git pull *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git merge *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git rebase *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git commit *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm publish)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm publish)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(npm rebuild)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm rebuild)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./package.json)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./pnpm-lock.yaml)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./package-lock.json)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rm -rf *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rmdir *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(del *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(delete *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(shred *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(dd *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(mkfs *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(fdisk *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(format *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(curl *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(wget *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(nc *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(netcat *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(telnet *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(ssh *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(scp *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rsync *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(chmod +x *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(sudo *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(doas *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(su *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pip install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pip3 install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(brew install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(brew upgrade *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(apt install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(apt-get install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(yum install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(dnf install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(gem install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(go install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(cargo install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./config/secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.ssh/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.aws/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.config/gcloud/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/Application Support/Google/Chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/Caches/Google/Chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.cache/google-chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(//tmp/.X11-unix/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/var/run/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/etc/shadow)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/etc/passwd"</span><span style="color:#FFFFFF">)</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.ssh/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.aws/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.config/gcloud/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/Application Support/Google/Chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/Caches/Google/Chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.cache/google-chrome/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(//tmp/.X11-unix/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/var/run/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/etc/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/Application Support/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/Caches/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.config/**)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "additionalDirectories"</span><span style="color:#ABB2BF">: []</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="what-this-does">What This Does</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Category</th><th>Protection</th></tr></thead><tbody><tr><td><strong>Package operations</strong></td><td>Install/publish require confirmation</td></tr><tr><td><strong>Git destructive ops</strong></td><td>Push/pull/merge require confirmation</td></tr><tr><td><strong>System-level installs</strong></td><td>pip/npm/brew/apt installs BLOCKED</td></tr><tr><td><strong>File deletion</strong></td><td>rm/rmdir/dd/shred/format BLOCKED</td></tr><tr><td><strong>Network commands</strong></td><td>curl/wget/nc/ssh BLOCKED</td></tr><tr><td><strong>Privilege escalation</strong></td><td>sudo/su BLOCKED</td></tr><tr><td><strong>Secret files</strong></td><td>.env, secrets, SSH keys, AWS creds BLOCKED</td></tr><tr><td><strong>Browser cache</strong></td><td>Chrome cache directories BLOCKED</td></tr><tr><td><strong>System directories</strong></td><td>/etc, /var/run, X11 sockets BLOCKED</td></tr></tbody></table>
+<h3 id="defaultmode-acceptedits">defaultMode: acceptEdits</h3>
+<p>This mode:</p>
+<ul>
+<li>Auto-approves all file edits and writes within allowed directories</li>
+<li>Still prompts for Bash commands</li>
+<li>Still prompts for tools not in allow-list</li>
+</ul>
+<p><strong>Result:</strong> You get permission-free coding (edits just work) while keeping guards around dangerous operations.</p>
+<hr />
+<h2 id="standard-permissions-allow-list-copy-paste-ready">Standard Permissions Allow-List (Copy-Paste Ready)</h2>
+<h3 id="for-typescriptjavascript-projects">For TypeScript/JavaScript Projects</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(src/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(tests/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(lib/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(*.{ts,tsx,js,jsx,json,md})"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm test:e2e *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pnpm dev *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git log *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git add *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(* --version)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(* --help *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="for-python-projects">For Python Projects</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(src/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(tests/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(*.{py,md,json,txt,toml})"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python -m pytest *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pytest *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python -m black *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python -m mypy *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python -m ruff check *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pip list)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pip show *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(* --version)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pip install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pip uninstall *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python setup.py)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(pip install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(python -m pip install * --user)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(./secrets/**)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="for-rust-projects">For Rust Projects</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(src/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(tests/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(*.{rs,toml,md})"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo build *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo check *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo clippy *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo fmt *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo publish *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(cargo install *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="for-go-projects">For Go Projects</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(**/*.go)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(go.mod)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(*.md)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go build *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go run *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go fmt *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go vet *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go get *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(go install *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="for-ruby-projects">For Ruby Projects</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(lib/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(spec/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(*.{rb,md,gemfile})"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(bundle exec rspec *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(bundle exec rubocop *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(ruby *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(bundle install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(gem install *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="handling-bash-scripts-the-danger-zone">Handling Bash Scripts: The Danger Zone</h2>
+<p>Bash scripts are the most dangerous permission surface because a single script can do anything.</p>
+<h3 id="rule-1-never-allow-arbitrary-script-execution">Rule 1: Never Allow Arbitrary Script Execution</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(sh *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(bash *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(zsh *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(*.sh)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(*.bash)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(source *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(. *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(eval *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(exec *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="rule-2-if-you-must-allow-scripts-use-specific-paths">Rule 2: If You Must Allow Scripts, Use Specific Paths</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(./scripts/format.sh)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(./scripts/test.sh)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(./scripts/build.sh)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(node ./scripts/*.js)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ],</span></span>
+<span class="line"><span style="color:#E06C75">  "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(sh *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(bash *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Bash(*.sh)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="rule-3-use-hooks-to-validate-script-content">Rule 3: Use Hooks to Validate Script Content</h3>
+<p>Create a script at <code>.claude/hooks/validate-script.sh</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic">#!/bin/bash</span></span>
+<span class="line"><span style="color:#E06C75">SCRIPT_PATH</span><span style="color:#56B6C2">=</span><span style="color:#ABB2BF">$(</span><span style="color:#61AFEF">cat</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">jq</span><span style="color:#D19A66"> -r</span><span style="color:#98C379"> '.tool_input.command // empty'</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">awk</span><span style="color:#98C379"> '{print $NF}'</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> [ </span><span style="color:#56B6C2">-z</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$SCRIPT_PATH</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> ]; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#56B6C2">  exit</span><span style="color:#D19A66"> 0</span></span>
+<span class="line"><span style="color:#C678DD">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Check if script is in allowed directory</span></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> [[ </span><span style="color:#98C379">"</span><span style="color:#E06C75">$SCRIPT_PATH</span><span style="color:#98C379">"</span><span style="color:#56B6C2"> !=</span><span style="color:#ABB2BF"> ./scripts/* ]]; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#56B6C2">  echo</span><span style="color:#98C379"> "Only scripts in ./scripts/ are allowed"</span><span style="color:#ABB2BF"> &gt;&amp;2</span></span>
+<span class="line"><span style="color:#56B6C2">  exit</span><span style="color:#D19A66"> 2</span></span>
+<span class="line"><span style="color:#C678DD">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Check script content for dangerous patterns</span></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#61AFEF"> grep</span><span style="color:#D19A66"> -qE</span><span style="color:#98C379"> '(rm -rf|dd if=|mkfs|fdisk|format|:&gt;|&gt;.*\/)'</span><span style="color:#98C379"> "</span><span style="color:#E06C75">$SCRIPT_PATH</span><span style="color:#98C379">"</span><span style="color:#ABB2BF"> 2&gt;</span><span style="color:#98C379">/dev/null</span><span style="color:#ABB2BF">; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#56B6C2">  echo</span><span style="color:#98C379"> "Script contains dangerous patterns"</span><span style="color:#ABB2BF"> &gt;&amp;2</span></span>
+<span class="line"><span style="color:#56B6C2">  exit</span><span style="color:#D19A66"> 2</span></span>
+<span class="line"><span style="color:#C678DD">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#56B6C2">exit</span><span style="color:#D19A66"> 0</span></span></code></pre>
+<p>Add to settings.json:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "hooks"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "PreToolUse"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Bash(sh *.sh|bash *.sh|*.sh)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">        "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">".claude/hooks/validate-script.sh"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="sandbox-mode-os-level-protection">Sandbox Mode: OS-Level Protection</h2>
+<p>Enable sandboxing for additional protection (macOS, Linux, WSL2 only):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "sandbox"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "enabled"</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">true</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "excludedCommands"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"playwright"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"docker"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">    "allowUnsandboxedCommands"</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">false</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "network"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">      "allowedDomains"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"github.com"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"*.npmjs.org"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"*.anthropic.com"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">      "allowAllUnixSockets"</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">false</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>What sandbox does:</strong></p>
+<ul>
+<li>Restricts filesystem access to project directory</li>
+<li>Limits network access to allowed domains</li>
+<li>Blocks access to Unix sockets</li>
+<li>Requires explicit exclusion for tools that need broader access (like Playwright)</li>
+</ul>
+<hr />
+<h2 id="environment-variables-the-complete-reference">Environment Variables: The Complete Reference</h2>
+<h3 id="authentication--api">Authentication &amp; API</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr><td><code>ANTHROPIC_API_KEY</code></td><td>Standard API key</td><td><code>sk-ant-xxx...</code></td></tr><tr><td><code>ANTHROPIC_AUTH_TOKEN</code></td><td>Custom Authorization header</td><td><code>Bearer token123</code></td></tr><tr><td><code>ANTHROPIC_CUSTOM_HEADERS</code></td><td>Custom headers (newline-separated)</td><td><code>X-Custom: value\nX-Another: value</code></td></tr></tbody></table>
+<h3 id="provider-selection-cloud-platforms">Provider Selection (Cloud Platforms)</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Value</th></tr></thead><tbody><tr><td><code>CLAUDE_CODE_USE_BEDROCK</code></td><td>Use AWS Bedrock</td><td><code>1</code></td></tr><tr><td><code>CLAUDE_CODE_USE_FOUNDRY</code></td><td>Use Microsoft Foundry</td><td><code>1</code></td></tr><tr><td><code>CLAUDE_CODE_USE_VERTEX</code></td><td>Use Google Vertex AI</td><td><code>1</code></td></tr></tbody></table>
+<h3 id="model-configuration">Model Configuration</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr><td><code>ANTHROPIC_MODEL</code></td><td>Override default model</td><td><code>claude-opus-4-6</code></td></tr><tr><td><code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code></td><td>Haiku class model</td><td><code>claude-haiku-4-5-20250101</code></td></tr><tr><td><code>ANTHROPIC_DEFAULT_SONNET_MODEL</code></td><td>Sonnet class model</td><td><code>claude-sonnet-4-6</code></td></tr><tr><td><code>ANTHROPIC_DEFAULT_OPUS_MODEL</code></td><td>Opus class model</td><td><code>claude-opus-4-6</code></td></tr><tr><td><code>CLAUDE_CODE_SUBAGENT_MODEL</code></td><td>Subagent model override</td><td><code>claude-haiku-4-5-20250101</code></td></tr></tbody></table>
+<h3 id="custom-providers-zai-glm-etc">Custom Providers (z.ai, GLM, etc.)</h3>
+<p>To use a custom provider like z.ai instead of Anthropic:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Set the base URL to point to z.ai</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_BASE_URL</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"https://api.z.ai/v1"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Set your z.ai API key</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_API_KEY</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"your-zai-api-key"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Map model names to z.ai's models</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_MODEL</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"glm-5"</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># or for specific model classes:</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_DEFAULT_OPUS_MODEL</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"glm-5-opus"</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_DEFAULT_SONNET_MODEL</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"glm-5-sonnet"</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> ANTHROPIC_DEFAULT_HAIKU_MODEL</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"glm-5-mini"</span></span></code></pre>
+<p><strong>How model mapping works:</strong></p>
+<ul>
+<li>When you request <code>opus</code>, Claude Code uses <code>ANTHROPIC_DEFAULT_OPUS_MODEL</code></li>
+<li>When you request <code>sonnet</code>, it uses <code>ANTHROPIC_DEFAULT_SONNET_MODEL</code></li>
+<li>When you request <code>haiku</code>, it uses <code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code></li>
+<li>The provider (z.ai) must be API-compatible with Anthropic’s API</li>
+</ul>
+<p><strong>Project vs User Scope:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Location</th><th>Scope</th><th>Example</th></tr></thead><tbody><tr><td><code>.claude/settings.json</code> env</td><td>Project only</td><td>Project-specific overrides</td></tr><tr><td><code>~/.claude/settings.json</code> env</td><td>All projects</td><td>Your personal defaults</td></tr><tr><td>Shell environment (<code>.zshrc</code>)</td><td>All apps</td><td>Global, affects everything</td></tr></tbody></table>
+<p><strong>Example: Project-specific override</strong></p>
+<p><code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "ANTHROPIC_MODEL"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"glm-5"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "ANTHROPIC_BASE_URL"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://api.z.ai/v1"</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>Example: User defaults</strong></p>
+<p><code>~/.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "ANTHROPIC_MODEL"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"claude-opus-4-6"</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Project settings (4) override user defaults (5), so the project gets <code>glm-5</code> while your other projects use <code>claude-opus-4-6</code>.</p>
+<h3 id="token-limits--performance">Token Limits &amp; Performance</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Default</th><th>Max</th></tr></thead><tbody><tr><td><code>CLAUDE_CODE_MAX_OUTPUT_TOKENS</code></td><td>Max output tokens</td><td>32,000</td><td>64,000</td></tr><tr><td><code>MAX_THINKING_TOKENS</code></td><td>Extended thinking budget</td><td>31,999</td><td>31,999</td></tr><tr><td><code>CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS</code></td><td>File read override</td><td>-</td><td>64,000</td></tr><tr><td><code>MAX_MCP_OUTPUT_TOKENS</code></td><td>MCP response limit</td><td>25,000</td><td>-</td></tr><tr><td><code>CLAUDE_AUTOCOMPACT_PCT_OVERRIDE</code></td><td>Compaction trigger</td><td>~95%</td><td>1-100</td></tr></tbody></table>
+<h3 id="mcp-configuration">MCP Configuration</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr><td><code>MCP_TIMEOUT</code></td><td>Server startup timeout (ms)</td><td>5000</td></tr><tr><td><code>MCP_TOOL_TIMEOUT</code></td><td>Tool execution timeout (ms)</td><td>30000</td></tr></tbody></table>
+<h3 id="bash-tool-configuration">Bash Tool Configuration</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Default</th></tr></thead><tbody><tr><td><code>BASH_DEFAULT_TIMEOUT_MS</code></td><td>Default timeout</td><td>120000 (2 min)</td></tr><tr><td><code>BASH_MAX_OUTPUT_LENGTH</code></td><td>Output truncation</td><td>-</td></tr><tr><td><code>BASH_MAX_TIMEOUT_MS</code></td><td>Max timeout model can set</td><td>-</td></tr><tr><td><code>CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR</code></td><td>Reset to project dir</td><td>-</td></tr><tr><td><code>CLAUDE_CODE_SHELL</code></td><td>Override shell detection</td><td><code>bash</code></td></tr><tr><td><code>CLAUDE_CODE_SHELL_PREFIX</code></td><td>Wrap all commands</td><td>-</td></tr></tbody></table>
+<h3 id="proxy-configuration">Proxy Configuration</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr><td><code>HTTP_PROXY</code></td><td>HTTP proxy</td><td><code>http://proxy.example.com:8080</code></td></tr><tr><td><code>HTTPS_PROXY</code></td><td>HTTPS proxy</td><td><code>https://proxy.example.com:8080</code></td></tr><tr><td><code>NO_PROXY</code></td><td>Bypass list</td><td><code>localhost,127.0.0.1,.local</code></td></tr><tr><td><code>CLAUDE_CODE_PROXY_RESOLVES_HOSTS</code></td><td>Proxy DNS</td><td><code>1</code></td></tr></tbody></table>
+<h3 id="experimental-features">Experimental Features</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th><th>Value</th></tr></thead><tbody><tr><td><code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS</code></td><td>Enable agent teams</td><td><code>1</code></td></tr><tr><td><code>CLAUDE_CODE_SPAWN_BACKEND</code></td><td>Agent spawn mode</td><td><code>tmux</code>, <code>iterm2</code>, <code>in-process</code></td></tr><tr><td><code>ENABLE_TOOL_SEARCH</code></td><td>MCP tool search</td><td><code>auto</code>, <code>true</code>, <code>false</code></td></tr><tr><td><code>CLAUDE_CODE_EFFORT_LEVEL</code></td><td>Effort level</td><td><code>low</code>, <code>medium</code>, <code>high</code></td></tr></tbody></table>
+<h3 id="disable-features">Disable Features</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Variable</th><th>Purpose</th></tr></thead><tbody><tr><td><code>CLAUDE_CODE_DISABLE_AUTO_MEMORY</code></td><td>Disable auto memory</td></tr><tr><td><code>CLAUDE_CODE_DISABLE_BACKGROUND_TASKS</code></td><td>Disable background tasks</td></tr><tr><td><code>CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY</code></td><td>Disable quality surveys</td></tr><tr><td><code>CLAUDE_CODE_DISABLE_TERMINAL_TITLE</code></td><td>Disable title updates</td></tr><tr><td><code>DISABLE_AUTOUPDATER</code></td><td>Disable auto updates</td></tr><tr><td><code>DISABLE_BUG_COMMAND</code></td><td>Disable <code>/bug</code></td></tr><tr><td><code>DISABLE_COST_WARNINGS</code></td><td>Disable cost warnings</td></tr><tr><td><code>DISABLE_ERROR_REPORTING</code></td><td>Disable Sentry</td></tr><tr><td><code>DISABLE_TELEMETRY</code></td><td>Disable Statsig telemetry</td></tr><tr><td><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code></td><td>Disable all non-essential</td></tr></tbody></table>
+<hr />
+<h2 id="permission-modes-cycle-with-shifttab">Permission Modes: Cycle with Shift+Tab</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Mode</th><th>How It Works</th><th>When to Use</th></tr></thead><tbody><tr><td><code>default</code></td><td>Prompts on first use per session</td><td>Standard development</td></tr><tr><td><code>acceptEdits</code></td><td>Auto-approves file edits, prompts for bash</td><td><strong>Recommended for daily coding</strong></td></tr><tr><td><code>plan</code></td><td>Read-only exploration, no modifications</td><td>Planning mode</td></tr><tr><td><code>bypassPermissions</code></td><td>Skips ALL prompts</td><td><strong>NEVER in production</strong></td></tr></tbody></table>
+<hr />
+<h2 id="file-scope-restrictions-keep-ai-in-bounds">File Scope Restrictions: Keep AI in Bounds</h2>
+<h3 id="restrict-to-project-directory-only">Restrict to Project Directory Only</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "additionalDirectories"</span><span style="color:#ABB2BF">: []</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Empty <code>additionalDirectories</code> means Claude can ONLY access the project directory.</p>
+<h3 id="allow-specific-additional-directories">Allow Specific Additional Directories</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "additionalDirectories"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "../shared-libs"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "../docs"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "~/Templates"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Claude can now access these, but your deny rules still apply (so it can’t delete <code>~/Templates</code> if you have <code>Edit(~/Templates/**)</code> in deny).</p>
+<h3 id="block-system-directories-explicitly">Block System Directories Explicitly</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/Caches/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/Application Support/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.cache/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/Library/Preferences/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/tmp/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/var/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(/etc/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.cache/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/tmp/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/var/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/etc/**)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>This prevents the Chrome cache deletion incident by explicitly blocking cache directories.</p>
+<hr />
+<h2 id="managed-settings-enterprise-lockdown">Managed Settings: Enterprise Lockdown</h2>
+<p>For teams that want to enforce policies:</p>
+<p><code>/etc/claude-code/managed-settings.json</code> (Linux) or <code>/Library/Application Support/ClaudeCode/managed-settings.json</code> (macOS):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "disableBypassPermissionsMode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"disable"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "allowManagedPermissionRulesOnly"</span><span style="color:#ABB2BF">: </span><span style="color:#D19A66">true</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "strictKnownMarketplaces"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">    {</span></span>
+<span class="line"><span style="color:#E06C75">      "source"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"github"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "repo"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"your-company/approved-plugins"</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>What this does:</strong></p>
+<ul>
+<li><code>disableBypassPermissionsMode: "disable"</code> - Users cannot use <code>--dangerously-skip-permissions</code></li>
+<li><code>allowManagedPermissionRulesOnly: true</code> - Only managed permission rules apply</li>
+<li><code>strictKnownMarketplaces</code> - Only approved plugin marketplaces can be added</li>
+</ul>
+<hr />
+<h2 id="the-set-and-forget-ninja-setup">The “Set and Forget” Ninja Setup</h2>
+<p>Create these files once, and you’re protected across all projects:</p>
+<h3 id="1-user-level-defaults">1. User-Level Defaults</h3>
+<p><code>~/.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "$schema"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://json.schemastore.org/claude-code-settings.json"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "defaultMode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"acceptEdits"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rm -rf *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rmdir *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(del *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(delete *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(shred *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(dd *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(curl *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(wget *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(sudo *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(su *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pip install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(brew install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(apt install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.ssh/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(~/.aws/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/Library/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.cache/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(~/.config/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/tmp/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(/var/**)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="2-add-this-to-your-zshrc-optional-custom-provider">2. Add This to Your <code>.zshrc</code> (Optional Custom Provider)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Uncomment to use z.ai instead of Anthropic</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># export ANTHROPIC_BASE_URL="https://api.z.ai/v1"</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># export ANTHROPIC_API_KEY="your-zai-api-key-here"</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># export ANTHROPIC_MODEL="glm-5"</span></span></code></pre>
+<h3 id="3-project-level-template-copy-to-new-projects">3. Project-Level Template (Copy to New Projects)</h3>
+<p><code>.claude/settings.json.template</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "$schema"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://json.schemastore.org/claude-code-settings.json"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "defaultMode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"acceptEdits"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Read(src/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(tests/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(*.{ts,tsx,js,jsx,json,md})"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm validate)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git log *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git add *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(* --version)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(* --help *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Glob"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Grep"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "ask"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git push *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm install *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./package.json)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./pnpm-lock.yaml)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rm -rf *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(curl *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(sudo *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Edit(./.env.*)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "hooks"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "PostToolUse"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">        "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"npx prettier --write </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$CLAUDE_TOOL_INPUT_FILE_PATH</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> 2&gt;/dev/null || true"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }],</span></span>
+<span class="line"><span style="color:#E06C75">    "PreToolUse"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">        "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"bash -c 'FILE=$(cat | jq -r </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">.tool_input.file_path // empty</span><span style="color:#56B6C2">\"</span><span style="color:#98C379">); [[ </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$FILE</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> == *.env* ]] &amp;&amp; echo </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">Protected file</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> &gt;&amp;2 &amp;&amp; exit 2 || exit 0'"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="troubleshooting-common-permission-issues">Troubleshooting Common Permission Issues</h2>
+<h3 id="im-getting-prompted-for-every-file-edit">“I’m getting prompted for every file edit”</h3>
+<p><strong>Fix:</strong> Set <code>"defaultMode": "acceptEdits"</code> in your settings.</p>
+<h3 id="claude-cant-run-tests">“Claude can’t run tests”</h3>
+<p><strong>Fix:</strong> Add test commands to allow-list:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "allow"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Bash(pnpm test *)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(pnpm test:*)"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="claude-deleted-files-outside-my-project">“Claude deleted files outside my project”</h3>
+<p><strong>Fix:</strong> Add strict deny rules for system directories (see above template).</p>
+<h3 id="i-need-to-approve-every-npm-install">“I need to approve every npm install”</h3>
+<p><strong>Fix:</strong> Add <code>"Bash(pnpm install *)"</code> to ask-list instead of deny:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "ask"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Bash(pnpm install *)"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">  "deny"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Bash(pnpm install * --force)"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="playwright-mcp-is-deleting-my-browser-cache">“Playwright MCP is deleting my browser cache”</h3>
+<p><strong>Fix:</strong> Add browser cache directories to deny:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">    "Read(~/Library/Caches/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Read(~/.cache/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Edit(~/Library/Caches/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">    "Edit(~/.cache/**)"</span></span>
+<span class="line"><span style="color:#ABB2BF">  ]</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>And/or use sandbox to restrict filesystem access.</p>
+<hr />
+<h2 id="the-ninja-checklist">The Ninja Checklist</h2>
+<p>Before using <code>--dangerously-skip-permissions</code>, ask yourself:</p>
+<ul class="contains-task-list">
+<li class="task-list-item"> Have I configured <code>acceptEdits</code> mode?</li>
+<li class="task-list-item"> Have I added common commands to allow-list?</li>
+<li class="task-list-item"> Have I added dangerous commands to deny-list?</li>
+<li class="task-list-item"> Have I protected .env and secrets files?</li>
+<li class="task-list-item"> Have I protected system directories?</li>
+<li class="task-list-item"> Have I enabled sandbox mode?</li>
+<li class="task-list-item"> Have I added PreToolUse hooks for validation?</li>
+<li class="task-list-item"> Am I running this in an isolated environment (Docker, VM)?</li>
+</ul>
+<p><strong>If you can answer YES to most of these, you don’t need <code>--dangerously-skip-permissions</code>.</strong></p>
+<hr />
+<h2 id="sources">Sources</h2>
+<ul>
+<li><a href="https://code.claude.com/docs/en/permissions" target="_blank" rel="noopener noreferrer">Configure permissions - Claude Code Docs</a></li>
+<li><a href="https://code.claude.com/docs/en/settings" target="_blank" rel="noopener noreferrer">Claude Code Settings - Claude Code Docs</a></li>
+<li><a href="https://www.eesel.ai/blog/claude-code-permissions" target="_blank" rel="noopener noreferrer">Claude Code Permissions Guide (eesel.ai)</a></li>
+<li><a href="https://code.claude.com/docs/en/sandboxing" target="_blank" rel="noopener noreferrer">Claude Code Sandbox Configuration (code.claude.com)</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

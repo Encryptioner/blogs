@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 07 — Repo Exploration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Repo Exploration">
+    <span class="badge"><span class="dot"></span> Deck 07 · branchdiff features</span>
+    <h1 class="title">Time-travel through the repo — <em>without touching your working tree</em>.</h1>
+    <h2 class="subtitle">History, commit graph, blame, file tree, code search, branches, and repo-at-a-commit — all in one browser tab, all read-only, all virtualized past a few hundred rows. No detached HEAD, no paginated forge lists, no per-file blame round-trip.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">cli</span> history · show · tree · blame · search · branches</span>
+      <span><span class="mono">read-only</span> never modifies working tree</span>
+      <span><span class="mono">virtualized</span> 150+ row threshold</span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The native problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Every exploration tool is <em>elsewhere</em>, slow, or dangerous.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">git log</span> is text.</b> <span class="muted">No structure, no inline diff, no merge curves — pipe it into less and squint.</span></li>
+        <li><b>Forge commit lists paginate.</b> <span class="muted">50 commits per page, each click a cloud round-trip; "Load more" until the tab freezes.</span></li>
+        <li><b>Blame is one file per page.</b> <span class="muted">GitHub blame on a 4,000-line file is a separate URL and a long render — and you do it again for the next file.</span></li>
+        <li><b><span class="mono">git checkout &lt;old-commit&gt;</span> detaches HEAD.</b> <span class="muted">Browse the repo at an old commit and one wrong commit lands you in detached-HEAD limbo.</span></li>
+        <li><b>Linear history hides structure.</b> <span class="muted">A flat list hides which commits landed on which branch and where the merges happened.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> exploring a repo means five tools and five round-trips — terminal for log, browser for blame, a forge tab for branches, another for search, and a risky checkout to see what the repo looked like last release.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">One tab. <em>Read-only time-travel</em> through the whole repo.</h3>
+    <p class="lead-p">branchdiff reads git directly from disk and renders history, the commit DAG, blame, the file tree, search results, branches, and repo-at-a-commit in one browser tab — all virtualized, all read-only, none of them touching your working tree.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">∞</div><div class="label">Blame line cap</div><div class="desc">Virtualized, any file size</div></div>
+      <div class="stat"><div class="num">150+</div><div class="label">Row virtualization</div><div class="desc">Files · commits · blame</div></div>
+      <div class="stat"><div class="num">0</div><div class="label">Working-tree writes</div><div class="desc">Read-only time-travel</div></div>
+      <div class="stat"><div class="num">any</div><div class="label">Repo size</div><div class="desc">No backend, no paginated cloud</div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>One surface, every angle</b> — history list, DAG, blame, tree, search, branches, and repo-at-a-commit all share the same chrome and the same virtualized renderer. Reach for any of them without leaving the tab.
+    </div>
+  </section>
+
+  <!-- 4 · FILE BROWSER -->
+  <section class="slide" data-title="File browser">
+    <div class="slide-num">04 · file browser</div>
+    <h3 class="section">A real file tree — <em>not a flat list</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/08-file-tree.png" alt="branchdiff file browser with sidebar tree and syntax-highlighted preview" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff tree · sidebar tree · syntax-highlighted preview</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Sidebar tree of the whole repo.</b> <span class="muted">Collapsible folders, file-type icons, expand/collapse all.</span></li>
+        <li><b>Syntax-highlighted previews.</b> <span class="muted">Source code (Shiki, 150+ languages), rendered markdown, SVG, and image files — all inline.</span></li>
+        <li><b>Collapsible sidebar.</b> <span class="muted">Hide the tree for a full-width preview when you're reading.</span></li>
+        <li><b>Reachable from the CLI.</b> <span class="muted"><span class="mono">branchdiff tree</span> opens the same browser view as the in-app icon nav.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · COMMIT HISTORY -->
+  <section class="slide" data-title="Commit history &amp; per-file history">
+    <div class="slide-num">05 · commit history</div>
+    <h3 class="section">Full history — <em>start of repo to any ref</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/05-history.png" alt="branchdiff commit history list with search and Merges toggle" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff history · search · Merges toggle · Load all · virtualized</div>
+      </div>
+      <div>
+        <ul class="bullets">
+          <li><b>From the start of the repo to any ref or range.</b> <span class="muted">Same renderer handles a 20-commit branch and a 20,000-commit main.</span></li>
+          <li><b>Search inline.</b> <span class="muted">Filter by message, author, or SHA without re-running git.</span></li>
+          <li><b>Merges toggle.</b> <span class="muted">Show or hide merge commits; the count badge reflects what's filtered.</span></li>
+          <li><b>Load all button.</b> <span class="muted">Past the first batch, click to pull the rest on demand — no upfront fetch of 20k rows.</span></li>
+          <li><b>Hover any row.</b> <span class="muted">Copy the hash to clipboard or open the commit in a new tab.</span></li>
+        </ul>
+        <div class="callout accent" style="margin-top:14px">
+          <b>Per-file history follows renames.</b> Open a file and press <b>History</b> — full-file compare has the same button, both open in a new tab so your place in the diff is preserved.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · REPO-AT-A-COMMIT -->
+  <section class="slide" data-title="Repo-at-a-commit">
+    <div class="slide-num">06 · repo-at-a-commit</div>
+    <h3 class="section">Browse the whole repo <em>as it looked</em> at any ref.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">branchdiff show &lt;ref&gt;</span>.</b> <span class="muted">Accepts a commit SHA, tag, branch, <span class="mono">HEAD~N</span> — anything <span class="mono">git rev-parse --verify</span> accepts.</span></li>
+        <li><b>Tree, folder, and content all reflect that ref.</b> <span class="muted">Walk the file tree, open files, read previews — every view is pinned to the commit you chose.</span></li>
+        <li><b>Working tree stays on your branch.</b> <span class="muted">No <span class="mono">git checkout</span>, no detached HEAD — your edits and your branch are untouched.</span></li>
+        <li><b>Read-only time-travel.</b> <span class="muted">The repo view is rendered from git objects; nothing is written to disk.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Why it matters:</b> the safest way to answer "what did this file look like in v1.4.0?" — open a second tab at that tag, diff in your head, never leave your working branch.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · BRANCHES & TAGS -->
+  <section class="slide" data-title="Branches &amp; tags">
+    <div class="slide-num">07 · branches &amp; tags</div>
+    <h3 class="section">Every ref in the repo — <em>local and remote</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/07-branches.png" alt="branchdiff branches and tags browser with last-commit times and tracking info" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff branches · last-commit time · tracking info · click → history</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Every local and remote branch, every tag.</b> <span class="muted">One list, sortable, with the full ref namespace.</span></li>
+        <li><b>Last-commit times.</b> <span class="muted">See at a glance which branches are active and which are stale.</span></li>
+        <li><b>Tracking info.</b> <span class="muted">Which local branch tracks which remote, and whether it's ahead or behind.</span></li>
+        <li><b>Click → history.</b> <span class="muted">Jump straight into the commit list for that branch or tag.</span></li>
+        <li><b>Hover → copy / open.</b> <span class="muted">Copy the ref name or open it in a new tab.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8 · CODE SEARCH -->
+  <section class="slide" data-title="Code search">
+    <div class="slide-num">08 · code search</div>
+    <h3 class="section"><span class="mono">git grep</span> — <em>rendered</em>, not piped to less.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/10-search.png" alt="branchdiff code search results grouped by file with highlighted matches" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff search · results grouped by file · literal / regex · case options</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Across every tracked file.</b> <span class="muted">Runs <span class="mono">git grep</span> over the working tree — untracked files don't pollute results.</span></li>
+        <li><b>Grouped by file.</b> <span class="muted">Each file becomes a collapsible section with its match count.</span></li>
+        <li><b>Literal or regex.</b> <span class="muted">Toggle match mode; case-sensitive or case-insensitive.</span></li>
+        <li><b>CLI or in-app.</b> <span class="muted"><span class="mono">branchdiff search "useState"</span> opens the same rendered view as the search box in the toolbar.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9 · BLAME -->
+  <section class="slide" data-title="Blame view">
+    <div class="slide-num">09 · blame view</div>
+    <h3 class="section">Blame any file — <em>no line cap, no per-file round-trip</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/09-blame.png" alt="branchdiff blame view with per-line commit author and message hunks" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff blame · per-line commit · author · message · grouped into hunks</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Open a file, press Blame.</b> <span class="muted">One keystroke from any file preview — no separate URL per file.</span></li>
+        <li><b>Per-line commit, author, and message.</b> <span class="muted">Adjacent lines from the same commit are grouped into a single hunk — the eye finds the boundary instantly.</span></li>
+        <li><b>Virtualized, any size.</b> <span class="muted">A 10,000-line file scrolls at 60fps — only visible rows are in the DOM.</span></li>
+        <li><b>No line cap.</b> <span class="muted">Unlike the forge blame view, nothing truncates at line 1,500.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · COMMIT GRAPH (DAG) -->
+  <section class="slide" data-title="Commit graph (DAG)">
+    <div class="slide-num">10 · commit graph</div>
+    <h3 class="section">The DAG — <em>merge curves, colored lanes, clickable nodes</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/06-commit-graph.png" alt="branchdiff commit graph DAG with continuous colored lanes and merge curves" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">branchdiff graph · colored lanes · merge curves · legend · tooltips</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Toggle beside the history list.</b> <span class="muted">Same commits, structural view — see where branches diverged and merged.</span></li>
+        <li><b>Continuous colored lanes.</b> <span class="muted">Each branch keeps its color across the visible range.</span></li>
+        <li><b>Merge curves.</b> <span class="muted">Merges draw as smooth curves, not stair-steps — the topology reads at a glance.</span></li>
+        <li><b>Click any node.</b> <span class="muted">Jump to the commit detail page; hover for author, date, and message tooltips.</span></li>
+        <li><b>Merges + Graph compose.</b> <span class="muted">Toggle merge filtering and the graph view in either order.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 11 · COMMIT DETAIL PAGE -->
+  <section class="slide" data-title="Commit detail page">
+    <div class="slide-num">11 · commit detail</div>
+    <h3 class="section">A commit page that <em>has everything</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="images/11-commit-detail.png" alt="branchdiff commit detail page with SHA parents file list and unified diff" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">/commit/:hash · full SHA · parents · file list A/D/M/R +N/-N · unified / split diff</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Full SHA with copy button.</b> <span class="muted">The complete 40-char hash, one click to clipboard.</span></li>
+        <li><b>Author, date, message.</b> <span class="muted">Rendered as the commit was authored, including multi-line messages.</span></li>
+        <li><b>Parent links.</b> <span class="muted">Merges show both parents; click to walk back through either side.</span></li>
+        <li><b>File list with status.</b> <span class="muted">Added / Deleted / Modified / Renamed, plus <span class="mono">+N/-N</span> line counts per file.</span></li>
+        <li><b>Unified or split diff.</b> <span class="muted">Same renderer as the branch comparison — view modes are consistent across the app.</span></li>
+        <li><b>Session-aware comment threads.</b> <span class="muted">View-only threads on a single commit don't leak into branch comparison sessions.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · CROSS-PAGE CHROME -->
+  <section class="slide" data-title="Cross-page chrome &amp; ergonomics">
+    <div class="slide-num">12 · cross-page chrome</div>
+    <h3 class="section">Small things that <em>add up</em> across every page.</h3>
+    <div class="three-col">
+      <div class="stat"><div class="num">merge</div><div class="label">Purple badge</div><div class="desc">Detected from %P — squash &amp; fast-forward excluded</div></div>
+      <div class="stat"><div class="num">↔</div><div class="label">Swap button</div><div class="desc">Reverse base / compare in one click</div></div>
+      <div class="stat"><div class="num">↓ N</div><div class="label">Behind-by indicator</div><div class="desc">Amber badge when base trails compare</div></div>
+    </div>
+    <div class="two-col" style="margin-top:22px">
+      <ul class="bullets">
+        <li><b>Cross-page icon nav.</b> <span class="muted">History, branches, search, and files share a header nav — switch views without losing your ref.</span></li>
+        <li><b>Back button always sensible.</b> <span class="muted">Navigating into a commit or file pushes real history entries; browser back returns you to the right place.</span></li>
+        <li><b>Typo-tolerant refs.</b> <span class="muted">Mistype a branch or tag and branchdiff matches the closest one rather than 404'ing.</span></li>
+        <li><b>Merge badges from <span class="mono">%P</span>.</b> <span class="muted">Two parents = <span style="color:var(--purple)">merge</span> badge; squash and fast-forward commits stay unbadged.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>Behind-by + Swap.</b> An amber <span class="mono">↓ N behind</span> badge tells you the base is stale; the <span class="mono">↔</span> button reverses base and compare so you can flip perspective on the same pair.
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · CLI -->
+  <section class="slide" data-title="CLI">
+    <div class="slide-num">13 · cli</div>
+    <h3 class="section">Every view — <em>one terminal command away</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">history · show</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff history
+<span class="c"># full history of the current branch, virtualized</span>
+
+<span class="prompt">$</span> branchdiff show v2.1.0
+<span class="c"># browse the whole repo as it was at the v2.1.0 tag</span>
+
+<span class="prompt">$</span> branchdiff show HEAD~5
+<span class="c"># any valid git ref — SHA, tag, branch, HEAD~N</span></div>
+      </div>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">search · branches</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff search <span class="s">"useState"</span>
+<span class="c"># git grep across tracked files, grouped by file</span>
+
+<span class="prompt">$</span> branchdiff search <span class="s">"function \\bauth[A-Z]"</span> --regex
+<span class="c"># literal or regex, case-sensitive or insensitive</span>
+
+<span class="prompt">$</span> branchdiff branches
+<span class="c"># every local/remote branch + tag, last-commit times</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>Same views, two entry points:</b> every CLI command here opens the identical browser surface you reach from the in-app header nav — pick the entry point that fits where you are.
+    </div>
+  </section>
+
+  <!-- 14 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">14 · recap</div>
+    <h3 class="section">Repo exploration, in one line.</h3>
+    <p class="lead-p">History, the DAG, blame, file tree, search, branches, and repo-at-a-commit — one tab, all virtualized, all read-only time-travel. No detached HEAD, no paginated forge lists, no per-file blame round-trip.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>File browser with sidebar tree and syntax-highlighted previews — source, markdown, SVG, images.</li>
+      <li>Commit history from start of repo to any ref; per-file history that follows renames.</li>
+      <li><span class="mono">show &lt;ref&gt;</span> — browse the repo at a commit, tag, or branch; working tree untouched.</li>
+      <li>Branches &amp; tags with last-commit times and tracking info; click into history.</li>
+      <li>Code search via <span class="mono">git grep</span>, grouped by file, literal or regex.</li>
+      <li>Blame any file — virtualized, no line cap, no per-file round-trip.</li>
+      <li>Commit graph DAG with colored lanes, merge curves, clickable nodes.</li>
+      <li>Commit detail with full SHA, parent links, file A/D/M/R counts, unified / split diff.</li>
+      <li>Merge badges, typo-tolerant refs, behind-by indicator, and a one-click swap.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="08-multi-repo-auto.html" target="_blank" rel="noopener">Next deck → 08 · Multi-Repo Auto</a>
+      <a class="ghost" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-14">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

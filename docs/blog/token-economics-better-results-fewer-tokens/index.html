@@ -1,0 +1,643 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Token Economics: Better Results, Fewer Tokens — Ankur’s Writing</title><meta name="description" content="I've spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/token-economics-better-results-fewer-tokens/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Token Economics: Better Results, Fewer Tokens — Ankur’s Writing"><meta property="og:description" content="I've spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/token-economics-better-results-fewer-tokens/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-16/bill-reveal.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Token Economics: Better Results, Fewer Tokens — Ankur’s Writing"><meta name="twitter:description" content="I've spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-16/bill-reveal.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-07-09"><meta property="article:modified_time" content="2026-08-30"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code</span> </div> <h1>Token Economics: Better Results, Fewer Tokens</h1> <p class="article-meta mono"> <time datetime="2026-08-30">30 Aug 2026</time> <span>·</span> <span>36 min read</span> <span>·</span> <span>7,261 words</span> </p> </header>  <div class="prose"><h1 id="token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</h1>
+<blockquote>
+<p>More tokens do not mean better answers. They mean a bigger bill and, past a point, a <em>worse</em> answer — because the model has to search harder for the signal in the noise.</p>
+</blockquote>
+<p>I’ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through AI agents than by hand. The habits below aren’t theory — they’re what I run on my own side projects (this blog repo included) and what I’ve had to walk teammates back from when a session quietly burned through a day’s token budget on a single “just look around the codebase first” request.</p>
+<p>Every AI coding session has a hidden meter running. Most engineers watch the response quality and ignore the meter — until the monthly bill or the “context limit reached” wall shows up. This post is the meter, made visible: what actually drives token cost, why the cheapest-looking model is sometimes the most expensive, and the concrete configuration in this repo’s own <code>.claude/</code> setup that keeps cost down without touching output quality.</p></div>  <div class="prose">
+<p>The worked examples below use Claude Code because that’s this repo’s own daily driver — but the arithmetic (price × tokens × attempts) and the guard rails don’t belong to one vendor. There’s a dedicated section on Codex, OpenCode, OpenRouter, and local models further down, plus what changes on your laptop when you’re running several of them at once across worktrees.</p>
+<p>Before the math, the picture — this is the moment most teams first notice the meter exists:</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-16/bill-reveal.png" alt="Editorial cartoon: a relaxed developer enjoying a $20/month AI deal in month one, then the same developer a quarter later sweating over a $14,000 compute bill while finance asks who approved the robot's tab" />
+  <br />
+  <sub>The gag is just the real numbers with a face on it — the ~$14,000/mo figure and the 70× subsidy gap are cited further down. Original artwork, not a stock image.</sub>
+</div>
+<p>It isn’t only enterprises eating this. One <a href="https://www.reddit.com/r/copilotstudio/comments/1ueqedl/woke_up_to_a_47k_bill_after_deploying_one_copilot/" target="_blank" rel="noopener noreferrer">Copilot Studio user’s Reddit post</a> lays it out plainly: separate dev/prod environments on a developer tenant, the Pay-as-you-go plan turned on, one agent deployed from dev to prod — and an Azure bill of <strong>~$47,000</strong>. One agent, one deployment, five figures.</p>
+<hr />
+<h2 id="the-real-cost-equation">The Real Cost Equation</h2>
+<p>Cost per task is not the sticker price per million tokens. It’s:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>cost = (price per token) × (tokens consumed per task) × (number of attempts)</span></span></code></pre>
+<p>Vendors advertise the first factor. The second and third factors are where the real money moves, and they’re controlled by <em>your</em> setup — model choice, harness quality, context hygiene — not by the vendor.</p>
+<p>That third factor is bigger than it looks. Coding is already the dominant AI-agent use case industry-wide, and Anthropic’s own usage data shows “modifying software to correct errors” alone accounts for roughly 6% of consumer Claude.ai usage and <strong>10% of enterprise API traffic</strong>. A meaningful slice of the industry’s entire token spend isn’t new work at all — it’s <em>attempts</em>, paying again for something that didn’t work the first time.</p>
+<p><strong>The cheap-per-token trap, with real numbers (verified, mid-2026):</strong> Gemini 3.5 Flash prices input at $1.50/M tokens against Gemini 3.1 Pro’s ~$2.00/M — on the sticker, a clear win. But according to Artificial Analysis’s own published evaluation — they run every model through their Intelligence Index and report the total cost — running the <strong>full suite cost $1,552 on Gemini 3.5 Flash versus ~$887 on Gemini 3.1 Pro</strong>: the “cheaper” model came out 75% <em>more expensive</em> per workload. Artificial Analysis attributes this to two stacking factors, not one: Flash 3.5 is priced 3× higher per token than its own predecessor (Gemini 3 Flash, at $0.50/$3.00 vs the new $1.50/$9.00 per million), <em>and</em> it uses significantly more input tokens per evaluation because agentic runs now take more turns. Gemini 3 Flash itself cost only ~$282 to run the identical suite — so Flash 3.5 costs 5.5× more than its own prior generation, on top of costing more than the “expensive” Pro tier it’s supposed to undercut.</p>
+<p>The lesson: <strong>price-per-token and cost-per-task are different numbers, and only one of them is on the pricing page.</strong> Or, as one comment on a viral post of this same chart put it: paying for the flagship model on a task the cheap tier could handle is buying a Ferrari to drive to the grocery store.</p>
+<p>And the gap isn’t a Gemini quirk — it holds across the entire field. Artificial Analysis’s own weighted cost-per-task ranking puts <strong>Claude Fable 5 as the single most expensive model benchmarked, at $2.73 per Intelligence Index task</strong> — 136× the cheapest model measured, gpt-oss-20b at $0.02. The flagship-est model on the market is, quite literally, the most expensive way to answer a question.</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-16/which-ai-cost-more-per-task.png" alt="Bar chart: Which AI models cost the most per task? Weighted average cost in USD per Intelligence Index task, ranked from Claude Fable 5 at $2.73 down to gpt-oss-20b at $0.02" />
+  <br />
+  <sub>Source: <a href="https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index" target="_blank" rel="noopener noreferrer">Artificial Analysis — Intelligence Index, weighted cost per task</a>, Jul 3, 2026.</sub>
+</div>
+<hr />
+<h2 id="the-method-explore-plan-execute-verify">The Method: Explore, Plan, Execute, Verify</h2>
+<p>Cost per task isn’t only a routing problem — it’s a workflow problem. The single biggest attempt-multiplier isn’t the wrong model, it’s skipping straight to code before the approach is even agreed on. Four habits, in order, buy back most of that:</p>
+<ol>
+<li><strong>Explore — scope it yourself.</strong> Never hand over “fix the payment bug” and let the agent go looking. Point it at the component and the store directly. Your own codebase knowledge is free; the agent’s exploration is not — every file it opens to get oriented is tokens spent before a single line of the actual fix exists.</li>
+<li><strong>Plan — in read-only mode.</strong> Plan Mode blocks write tools at the permission level, so the agent can only propose, not act. Reading a plan takes two minutes; reading a wrong 300-line diff takes twenty. Boris Cherny, the creator of Claude Code, reportedly starts most of his own sessions in Plan Mode — the people who built the tool don’t trust it to run unplanned.</li>
+<li><strong>Execute — only after you approve the approach.</strong> A plan costs hundreds of tokens to produce and review. A wrong implementation costs thousands — and it’s a <em>twice-reviewed</em> cost, since someone has to catch it and someone has to redo it.</li>
+<li><strong>Verify — the loop exits on green, not on confidence.</strong> The judge is the test runner’s output, never the model’s opinion of its own work.</li>
+</ol>
+<p>In this repo, that loop is encoded as a chain of skills — <code>spec</code> → <code>grill</code> → <code>plan</code> → <code>grill</code> → <code>implement</code> → <code>verify</code> → <code>pre-review</code> → <code>fix</code> — with rules like “never skip planning for changes touching two or more files” and “never batch all changes then verify at the end” written directly into the <code>plan</code> and <code>implement</code> skills, not left to memory.</p>
+<h3 id="grill-the-agent-that-attacks-your-own-plan">Grill: the agent that attacks your own plan</h3>
+<p>A plan that never gets challenged is just a guess with more formatting. <code>grill</code> is a skill whose entire job is to be hostile to the work in front of it — a skeptical staff-engineer pass, not a rubber stamp. It runs a severity ladder (blocker · critical · major · minor) down to one of four verdicts: pass, pass with conditions, needs rework, or <strong>reject</strong> — and reject actually fires, blocking the chain from continuing.</p>
+<p>Two things make it work instead of becoming theater. First, it’s <strong>non-optional</strong>: <code>spec</code> and <code>plan</code> invoke it automatically, because a critic you can skip is a critic you skip on exactly the day you needed it most. Second, it runs as a <strong>separate invocation</strong>, not a follow-up question in the same session. Asking the same conversation “is this plan good?” gets a yes almost every time — same model, same blind spots, reviewing its own reasoning. That’s not a review, that’s a mirror. The economics are blunt: a rejected plan costs five minutes; a rejected <em>implementation</em> costs an afternoon and two rounds of human review.</p>
+<h3 id="review-your-own-diff-before-anyone-else-does">Review your own diff before anyone else does</h3>
+<p>The cheapest reviewer available to you is the one already looking at the code: yourself, before you open the PR. Once a feature works, run the agent over your own <code>git diff</code> against the team’s review checklist before a colleague ever sees it — the prompt is as simple as “review <code>git diff main</code> against our checklist,” and it reads only the changes, not the whole repo.</p>
+<p>This is private (embarrassing mistakes get caught before anyone else sees them), cheap (input is a few thousand tokens of diff, and it kills most of the review-bounce cycle — attempts, at PR granularity — before it starts), and consistent (the checklist lives in a <code>pre-review</code> skill backed by an 800-line coding-standards doc the agent has to read every time: versioned, PR-reviewed, and executed identically whether a junior or a senior runs it). Review culture, under version control, instead of tribal knowledge.</p>
+<h3 id="tests-the-honesty-rules">Tests: the honesty rules</h3>
+<p>Two rules keep agent-written tests from quietly certifying agent-written bugs. <strong>Rule one:</strong> never let the same session write both the tests and the implementation — an agent grading its own homework will write tests that pass its own mistakes. Tests come first, either from the spec or from a fresh session with no visibility into the implementation it’s about to check. <strong>Rule two:</strong> the loop exits on green, not on confidence, and when it’s iterating, feed the model <em>failures only</em> — the three tests that broke, not the four hundred that passed, since re-reading passing output is pure token waste with zero new information.</p>
+<p>One version of this rule from an FDA-regulated codebase makes the stakes concrete: 21 test files carry <code>fda_task1</code>–<code>5</code> markers mapping directly to regulatory requirements, and the very first instruction file the agent reads says, in effect, do not delete or weaken any test carrying an fda marker. It’s a guardrail against the single most natural thing an agent does when a test blocks it — make the test go away instead of fixing the code. The same discipline pays off on any 15-year-old codebase too: characterization tests that pin down current behavior before you touch it used to be a week nobody would approve; with an agent doing the mechanical work, it’s an afternoon.</p>
+<hr />
+<h2 id="model-tiering-pay-for-reasoning-only-when-you-need-it">Model Tiering: Pay for Reasoning Only When You Need It</h2>
+<p>This isn’t a Claude-only habit — every vendor prices a cheap/default/flagship ladder, and the open-weight labs undercut all three on a per-token basis. Current pricing (July 2026), per million tokens:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Best for</th></tr></thead><tbody><tr><td>Claude Haiku 4.5</td><td>$1</td><td>$5</td><td>Lookups, file discovery, quick reformatting</td></tr><tr><td>Claude Sonnet 5</td><td>$2 (intro, until Aug 31 ‘26) → $3</td><td>$10 → $15</td><td>Implementation, review, daily development</td></tr><tr><td>Claude Opus 4.8</td><td>$5</td><td>$25</td><td>Architecture, complex debugging, spec writing</td></tr><tr><td>Claude Fable 5</td><td>$10</td><td>$50</td><td>Anthropic’s hardest-reasoning tier, above Opus — for when Opus isn’t enough</td></tr><tr><td>GPT-5.6 Luna</td><td>$1</td><td>$6</td><td>OpenAI’s cheap high-volume tier</td></tr><tr><td>GPT-5.6 Terra</td><td>$2.50</td><td>$15</td><td>OpenAI’s default/mid tier</td></tr><tr><td>GPT-5.6 Sol</td><td>$5</td><td>$30</td><td>OpenAI’s flagship tier</td></tr><tr><td>GLM-4.6 (Zhipu/Z.ai, open-weight)</td><td>$0.43</td><td>$1.74</td><td>Cheap tier, self-hostable</td></tr><tr><td>MiniMax M2 (open-weight)</td><td>$0.26</td><td>$1.00</td><td>Cheap tier, self-hostable</td></tr><tr><td>Kimi K2.6 (Moonshot, open-weight)</td><td>$0.95</td><td>$4.00</td><td>Mid-cheap tier, self-hostable</td></tr></tbody></table>
+<p>Cached input runs up to <strong>90% cheaper</strong> than fresh input across the Claude tiers.</p>
+<p>That table is the reason <code>~/.claude/rules/model-routing.md</code> in this setup exists as a rule, not a suggestion — every subagent dispatch in this session picks a model deliberately:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="md"><code><span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Use haiku for: quick lookups, file discovery, simple reformatting</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Use sonnet for: implementation, testing, code review</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Use opus for: architecture decisions, complex debugging, spec writing</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Default to sonnet — only escalate to opus when reasoning depth matters</span></span></code></pre>
+<p>The benchmark data backs this up from the other direction: on SWE-bench Pro, <strong>Haiku 4.5 solves problems for about $0.13 of spend per benchmark point</strong> — the cheapest cost-per-correct-fix of any current model — while Opus 4.8 posts the highest score (69.2%) but at 5-25x the per-token price. Routing by task, not defaulting everything to the flagship model, is the single highest-leverage lever most teams never pull.</p>
+<hr />
+<h2 id="where-your-tokens-actually-go">Where Your Tokens Actually Go</h2>
+<p>For a working developer, the split isn’t abstract: looking up syntax, rephrasing a Slack message, translating a stack trace, formatting a commit message — that’s the bulk of a session’s tokens, and none of it needs the flagship model. The 6% that actually compounds is architecture, hard refactors, and shipping.</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-16/token-mix.png" alt="Chart showing a typical developer session: ~94% of tokens spent on low-value tasks like syntax lookups and boilerplate, only ~6% on high-value work like architecting and shipping a feature — with a redirect showing cheap-tier, mid-tier, and flagship-tier task routing" />
+  <br />
+  <sub>Slice sizes are illustrative, not a measured breakdown — the point is the shape, not the precision. Closer to home: Anthropic's own Economic Index ranks Bangladesh 116th of 121 tracked countries on Claude.ai usage relative to population — a usage index of 0.11, among the lowest anywhere it's measured. But the topics that <em>are</em> distinctive there skew technical and developer-shaped: Math and CS theory (2.4× the global rate), Web front-end (1.8×), general software development (1.8×), and AI app building (1.6×) all outpace homework and self-presentation writing. Same 94/6 split holds — the 6% that gets used skews toward the work this post is about.</sub>
+</div>
+<p><strong>The move:</strong> cheap tier (Haiku, GLM, MiniMax, local) for the 94%, flagship only for the 6% that compounds.</p>
+<hr />
+<h2 id="beyond-one-vendor-tools-routing-and-local-models">Beyond One Vendor: Tools, Routing, and Local Models</h2>
+<p>Everything above happens to use Anthropic’s price list, but none of it is Claude-specific. Here’s the same arithmetic across the rest of the landscape, light touch — pick the tool for the constraint that actually binds, not the one with the loudest benchmark claim.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>Model access</th><th>Pricing shape</th><th>The real tradeoff</th></tr></thead><tbody><tr><td><strong>Claude Code</strong></td><td>Anthropic only</td><td>$20/$100/$200 subscription tiers (~44K tokens per 5-hour window on the $20 plan), or pay-per-token API</td><td>Predictable, but heavy days hit the window cap</td></tr><tr><td><strong>OpenAI Codex CLI</strong></td><td>OpenAI only</td><td>Go $8 / Plus $20 / Pro $100–$200; GPT-5.4 API at $2.50 in / $15 out per MTok</td><td>OpenAI markets ~4× better token efficiency than Claude Code — a vendor claim, worth measuring on your own workload before trusting it</td></tr><tr><td><strong>OpenCode</strong> (open-source)</td><td>75+ providers — Claude, GPT, Gemini, local Ollama, switchable mid-session</td><td>Whatever the backing model charges</td><td>One terminal UI, any vendor’s pricing tier underneath; built-in LSP integration feeds it real type signatures instead of the model guessing — fewer exploratory tokens spent either way</td></tr><tr><td><strong>OpenRouter</strong></td><td>300+ models, one API key</td><td>Pass-through provider pricing (no markup) + 5.5% card-funding fee (min $0.80) + 5% BYOK fee over 1M req/month</td><td>Cross-vendor arbitrage without rewriting your harness per provider; supports prompt caching with “sticky routing” to keep cache hits high — but you’re trusting a proxy hop to pass caching semantics through correctly</td></tr><tr><td><strong>Local (Ollama, LM Studio + open models)</strong></td><td>Whatever fits your hardware</td><td>$0 marginal cost per token</td><td>The token is free; the device isn’t — see the device-cost section below</td></tr></tbody></table>
+<hr />
+<h2 id="harness-beats-horsepower">Harness Beats Horsepower</h2>
+<p>Model choice gets all the attention. Scaffolding — the tools, prompts, and retrieval strategy wrapped around the model — often matters more, and there’s a clean, verifiable example of exactly how much. Claude Opus 4.8 reports 69.2% on SWE-bench Pro using its own vendor scaffolding. Scale AI’s SEAL lab runs the <em>same</em> benchmark with identical, standardized scaffolding across every model — no vendor tuning its own harness to the test — and on that leaderboard, the best score any model posts is 59.1%. That’s a <strong>10-point gap from harness alone</strong>, on the same tasks, same benchmark, same scoring — the only variable that changed is who built the scaffolding around the model.</p>
+<p>Two harness-level rules in this repo’s config exist specifically to buy back that swing:</p>
+<ul>
+<li><strong>Instruction budget.</strong> Frontier LLMs reliably comply with roughly 150–200 instructions total; Claude Code’s own system prompt burns ~50 of those before a project’s <code>CLAUDE.md</code> even loads. Every low-value rule in a project file degrades the following rate of every <em>other</em> rule, uniformly. Keeping <code>CLAUDE.md</code> under ~200 lines isn’t tidiness — it’s a token-and-compliance budget.</li>
+<li><strong>Rules over CLAUDE.md bloat.</strong> <code>~/.claude/rules/*.md</code> files load only when a file matching their glob is touched (<code>*.ts,*.tsx</code> → TypeScript rules; <code>*.vue</code> → Vue conventions). A <code>CLAUDE.md</code> loads in full, every turn, regardless of relevance. Splitting file-specific patterns into globbed rules means the model isn’t carrying Vue conventions while it edits a Python script.</li>
+<li><strong>Command hooks over prompt hooks.</strong> A <code>command</code> hook runs a shell check directly — zero model tokens, deterministic. A <code>prompt</code> hook asks the model to <em>evaluate</em> a condition and decide whether to act — it costs tokens and reasoning on every single tool call it’s attached to. Lint and type-check gates belong in command hooks; save prompt-based judgment for things that genuinely need judgment.</li>
+</ul>
+<hr />
+<h2 id="device-cost--not-just-a-token-bill">Device Cost — Not Just a Token Bill</h2>
+<p>Token cost isn’t only an API bill. It’s also whatever is left of your CPU, RAM, and battery once you’ve opened three worktrees to pair-review a <code>branchdiff</code> PR, keep a side project’s agent running in another tab, and let a background hook update a knowledge graph on commit. Every one of those is a concurrent process competing for the same cores — and it doesn’t take much to tip that into visible thermal throttling.</p>
+<p>This repo’s own graphify integration hit the same wall before it shipped a fix: without a guard, concurrent graph rebuilds piled up — <strong>3 processes at 65–73% CPU each, load average past 12, RAM saturated</strong> — because every worktree switch and every commit tried to rebuild at the same time. The fix wasn’t a cheaper model; it was a resource check baked into the git hook itself: skip the rebuild if CPU load is above 50% of available cores or free memory drops under 2 GB, plus a <code>pgrep</code> dedupe so a second trigger can’t stack a second process on top of the first.</p>
+<p>That pattern is vendor-agnostic and it matters more, not less, as you multiply concurrent agents:</p>
+<ul>
+<li><strong>Every parallel worktree is a concurrent process</strong>, whether it’s a hosted tool’s background hook, a subagent dispatch, or — sharpest of all — a local model’s inference process competing for the same RAM your IDE and browser already claimed.</li>
+<li><strong>Guard background jobs, don’t just schedule them.</strong> A resource check (CPU + free-memory threshold) before any rebuild, index, or hook fires, plus process dedupe, is cheaper than the cleanup after three of them collide.</li>
+<li><strong>Serialize the heavy jobs across worktrees.</strong> One graph rebuild running at a time beats one per open worktree — the git hook above already does this by design.</li>
+</ul>
+<p><strong>Local models sharpen the same problem, in numbers.</strong> Ollama’s floor is 8 GB RAM with no GPU, but agentic coding is a different animal — the KV cache grows every turn, so even a model that fit comfortably at turn one gets pushed into slow CPU territory by turn twenty. Realistic targets: 16 GB RAM minimum, 32 GB recommended, 64 GB for comfortable headroom; 7–8B models want 8–12 GB of VRAM (or unified memory on Apple Silicon, which doesn’t split between GPU and system RAM the way a Windows laptop with a discrete GPU does). An 8–14B model fits one active session comfortably — open two or three worktree sessions on the same box and you’re splitting that same 16–32 GB of RAM/VRAM three ways, with your battery draining faster than any “up to 20 hours” spec sheet implies. None of that shows up on a per-token price comparison, and neither does the quality gap: a weaker local model that needs three retries to reach the same correct answer a hosted model gets in one has spent more <em>wall-clock</em> and dev attention than the “expensive” API call, even at $0 marginal token cost. The real win with local models isn’t price; it’s that nothing leaves the device — the actual deciding factor for regulated or offline work.</p>
+<p>A laptop under load throttles, times out, and produces worse — slower, sometimes truncated — agent output long before the API bill becomes the bottleneck. Plan for concurrent device load the same deliberate way you plan for tokens-per-task.</p>
+<hr />
+<h2 id="feed-less-not-more">Feed Less, Not More</h2>
+<p>Bigger context windows solved one problem and created another: <strong>context rot</strong>. Accuracy degrades as token count climbs, even well inside the window limit — the model has more haystack to search for the same needle. The fix isn’t a bigger window; it’s a smaller haystack.</p>
+<p>Three patterns do the heavy lifting:</p>
+<ol>
+<li><strong>Agentic, on-demand retrieval instead of pre-loading everything.</strong> This repo’s knowledge-graph tooling (<code>graphify</code> + <code>code-review-graph</code>) builds its index with Tree-sitter — <strong>0 LLM tokens</strong> to parse 1,000+ files into a queryable graph. Every session that skips it re-reads dozens of files just to get oriented — one measured session lost “twenty thousand tokens evaporated before a single line of code is written.” Querying the graph (<code>semantic_search_nodes</code>, <code>get_impact_radius</code>) costs a few hundred tokens instead of a fresh directory sweep. The retrieval is <strong>enforced, not requested</strong>: a hook intercepts every <code>grep</code> the agent tries, and if the graph can answer instead, the <code>grep</code> is blocked outright — the refusal message even prices the difference, graph query at ~100 tokens versus ~1,500 for the search sweep it replaced. A rule inside a hook is a constraint; the same rule in a prompt is just a request the model can ignore under pressure.</li>
+<li><strong>Subagents with clean context.</strong> Dispatching research or exploration to a subagent means the main conversation gets a distilled answer back, not the transcript of every file it read to get there. The heavy lifting happens in a context that gets thrown away; only the conclusion survives.</li>
+<li><strong>Prompt caching</strong> — big enough to get its own section, below.</li>
+</ol>
+<hr />
+<h2 id="caching-the-90-lever">Caching: The 90% Lever</h2>
+<p>Prompt caching is the single highest-leverage, zero-quality-loss technique in this whole post. The model already computed the attention values for your static prefix — system prompt, tool definitions, the unchanging file you’re iterating on — on the last call. Instead of throwing that work away, the provider keeps it warm and charges you a fraction to reuse it. The output is byte-identical; only the bill and the latency change.</p>
+<p>The headline number every provider converges on is <strong>~90% off the cached portion of input</strong>. The mechanics differ enough across the three majors that the strategy has to differ too:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Provider</th><th>Cache TTL</th><th>Write (first hit)</th><th>Read (cache hit)</th><th>How to get it</th></tr></thead><tbody><tr><td><strong>Anthropic (Claude)</strong></td><td>5 min or 1 hour (opt-in)</td><td><strong>1.25×</strong> standard input for 5 min, <strong>2.0×</strong> for 1 hour</td><td><strong>0.10× input</strong> (90% off)</td><td>Explicit: mark <code>cache_control: { type: "ephemeral" }</code> on the prefix blocks you want cached</td></tr><tr><td><strong>OpenAI (GPT-5.x)</strong></td><td>up to <strong>24 hours</strong> (default on 5.5+, no fee)</td><td>1.0× input, no surcharge</td><td><strong>0.50× input</strong> (50% off, ≥1024 tok, 128-tok increments)</td><td>Automatic — routed to servers that recently computed the same prefix, no code change</td></tr><tr><td><strong>Google (Gemini 3.x)</strong></td><td>60 min default (extensible)</td><td>1.0× input + per-hour storage cost</td><td><strong>0.10× input</strong> (90% off)</td><td>Implicit (auto, free) or explicit (declared, guaranteed discount)</td></tr></tbody></table>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-16/caching-lever.png" alt="Comparison of Anthropic, OpenAI, and Gemini prompt caching: TTL, write cost, read discount, plus break-even math and the 5-minute TTL cliff" />
+  <br />
+  <sub>Sources: <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching" target="_blank" rel="noopener noreferrer">Anthropic prompt-caching docs</a>, <a href="https://developers.openai.com/api/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer">OpenAI prompt-caching guide</a>, <a href="https://ai.google.dev/gemini-api/docs/caching" target="_blank" rel="noopener noreferrer">Gemini context caching docs</a>. Chart built from their published mechanics — not a reproduction of any vendor graphic.</sub>
+</div>
+<h3 id="the-break-even-that-determines-whether-caching-is-even-worth-it">The break-even that determines whether caching is even worth it</h3>
+<p>Caching is not free money — there’s a <strong>write surcharge</strong> on the first hit, and it only pays off once enough <em>reads</em> land before the prefix expires to earn that surcharge back. Here’s the actual math on Claude’s 5-minute tier: a write costs <strong>1.25×</strong> normal input; each cache hit after that costs <strong>0.10×</strong> — a saving of 0.90× versus paying full price again. You need enough hits to cover the 0.25 extra you paid on the write: 0.25 ÷ 0.90 ≈ <strong>1.4 reads to break even.</strong> Fewer hits than that inside the window, and caching cost you money instead of saving it — a 20,000-token system prompt that only gets hit ~1.1 times per five-minute window is a real-world example of a cache that’s actively losing money.</p>
+<h3 id="the-5-minute-ttl-cliff-and-how-to-not-fall-off-it">The 5-minute TTL cliff (and how to not fall off it)</h3>
+<p>Anthropic quietly dropped the Claude cache TTL from 60 minutes down to <strong>5 minutes</strong> in early 2026, and it caught a lot of production workloads mid-stride: savings that were tracking ~84% fell to ~52% overnight, because every request that landed past the 300-second mark became a fresh write instead of a cheap read. If your batch job processes 200 items at 2 seconds each (400 seconds total), the cache dies around item 135 and <em>every call after that is a miss</em> — the 90% lever silently switches off mid-workflow.</p>
+<p>Four mitigations hold the cache warm, and they generalize across providers:</p>
+<ul>
+<li><strong>Batch within the window.</strong> Don’t trickle requests in over an hour. Cluster the work so all the reads land before the TTL expires — turn a slow steady stream into a tight burst.</li>
+<li><strong>Keep-alive ping.</strong> For a long session against high-value cached content, send a lightweight request roughly every 4 minutes. Accessing a cached block <em>resets</em> its TTL, so a cheap read keeps an expensive write alive indefinitely.</li>
+<li><strong>Static-prefix-first.</strong> Cache matching is positional — it breaks the moment a single byte changes ahead of the cached segment. Put the unchanging bytes (system prompt, tool defs, reference docs) at the very front, and push anything dynamic (the current user message, working memory, the file you’re actively editing) to the <em>back</em>. The most common reason a cache hit rate is stuck low is dynamic state living in the system prompt, invalidating the whole prefix every turn.</li>
+<li><strong>Batch API for overnight jobs.</strong> When the window is too long to batch within, switch to the provider’s Batch API: it processes requests with a shared prefix, so the <em>first</em> request in the batch pays the write cost and the rest pay the read cost (10%) — and Anthropic/Gemini stack a further ~50% batch discount on top, which can reach ~95% off the repeated portion for genuinely async work.</li>
+</ul>
+<h3 id="my-rule-for-sessions-not-just-servers">My rule for sessions, not just servers</h3>
+<p>Most of that table is server-side API economics, but the same instinct applies to an interactive coding session: <strong>work in tight bursts, not long drips.</strong> If you’re iterating on one file, keep the turns close together so the provider’s cache for that file stays warm between requests — leave for a coffee and a meeting and you come back to a cold cache paying full write cost again. Bunch the exploration, the edits, and the review into the same window. It’s the same “fewer tokens, fewer watts, fewer dollars” loop this whole post runs on, just timed.</p>
+<hr />
+<h2 id="memory-compounds--reuse-beats-re-derivation">Memory Compounds — Reuse Beats Re-Derivation</h2>
+<p>The most expensive token is one spent re-discovering something already known. This project’s own memory index made that concrete in a single session log:</p>
+<blockquote>
+<p>Loading 50 indexed observations cost <strong>23,909 tokens to read</strong>. The work that originally produced those observations — research, building, deciding — cost <strong>485,629 tokens</strong>. Reusing the index instead of re-deriving the same context: <strong>95% fewer tokens</strong>, for the same starting knowledge.</p>
+</blockquote>
+<p>That’s not a benchmark claim, it’s one real number from one real session — but the mechanism generalizes: any time context is captured once (a memory file, a spec, a knowledge graph, a CLAUDE.md gotcha) and <em>read</em> on every subsequent occasion instead of <em>re-derived</em>, the savings compound across every future session that touches the same ground.</p>
+<p>The infra that makes this systematic instead of accidental: <strong>skills</strong> — Claude Code’s own skill system, and OpenCode’s equivalent plugin system — package a repeatable workflow (file a bug, write a spec, run a security audit) into something invoked by name instead of re-explained in prose every time it comes up. <strong>Memory plugins</strong> go a layer further: they persist facts, corrections, and decisions <em>across sessions</em>, so a new conversation starts with everything a prior one learned instead of from zero. Same “capture once, reuse forever” principle as caching above — just moved from a manual habit into installed tooling.</p>
+<hr />
+<h2 id="compact-before-you-run-out--summarize-dont-replay">Compact Before You Run Out — Summarize, Don’t Replay</h2>
+<p>Context has its own cost curve: every extra token sitting in the window is a token every subsequent turn re-pays for, in both dollars and attention — the same context-rot mechanic as “Feed Less, Not More” above, just measured in session length instead of file count. The fix isn’t finishing one unbroken thread; it’s closing a session deliberately before it gets there.</p>
+<p>When a session’s context is getting large — a long debugging thread, a big multi-file refactor, a research spiral — write a short summary of what’s been decided and done, then start a fresh session and hand it that summary instead of the full transcript. Most agentic tools now do a version of this natively (compaction commands, session-summary hooks), but the manual version works everywhere: a markdown file with “what we tried, what worked, what’s next” costs a few hundred tokens to write once and read forever, instead of every future turn re-reading — and re-paying for — the entire prior conversation.</p>
+<hr />
+<h2 id="mine-your-own-history--stop-paying-for-the-same-mistake-twice">Mine Your Own History — Stop Paying for the Same Mistake Twice</h2>
+<p>Every repeated correction is a hidden multiplier on the “number of attempts” term from the cost equation at the top of this post — the agent doesn’t fail once, it fails the <em>same way</em> every time nobody tells it to stop. Two logs already sitting on disk are worth mining for exactly this, and most teams never look at either:</p>
+<ul>
+<li><strong>Session/chat logs.</strong> This project’s own auto-memory has a <code>feedback</code> category built for it: “any time the user corrects your approach… or confirms a non-obvious approach worked, save what is applicable to future conversations.” This repo’s memory index already has two live examples — a note that command hooks beat prompt hooks for deterministic checks, and one that skills should install globally, not per-project — corrections made once in a session, now loaded automatically at the start of every future one instead of being re-explained from scratch.</li>
+<li><strong>PR review comments.</strong> If the same review comment shows up on three different PRs — a missing null check, an error message that isn’t pulled from the constants file, an <code>any</code> type that should’ve been a real one — that isn’t three isolated nits, it’s a pattern the model will keep reproducing until someone tells it once, permanently. That’s exactly what a <code>CLAUDE.md</code>’s “Critical Gotchas” or “PR Review Rules” section is for: recurring review feedback, distilled once, applied on every future session without a human retyping the same comment a fourth time. (My own tool, <strong>branchdiff</strong>, does this mechanically — its review skill reads resolved/dismissed threads before commenting, so a dismissed nit with a reason isn’t re-raised next pass. The tool enforces the discipline I’m describing by hand above.)</li>
+</ul>
+<blockquote>
+<p>Both of the above are why tooling and reference material belong in the talk and the blog, not just the prose: the <em>pros</em> of a tool are in its README, but the <strong>cons — what it costs in device load, license, or ban risk, and whether you keep it or cut it — are where the real-world experience actually lives.</strong> Marketing only shows the pros. The decisions below are the cuts.</p>
+</blockquote>
+<p>The token math is the same “capture once, reuse forever” pattern as the memory index above — just pointed backward at your own mistake history instead of forward at new work. A correction re-explained in chat costs a few hundred tokens <em>every time it recurs</em>. The same correction encoded once in a rule costs those tokens once, then applies for free on every future turn where it’s relevant.</p>
+<hr />
+<h2 id="write-less-code-read-less-code-later">Write Less Code, Read Less Code Later</h2>
+<p>Every line of code written today is a line some future session has to load into context to understand, review, or modify. Fewer lines isn’t just a maintainability win — it’s a standing token discount on every future interaction with that file.</p>
+<p>Jeff Atwood put it plainly back in 2007: <strong>“the best code is no code at all.”</strong> Every line you bring into the world is a line that has to be debugged, read, understood, and supported — that’s technical debt in its most literal form. In the AI-agent era it compounds twice: once as the maintenance burden it always was, and again as a token bill every future session pays just to load the file before it can do any actual work on it.</p>
+<p>Benchmark medians across five everyday coding tasks (email validator, debounce, CSV sum, countdown timer, rate limiter) across three model tiers, comparing a YAGNI-first approach against no constraint:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>No constraint</th><th>Lean-by-default</th><th>Change</th></tr></thead><tbody><tr><td>Lines of code</td><td>100%</td><td>6–20%</td><td>80–94% less</td></tr><tr><td>Cost</td><td>100%</td><td>23–53%</td><td>47–77% less</td></tr><tr><td>Speed</td><td>1×</td><td>3–6×</td><td>3–6× faster</td></tr></tbody></table>
+<p>Deletion beats addition, boring beats clever, and the smallest correct diff wins — not for aesthetic reasons, but because every unnecessary abstraction is context every future session pays to load.</p>
+<hr />
+<h2 id="the-dev-team-angle">The Dev-Team Angle</h2>
+<p>The error-fixing share from the cost equation above isn’t a rounding error at team scale — the top 10 tasks industry-wide make up close to a fifth to a quarter of all conversations, and engineering teams are, structurally, the heaviest token consumers in most organizations that adopt AI coding tools.</p>
+<p>That makes token discipline a team-economics lever, not a personal frugality habit. A 47–77% cost reduction on the highest-volume workload in the company (from the table above) moves a real line item — and it costs nothing in output quality, because every technique here is a routing, caching, or context-hygiene change, not a capability cut.</p>
+<hr />
+<h2 id="fewer-tokens-fewer-watts">Fewer Tokens, Fewer Watts</h2>
+<p>There’s a dimension to this that never shows up on any invoice: electricity and water. Global data-center electricity demand was already an estimated 460–490 TWh in 2025; AI workloads are the reason it’s projected to roughly double by 2030, with AI-specific data centers alone expected to draw <strong>945 TWh</strong> — nearly triple the combined annual electricity use of Pakistan, Bangladesh, and Nigeria, three countries home to 650M+ people. The same 2025 baseline carried an estimated <strong>32.6–79.7 million tons of CO2</strong> and <strong>312.5–764.6 billion liters of water</strong> for cooling. UN researchers are now measuring AI’s footprint against entire countries, not companies.</p>
+<p>None of that is on the pricing page either. Every unnecessary retry, every full-repo re-read that a knowledge graph could have answered in a few hundred tokens instead, every task upgraded to Opus that Haiku would have solved just as well — is a small amount of <em>real</em> electricity and <em>real</em> water spent on work that didn’t need doing. That’s not a guilt trip; it’s just the honest scope of what “fewer tokens” actually means. Liquid cooling is cutting water use per data center 70–90% industry-wide, which helps — but the lever on our side of the API call is the same one this whole post has been making: do the same job in fewer tokens.</p>
+<hr />
+<h2 id="the-subsidy-clock-is-running-out">The Subsidy Clock Is Running Out</h2>
+<p>One more reason today’s prices aren’t the real prices: <strong>they’re not real prices yet.</strong> OpenAI, Anthropic, Google, and Meta are all pricing inference below what it costs them to serve it. OpenAI’s own numbers show roughly $2 spent for every $1 earned on inference, with $14B in losses projected for 2026 and $44B in cumulative losses before profitability arrives — by their own timeline — in 2029. A fully-utilized $200/month ChatGPT Pro plan would cost close to <strong>$14,000/month</strong> at published API rates: a 70x subsidy gap that exists because labs are buying market share with venture capital, not because inference is actually that cheap. This isn’t a fringe observation anymore — Forbes ran a July 2026 piece bluntly titled <em>“AI Costs More Than The People It Replaced,”</em> and the same reporting surfaced that <strong>Uber reportedly burned through its entire 2026 AI coding budget in four months.</strong> The sticker shock is becoming the headline, not the footnote.</p>
+<blockquote>
+<p><strong>News callout:</strong> <em><a href="https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/" target="_blank" rel="noopener noreferrer">“AI Costs More Than The People It Replaced”</a></em> — Jemma Green, Forbes, Jul 2, 2026. The Uber budget figure was widely circulated in discussion of that piece.</p>
+</blockquote>
+<p>That subsidy is already unwinding. Anthropic moved enterprise customers from flat-rate plans to usage-based billing tied to actual compute in April 2026. GitHub Copilot — the tool ~4.7 million paying developers already use — follows on <strong>June 1, 2026</strong>: every plan moves from a flat allotment of “premium requests” to metered AI Credits priced off real per-token API rates, and the fallback that used to drop heavy users to a cheaper model when they ran out is gone entirely. Pro still lists at $10/month — it just now buys $15 of credits instead of an unlimited allotment. Same sticker price, a meter where there used to be a flat rate. Analysts expect frontier API prices to rise within 12–24 months, and enterprise AI bills to land 30–50% above today’s levels once pricing reflects real infrastructure cost. (The honest counterweight: Gartner still expects the underlying cost <em>per unit</em> of inference to keep falling from hardware and algorithmic efficiency — this isn’t pure doom, it’s a floor rising under a ceiling that’s also dropping.)</p>
+<p>Either way, the habits in this post stop being optional the moment the subsidy ends. A team that’s already routing by task, caching aggressively, and keeping context lean barely notices the price hike when it lands. A team that’s defaulted to the flagship model on every request — because it was cheap enough not to think about — is about to feel the whole 30–50% at once, with no muscle memory for absorbing it.</p>
+<p>Before AI, the <strong>idea → execute → usage</strong> funnel only grew: a small group of ideators, a bigger group executing, the biggest group of all just using the result. After AI, that funnel flips — everyone can generate an idea, execution and real usage shrink to a fraction of the ideas produced. Cheap, subsidized inference is what made that inversion affordable; it’s also what ends when the subsidy does.</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-16/before-ai-vs-after-ai.jpeg" alt="Before AI vs after AI: idea, execute, usage headcount by stage inverts" />
+  <br />
+  <sub>Idea → execute → usage, before and after.</sub>
+</div>
+<h2 id="make-the-meter-visible--track-before-you-cut">Make the Meter Visible — Track Before You Cut</h2>
+<p>You cannot cut what you cannot see, and the single biggest reason teams overspend is that the meter is invisible by default. The good news: every agent writes local session logs, so tracking is <em>always</em> possible even when the built-in command is weak. The built-in visibility is uneven across agents, though, so pick the tracker that reads <em>your</em> agent’s logs:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Agent</th><th>Native tracking</th><th>Where its logs live</th><th>Reach for</th></tr></thead><tbody><tr><td><strong>Claude Code</strong></td><td><code>/cost</code> (session token + spend), <code>/context</code> (window fill = context-rot warning), <code>/usage-credits</code> (org spend), status line, Agent SDK</td><td>local usage files</td><td><strong>ccusage</strong>, tokscale</td></tr><tr><td><strong>Codex CLI</strong></td><td>in-session token totals (input / cached input / output) — lighter than Claude’s, users routinely want more</td><td><code>~/.codex/sessions/*.jsonl</code></td><td><strong>tokscale</strong>, Dynatrace</td></tr><tr><td><strong>OpenCode</strong></td><td>stored token/cost totals shown in the session context — but <strong>no dedicated tracking command</strong></td><td>local SQLite / JSON</td><td><strong>opencode-stats</strong>, Portkey</td></tr><tr><td><strong>All / enterprise</strong></td><td>—</td><td>—</td><td>Dynatrace, Portkey, AgentsView</td></tr></tbody></table>
+<p><strong>The trackers, with their pros and cons</strong> (because, again, the READMEs only ship the pros):</p>
+<ul>
+<li><strong><a href="https://github.com/ccusage/ccusage" target="_blank" rel="noopener noreferrer">ccusage</a></strong> — ✅ the one I reach for on Claude Code: daily/weekly/monthly/per-session reports plus a <strong>5-hour-block</strong> view that maps directly onto the subscription window caps (you <em>see</em> a heavy day hitting the wall before you hit it), plus a live dashboard. ❌ Con: Claude-centric — it’s expanding to other agents but it’s not a true cross-agent dashboard yet.</li>
+<li><strong><a href="https://github.com/junhoyeo/tokscale" target="_blank" rel="noopener noreferrer">tokscale</a></strong> — ✅ genuinely cross-agent: one CLI + dashboard across multiple coding agents, which matters when you run Claude <em>and</em> Codex <em>and</em> OpenCode in parallel (the multi-agent device theme from earlier). ❌ Con: newer and less mature than ccusage’s Claude-specific depth.</li>
+<li><strong>opencode-stats</strong> (Rust, <code>lib.rs/crates/opencode-stats</code>) — ✅ fills OpenCode’s exact gap: reads the local SQLite/JSON, shows token usage + cost estimates + 365-day stats. ❌ Con: OpenCode-only.</li>
+<li><strong>Dynatrace / Portkey</strong> — ✅ enterprise-grade, multi-agent governance and access control (Dynatrace expanded in April 2026 to cover Claude Code, Gemini CLI, Codex CLI, OpenCode, and Copilot SDK). ❌ Con: governance-shaped, not hacker-shaped — overhead an individual or small team doesn’t need.</li>
+</ul>
+<p>The point isn’t which dashboard — it’s the habit: <strong>glance at usage before you escalate a task to the flagship model, review the weekly report before you approve an agent run that fans out 20 subagents, and watch the 5-hour block (or your agent’s equivalent) when you’re on a subscription tier.</strong> Every cut in the next section came out of exactly this kind of measurement — I cut Headroom because I <em>measured</em> the device load, and I pruned the idle graph MCP because I <em>measured</em> the context tax its schemas were charging every turn. Measure first; the optimizations are obvious once the numbers are in front of you.</p>
+<hr />
+<h2 id="my-toolkit--what-i-actually-run-and-what-i-cut">My Toolkit — What I Actually Run, and What I Cut</h2>
+<p>Everything above is principle. This is what’s installed on my machine, dated and verdict’d — including the tools I tried and threw out, because the cuts are where the real lessons are. I ran a full evaluation on 2026-07-04 with four hard constraints: <strong>no device slowdown, no quality loss, no context loss, zero ban risk from any frontier provider.</strong> Those constraints sorted the whole field fast.</p>
+<h3 id="the-mental-model-three-layers-not-one-competition">The mental model: three layers, not one competition</h3>
+<p>Token-reduction tools aren’t competitors — they stack on different layers:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Layer</th><th>What it does</th><th>Example</th></tr></thead><tbody><tr><td><strong>Output-side</strong></td><td>Make the model <em>write less</em></td><td>Ponytail (code), caveman (prose)</td></tr><tr><td><strong>Input-side</strong></td><td>Compress what the model <em>reads</em> before it hits the LLM</td><td>RTK (shell), Headroom (files)</td></tr><tr><td><strong>Routing-side</strong></td><td>Send the request to a cheaper/fallback provider</td><td>OmniRoute, OpenRouter</td></tr></tbody></table>
+<p>A tool only saves tokens on its own layer. The mistake is picking one “best” token tool; the win is covering each layer with the lightest thing that does the job.</p>
+<h3 id="the-one-rule-that-decided-most-of-it-ban-risk-lives-on-the-wire">The one rule that decided most of it: ban risk lives on the wire</h3>
+<p><strong>A tool only risks a provider ban if it sits between Claude Code and the provider <em>and</em> mutates the payload.</strong> Rule-injection tools (Ponytail, caveman) inject instructions into the session — they never touch the network, so the risk is literally zero. Proxy tools (Headroom, OmniRoute) intercept and rewrite traffic — risk is real, and it’s <em>highest on subscription auth</em> (Max/Pro plans) and lower on your own API key. That single distinction is why my final stack contains zero proxies.</p>
+<h3 id="the-stack-and-the-cuts">The stack (and the cuts)</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>Layer</th><th>Footprint</th><th>Verdict</th></tr></thead><tbody><tr><td><strong>Ponytail</strong></td><td>Output / code</td><td>Pure rules + hooks, ~983 tokens always-on</td><td>✅ <strong>Run</strong> — YAGNI-first “laziness ladder,” shortest working diff; benchmark medians say 6–20% the lines, 23–53% the cost, 3–6× faster</td></tr><tr><td><strong>caveman</strong></td><td>Output / prose</td><td>Mode, zero daemon</td><td>✅ <strong>Run</strong> — compressed prose, ~75% fewer tokens; overlaps Ponytail by design (one does code, one does prose — keep both)</td></tr><tr><td><strong>RTK</strong> (rtk-ai/rtk)</td><td>Input / shell</td><td>Rust binary, &lt;10ms/call, no daemon</td><td>✅ <strong>Run</strong> — auto-rewrites <code>git status</code> → <code>rtk git status</code>, 60–90% off ~100 common commands; <strong>only Bash output</strong>, Read/Grep/Glob bypass</td></tr><tr><td><strong>Headroom</strong></td><td>Input / files</td><td>Local ML daemon + ~600MB models</td><td>❌ <strong>Cut</strong> — 60–95% input reduction, AST-aware, byte-perfect, reversible cache… and exactly the device-drag failure this post warns about. Only tool covering <em>file-read</em> compression; I left that gap uncovered on purpose. If you adopt it: API-key only, never subscription auth</td></tr><tr><td><strong>OmniRoute</strong></td><td>Routing</td><td>Local proxy + SQLite</td><td>❌ <strong>Cut</strong> — 237-provider cost-arbitrage gateway; answers come back from random non-frontier models, so you get quality drift, context drift, <em>and</em> the ToS-ban pattern. Fails “no quality/context loss, no bans” on all three counts</td></tr><tr><td><strong>token-optimizer</strong></td><td>Config / hygiene</td><td>Python hook per Read/Bash</td><td>❌ <strong>Cut</strong> — PolyForm-NonCommercial license (blocks commercial work) plus per-call Python overhead</td></tr></tbody></table>
+<p>Final stack: <strong>Ponytail + caveman + RTK</strong> — three light layers, no daemon, no proxy on the wire, all commercial-safe. The file-read compression layer stays intentionally empty, because the only tool that covered it cost more in device load than it saved in tokens.</p>
+<h3 id="the-graph-tools-call--same-tools-two-contexts-two-verdicts">The graph-tools call — same tools, two contexts, two verdicts</h3>
+<p>This is the nuance I’d get wrong if I just said “use graphify” or “don’t.” I run <strong>graphify and code-review-graph on specific repos</strong> — this blog repo included — <em>behind resource-guarded git hooks</em> (the Stop hook runs CRG’s ~0.425s incremental update, graphify rebuilds only as a detached <code>nohup</code> after commits with a CPU/memory guard). What I explicitly <em>don’t</em> run is the <strong>always-on global MCP daemon</strong> — on 2026-07-04 I removed <code>code-review-graph</code> from my global config because its background embeddings + indexing daemon was the exact thing making my daily-driver laptop slow across every project, whether that project needed a graph or not.</p>
+<p>Same lesson, sharper version: <strong>an idle MCP server still costs context every turn.</strong> Even abandoned, <code>code-review-graph</code> was loading 30+ tool schemas into every session’s context before a single word was typed. Pruning it reclaimed that context with zero downside. The biggest free token lever is often a tool you’re not using anymore that’s still paying its schema tax.</p>
+<h3 id="branchdiff--my-own-review-tool-as-a-token-mechanism">branchdiff — my own review tool, as a token mechanism</h3>
+<p>I built <strong>branchdiff</strong> (local diff viewer + AI review at <code>localhost</code>, nothing leaves the machine), and its token economics are deliberate, not accidental:</p>
+<ul>
+<li><strong>Controlled context surface.</strong> <code>branchdiff review context</code> pipes <em>just the diff</em> to the model — not a full repo dump. The AI sees exactly what changed, nothing more.</li>
+<li><strong>Nth-time review awareness.</strong> Before commenting, the review skill reads already-resolved and dismissed threads. Resolved points aren’t re-raised; dismissed ones only come back with new evidence. Run <code>/branchdiff-review</code> after every commit without re-litigating the same feedback — that’s the “Mine Your Own History” pattern from earlier, built into the tool.</li>
+<li><strong>Focused passes over full dumps.</strong> A security-only pass on a 200-line auth diff produces five precise comments instead of fifty; for a 200-file refactor, point the AI at the riskiest ten files first and run a second pass only if needed. Less output tokens, higher signal.</li>
+</ul>
+<p>The pattern across all of it: <strong>the lightest layer that does the job, never a proxy on the wire, and cut anything that pays a daemon or schema tax you’re not using.</strong> That’s the stack, and it’s the reason the rest of this post’s numbers hold up on a real laptop, not just a benchmark.</p>
+<hr />
+<h2 id="judgment-not-just-a-checklist--output-outcome-impact">Judgment, Not Just a Checklist — Output, Outcome, Impact</h2>
+<p>AI’s headline effect isn’t better decisions — it’s more Output. A model can draft the code, the summary, the migration plan, all day, instantly. But Output, Outcome, and Impact are three different things, and AI only ever hands you the first one:</p>
+<ul>
+<li><strong>Output</strong> — the immediate, direct result the model generates: a code snippet, a summarized document, a predictive score.</li>
+<li><strong>Outcome</strong> — the observable shift in behavior or process <em>caused by</em> that output: a bug actually stops recurring, a report actually gets acted on.</li>
+<li><strong>Impact</strong> — the ultimate business or strategic value that shift produces: lower support cost, higher revenue, a team that ships without burning out.</li>
+</ul>
+<p>More Output doesn’t automatically buy more Outcome, and more Outcome doesn’t automatically buy more Impact. A model can generate ten pull requests in the time a human generates one — that’s Output, verifiable in seconds. Whether those ten PRs actually reduce defect rates (Outcome), and whether that shows up as fewer incidents and a calmer on-call rotation six months later (Impact), is not something the model decides. That gap — between what AI can <em>produce</em> and what actually <em>changes</em> — is exactly where judgment lives: an engineering read on what will actually break, and a business read on what’s actually worth paying for downstream, before the extra Output is worth anything at all.</p>
+<p>Everything in this post is one instance of that same gap, pointed at cost instead of code volume:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Output (what you did)</th><th>Outcome (what changed)</th><th>Impact (the long-term difference)</th></tr></thead><tbody><tr><td>Route lookups to Haiku/GLM/MiniMax instead of the flagship</td><td>Same task costs 5–25× less</td><td>Team absorbs the subsidy unwind without a budget shock</td></tr><tr><td>Structure prompts for caching (static prefix front, batch inside the TTL)</td><td>Repeated-prefix reads cost 90% less</td><td>The same fixed AI budget covers new work, not repeated context</td></tr><tr><td>Prune the idle graph MCP daemon</td><td>Every session carries ~30 fewer tool schemas</td><td>Laptop stays responsive across concurrent worktrees — no thermal throttling</td></tr></tbody></table>
+<p>None of these picks itself, and neither does any other AI output in your organization. The checklist below is the Output layer of this specific post; deciding which lines actually turn into Outcome and Impact <em>for your team</em> is the part no checklist — and no model — can do for you.</p>
+<hr />
+<h2 id="checklist--apply-this-week">Checklist — Apply This Week</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"> <strong>Make the meter visible first</strong> — your agent’s built-in usage command (Claude’s <code>/cost</code>/<code>/context</code>, Codex’s session totals, OpenCode’s stored totals) or a cross-agent tracker like ccusage/tokscale; you can’t cut what you can’t see</li>
+<li class="task-list-item"> <strong>Plan before you generate</strong> — a plan costs hundreds of tokens; a wrong implementation costs thousands, twice-reviewed</li>
+<li class="task-list-item"> Let something adversarial (a <code>grill</code>-style skill) attack the plan before any code exists — never ask the same session to grade its own plan</li>
+<li class="task-list-item"> Review your own diff before the PR — private, cheap, and catches the review-bounce cycle before it starts</li>
+<li class="task-list-item"> Never let an agent be the sole reviewer of agent-written code; never let it write the tests and the implementation in the same session</li>
+<li class="task-list-item"> Route by task: cheap tier (Haiku, GLM, MiniMax, Kimi) for lookups, mid tier as default, flagship only when reasoning depth justifies 5–25x the cost</li>
+<li class="task-list-item"> Match the tool to the constraint that actually binds — data residency → local, cross-vendor flexibility → OpenRouter/OpenCode, out-of-the-box agent quality → Claude Code/Codex</li>
+<li class="task-list-item"> Keep <code>CLAUDE.md</code> under ~200 lines; move file-specific patterns into globbed <code>rules/</code></li>
+<li class="task-list-item"> Replace prompt-based lint/type checks with command hooks</li>
+<li class="task-list-item"> Index the codebase once (Tree-sitter-based graph, not LLM-based) instead of re-reading it every session</li>
+<li class="task-list-item"> Dispatch exploration and research to subagents; keep the main thread to conclusions</li>
+<li class="task-list-item"> Turn on prompt caching — and structure for it: static prefix at the front, dynamic state at the back, batch reads inside the TTL window (break-even ≈1.4 reads/write)</li>
+<li class="task-list-item"> Guard any background job — hooks, rebuilds, local inference — with CPU/memory checks and process dedupe before running multiple worktrees or projects in parallel</li>
+<li class="task-list-item"> Capture decisions in memory/spec files once — read them, don’t re-derive them</li>
+<li class="task-list-item"> When a session’s context gets long, write a short summary and start fresh instead of replaying the whole transcript — a bigger context window is not a free lunch</li>
+<li class="task-list-item"> Mine session logs and PR review comments for recurring corrections; encode each one once into <code>CLAUDE.md</code>/rules instead of re-correcting it every time it recurs</li>
+<li class="task-list-item"> Default to the smallest correct diff; every deleted line is a discount on every future session</li>
+<li class="task-list-item"> Treat an unnecessary token as a small real energy-and-water cost, not just a cent — the same discipline covers both</li>
+<li class="task-list-item"> Don’t build workflows that assume today’s subsidized price is permanent — these habits are the buffer for when usage-based billing lands on your desk</li>
+</ul>
+<hr />
+<h2 id="the-bottom-line">The Bottom Line</h2>
+<p>The cheapest model was never the one with the lowest price per token — it’s the one that reaches the correct answer in the fewest tokens, on the first attempt, on a device that isn’t choking. Pull these levers while they’re still optional, not after usage-based billing makes them mandatory.</p>
+<p>Open <code>~/.claude/rules/model-routing.md</code> — or whatever your tool calls it — and route one task to the cheapest model that can actually do it.</p>
+<hr />
+<h2 id="references">References</h2>
+<p><strong>Pricing &amp; Benchmarks (primary sources):</strong></p>
+<ul>
+<li><a href="https://artificialanalysis.ai/articles/gemini-3-5-flash-everything-you-need-to-know" target="_blank" rel="noopener noreferrer">Artificial Analysis — “Gemini 3.5 Flash: The new leader in intelligence versus speed”</a> (May 19, 2026) — source for the cheap-per-token-trap chart: $1,552 (Flash 3.5) vs ~$887 (3.1 Pro) vs ~$282 (Flash 3, predecessor) to run their Intelligence Index eval suite</li>
+<li><a href="https://labs.scale.com/leaderboard/swe_bench_pro_commercial" target="_blank" rel="noopener noreferrer">Scale AI Leaderboards — SWE-bench Pro (SEAL, standardized scaffolding)</a> — source for the 69.2% vendor-scaffold vs 59.1% standardized-scaffold gap</li>
+<li><a href="https://www.anthropic.com/news/claude-sonnet-5" target="_blank" rel="noopener noreferrer">Anthropic — Introducing Claude Sonnet 5</a></li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic API Pricing — Claude Platform Docs</a></li>
+</ul>
+<p><strong>Pricing &amp; Benchmarks (secondary aggregators, cross-checked):</strong></p>
+<ul>
+<li><a href="https://www.morphllm.com/best-ai-model-for-coding" target="_blank" rel="noopener noreferrer">Best AI Model for Coding — SWE-bench Pro Score and Cost per Task</a> — Haiku 4.5 cost-per-point figure</li>
+<li><a href="https://www.morphllm.com/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro Leaderboard (2026)</a> — explains the Scale SEAL vs vendor-scaffold methodology gap in plain terms</li>
+<li><a href="https://www.morphllm.com/comparisons/codex-vs-claude-code" target="_blank" rel="noopener noreferrer">Codex vs Claude Code (July 2026) — Benchmarks, Subagents &amp; Limits</a></li>
+<li><a href="https://opencode.ai/" target="_blank" rel="noopener noreferrer">OpenCode — the open source AI coding agent</a></li>
+<li><a href="https://openrouter.ai/pricing" target="_blank" rel="noopener noreferrer">OpenRouter — Pricing</a> and <a href="https://openrouter.ai/docs/guides/best-practices/prompt-caching" target="_blank" rel="noopener noreferrer">Prompt Caching guide</a></li>
+<li><a href="https://overchat.ai/ai-hub/llm-hardware-requirements" target="_blank" rel="noopener noreferrer">Local LLM Hardware Requirements in 2026</a></li>
+</ul>
+<p><strong>Context Engineering:</strong></p>
+<ul>
+<li><a href="https://platform.claude.com/cookbook/tool-use-context-engineering-context-engineering-tools" target="_blank" rel="noopener noreferrer">Anthropic — Context engineering: memory, compaction, and tool clearing (Claude Cookbook)</a></li>
+<li><a href="https://arxiv.org/pdf/2601.06007" target="_blank" rel="noopener noreferrer">Don’t Break the Cache: Prompt Caching for Long-Horizon Agentic Tasks</a></li>
+</ul>
+<p><strong>Prompt Caching (primary docs — source for the caching chart &amp; break-even):</strong></p>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching" target="_blank" rel="noopener noreferrer">Anthropic — Prompt caching (1.25×/2.0× write, 0.10× read, 5-min/1-hr TTL)</a></li>
+<li><a href="https://developers.openai.com/api/docs/guides/prompt-caching" target="_blank" rel="noopener noreferrer">OpenAI — Prompt caching (up to 24-hr default, 50% off ≥1024 tok, automatic)</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/caching" target="_blank" rel="noopener noreferrer">Google — Gemini context caching (90% off, implicit vs explicit, 60-min TTL)</a></li>
+</ul>
+<p><strong>Caching strategy &amp; the 5-minute TTL cliff (analysis, cross-checked against docs above):</strong></p>
+<ul>
+<li><a href="https://dev.to/whoffagents/claude-prompt-caching-in-2026-the-5-minute-ttl-change-thats-costing-you-money-4363" target="_blank" rel="noopener noreferrer">Claude Prompt Caching in 2026 — the 5-minute TTL change costing you money</a></li>
+<li><a href="https://dev.to/whoffagents/prompt-caching-deep-dive-when-it-helps-when-it-hurts-and-the-270s-cliff-291j" target="_blank" rel="noopener noreferrer">Prompt Caching Deep Dive — when it helps, when it hurts, the 270s cliff</a></li>
+</ul>
+<p><strong>Multi-Vendor &amp; Open-Weight Pricing (July 2026):</strong></p>
+<ul>
+<li><a href="https://github.blog/news-insights/company-news/github-copilot-is-moving-to-usage-based-billing/" target="_blank" rel="noopener noreferrer">GitHub Blog — GitHub Copilot is moving to usage-based billing</a> — source for the Copilot AI Credits shift</li>
+<li><a href="https://www.reddit.com/r/copilotstudio/comments/1ueqedl/woke_up_to_a_47k_bill_after_deploying_one_copilot/" target="_blank" rel="noopener noreferrer">Reddit r/copilotstudio — “Woke up to a $47K bill after deploying ONE Copilot agent”</a></li>
+<li><a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI API Pricing</a> — GPT-5.6 family (Luna/Terra/Sol) and GPT-5.5</li>
+<li>GLM-4.6 (Zhipu/Z.ai) and MiniMax M2 and Kimi K2.6 (Moonshot) — pricing aggregated from provider docs and OpenRouter model pages, cross-checked mid-2026</li>
+<li><a href="https://blog.codinghorror.com/" target="_blank" rel="noopener noreferrer">Jeff Atwood — “The Best Code is No Code At All”</a> (2007) — source for the “best code is no code at all” line</li>
+</ul>
+<p><strong>Usage Data:</strong></p>
+<ul>
+<li><a href="https://www.anthropic.com/research/economic-index-june-2026-report" target="_blank" rel="noopener noreferrer">Anthropic Economic Index report: Cadences</a></li>
+<li><a href="https://www.anthropic.com/research/economic-index-march-2026-report" target="_blank" rel="noopener noreferrer">Anthropic Economic Index report: Learning curves</a></li>
+<li><a href="https://www.anthropic.com/economic-index#country-usage" target="_blank" rel="noopener noreferrer">Anthropic Economic Index — country usage (Bangladesh: 116/121, usage index 0.11)</a></li>
+</ul>
+<p><strong>Environment &amp; Subsidy Economics:</strong></p>
+<ul>
+<li><a href="https://news.un.org/en/story/2026/06/1167658" target="_blank" rel="noopener noreferrer">UN News — AI’s environmental costs threaten water, land and climate</a></li>
+<li><a href="https://www.allaboutai.com/resources/ai-statistics/ai-environment/" target="_blank" rel="noopener noreferrer">AI Environment Statistics 2026 — power and water use</a></li>
+<li><a href="https://arize.com/blog/ai-model-subsidies-ending-llm-inference-costs/" target="_blank" rel="noopener noreferrer">Model subsidies are ending. What do you do now? — Arize AI</a></li>
+<li><a href="https://aiautomationglobal.com/blog/ai-inference-cost-crisis-openai-economics-2026" target="_blank" rel="noopener noreferrer">AI Inference Cost Crisis 2026 — why OpenAI loses $1.35 per dollar earned</a></li>
+<li><a href="https://www.forbes.com/sites/jemmagreen/2026/07/02/ai-costs-more-than-the-people-it-replaced/" target="_blank" rel="noopener noreferrer">“AI Costs More Than The People It Replaced” — Jemma Green, Forbes, Jul 2, 2026</a> (headline + Uber budget anecdote)</li>
+</ul>
+<p><strong>Related posts from this repo:</strong></p>
+<ul>
+<li><a href="/blogs/blog/claude-code-configuration-blueprint-the-complete-guide-for-production-teams">Claude Code Configuration Blueprint - The Complete Guide for Production Teams</a></li>
+<li><a href="/blogs/blog/graphify-code-review-graph-build-a-self-updating-knowledge-graph-for-claude-code-and">Graphify + code-review-graph: Build a Self-Updating Knowledge Graph</a></li>
+<li><a href="/blogs/blog/self-review-with-ai-before-you-open-the-pr-a-practical-workflow-with-branchdiff">Self-Review With AI Before You Open the PR — branchdiff</a></li>
+</ul>
+<p><strong>My toolkit (tool sources — what I run / what I cut):</strong></p>
+<ul>
+<li>📊 Track first (cross-agent): <a href="https://github.com/ccusage/ccusage" target="_blank" rel="noopener noreferrer">ccusage</a> (Claude) · <a href="https://github.com/junhoyeo/tokscale" target="_blank" rel="noopener noreferrer">tokscale</a> (multi-agent) · <a href="https://lib.rs/crates/opencode-stats" target="_blank" rel="noopener noreferrer">opencode-stats</a> (OpenCode) · built-in <code>/cost</code>, <code>/context</code>, <code>/usage-credits</code></li>
+<li>✅ Run: <a href="https://github.com/DietrichGebert/ponytail" target="_blank" rel="noopener noreferrer">Ponytail</a> (output/code) · caveman (output/prose) · <a href="https://github.com/rtk-ai/rtk" target="_blank" rel="noopener noreferrer">RTK</a> (input/shell)</li>
+<li>❌ Cut: <a href="https://github.com/headroomlabs-ai/headroom" target="_blank" rel="noopener noreferrer">Headroom</a> (device drag) · <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener noreferrer">OmniRoute</a> (ban risk) · <a href="https://github.com/alexgreensh/token-optimizer" target="_blank" rel="noopener noreferrer">token-optimizer</a> (license)</li>
+<li>⚠️ Context-dependent: graphify + code-review-graph (project-local only) · <a href="https://github.com/Encryptioner/branchdiff-releases" target="_blank" rel="noopener noreferrer">branchdiff</a> (review — my own)</li>
+</ul>
+<blockquote>
+<p><em>Pros are in each tool’s README; the cuts and the device/ban/license reasons behind them are from my own 2026-07-04 evaluation, not the marketing pages.</em></p>
+</blockquote>
+<hr />
+<h2 id="lets-connect">Let’s Connect</h2>
+<p>Thank you for the time — genuinely. If you try any of this, I’d rather hear what broke than what worked:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+<li><strong>Support</strong>: <a href="https://www.supportkori.com/mirmursalinankur" target="_blank" rel="noopener noreferrer">SupportKori</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-the-couch-free-remote-control-voice-dictation-from-your-phone" data-search="run your desk from the couch — free remote control + voice dictation from your phone productivity a build's running upstairs. you're on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-the-couch-free-remote-control-voice-dictation-from-your-phone">Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone</a></h3> <p class="excerpt">A build&#39;s running upstairs. You&#39;re on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent…</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>59 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

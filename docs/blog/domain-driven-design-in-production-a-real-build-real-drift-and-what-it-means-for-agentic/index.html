@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams — Ankur’s Writing</title><meta name="description" content="This post drops the fiction and stays in first person, because that's actually how it went: I got a proposal, had to decide how DDD applied to it, decided to…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/domain-driven-design-in-production-a-real-build-real-drift-and-what-it-means-for-agentic/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams — Ankur’s Writing"><meta property="og:description" content="This post drops the fiction and stays in first person, because that's actually how it went: I got a proposal, had to decide how DDD applied to it, decided to…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/domain-driven-design-in-production-a-real-build-real-drift-and-what-it-means-for-agentic/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams — Ankur’s Writing"><meta name="twitter:description" content="This post drops the fiction and stays in first person, because that's actually how it went: I got a proposal, had to decide how DDD applied to it, decided to…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-07-30"><meta property="article:modified_time" content="2026-07-30"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Software%20Architecture">Software Architecture</a>  <span aria-hidden="true">/</span> <span>Domain-Driven Design</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Software%20Architecture">Software Architecture</a> <span class="tag">Domain-Driven Design</span> </div> <h1>Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams</h1> <p class="article-meta mono"> <time datetime="2026-07-30">30 Jul 2026</time> <span>·</span> <span>16 min read</span> <span>·</span> <span>3,145 words</span> </p> </header>  <div class="prose"><h1 id="domain-driven-design-in-production-a-real-build-real-drift-and-what-it-means-for-agentic-teams">Domain-Driven Design in Production: A Real Build, Real Drift, and What It Means for Agentic Teams</h1>
+<blockquote>
+<p>The structure narrows where bugs can hide. It doesn’t remove the need to go looking.</p>
+</blockquote>
+<p>This is the third of three posts on Domain-Driven Design. The <a href="/blogs/blog/domain-driven-design-for-beginners-what-it-is-and-why-it-matters">first post</a> covered the foundations and the <a href="/blogs/blog/domain-driven-design-deep-dive-aggregates-events-and-context-maps-in-practice">second</a> covered production patterns — both using Northwind, a fictional online retailer, because a clean teaching example needs to isolate the pattern from real-world noise.</p>
+<p>This post drops the fiction and stays in first person, because that’s actually how it went: I got a proposal, had to decide how DDD applied to it, decided to hand the building of it to AI agents instead of typing every line myself, watched real issues surface once it was actually being built, and had to decide — each time — whether they were mine to fix and how. What follows is that walkthrough: the proposal, the decisions, how many issues actually came up, how each was handled versus how I think it should be handled, what running this with AI agents actually requires, and what I’d change next time.</p></div>  <div class="prose">
+<h2 id="1-the-proposal">1. The Proposal</h2>
+<p>The project is <strong>Bengal Lens</strong>, a real editorial platform built for a news media house client. The ask, stripped to its plainest form: <em>articles need to move through a real newsroom workflow</em> — drafted, reviewed, fact-checked, approved, published, and occasionally corrected after the fact — alongside image handling, search, and a public-facing site that actually renders the thing to readers. The existing codebase organized itself by technical concern: a folder for articles, a folder for auth, a folder for media. Nobody in the proposal said “use Domain-Driven Design.” That was my call to make, and it’s worth walking through <em>why</em>, not just stating the conclusion.</p>
+<h2 id="2-deciding-the-domain--the-ddd-perspective">2. Deciding the Domain — The DDD Perspective</h2>
+<p>The way I actually approached this: read the proposal for where the <strong>language and the lifecycle genuinely diverge</strong>, not just where the code happened to already have folders. Three questions did most of the work:</p>
+<ul>
+<li><strong>Does deleting one thing imply deleting the other?</strong> An article and its images: no — a support image can outlive the article it was originally attached to, or get reused. That’s a seam.</li>
+<li><strong>Is this read completely differently from how it’s written?</strong> Search results and the article itself: yes — search wants fast, denormalized, read-shaped copies; the article itself wants one consistent, write-shaped source of truth. Forcing those into one model means one of the two always loses.</li>
+<li><strong>Does this have its own reason to change, on its own schedule, driven by different people?</strong> A user’s account and an article: yes — account lifecycle (signup, roles, sessions) has nothing to do with an article’s lifecycle. They just happen to reference each other.</li>
+</ul>
+<p>Applying that gave five bounded contexts, plus one small shared kernel of the handful of things every context has to agree on regardless:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Context</th><th>Owns</th><th>Core model</th></tr></thead><tbody><tr><td><strong>Identity</strong></td><td>Users, auth, 2FA, RBAC</td><td><code>User</code> (aggregate), <code>Credentials</code>, <code>Session</code>, <code>Role</code></td></tr><tr><td><strong>Editorial</strong> (core domain)</td><td>Article lifecycle — draft→review→approve→publish→correct</td><td><code>Article</code> (aggregate), <code>ContentBlock</code>, <code>WorkflowState</code>, <code>Version</code>, <code>AuditEntry</code></td></tr><tr><td><strong>Media</strong></td><td>Upload, image processing, storage</td><td><code>MediaAsset</code> (aggregate), <code>ImageVariant</code></td></tr><tr><td><strong>Content Discovery</strong></td><td>Search, sitemaps, reading stats</td><td><code>SearchIndex</code>, <code>SitemapEntry</code> (read models only)</td></tr><tr><td><strong>Public Delivery</strong></td><td>Rendering pages, locale routing, SEO</td><td>none — stateless consumer</td></tr></tbody></table>
+<p>Just as important as what got split apart is what I deliberately <strong>didn’t</strong> merge, and why — this is the part a starter skips, because folding two things together always looks like less work in the moment:</p>
+<ul>
+<li>Identity → Editorial: no — an account’s lifecycle doesn’t depend on any article existing.</li>
+<li>Media → Editorial: no — an image has its own storage lifecycle; deleting an article shouldn’t delete its images.</li>
+<li>Content Discovery → Editorial: no — read-optimized and write-optimized concerns fight each other the moment they share one model.</li>
+<li>Public Delivery → Content Discovery: no — different technology, different scaling needs, no shared lifecycle at all.</li>
+</ul>
+<p><strong>Editorial is the core domain</strong> — the one place where getting the model wrong costs the most, because the workflow itself (who can move an article from review to approved, what gets versioned, what gets audited) <em>is</em> the business logic, not plumbing wrapped around a database row.</p>
+<h2 id="3-deciding-the-standard-to-apply">3. Deciding the Standard to Apply</h2>
+<p>Once the domain was split, the next decision was which patterns actually earn their cost here, not just which ones sound impressive:</p>
+<ol>
+<li><strong>Aggregates and an aggregate root per context</strong> — so exactly one place enforces “you can’t do that to an article that’s already published,” instead of every caller re-implementing (or forgetting) the same rule.</li>
+<li><strong>A clean, one-directional layering</strong> — business rules never import the database, the storage layer, or the login system directly; those plug into small interfaces the business rules define, never the other way round.</li>
+<li><strong>A translation layer at every boundary</strong> — Editorial never touches a raw media file; it only ever sees a small stand-in with just the fields it actually needs (an id, a URL, a caption, a credit).</li>
+<li><strong>Domain events for anything crossing a context boundary</strong>, with a growth path decided up front rather than argued about later: an in-process notification for the first version, a shared message queue if it ever splits into separate deployed services, a full event-streaming platform only if it needs to scale further than that.</li>
+</ol>
+<h2 id="4-deciding-how-to-get-it-built--where-agentic-ai-comes-in">4. Deciding How to Get It Built — Where Agentic AI Comes In</h2>
+<p>This is the decision the first two posts never had to make, because a made-up example doesn’t need building. Once the domain was genuinely split into independent contexts, a second question followed naturally: <strong>if these five pieces are independent enough to model separately, are they independent enough to build separately too — by different workers, in parallel, without them getting in each other’s way?</strong></p>
+<p>I decided yes, with one condition: each piece of work would be handed to an AI agent <strong>starting completely fresh</strong>, with no memory of how a previous piece had been built. That was deliberate — a shortcut taken while building one context shouldn’t be able to quietly become an assumption baked into the next one. The build became eight pieces of work on one branch: the shared foundation first, then Identity, Editorial, Media, and Content Discovery each in turn, then Editorial’s two different front-facing surfaces — the internal admin tool and the public website, genuinely two different pieces of software on two different technology stacks — and finally one pass to wire everything together.</p>
+<p><strong>How an agentic approach can work for DDD, generalized beyond this one build:</strong></p>
+<ul>
+<li><strong>Treat each bounded context as a self-contained unit of work</strong>, the same way you’d hand it to a different team. This only works because DDD already forces each context to define its own boundary, its own model, and its own interface to the outside — an agent building one context genuinely doesn’t need to read another context’s internals to do its job correctly.</li>
+<li><strong>Write the architecture decision down before any agent starts</strong>, and make reading it the first step of every piece of work. Without a durable, written decision, two independently-working agents will settle ownership disputes differently, and neither will know it happened.</li>
+<li><strong>Never let a single “all checks passed” report be the only gate.</strong> An agent’s own summary of its work is necessary, not sufficient — build in an independent second look, from a different tool or a different pass, before treating anything as actually finished.</li>
+<li><strong>Require attribution, not just detection, when a check fails.</strong> An agent that finds ten errors needs to work out which ones its own change actually caused before fixing any of them — otherwise routine work quietly turns into uncontrolled scope creep.</li>
+</ul>
+<p>That’s the framework. The rest of this post is the evidence for why every one of those four points earned its place — five real issues came up applying exactly this process, and each one is why a rule above exists.</p>
+<h2 id="5-how-many-issues-actually-came-up">5. How Many Issues Actually Came Up</h2>
+<p>Across the pieces of work I actually reviewed closely — the foundation, the Editorial context, and a separate maintenance task that touched the whole project mid-build — five real issues surfaced. Not a full audit of all eight pieces of work, but every one that did surface falls into one of two shapes: <strong>a tooling or configuration mismatch</strong>, or <strong>two parts of the system quietly drifting apart on something they were supposed to agree on</strong>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>#</th><th>Issue</th><th>Shape</th></tr></thead><tbody><tr><td>1</td><td>A required setup file couldn’t be created because of a permission restriction</td><td>Tooling/environment gap</td></tr><tr><td>2</td><td>Editorial was reported as fully passing its checks; an independent look found real errors in the same code</td><td>Tooling mismatch (false-green)</td></tr><tr><td>3</td><td>The first attempted fix for #2 fixed one tool and broke another</td><td>Tooling mismatch (introduced by the fix)</td></tr><tr><td>4</td><td>An unrelated maintenance task ran into two pre-existing gaps left by the still-in-progress build</td><td>Cross-task drift</td></tr><tr><td>5</td><td>A test still encoded an old design assumption (a fixed list of roles) after the schema had deliberately moved to free-form roles</td><td>Design drift between test and model</td></tr><tr><td>6</td><td>An early piece of work placed workflow-transition rules in the shared kernel; the written architecture decision said they belonged to Editorial alone</td><td>Ownership drift between two pieces of work</td></tr></tbody></table>
+<p>Six, not five, once counted properly — I nearly under-counted my own list, which is itself a small demonstration of why writing the tally down instead of trusting a mental count is worth doing.</p>
+<h2 id="6-how-each-was-handled--and-how-it-should-be-handled">6. How Each Was Handled — And How It Should Be Handled</h2>
+<p><strong>Issue 1 — the blocked setup file.</strong> Handled by flagging it plainly and asking for it to be created outside the restricted process, rather than working around the restriction. <strong>How it should be handled:</strong> exactly that — a permission boundary that exists on purpose shouldn’t be quietly bypassed just because it’s inconvenient in the moment; surfacing it and waiting is the correct call, not a workaround.</p>
+<p><strong>Issue 2 — the false-green report.</strong> Editorial’s build was reported finished, every check reportedly passing. An independent look at the same code — using a different tool than the one that produced the “all passing” report — found real errors sitting in the exact files just marked clean. <strong>What was actually happening:</strong> a project setting told the tool doing the official check to read a shared package’s original source files, while every other tool followed the ordinary rule and read a separate, stale, pre-built copy of the same package instead. Both reports were individually true; they just weren’t looking at the same version of the code. <strong>How it should be handled:</strong> exactly as it was here — never advance past a report of success without at least one independent check using a different tool, because a report can be entirely honest and still be describing a different reality than the one a second tool would see.</p>
+<p><strong>Issue 3 — the fix that broke a different tool.</strong> The first fix for issue 2 (pointing every tool at the same source files) cleared the independent check immediately, but broke the official one — a second, unrelated setting restricted the project to only its own files, and now rejected the shared files it needed. <strong>How it was handled:</strong> that restricting setting turned out to only matter for producing a build output, which this project never does — removing it let every tool agree for the first time. <strong>How it should be handled:</strong> the same way, but earlier — any fix that touches shared configuration should be followed by re-running <em>every</em> check, not just the one it was meant to fix, precisely because config changes have a habit of fixing one thing and quietly breaking a neighbor.</p>
+<p><strong>Issue 4 — the maintenance task walking into someone else’s unfinished work.</strong> A routine update to bring the whole project’s tooling up to date surfaced errors in four places; only one was actually caused by the update itself. <strong>How it was handled:</strong> checking, file by file, when each failing file had last changed and whether this task’s own edits touched it — two of the four clusters clearly predated the task and had nothing to do with it. Only the one genuinely caused by the update got fixed; the rest got reported honestly as separate, pre-existing findings. <strong>How it should be handled:</strong> the same way, every time — fixing an error you happened to notice, without first checking whether it’s actually yours to fix, is how a “routine update” quietly turns into an unrelated task claiming credit (or blame) for someone else’s half-finished work.</p>
+<p><strong>Issue 5 — the test asserting a design that no longer existed.</strong> A test rejecting “unknown” roles started failing after an unrelated change. It looked, at first glance, like a regression. <strong>What was actually true:</strong> the role model had deliberately moved to free-form, admin-created role names governed by a permission matrix, not a fixed list — so a test built around “there’s a fixed list of valid roles” was testing an assumption the design had already moved past. <strong>How it was handled:</strong> correctly identified as a stale test, not a stale schema, and the <em>test</em> was updated to match the schema’s real, current constraints instead of the schema being bent back to satisfy an old test. <strong>How it should be handled:</strong> the same way, but this is worth calling out on its own — the instinct when a test fails is almost always “fix the code,” and the harder, more valuable judgment call is recognizing when the test is actually the thing that’s out of date.</p>
+<p><strong>Issue 6 — two pieces of work disagreeing about where the transition rules live.</strong> An early piece of work put workflow-transition logic in the shared kernel; the written architecture decision said transitions belong to Editorial alone. <strong>How it was handled:</strong> caught during review, checked against the written decision rather than against what the earlier piece of work happened to assume, and corrected. <strong>How it should be handled:</strong> exactly this — but it only works at all because a written decision existed to check against. A decision that only ever lived in someone’s head, or in one piece of work’s working notes, would have had nothing to be checked against once that work was finished.</p>
+<h2 id="7-how-i-applied-this-end-to-end">7. How I Applied This, End to End</h2>
+<p>Concretely, start to finish: I read the proposal for where language and lifecycle actually diverged, not where the existing folders happened to be, and that produced five bounded contexts plus a small shared kernel. I picked patterns for what they’d actually cost versus what they’d actually protect, not for how sophisticated they’d look. I wrote the resulting architecture decision down before any code existed, specifically so it could act as a tiebreaker later. I split the build into pieces that matched the bounded contexts — one exception where a single context spanned two different technology stacks and genuinely needed two pieces of work — and handed each piece to an AI agent starting fresh. I didn’t treat any single “all checks passed” report as final; every piece of work got an independent look before the next one started, which is exactly how issues 2 and 3 surfaced instead of shipping quietly. And when an unrelated task ran into someone else’s unfinished work, or two pieces of work disagreed about ownership, I resolved it by checking who actually caused it or what was actually written down — not by guessing.</p>
+<h2 id="8-what-could-be-best">8. What Could Be Best</h2>
+<p>If I ran this again, three things would change from ad hoc discipline into a standing part of the process rather than something I happened to remember to do:</p>
+<ul>
+<li><strong>A running issue log, one per context, kept from the very first piece of work.</strong> I reconstructed the tally in section 5 after the fact; it should exist as a living document from day one, updated the moment each issue surfaces, not recovered afterward.</li>
+<li><strong>The independent second look should be a mandatory gate, not a judgment call.</strong> It caught the two biggest issues here. It should never depend on someone remembering to do it before moving on.</li>
+<li><strong>A scheduled, whole-project consistency sweep, not just a lucky one.</strong> Issue 4 only surfaced because an unrelated task happened to touch the whole project mid-build. A build with several contexts in progress at once should have a deliberate checkpoint — not a maintenance task’s side effect — for catching exactly this kind of drift between contexts before it’s found by accident.</li>
+</ul>
+<p>None of these three fixes are DDD patterns. They’re process discipline sitting on top of a DDD structure that was already sound — which is really the whole point of this post: the structure decided in sections 2 and 3 never caused any of the six issues. It only ever limited <em>where</em> they could hide. Finding them still took looking.</p>
+<h2 id="checklist-running-ddd-with-agentic-or-parallel-teams">Checklist: Running DDD With Agentic or Parallel Teams</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"> Write the bounded-context decisions down somewhere every piece of work reads first — the tiebreaker, not something kept in someone’s head.</li>
+<li class="task-list-item"> Default to one bounded context per piece of work; split further only when a context genuinely spans more than one technology stack.</li>
+<li class="task-list-item"> Never move forward on a single “all checks passed” report — build in an independent second look as a standing gate, not a judgment call.</li>
+<li class="task-list-item"> Before fixing anything an unrelated task’s checks turn up, check who’s actually responsible for it — fix only what’s yours, report the rest honestly.</li>
+<li class="task-list-item"> When a test starts failing, ask whether the test or the design is the one that’s actually out of date, before assuming it’s a regression.</li>
+<li class="task-list-item"> Keep a running issue log per context from day one, and schedule whole-project consistency checks — don’t wait for an unrelated task to stumble into the drift.</li>
+</ul>
+<p>And the reminder that’s closed both prior posts, still true here: simple CRUD apps, short-lived projects, and teams without sustained access to people who understand the domain are exactly where none of this — human or agentic — pays for itself. Reach for it where the domain, not the plumbing, is genuinely the hard part.</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Bengal Lens — a real editorial platform built for a news media house client; the proposal, decisions, and issues above are real, described in plain terms rather than as a technical log</li>
+<li>ByteByteGo — <a href="https://blog.bytebytego.com/p/domain-driven-design-ddd-demystified" target="_blank" rel="noopener noreferrer">Domain-Driven Design (DDD) Demystified</a></li>
+<li>Nikki Siapno, Level Up Coding — <a href="https://blog.levelupcoding.com/p/domain-driven-design-broken-down" target="_blank" rel="noopener noreferrer">Domain-Driven Design, Broken Down</a></li>
+<li>Companion deck: <a href="/blogs/content/presentations/P-6-domain-driven-design/real-build.html">Real Build — Domain-Driven Design in Production</a></li>
+<li>Previously: <a href="/blogs/blog/domain-driven-design-for-beginners-what-it-is-and-why-it-matters">Intro</a> · <a href="/blogs/blog/domain-driven-design-deep-dive-aggregates-events-and-context-maps-in-practice">Deep Dive</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Software%20Architecture">
+More on Software Architecture </a> </footer> </article> <section class="shell sec"> <h2>More in Software Architecture</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Software Architecture" data-slug="domain-driven-design-deep-dive-aggregates-events-and-context-maps-in-practice" data-search="domain-driven design deep dive: aggregates, events, and context maps in practice software architecture domain-driven design the first three patterns give you vocabulary and boundaries. what follows is what makes those boundaries safe to change once real traffic and multiple teams…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Software Architecture</span> <span class="tag">Domain-Driven Design</span> </div> <h3><a href="/blogs/blog/domain-driven-design-deep-dive-aggregates-events-and-context-maps-in-practice">Domain-Driven Design Deep Dive: Aggregates, Events, and Context Maps in Practice</a></h3> <p class="excerpt">The first three patterns give you vocabulary and boundaries. What follows is what makes those boundaries safe to change once real traffic and multiple teams…</p> <div class="meta"> <time datetime="2026-07-30">30 Jul 2026</time> <span>20 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Software Architecture" data-slug="domain-driven-design-for-beginners-what-it-is-and-why-it-matters" data-search="domain-driven design for beginners: what it is and why it matters software architecture domain-driven design domain-driven design (ddd) has a reputation for being academic — a term you hear in architecture meetings, attached to diagrams full of circles and arrows,…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Software Architecture</span> <span class="tag">Domain-Driven Design</span> </div> <h3><a href="/blogs/blog/domain-driven-design-for-beginners-what-it-is-and-why-it-matters">Domain-Driven Design for Beginners: What It Is and Why It Matters</a></h3> <p class="excerpt">Domain-Driven Design (DDD) has a reputation for being academic — a term you hear in architecture meetings, attached to diagrams full of circles and arrows,…</p> <div class="meta"> <time datetime="2026-07-30">30 Jul 2026</time> <span>16 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

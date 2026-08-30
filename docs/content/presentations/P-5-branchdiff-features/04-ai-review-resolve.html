@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 04 — AI Review & Resolve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="AI Review & Resolve">
+    <span class="badge"><span class="dot"></span> Deck 04 · branchdiff features</span>
+    <h1 class="title">AI review that <em>lands on the line</em>.</h1>
+    <h2 class="subtitle">Comments hit real diff lines with severity tags, nth-pass awareness skips what's already resolved, and resolve verifies before it claims success — instead of pasting a diff into ChatGPT and getting untraceable prose back.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">branchdiff</span> agent</span>
+      <span><span class="mono">21</span> agent subcommands</span>
+      <span><span class="mono">8</span> guided review passes</span>
+      <span><span class="mono">claude · opencode · chatgpt · gemini · codex</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The paste-into-ChatGPT problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Pasting a diff into ChatGPT is <em>not a review</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Comments don't land on lines.</b> <span class="muted">The model returns prose; you copy fragments back into GitHub by hand and lose the file/line binding.</span></li>
+        <li><b>No audit trail.</b> <span class="muted">Two weeks later nobody knows which comments came from the AI, which from a teammate, or why one was dismissed.</span></li>
+        <li><b>Every engineer, different prompt.</b> <span class="muted">No shared tone, no shared severity, no shared notion of "already raised."</span></li>
+        <li><b>Re-running re-litigates everything.</b> <span class="muted">Run the same diff tomorrow and the AI raises the same nit on a thread you already resolved.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>And on the resolve side:</b> AI "fix" scripts claim success without verifying — they edit a file, see no error, and report done. Fixes silently land on the wrong branch after a merge or rebase.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The branchdiff solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">A controlled <em>agent surface</em> the AI drives.</h3>
+    <p class="lead-p">Instead of letting an LLM freewheel through your repo, branchdiff exposes a small, audited set of <span class="mono">agent</span> commands. The AI can read the diff, drop a comment on a real line with a tag, resolve a thread, or dismiss it — but only through the surface. Every action lands in the same SQLite session as your manual comments, with the same severity taxonomy.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Ad-hoc AI · paste into ChatGPT</h4>
+        <p>Untraceable prose · no line binding · no severity · no notion of "already raised" · fix-scripts claim done without verifying · the wrong branch silently receives the patch.</p>
+      </div>
+      <div class="box solve">
+        <h4>branchdiff agent surface</h4>
+        <p>Comments land on real diff lines with <span class="mono">[must-fix]</span> / <span class="mono">[suggestion]</span> / <span class="mono">[nit]</span> tags · same session as manual comments · nth-pass aware (resolved stays resolved) · resolve verifies build + tests + ancestry first.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · SELF-REVIEW BEFORE/AFTER -->
+  <section class="slide" data-title="Why a self-review pass">
+    <div class="slide-num">04 · why a self-review pass</div>
+    <h3 class="section">A second look, <em>before</em> anyone else sees it.</h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-14/self-review-before-after.png" alt="Self-review before vs. after opening the PR" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">Self-review · before vs. after opening the PR</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Same diff, fresh eyes.</b> <span class="muted">Switch to the other side of the branch pair and read your own change as a reviewer would.</span></li>
+        <li><b>Local, private.</b> <span class="muted">Run before the PR is even opened — nothing leaves the machine.</span></li>
+        <li><b>Catches the obvious.</b> <span class="muted">Most "AI review" findings are things the author would have caught with one more pass.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · THE AGENT SURFACE -->
+  <section class="slide" data-title="The agent command surface">
+    <div class="slide-num">05 · the agent surface</div>
+    <h3 class="section">Twenty-one subcommands. <em>One audited surface.</em></h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Read:</b> <span class="mono">agent diff</span>, <span class="mono">agent list</span>, <span class="mono">agent file &lt;path&gt; --ref &lt;ref&gt;</span></li>
+        <li><b>Write:</b> <span class="mono">agent comment</span>, <span class="mono">agent general-comment</span>, <span class="mono">agent reply</span>, <span class="mono">agent edit-comment</span></li>
+        <li><b>Lifecycle:</b> <span class="mono">agent resolve &lt;id&gt;</span>, <span class="mono">agent dismiss &lt;id&gt;</span>, <span class="mono">agent delete-thread</span></li>
+        <li><b>Session:</b> all accept <span class="mono">--session</span> / <span class="mono">--port</span> / <span class="mono">BRANCHDIFF_SESSION_ID</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent --help</span></div>
+        <div class="code-body"><span class="c"># read the compared ref, not your checkout</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">file</span> src/auth.ts <span class="n">--ref</span> dev
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">list</span> --status open
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">resolve</span> d10176d2 \
+    <span class="n">--summary</span> <span class="s">"guard added; tests green on fix/auth-zero"</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px">
+      <b>One surface, every agent.</b> Claude Code, opencode, Gemini CLI, Codex, or a plain ChatGPT paste — they all drive the same <span class="mono">agent</span> commands, so the audit trail and tone stay consistent regardless of which model reviewed.
+    </div>
+  </section>
+
+  <!-- 6 · COMMENTS LAND ON LINES -->
+  <section class="slide" data-title="Comments land on real lines">
+    <div class="slide-num">06 · line-bound comments</div>
+    <h3 class="section">Comments <em>land</em>. With a severity tag.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent comment</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">comment</span> \
+    <span class="n">--file</span> src/auth.ts \
+    <span class="n">--line</span> 42 \
+    <span class="n">--end-line</span> 44 \
+    <span class="n">--side</span> new \
+    <span class="n">--body</span> <span class="s">"[must-fix] returns undefined when amount===0;
+                caller will crash on .toString()"</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">general-comment</span> \
+    <span class="n">--body</span> <span class="s">"overall: clean refactor; one blocker above"</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Real file + line binding.</b> <span class="muted">Pinned to the diff at the compared ref — survives the model losing count.</span></li>
+        <li><b>Same tag taxonomy as manual comments.</b> <span class="muted"><span class="mono">[must-fix]</span>, <span class="mono">[suggestion]</span>, <span class="mono">[nit]</span>, <span class="mono">[question]</span> — the AI doesn't invent its own prefixes.</span></li>
+        <li><b>Range + side.</b> <span class="muted"><span class="mono">--end-line</span> and <span class="mono">--side old|new</span> for multi-line and removal-only notes.</span></li>
+        <li><b>Same SQLite session.</b> <span class="muted">Indistinguishable from your own comments in the UI.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · READS FROM GIT NOT CHECKOUT -->
+  <section class="slide" data-title="Reads from git, not your checkout">
+    <div class="slide-num">07 · reads from git, not checkout</div>
+    <h3 class="section">The review can't be <em>poisoned</em> by HEAD.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">agent file &lt;path&gt; --ref &lt;ref&gt;</span></b> reads file content at the compared ref — not whatever you happen to have checked out.</li>
+        <li><b>Why it matters:</b> if you've started patching things locally, or you're on a different branch, the AI still sees the diff as reviewed.</li>
+        <li><b>Reproducible.</b> Two engineers running the same review see the same code — no "works on my machine."</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent file</span></div>
+        <div class="code-body"><span class="c"># what the AI sees — pinned to the compared ref</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">file</span> src/auth.ts <span class="n">--ref</span> dev
+<span class="c"># → content of src/auth.ts at the dev tip,
+<span class="c">#   not your working tree</span>
+
+<span class="c"># the diff itself, the same way</span>
+<span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">diff</span> --json</div>
+      </div>
+    </div>
+    <div class="callout danger" style="margin-top:18px">
+      <b>Without this,</b> an AI that calls <span class="mono">cat src/auth.ts</span> reads your half-finished local edits and reviews the wrong code. branchdiff closes that hole by default.
+    </div>
+  </section>
+
+  <!-- 8 · RESOLVE WITH VERIFICATION -->
+  <section class="slide" data-title="Resolve with verification">
+    <div class="slide-num">08 · resolve that verifies</div>
+    <h3 class="section">Resolve <em>proves</em> the fix before it claims done.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Finds the construct by content, not line number.</b> <span class="muted">Line numbers drift across commits; the resolve skill locates the function/block by what it actually says.</span></li>
+        <li><b>Confirms ancestry.</b> <span class="muted"><span class="mono">git merge-base --is-ancestor</span> + per-file compare prove the fix commit actually descends from the branch under review.</span></li>
+        <li><b>Runs the project's own checks.</b> <span class="muted">Whatever build / typecheck / test the repo already has — resolve invokes it, not a toy script.</span></li>
+        <li><b>Reports un-placeable findings.</b> <span class="muted">If it can't find the construct, it says so — never silently resolves.</span></li>
+        <li><b>Names the branch the fix landed on.</b> <span class="muted">So you can audit "fix shipped on <span class="mono">fix/auth-zero</span>, not <span class="mono">main</span>."</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent resolve</span></div>
+        <div class="code-body"><span class="prompt">$</span> branchdiff <span class="k">agent</span> <span class="f">resolve</span> d10176d2 \
+    <span class="n">--summary</span> <span class="s">"guard added at auth.ts:42;
+                tests green on fix/auth-zero"</span>
+
+<span class="c"># under the hood, the resolve skill:</span>
+<span class="c">#  1. locates the function by content</span>
+<span class="c">#  2. git merge-base --is-ancestor</span>
+<span class="c">#  3. per-file compare vs. reviewed tip</span>
+<span class="c">#  4. runs the project's build + tests</span>
+<span class="c">#  5. only then marks thread resolved</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · NTH-PASS AWARENESS -->
+  <section class="slide" data-title="Nth-pass awareness">
+    <div class="slide-num">09 · nth-pass awareness</div>
+    <h3 class="section">Re-running the review <em>doesn't re-litigate</em>.</h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-15/ai-passes-decision.png" alt="AI nth-pass decision tree" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">AI nth-pass decision · fetch resolved + dismissed threads first</div>
+      </div>
+      <ul class="bullets">
+        <li><b>Resolved threads stay resolved.</b> <span class="muted">Fetched before the review; the skill will not re-raise them.</span></li>
+        <li><b>Dismissed threads stay dismissed — unless evidence changed.</b> <span class="muted">Only re-flagged if the new diff contradicts the recorded reason.</span></li>
+        <li><b>Per-pass diff.</b> <span class="muted">Run <span class="mono">-p 2</span> to review only what's new since the previous commit on the source branch.</span></li>
+        <li><b>No more "AI keeps bringing up that nit."</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 · GENERATED SKILLS -->
+  <section class="slide" data-title="Generated skills & slash commands">
+    <div class="slide-num">10 · generated skills</div>
+    <h3 class="section">Skills install in <em>one command</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff skill add</span></div>
+        <div class="code-body"><span class="c"># default: writes to .claude/skills/ in this repo</span>
+<span class="prompt">$</span> branchdiff <span class="k">skill</span> <span class="f">add</span> --type all
+
+<span class="c"># targets (any of):</span>
+<span class="c">#   claude-project · claude-user</span>
+<span class="c">#   opencode-project · opencode-user</span>
+<span class="c">#   agents-project · agents-user</span>
+<span class="prompt">$</span> branchdiff <span class="k">skill</span> <span class="f">add</span> --type review \
+    <span class="n">--target</span> claude-project
+
+<span class="c"># → .claude/skills/branchdiff-review/SKILL.md</span>
+<span class="c"># → .claude/skills/branchdiff-resolve/SKILL.md</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Two skills.</b> <span class="mono">branchdiff-review</span> (raise findings constructively) and <span class="mono">branchdiff-resolve</span> (verify before resolving).</li>
+        <li><b>Slash commands.</b> <span class="mono">/branchdiff-review</span> and <span class="mono">/branchdiff-resolve</span> in Claude Code.</li>
+        <li><b>opencode reads <span class="mono">.claude/skills</span>.</b> One install covers both Claude Code and opencode.</li>
+        <li><b>Constructive tone is baked in.</b> Leads with the problem, not judgment; acknowledges good code.</li>
+        <li><b>Re-runnable.</b> Updates files it wrote; leaves hand-written skills alone unless <span class="mono">--force</span>.</li>
+      </ul>
+    </div>
+    <div class="callout accent" style="margin-top:18px">
+      <b>Tone, by example:</b> <span class="mono">"This returns undefined when amount === 0, which crashes the caller."</span> — not <span class="mono">"this is wrong."</span> The skill reinforces problem-first language, so the AI's comments read like a careful teammate, not a Linter with opinions.
+    </div>
+  </section>
+
+  <!-- 11 · PLUGIN MARKETPLACE -->
+  <section class="slide" data-title="Plugin marketplace">
+    <div class="slide-num">11 · plugin marketplace</div>
+    <h3 class="section">Or install once via the <em>plugin marketplace</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">claude plugin marketplace add</span></div>
+        <div class="code-body"><span class="c"># one-time, in any repo</span>
+<span class="prompt">$</span> claude plugin marketplace add \
+    Encryptioner/branchdiff-releases \
+    <span class="n">--sparse</span> plugins/branchdiff-skills
+
+<span class="c"># then enable</span>
+<span class="prompt">$</span> claude plugin enable branchdiff-skills
+
+<span class="c"># /branchdiff-review + /branchdiff-resolve
+<span class="c">#  are now available everywhere</span></span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Lives in <span class="mono">branchdiff-releases</span>.</b> Same repo as the curl installer that works for any <span class="mono">SKILL.md</span>-reading agent.</li>
+        <li><b>Version tracks the CLI.</b> Plugin version matches the CLI version — re-rendered and committed on every CLI release.</li>
+        <li><b>Sparse checkout.</b> Only the skills plugin is pulled — not the whole releases repo.</li>
+        <li><b>Also: copy-paste prompts</b> for ChatGPT, Gemini, Codex — drive the same <span class="mono">agent</span> commands without any plugin installed.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · ONE-SHOT PIPE -->
+  <section class="slide" data-title="One-shot review pipe">
+    <div class="slide-num">12 · one-shot pipe</div>
+    <h3 class="section">Export context, run an agent, <em>import findings</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff review</span></div>
+        <div class="code-body"><span class="c"># 1. export the diff as markdown or JSON</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">context</span> --json &gt; ctx.json
+
+<span class="c"># 2. apply an AI review file</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">import</span> review.json
+
+<span class="c"># 3. one-shot: context → exec → import</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">run</span> \
+    <span class="n">--exec</span> <span class="s">"claude -p"</span>
+
+<span class="c"># bootstrap a fresh session, then review</span>
+<span class="prompt">$</span> branchdiff <span class="k">review</span> <span class="f">run</span> --exec <span class="s">"opencode run"</span> \
+    <span class="n">--url</span> https://github.com/me/repo/pull/42 \
+    <span class="n">--fresh</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b><span class="mono">review context</span></b> — markdown or JSON export of the diff and open threads, for any AI.</li>
+        <li><b><span class="mono">review run --exec &lt;cmd&gt;</span></b> — pipes context to your agent, then imports its findings back as line-bound comments.</li>
+        <li><b><span class="mono">--url</span></b> bootstraps a session from any PR link.</li>
+        <li><b><span class="mono">--fresh</span></b> archives the current session first — clean slate for a new PR iteration.</li>
+        <li><b>Any agent.</b> <span class="mono">claude -p</span>, <span class="mono">opencode run</span>, <span class="mono">gemini</span>, a curl to an OpenAI-compatible endpoint — anything that reads stdin and writes JSON.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 13 · SELF-REVIEW WORKFLOW + STATS -->
+  <section class="slide" data-title="The 4-step self-review">
+    <div class="slide-num">13 · the 4-step flow</div>
+    <h3 class="section">Open the PR. Read it. React. <em>Then publish.</em></h3>
+    <div class="cols-3-2">
+      <div class="fig">
+        <img src="../../assets/B-14/self-review-4-steps.png" alt="Self-review in four steps" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">Self-review · open → read → comment → resolve</div>
+      </div>
+      <ul class="bullets">
+        <li><b>1 · Open locally.</b> <span class="mono">branchdiff</span> against the branch pair — full file in place.</li>
+        <li><b>2 · Read it as a reviewer.</b> Use the vim keys; mark files viewed as you go.</li>
+        <li><b>3 · React with the AI.</b> <span class="mono">/branchdiff-review</span> or <span class="mono">review run --exec</span> — comments land on lines, tagged.</li>
+        <li><b>4 · Resolve or dismiss.</b> Fix in another branch, run resolve — it verifies, then closes.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 14 · 8 WORKFLOWS + LOCAL-ONLY -->
+  <section class="slide" data-title="Workflows & local-only resolve">
+    <div class="slide-num">14 · workflows &amp; local-only by default</div>
+    <h3 class="section">Eight guided review passes. <em>Local by default.</em></h3>
+    <div class="two-col">
+      <div>
+        <div class="keys" style="grid-template-columns:1fr 1fr">
+          <div class="key">AI Review</div>
+          <div class="key">AI Resolve</div>
+          <div class="key">AI Tour</div>
+          <div class="key">AI Summary</div>
+          <div class="key">Security Audit</div>
+          <div class="key">Test Coverage Gaps</div>
+          <div class="key">Breaking-Change Review</div>
+          <div class="key">Dependency Review</div>
+        </div>
+        <p class="lead-p" style="margin-top:18px;margin-bottom:0">Each pass is a targeted prompt — pick one instead of writing a prompt from scratch.</p>
+      </div>
+      <div>
+        <ul class="checklist">
+          <li><b>Resolve is local-only by default.</b> Threads close in your branchdiff session; nothing is pushed to GitHub or Bitbucket.</li>
+          <li><b><span class="mono">--sync</span> mirrors to the forge.</b> Only when you explicitly ask.</li>
+          <li><b>Remote comments pulled first.</b> On PR-linked sessions, the latest forge comments are fetched before the review runs — so you don't re-raise what a teammate already said.</li>
+          <li><b>Push to GitHub / Bitbucket skips threads with replies.</b> Multi-reply threads stay local (the forge APIs can't represent them).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="fig" style="margin-top:18px;max-width:520px">
+      <img src="../../assets/B-14/session-stats.png" alt="Self-review session breakdown" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">Sample self-review session · resolved vs. dismissed vs. open</div>
+    </div>
+  </section>
+
+  <!-- 15 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">15 · recap</div>
+    <h3 class="section">AI review that <em>actually reviews</em>.</h3>
+    <p class="lead-p">A controlled <span class="mono">agent</span> surface that any LLM can drive; comments that land on real lines with severity tags; nth-pass awareness so resolved stays resolved; resolve that verifies ancestry, build, and tests before claiming done.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Twenty-one <span class="mono">agent</span> subcommands — read, comment, resolve, dismiss, all audited.</li>
+      <li>Reads file content at the compared ref, not your checkout — review can't be poisoned.</li>
+      <li>Generated skills (<span class="mono">skill add</span>) + plugin marketplace; works with Claude Code, opencode, ChatGPT, Gemini, Codex.</li>
+      <li><span class="mono">review run --exec</span> one-shot pipe; eight guided review passes.</li>
+      <li>Nth-pass aware: resolved not re-raised, dismissed only re-flagged if evidence changed.</li>
+      <li>Resolve verifies by content-match, ancestry, build, and tests — local-only unless <span class="mono">--sync</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="05-automatic-pr-review.html" target="_blank" rel="noopener">Next deck → 05 · Automatic PR Review</a>
+      <a class="ghost" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-15">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

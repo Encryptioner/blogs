@@ -1,0 +1,426 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Claude Code Agent Swarms: Multi-Agent Development Guide — Ankur’s Writing</title><meta name="description" content="Claude Code's Agent Teams (launched Feb 6, 2026, research preview) allow a lead agent to coordinate multiple teammate agents working in parallel. Each agent…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/claude-code-agent-swarms-multi-agent-development-guide/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Claude Code Agent Swarms: Multi-Agent Development Guide — Ankur’s Writing"><meta property="og:description" content="Claude Code's Agent Teams (launched Feb 6, 2026, research preview) allow a lead agent to coordinate multiple teammate agents working in parallel. Each agent…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/claude-code-agent-swarms-multi-agent-development-guide/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Code Agent Swarms: Multi-Agent Development Guide — Ankur’s Writing"><meta name="twitter:description" content="Claude Code's Agent Teams (launched Feb 6, 2026, research preview) allow a lead agent to coordinate multiple teammate agents working in parallel. Each agent…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Global Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Global Research</span> </div> <h1>Claude Code Agent Swarms: Multi-Agent Development Guide</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>10 min read</span> <span>·</span> <span>2,087 words</span> </p> </header>  <div class="prose"><h1 id="claude-code-agent-swarms-multi-agent-development-guide">Claude Code Agent Swarms: Multi-Agent Development Guide</h1>
+<blockquote>
+<p>A comprehensive summary of Claude Code’s Agent Teams feature (aka “swarms”) - how to set up, architect, and leverage multi-agent orchestration for real-world software projects. Includes what works, what doesn’t, anti-patterns, and lessons learned from practitioners.</p>
+</blockquote>
+<hr />
+<h2 id="what-are-agent-teams">What Are Agent Teams?</h2>
+<p>Claude Code’s Agent Teams (launched Feb 6, 2026, research preview) allow a <strong>lead agent</strong> to coordinate multiple <strong>teammate agents</strong> working in parallel. Each agent gets its own clean 200K-token context window, leading to better reasoning than a single agent with a bloated context.</p>
+<p><strong>Evolution:</strong> Solo session -&gt; Subagents (report to parent only) -&gt; Agent Teams (peer-to-peer messaging + shared task list)</p></div>  <div class="prose">
+<p><strong>Key benefit:</strong> 5-10x efficiency gains on parallelizable work. Each agent stays focused with a narrow scope.</p>
+<blockquote>
+<p>“Parallelism alone isn’t the win; <strong>separation</strong> is. Swarms succeed through auditable, typed control flows — not through agent autonomy or clever prompting.” — <a href="https://decodeclaude.com/teams-and-swarms/" target="_blank" rel="noopener noreferrer">Decode Claude</a></p>
+</blockquote>
+<hr />
+<h2 id="setup">Setup</h2>
+<h3 id="1-enable-the-feature-flag">1. Enable the Feature Flag</h3>
+<p>In <code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"1"</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="2-choose-display-mode-optional">2. Choose Display Mode (Optional)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "teammateMode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"tmux"</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Or via environment variables:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> CLAUDE_CODE_SPAWN_BACKEND</span><span style="color:#56B6C2">=</span><span style="color:#E06C75">tmux</span><span style="color:#7F848E;font-style:italic">       # visible split panes</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> CLAUDE_CODE_SPAWN_BACKEND</span><span style="color:#56B6C2">=</span><span style="color:#E06C75">iterm2</span><span style="color:#7F848E;font-style:italic">     # macOS iTerm2 panes</span></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#E06C75"> CLAUDE_CODE_SPAWN_BACKEND</span><span style="color:#56B6C2">=</span><span style="color:#E06C75">in-process</span><span style="color:#7F848E;font-style:italic"> # default, fastest</span></span></code></pre>
+<h3 id="3-launch">3. Launch</h3>
+<p>Start a tmux session first (if using tmux mode), then launch Claude Code and describe your team in natural language:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team: one teammate on backend, one on frontend, one on tests.</span></span></code></pre>
+<h3 id="4-pre-approve-permissions">4. Pre-approve Permissions</h3>
+<p><strong>Critical tip from <a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank" rel="noopener noreferrer">claudefa.st</a>:</strong> Pre-approve permissions before spawning to avoid permission-prompt floods that slow teams. Each teammate triggers its own permission prompts otherwise.</p>
+<hr />
+<h2 id="architecture">Architecture</h2>
+<h3 id="core-components">Core Components</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Component</th><th>Role</th></tr></thead><tbody><tr><td><strong>Team Lead</strong></td><td>Creates team, spawns teammates, coordinates, synthesizes findings</td></tr><tr><td><strong>Teammates</strong></td><td>Separate Claude Code sessions with independent context windows</td></tr><tr><td><strong>Task List</strong></td><td>Shared JSON files on disk; tasks have status + dependency graphs</td></tr><tr><td><strong>Inboxes</strong></td><td>JSON files enabling direct inter-agent messaging (peer-to-peer)</td></tr></tbody></table>
+<h3 id="directory-structure">Directory Structure</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>~/.claude/teams/{team-name}/config.json</span></span>
+<span class="line"><span>~/.claude/teams/{team-name}/inboxes/{agent-id}.json</span></span>
+<span class="line"><span>~/.claude/tasks/{team-name}/{task-id}.json</span></span></code></pre>
+<h3 id="built-in-agent-types">Built-In Agent Types</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Best For</th></tr></thead><tbody><tr><td><code>Explore</code></td><td>Read-only codebase searching (fast)</td></tr><tr><td><code>Plan</code></td><td>Architecture and strategy</td></tr><tr><td><code>general-purpose</code></td><td>Full implementation (all tools)</td></tr><tr><td><code>Bash</code></td><td>Shell commands only</td></tr></tbody></table>
+<h3 id="model-specialization">Model Specialization</h3>
+<ul>
+<li><strong>Opus 4.6</strong>: Architectural decisions, complex implementation</li>
+<li><strong>Sonnet/Haiku</strong>: File exploration, context gathering (cheaper)</li>
+</ul>
+<hr />
+<h2 id="orchestration-patterns">Orchestration Patterns</h2>
+<h3 id="pattern-1-parallel-specialists">Pattern 1: Parallel Specialists</h3>
+<p>Multiple specialists review simultaneously (e.g., security + performance + architecture review).</p>
+<h3 id="pattern-2-pipeline-sequential-dependencies">Pattern 2: Pipeline (Sequential Dependencies)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#61AFEF">TaskCreate</span><span style="color:#ABB2BF">({ </span><span style="color:#E06C75">subject</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Research OAuth options"</span><span style="color:#ABB2BF"> })       </span><span style="color:#7F848E;font-style:italic">// task #1</span></span>
+<span class="line"><span style="color:#61AFEF">TaskCreate</span><span style="color:#ABB2BF">({ </span><span style="color:#E06C75">subject</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Implement chosen approach"</span><span style="color:#ABB2BF"> })    </span><span style="color:#7F848E;font-style:italic">// task #2</span></span>
+<span class="line"><span style="color:#61AFEF">TaskUpdate</span><span style="color:#ABB2BF">({ </span><span style="color:#E06C75">taskId</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"2"</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">addBlockedBy</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"1"</span><span style="color:#ABB2BF">] })        </span><span style="color:#7F848E;font-style:italic">// auto-unblocks when #1 completes</span></span></code></pre>
+<h3 id="pattern-3-self-organizing-swarm">Pattern 3: Self-Organizing Swarm</h3>
+<p>Workers grab available tasks from a shared pool. Workers naturally load-balance; crashed workers’ tasks get reclaimed.</p>
+<h3 id="pattern-4-research--implementation">Pattern 4: Research + Implementation</h3>
+<p>Research agent gathers info first, then implementation agent uses the findings.</p>
+<h3 id="pattern-5-plan-approval-gate">Pattern 5: Plan Approval Gate</h3>
+<p>Force a teammate to propose a plan before executing risky changes. Lead approves/rejects.</p>
+<h3 id="pattern-6-cross-layer-feature-teams">Pattern 6: Cross-Layer Feature Teams</h3>
+<p>Backend, frontend, and test engineers each own their layer. Direct messaging handles interface contracts.</p>
+<hr />
+<h2 id="what-works-proven-patterns">What Works (Proven Patterns)</h2>
+<h3 id="1-parallel-exploration-beats-sequential-investigation">1. Parallel Exploration Beats Sequential Investigation</h3>
+<blockquote>
+<p>“Spawn five teammates each investigating a different theory about why the app exits after one message… Multiple investigators running adversarial debates converge on root causes faster” — <a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Addy Osmani</a></p>
+</blockquote>
+<p>Single agents suffer from <strong>anchoring bias</strong> — they commit to their first hypothesis. Parallel agents explore independently and challenge each other’s findings.</p>
+<h3 id="2-cross-layer-features-benefit-most">2. Cross-Layer Features Benefit Most</h3>
+<p>Frontend, backend, and test changes owned by separate teammates working simultaneously compress multi-day sequential work into hours, with each agent maintaining deep focus on their domain.</p>
+<h3 id="3-research-and-specialized-review-thrive">3. Research and Specialized Review Thrive</h3>
+<p>Independent agents investigating different library approaches or reviewing code through distinct lenses (security, performance, test coverage) catch issues single reviewers miss. One developer watched <strong>six agents review an entire codebase</strong> finding 13 easy problems fixed immediately and 22 larger issues reported for planning.</p>
+<h3 id="4-specialization-over-comprehensiveness">4. Specialization Over Comprehensiveness</h3>
+<blockquote>
+<p>“Forcing one agent to context-switch between [architecture, implementation, testing, documentation] produces inconsistent results.” — <a href="https://zenvanriel.nl/ai-engineer-blog/claude-code-swarms-multi-agent-orchestration/" target="_blank" rel="noopener noreferrer">Zen van Riel</a></p>
+</blockquote>
+<p>Each agent maintaining focused context for its specific role outperforms one agent trying to do everything.</p>
+<h3 id="5-claudemd-dramatically-reduces-exploration-costs">5. CLAUDE.md Dramatically Reduces Exploration Costs</h3>
+<p>Well-structured project context files (<code>CLAUDE.md</code>, <code>AGENTS.md</code>) mean teammates don’t waste tokens rediscovering project structure. Each teammate automatically inherits these files.</p>
+<h3 id="6-coordination-artifacts-bridge-agents">6. Coordination Artifacts Bridge Agents</h3>
+<p>Create explicit handoff documents (architecture decisions, implementation notes, test results) that serve as communication points between specialized agents — not just informal messages.</p>
+<h3 id="7-the-8020-planning-rule">7. The 80/20 Planning Rule</h3>
+<blockquote>
+<p>“80% planning and review, 20% execution” — Compound Engineering Plugin philosophy</p>
+</blockquote>
+<p>Thorough specifications before spawning agents reduce agent flailing. Vague prompts produce vague results at higher cost.</p>
+<hr />
+<h2 id="what-doesnt-work-anti-patterns">What Doesn’t Work (Anti-Patterns)</h2>
+<h3 id="1-build-me-an-app-prompts">1. “Build Me an App” Prompts</h3>
+<blockquote>
+<p>“Build me an app” burns tokens while agents flail. “Implement these five clearly-defined API endpoints according to this specification” works. — <a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Addy Osmani</a></p>
+</blockquote>
+<p><strong>Specificity is non-negotiable.</strong> Each agent needs: what to do, what to produce, how to report back.</p>
+<h3 id="2-lead-implementing-instead-of-delegating">2. Lead Implementing Instead of Delegating</h3>
+<p>Teams fail when the lead agent sidesteps coordination and builds features itself. <strong>Fix:</strong> Use delegate mode (<code>Shift+Tab</code>) to restrict the lead to coordination-only tools, or add explicit instructions: “Wait for your teammates to complete their tasks before proceeding.”</p>
+<h3 id="3-two-agents-editing-the-same-file">3. Two Agents Editing the Same File</h3>
+<blockquote>
+<p>“Two teammates editing the same file leads to overwrites.” — <a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Addy Osmani</a></p>
+</blockquote>
+<p><strong>Fix:</strong> Partition work by file boundaries. Same discipline as human teams avoiding merge conflicts. Define explicit file ownership in spawn prompts.</p>
+<h3 id="4-too-many-agents">4. Too Many Agents</h3>
+<blockquote>
+<p>“Limit yourself to three or four subagents maximum — more than that and you’ll spend too much time deciding which agent to invoke, causing your own productivity to drop.” — <a href="https://www.eesel.ai/blog/claude-code-multiple-agent-systems-complete-2026-guide" target="_blank" rel="noopener noreferrer">eesel.ai</a></p>
+</blockquote>
+<p>Start with 2-3 agents. Coordination complexity scales quadratically.</p>
+<h3 id="5-task-sizing-problems">5. Task Sizing Problems</h3>
+<ul>
+<li><strong>Too small:</strong> Creates coordination overhead that exceeds the work</li>
+<li><strong>Too large:</strong> Agents work in isolation without checkpoints</li>
+<li><strong>Sweet spot:</strong> “Self-contained units that produce a clear deliverable… 5-6 tasks per teammate”</li>
+</ul>
+<h3 id="6-sycophantic-agents">6. Sycophantic Agents</h3>
+<blockquote>
+<p>“Models make wrong assumptions, don’t seek clarifications, don’t push back when they should… They’ll implement 1,000 lines of bloated code, and when challenged, immediately cut it to 100.” — <a href="https://www.eesel.ai/blog/claude-code-multiple-agent-systems-complete-2026-guide" target="_blank" rel="noopener noreferrer">eesel.ai</a></p>
+</blockquote>
+<p><strong>Fix:</strong> Use plan approval gates for risky changes. Don’t trust agent output without verification.</p>
+<h3 id="7-activity-metrics-as-success-metrics">7. Activity Metrics as Success Metrics</h3>
+<blockquote>
+<p>“Commits per hour, parallel task completion, lines of code touched look impressive but don’t correlate with value.” — <a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Addy Osmani</a></p>
+</blockquote>
+<p>Verify correctness and maintainability. Quantity isn’t quality.</p>
+<h3 id="8-consensus-mechanisms-between-workers">8. Consensus Mechanisms Between Workers</h3>
+<p>Workers debating with each other turns into endless back-and-forth. Use a leader/arbiter pattern instead — workers report findings, the lead decides.</p>
+<h3 id="9-no-context-in-spawn-prompts">9. No Context in Spawn Prompts</h3>
+<p><strong>Teammates don’t inherit the lead’s conversation history.</strong> Whatever context they need, the lead must provide in the spawn prompt. The first teammate may spawn with zero context and start asking basic questions. Be generous with the initial briefing.</p>
+<h3 id="10-forgetting-cleanup">10. Forgetting Cleanup</h3>
+<p>Always shut down teammates through graceful shutdown sequence before calling <code>cleanup</code>. The lead won’t clean up while teammates are still running. Orphaned teams consume resources.</p>
+<hr />
+<h2 id="common-failure-modes">Common Failure Modes</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Failure</th><th>Symptom</th><th>Fix</th></tr></thead><tbody><tr><td>Task status lag</td><td>Teammates fail to mark tasks complete, blocking dependents</td><td>Manually update task status via lead</td></tr><tr><td>Lead over-implementing</td><td>Lead writes code instead of coordinating</td><td>Use delegate mode (<code>Shift+Tab</code>)</td></tr><tr><td>Context overflow</td><td>Agent quality degrades mid-task</td><td>Split into smaller, focused tasks</td></tr><tr><td>File conflicts</td><td>Overwrites when agents touch same files</td><td>Explicit file ownership in prompts</td></tr><tr><td>Runaway costs</td><td>Token bill 10x expected</td><td>Cap teammate count; use Haiku for exploration</td></tr><tr><td>Session loss</td><td><code>/resume</code> doesn’t restore teammates</td><td>Task files persist on disk; restart with task context</td></tr><tr><td>Permission floods</td><td>Each agent triggers permission prompts</td><td>Pre-approve permissions before spawning</td></tr></tbody></table>
+<hr />
+<h2 id="decision-guide-when-to-use-what">Decision Guide: When to Use What</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Situation</th><th>Approach</th><th>Why</th></tr></thead><tbody><tr><td>Single bug fix</td><td><strong>Solo session</strong></td><td>Swarm overhead exceeds the work</td></tr><tr><td>Minor feature (&lt;3 files)</td><td><strong>Solo session</strong></td><td>Clean, focused context is sufficient</td></tr><tr><td>Code review of a PR</td><td><strong>Subagents</strong> (2-3)</td><td>Parallel specialists, no peer communication needed</td></tr><tr><td>Research question</td><td><strong>Subagents</strong></td><td>Independent queries, results merged by lead</td></tr><tr><td>Cross-layer feature (5+ files)</td><td><strong>Agent Team</strong></td><td>Peer messaging needed for interface contracts</td></tr><tr><td>Large refactor</td><td><strong>Agent Team</strong></td><td>Multiple owners, plan approval gates</td></tr><tr><td>QA across browsers/viewports</td><td><strong>Agent Team</strong></td><td>Self-organizing swarm with shared task pool</td></tr><tr><td>Competing hypothesis debugging</td><td><strong>Agent Team</strong></td><td>Parallel investigation without anchoring bias</td></tr><tr><td>Sequential, tightly-coupled tasks</td><td><strong>Solo session</strong></td><td>Agents can’t share mid-task state efficiently</td></tr><tr><td>Cost-sensitive work</td><td><strong>Solo session</strong></td><td>3-4x token cost for teams</td></tr></tbody></table>
+<h3 id="escalation-signal">Escalation Signal</h3>
+<blockquote>
+<p>“If workers keep needing to share discoveries mid-task or validate each other’s approaches, that’s your signal that agent teams will outperform isolated contractor-style subagents.” — <a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank" rel="noopener noreferrer">claudefa.st</a></p>
+</blockquote>
+<hr />
+<h2 id="navigation-controls">Navigation Controls</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Control</th><th>Action</th></tr></thead><tbody><tr><td><code>Shift+Down</code> / <code>Shift+Up</code></td><td>Cycle through teammates</td></tr><tr><td><code>Enter</code></td><td>View a teammate’s session</td></tr><tr><td><code>Escape</code></td><td>Interrupt a teammate’s turn</td></tr><tr><td><code>Ctrl+T</code></td><td>Toggle shared task list view</td></tr><tr><td><code>Shift+Tab</code></td><td>Toggle “delegate mode”</td></tr></tbody></table>
+<hr />
+<h2 id="best-practices-summary">Best Practices (Summary)</h2>
+<ol>
+<li><strong>Plan first, parallelize second</strong> - Use plan mode to decompose work, then distribute</li>
+<li><strong>Use meaningful agent names</strong> - <code>security-reviewer</code> not <code>worker-1</code></li>
+<li><strong>Write explicit prompts</strong> - Tell each worker exactly what to do and how to report</li>
+<li><strong>Leverage dependency auto-unblocking</strong> - Use <code>addBlockedBy</code> instead of polling</li>
+<li><strong>Prefer targeted <code>write</code> over <code>broadcast</code></strong> - Broadcasting sends N messages</li>
+<li><strong>Match agent types to tasks</strong> - Use <code>Explore</code> for read-only, <code>Plan</code> for architecture</li>
+<li><strong>Always cleanup after the team finishes</strong> - Call graceful shutdown + <code>cleanup</code></li>
+<li><strong>Gate risky work behind plan approval</strong> - Use <code>plan_mode_required: true</code></li>
+<li><strong>Start with review tasks</strong> - Low blast radius, clear boundaries</li>
+<li><strong>Pre-approve permissions</strong> - Avoid prompt floods across teammates</li>
+<li><strong>Define file ownership explicitly</strong> - Prevents overwrite conflicts</li>
+<li><strong>Cap at 3-4 agents</strong> - Coordination complexity scales quadratically</li>
+<li><strong>Verify agent output</strong> - Don’t trust activity metrics; check correctness</li>
+</ol>
+<hr />
+<h2 id="cost-considerations">Cost Considerations</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Setup</th><th>Approximate Token Use</th></tr></thead><tbody><tr><td>Solo session</td><td>~200k tokens</td></tr><tr><td>3 subagents</td><td>~440k tokens</td></tr><tr><td>3-person agent team</td><td>~800k tokens</td></tr></tbody></table>
+<p><strong>Rule of thumb:</strong> Agent teams consume 4-15x more tokens than single-agent mode. Reserve for high-value, genuinely parallelizable work.</p>
+<p><strong>Performance reality:</strong> Teammates typically spawn within 20-30 seconds and produce results within the first minute. Time savings on complex multi-faceted work justify the token multiplier.</p>
+<hr />
+<h2 id="limitations-current-state">Limitations (Current State)</h2>
+<ul>
+<li><strong>Experimental</strong> - Feature flag required; behavior may change with any update</li>
+<li><strong>No session resumption</strong> - <code>/resume</code> and <code>/rewind</code> don’t restore teammates</li>
+<li><strong>One team per session</strong> - No nested teams; a team cannot spawn sub-teams</li>
+<li><strong>Split panes</strong> - tmux/iTerm2 only (no VS Code terminal, Windows Terminal, Ghostty)</li>
+<li><strong>Token multiplication</strong> - Multi-agent multiplies API costs significantly</li>
+<li><strong>TaskCreate restricted</strong> - Only team lead can create tasks</li>
+<li><strong>5-minute heartbeat timeout</strong> - Crashed teammates auto-detected</li>
+<li><strong>Stability risks</strong> - “My swarm deleted my repo” type incidents have been reported</li>
+<li><strong>No per-teammate permissions</strong> - All teammates inherit the lead’s permission settings</li>
+<li><strong>Teammate output invisible</strong> - Text output not visible to other teammates; must use <code>write</code> to share</li>
+</ul>
+<hr />
+<h2 id="real-world-examples">Real-World Examples</h2>
+<ol>
+<li><strong>PR Code Review</strong> - 3 specialists (security, performance, architecture) in parallel. Unified review in 3 minutes.</li>
+<li><strong>Full-Stack Feature</strong> - Research -&gt; parallel backend + frontend -&gt; integration tests pipeline.</li>
+<li><strong>Competing Hypothesis Debugging</strong> - Multiple agents investigate different root causes simultaneously.</li>
+<li><strong>QA Swarm</strong> - 5 parallel agents: page responses, link checking, SEO, accessibility, post rendering. Found 10 prioritized issues.</li>
+<li><strong>Documentation + Code</strong> - Docs-writer and implementer work simultaneously without blocking each other.</li>
+<li><strong>iOS App Build</strong> - Developer used swarm for UX plans, code, code review, refactoring, and building additional features.</li>
+<li><strong>Full Codebase Review</strong> - 6 agents reviewed entire codebase, found 13 easy fixes + 22 larger issues for planning.</li>
+<li><strong>9-Agent Production System</strong> - Manager, architect, paired TDD developers, quality gatekeeper, and monitoring agents. Distributes cognitive load effectively.</li>
+</ol>
+<hr />
+<h2 id="key-insight-engineering-management--agent-orchestration">Key Insight: Engineering Management = Agent Orchestration</h2>
+<blockquote>
+<p>“The skills that make someone a strong engineering manager translate directly into effective agent orchestration.” — <a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Addy Osmani</a></p>
+</blockquote>
+<p>Task sizing, file ownership, context loading, avoiding scope creep, and preventing distractions — these are the same problems human engineering teams face. The difference is that agent teams fail faster and more visibly when these fundamentals are neglected.</p>
+<hr />
+<h2 id="sources">Sources</h2>
+<ul>
+<li><a href="https://code.claude.com/docs/en/agent-teams" target="_blank" rel="noopener noreferrer">Official Claude Code Agent Teams Docs</a></li>
+<li><a href="https://help.apiyi.com/en/claude-code-swarm-mode-multi-agent-guide-en.html" target="_blank" rel="noopener noreferrer">Claude Swarm Mode Multi-Agent Guide (apiyi.com)</a></li>
+<li><a href="https://gist.github.com/kieranklaassen/4f2aba89594a4aea4ad64d753984b2ea" target="_blank" rel="noopener noreferrer">Claude Code Swarm Orchestration Skill - Complete Guide (kieranklaassen GitHub Gist)</a></li>
+<li><a href="https://adrianco.medium.com/vibe-coding-is-so-last-month-my-first-agent-swarm-experience-with-claude-flow-414b0bd6f2f2" target="_blank" rel="noopener noreferrer">Vibe Coding Is So Last Month - Adrian Cockcroft (Medium)</a></li>
+<li><a href="https://alexop.dev/posts/from-tasks-to-swarms-agent-teams-in-claude-code/" target="_blank" rel="noopener noreferrer">From Tasks to Swarms: Agent Teams in Claude Code (alexop.dev)</a></li>
+<li><a href="https://www.mejba.me/public/index.php/blog/claude-code-agent-swarm-architecture" target="_blank" rel="noopener noreferrer">Claude Code Agent Swarm Architecture (mejba.me)</a></li>
+<li><a href="https://www.threads.com/@boris_cherny/post/DUYr3wwkxHH" target="_blank" rel="noopener noreferrer">Claude Code Now Supports Agent Teams - Boris Cherny (Threads)</a></li>
+<li><a href="https://www.linkedin.com/posts/dylanboudro_how-to-setup-claude-code-agent-swarm-teams-activity-7426029680404770816-ogmx/" target="_blank" rel="noopener noreferrer">How to Setup Claude Code Agent Swarm - Dylan Boudro (LinkedIn)</a></li>
+<li><a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Claude Code Swarms - Addy Osmani</a></li>
+<li><a href="https://paddo.dev/blog/claude-code-hidden-swarm/" target="_blank" rel="noopener noreferrer">Claude Code’s Hidden Multi-Agent System (paddo.dev)</a></li>
+<li><a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank" rel="noopener noreferrer">Claude Code Agent Teams: The Complete Guide 2026 (claudefa.st)</a></li>
+<li><a href="https://decodeclaude.com/teams-and-swarms/" target="_blank" rel="noopener noreferrer">Teams and Swarms (Decode Claude)</a></li>
+<li><a href="https://zenvanriel.nl/ai-engineer-blog/claude-code-swarms-multi-agent-orchestration/" target="_blank" rel="noopener noreferrer">Claude Code Swarms: Multi-Agent AI Coding (Zen van Riel)</a></li>
+<li><a href="https://www.eesel.ai/blog/claude-code-multiple-agent-systems-complete-2026-guide" target="_blank" rel="noopener noreferrer">Claude Code Multiple Agent Systems: Complete 2026 Guide (eesel.ai)</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

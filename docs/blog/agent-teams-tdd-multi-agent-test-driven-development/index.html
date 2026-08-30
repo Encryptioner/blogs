@@ -1,0 +1,570 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Agent Teams + TDD: Multi-Agent Test-Driven Development — Ankur’s Writing</title><meta name="description" content="TDD alone gives you: failing test - implementation - refactor. One agent, sequential."><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/agent-teams-tdd-multi-agent-test-driven-development/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Agent Teams + TDD: Multi-Agent Test-Driven Development — Ankur’s Writing"><meta property="og:description" content="TDD alone gives you: failing test - implementation - refactor. One agent, sequential."><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/agent-teams-tdd-multi-agent-test-driven-development/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Agent Teams + TDD: Multi-Agent Test-Driven Development — Ankur’s Writing"><meta name="twitter:description" content="TDD alone gives you: failing test - implementation - refactor. One agent, sequential."><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Project Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Project Research</span> </div> <h1>Agent Teams + TDD: Multi-Agent Test-Driven Development</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>12 min read</span> <span>·</span> <span>2,397 words</span> </p> </header>  <div class="prose"><h1 id="agent-teams--tdd-multi-agent-test-driven-development">Agent Teams + TDD: Multi-Agent Test-Driven Development</h1>
+<blockquote>
+<p>Combining Claude Code Agent Teams with Test-Driven Development for maximum productivity. How to use multiple agents that enforce Red-Green-Refactor at the tool level, with plan approval gates, self-improving loops, and parallel testing.</p>
+</blockquote>
+<hr />
+<h2 id="why-combine-agent-teams-with-tdd">Why Combine Agent Teams with TDD?</h2>
+<p><strong>TDD alone</strong> gives you: failing test -&gt; implementation -&gt; refactor. One agent, sequential.</p>
+<p><strong>Agent Teams alone</strong> give you: parallel work across subsystems. But without TDD discipline, agents produce “looks right” code without verification.</p></div>  <div class="prose">
+<p><strong>Combined</strong>, you get:</p>
+<ul>
+<li><strong>Tool-enforced TDD</strong> - test-writer agent literally cannot write implementation; implementer cannot modify tests</li>
+<li><strong>Parallel Red-Green-Refactor</strong> - multiple features in TDD simultaneously</li>
+<li><strong>Plan approval gates</strong> - lead reviews plans before agents execute</li>
+<li><strong>Self-correction loops</strong> - hooks auto-run tests, agents auto-fix failures</li>
+<li><strong>Persistent quality</strong> - AGENTS.md captures learnings across sessions</li>
+</ul>
+<hr />
+<h2 id="architecture-the-agent--tdd-stack">Architecture: The Agent + TDD Stack</h2>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>                    TEAM LEAD (Coordinator)</span></span>
+<span class="line"><span>                    - Creates tasks with dependencies</span></span>
+<span class="line"><span>                    - Reviews plans before approval</span></span>
+<span class="line"><span>                    - Synthesizes results</span></span>
+<span class="line"><span>                    - Updates AGENTS.md</span></span>
+<span class="line"><span>                         |</span></span>
+<span class="line"><span>          +--------------+--------------+</span></span>
+<span class="line"><span>          |              |              |</span></span>
+<span class="line"><span>    TEST-WRITER    IMPLEMENTER    REFACTORER</span></span>
+<span class="line"><span>    (Red Phase)    (Green Phase)  (Clean Phase)</span></span>
+<span class="line"><span>    - Writes tests  - Min code     - Improves code</span></span>
+<span class="line"><span>    - Cannot write   - Cannot        - Tests must</span></span>
+<span class="line"><span>      implementation   touch tests    stay green</span></span>
+<span class="line"><span>    - Must produce   - Runs tests   - Read-only</span></span>
+<span class="line"><span>      failing tests    after each     on tests</span></span>
+<span class="line"><span>                       change</span></span></code></pre>
+<h3 id="the-pipeline">The Pipeline</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Task 1: "Implement auth service"</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>  test-writer writes failing tests (Red)</span></span>
+<span class="line"><span>  ↓ blocked until Red complete</span></span>
+<span class="line"><span>  implementer writes minimum code (Green)</span></span>
+<span class="line"><span>  ↓ blocked until Green complete</span></span>
+<span class="line"><span>  refactorer cleans up code (Refactor)</span></span>
+<span class="line"><span>  ↓ blocked until Refactor complete</span></span>
+<span class="line"><span>  lead reviews + commits</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Task 2: "Implement file service" (runs in PARALLEL with Task 1)</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>  test-writer writes failing tests (Red)</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>  implementer writes minimum code (Green)</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>  refactorer cleans up (Refactor)</span></span></code></pre>
+<hr />
+<h2 id="setup">Setup</h2>
+<h3 id="agent-definitions">Agent Definitions</h3>
+<p><code>.claude/agents/tdd-test-writer.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: tdd-test-writer</span></span>
+<span class="line"><span style="color:#ABB2BF">description: TDD Red Phase agent. Writes failing tests from requirements. NEVER writes implementation code.</span></span>
+<span class="line"><span style="color:#ABB2BF">model: sonnet</span></span>
+<span class="line"><span style="color:#ABB2BF">color: red</span></span>
+<span class="line"><span style="color:#ABB2BF">tools: Read, Glob, Grep, Write(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Write(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">), Bash(pnpm test *)</span></span>
+<span class="line"><span style="color:#ABB2BF">disallowedTools: Write(src/</span><span style="color:#C678DD;font-style:italic">*.ts), Write(src/*</span><span style="color:#ABB2BF">.tsx), Edit(src/</span><span style="color:#C678DD;font-style:italic">*.ts), Edit(src/*</span><span style="color:#ABB2BF">.tsx)</span></span>
+<span class="line"><span style="color:#ABB2BF">maxTurns: 20</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># TDD Test Writer (Red Phase)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">You write FAILING tests. You NEVER write implementation code.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Rules</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#ABB2BF"> Read the requirement/spec carefully</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#ABB2BF"> Write tests using AAA pattern (Arrange, Act, Assert)</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#ABB2BF"> Name: "should [</span><span style="color:#61AFEF">behavior</span><span style="color:#ABB2BF">] when [</span><span style="color:#61AFEF">condition</span><span style="color:#ABB2BF">]"</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#ABB2BF"> Include edge cases: empty input, null, boundary values, error paths</span></span>
+<span class="line"><span style="color:#E5C07B">5.</span><span style="color:#ABB2BF"> Map each test to a requirement ID</span></span>
+<span class="line"><span style="color:#E5C07B">6.</span><span style="color:#ABB2BF"> Run tests after writing - ALL must FAIL (this is correct!)</span></span>
+<span class="line"><span style="color:#E5C07B">7.</span><span style="color:#ABB2BF"> Message the team when Red phase is complete</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Test Structure</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Unit tests: </span><span style="color:#E5C07B">`</span><span style="color:#98C379">src/[module]/[file].test.ts</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Component tests: </span><span style="color:#E5C07B">`</span><span style="color:#98C379">src/components/[Component].test.tsx</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> E2E tests: </span><span style="color:#E5C07B">`</span><span style="color:#98C379">tests/e2e/[feature].spec.ts</span><span style="color:#E5C07B">`</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Report Format</span></span>
+<span class="line"><span style="color:#ABB2BF">When done, message the lead with:</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Number of test cases written</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> All test names</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Confirmation all tests FAIL</span></span></code></pre>
+<p><code>.claude/agents/tdd-implementer.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: tdd-implementer</span></span>
+<span class="line"><span style="color:#ABB2BF">description: TDD Green Phase agent. Writes MINIMUM implementation to make failing tests pass. NEVER modifies test files.</span></span>
+<span class="line"><span style="color:#ABB2BF">model: sonnet</span></span>
+<span class="line"><span style="color:#ABB2BF">color: green</span></span>
+<span class="line"><span style="color:#ABB2BF">tools: Read, Glob, Grep, Write(src/</span><span style="color:#D19A66">**/</span><span style="color:#C678DD;font-style:italic">*.ts), Write(src/</span><span style="color:#D19A66;font-style:italic">**/</span><span style="color:#C678DD;font-style:italic">*.tsx), Edit(src/</span><span style="color:#D19A66;font-style:italic">**/</span><span style="color:#C678DD;font-style:italic">*.ts), Edit(src/**</span><span style="color:#D19A66;font-style:italic">/*.tsx), Bash(pnpm test *)</span></span>
+<span class="line"><span style="color:#ABB2BF">disallowedTools: Write(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Write(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#ABB2BF">maxTurns: 30</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># TDD Implementer (Green Phase)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">You write MINIMUM code to make tests pass. You NEVER modify test files.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Rules</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#ABB2BF"> Read the failing tests carefully - they are your specification</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#ABB2BF"> Write the simplest code that makes each test pass</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#ABB2BF"> Follow project conventions: Result&lt;T&gt;, @/ aliases, logger</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#ABB2BF"> Run tests after EVERY file change</span></span>
+<span class="line"><span style="color:#E5C07B">5.</span><span style="color:#ABB2BF"> Stop the moment ALL tests pass</span></span>
+<span class="line"><span style="color:#E5C07B">6.</span><span style="color:#ABB2BF"> Do NOT add features or code not required by tests</span></span>
+<span class="line"><span style="color:#E5C07B">7.</span><span style="color:#ABB2BF"> Message the team when Green phase is complete</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Report Format</span></span>
+<span class="line"><span style="color:#ABB2BF">When done, message the lead with:</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> All tests passing (output)</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Files created/modified</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Any concerns about the test design</span></span></code></pre>
+<p><code>.claude/agents/tdd-refactorer.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: tdd-refactorer</span></span>
+<span class="line"><span style="color:#ABB2BF">description: TDD Refactor Phase agent. Improves code quality while keeping tests green. Read-only on test files.</span></span>
+<span class="line"><span style="color:#ABB2BF">model: sonnet</span></span>
+<span class="line"><span style="color:#ABB2BF">color: blue</span></span>
+<span class="line"><span style="color:#ABB2BF">tools: Read, Glob, Grep, Write(src/</span><span style="color:#D19A66">**/</span><span style="color:#C678DD;font-style:italic">*.ts), Write(src/</span><span style="color:#D19A66;font-style:italic">**/</span><span style="color:#C678DD;font-style:italic">*.tsx), Edit(src/</span><span style="color:#D19A66;font-style:italic">**/</span><span style="color:#C678DD;font-style:italic">*.ts), Edit(src/**</span><span style="color:#D19A66;font-style:italic">/*.tsx), Bash(pnpm test *)</span></span>
+<span class="line"><span style="color:#ABB2BF">disallowedTools: Write(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Write(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.test.*</span><span style="color:#ABB2BF">), Edit(</span><span style="color:#C678DD;font-style:italic">*.spec.*</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#ABB2BF">maxTurns: 15</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># TDD Refactorer (Refactor Phase)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">You improve code quality while keeping ALL tests green.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Rules</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#ABB2BF"> Run tests FIRST to confirm baseline green</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#ABB2BF"> Refactor one thing at a time</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#ABB2BF"> Run tests after EVERY change</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#ABB2BF"> If any test fails, UNDO the last change immediately</span></span>
+<span class="line"><span style="color:#E5C07B">5.</span><span style="color:#ABB2BF"> Focus on: naming, duplication, extraction, clarity</span></span>
+<span class="line"><span style="color:#E5C07B">6.</span><span style="color:#ABB2BF"> Do NOT add new functionality</span></span>
+<span class="line"><span style="color:#E5C07B">7.</span><span style="color:#ABB2BF"> Message the team when refactoring is complete</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Refactoring Checklist</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] Names are descriptive and consistent</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] No code duplication</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] Functions are small and focused</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] Error messages are helpful</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] Types are precise (no </span><span style="color:#E5C07B">`</span><span style="color:#98C379">any</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [ ] Imports use @/ aliases</span></span></code></pre>
+<h3 id="hooks-for-tdd-enforcement">Hooks for TDD Enforcement</h3>
+<p><code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"1"</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm validate)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rm -rf *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "hooks"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "PostToolUse"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">          {</span></span>
+<span class="line"><span style="color:#E06C75">            "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">            "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"npx prettier --write </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$CLAUDE_TOOL_INPUT_FILE_PATH</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> 2&gt;/dev/null || true"</span></span>
+<span class="line"><span style="color:#ABB2BF">          },</span></span>
+<span class="line"><span style="color:#ABB2BF">          {</span></span>
+<span class="line"><span style="color:#E06C75">            "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">            "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"bash -c 'FILE=$CLAUDE_TOOL_INPUT_FILE_PATH; [[ </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$FILE</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> == *.test.* || </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$FILE</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> == *.spec.* ]] &amp;&amp; pnpm test </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$FILE</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> 2&gt;&amp;1 | tail -30 || exit 0'"</span></span>
+<span class="line"><span style="color:#ABB2BF">          }</span></span>
+<span class="line"><span style="color:#ABB2BF">        ]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "Stop"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"pnpm test --silent 2&gt;/dev/null || (echo 'Tests must pass before finishing' &gt;&amp;2 &amp;&amp; exit 2)"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="pattern-1-sequential-tdd-pipeline-single-feature">Pattern 1: Sequential TDD Pipeline (Single Feature)</h2>
+<p>Best for: Features with clear dependencies between tests and implementation.</p>
+<h3 id="prompt">Prompt</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "tdd-auth" for implementing the authentication service.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Task pipeline:</span></span>
+<span class="line"><span>1. "tdd-test-writer" (Red Phase):</span></span>
+<span class="line"><span>   - Read @PRD/SPEC.md requirements FR-AUTH-001 through FR-AUTH-005</span></span>
+<span class="line"><span>   - Read @src/types/index.ts for type definitions</span></span>
+<span class="line"><span>   - Write failing tests in src/services/auth.test.ts</span></span>
+<span class="line"><span>   - Include: valid login, invalid email, wrong password, token expiry, logout</span></span>
+<span class="line"><span>   - Run tests. Confirm ALL FAIL. Message me when done.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "tdd-implementer" (Green Phase):</span></span>
+<span class="line"><span>   - BLOCKED BY task 1</span></span>
+<span class="line"><span>   - Read the failing tests in src/services/auth.test.ts</span></span>
+<span class="line"><span>   - Write src/services/auth.ts with minimum code to pass all tests</span></span>
+<span class="line"><span>   - Follow Result&lt;T&gt; pattern, @/ aliases, logger</span></span>
+<span class="line"><span>   - Run tests after each change. Stop when ALL PASS. Message me when done.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "tdd-refactorer" (Refactor Phase):</span></span>
+<span class="line"><span>   - BLOCKED BY task 2</span></span>
+<span class="line"><span>   - Read src/services/auth.ts implementation</span></span>
+<span class="line"><span>   - Improve naming, extract helpers, reduce duplication</span></span>
+<span class="line"><span>   - Run tests after each change. ALL must stay GREEN.</span></span>
+<span class="line"><span>   - Message me when done.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>I will review the output of each phase before approving the next.</span></span></code></pre>
+<h3 id="what-happens">What Happens</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>test-writer → writes 12 failing tests → messages lead</span></span>
+<span class="line"><span>lead reviews → approves</span></span>
+<span class="line"><span>implementer → writes auth.ts (120 lines) → all 12 tests pass → messages lead</span></span>
+<span class="line"><span>lead reviews → approves</span></span>
+<span class="line"><span>refactorer → extracts validation helper, improves names → still green → messages lead</span></span>
+<span class="line"><span>lead reviews → commits</span></span></code></pre>
+<hr />
+<h2 id="pattern-2-parallel-tdd-pipelines-multiple-features">Pattern 2: Parallel TDD Pipelines (Multiple Features)</h2>
+<p>Best for: Multiple independent features that can be developed simultaneously.</p>
+<h3 id="prompt-1">Prompt</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "tdd-sprint" for implementing 3 independent services.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>PARALLEL PIPELINE A (Auth):</span></span>
+<span class="line"><span>- Task A1: test-writer writes src/services/auth.test.ts (Red)</span></span>
+<span class="line"><span>- Task A2: implementer writes src/services/auth.ts (Green) - blocked by A1</span></span>
+<span class="line"><span>- Task A3: refactorer cleans auth.ts - blocked by A2</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>PARALLEL PIPELINE B (FileSystem):</span></span>
+<span class="line"><span>- Task B1: test-writer writes src/services/filesystem.test.ts (Red)</span></span>
+<span class="line"><span>- Task B2: implementer writes src/services/filesystem.ts (Green) - blocked by B1</span></span>
+<span class="line"><span>- Task B3: refactorer cleans filesystem.ts - blocked by B2</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>PARALLEL PIPELINE C (Git):</span></span>
+<span class="line"><span>- Task C1: test-writer writes src/services/git.test.ts (Red)</span></span>
+<span class="line"><span>- Task C2: implementer writes src/services/git.ts (Green) - blocked by C1</span></span>
+<span class="line"><span>- Task C3: refactorer cleans git.ts - blocked by C2</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>FILE OWNERSHIP:</span></span>
+<span class="line"><span>- Pipeline A owns: src/services/auth.* (test + impl)</span></span>
+<span class="line"><span>- Pipeline B owns: src/services/filesystem.* (test + impl)</span></span>
+<span class="line"><span>- Pipeline C owns: src/services/git.* (test + impl)</span></span>
+<span class="line"><span>- NOBODY touches: src/types/index.ts, src/store/* (lead only)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>After all 3 pipelines complete:</span></span>
+<span class="line"><span>- Task D: Integration tests (blocked by A3, B3, C3)</span></span></code></pre>
+<h3 id="what-happens-1">What Happens</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Time 0:  A1, B1, C1 all start writing tests simultaneously</span></span>
+<span class="line"><span>Time 5m: A1 completes (12 tests), A2 starts implementing</span></span>
+<span class="line"><span>         B1 completes (8 tests), B2 starts implementing</span></span>
+<span class="line"><span>         C1 still working (complex service)</span></span>
+<span class="line"><span>Time 8m: C1 completes (15 tests), C2 starts implementing</span></span>
+<span class="line"><span>Time 12m: A2 completes, A3 starts refactoring</span></span>
+<span class="line"><span>          B2 completes, B3 starts refactoring</span></span>
+<span class="line"><span>Time 15m: A3 completes</span></span>
+<span class="line"><span>          C2 completes, C3 starts refactoring</span></span>
+<span class="line"><span>Time 18m: B3, C3 complete</span></span>
+<span class="line"><span>          D (integration tests) starts</span></span>
+<span class="line"><span>Time 25m: All done. 3 services with full TDD coverage.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Sequential time: ~45 minutes</span></span>
+<span class="line"><span>Parallel time: ~25 minutes</span></span></code></pre>
+<hr />
+<h2 id="pattern-3-review-team--tdd-pr-quality">Pattern 3: Review Team + TDD (PR Quality)</h2>
+<p>Best for: Reviewing PRs before merge with TDD-focused verification.</p>
+<h3 id="prompt-2">Prompt</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "tdd-review" with 3 parallel reviewers:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "test-coverage-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Check that every public function has tests</span></span>
+<span class="line"><span>   - Verify edge cases are covered</span></span>
+<span class="line"><span>   - Check coverage report: pnpm test:coverage</span></span>
+<span class="line"><span>   - Identify missing test scenarios</span></span>
+<span class="line"><span>   - Grade: A (&gt;90%), B (80-90%), C (&lt;80%)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "tdd-discipline-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Check git log: were tests committed BEFORE implementation?</span></span>
+<span class="line"><span>   - Are tests meaningful (not just `expect(true).toBe(true)`)?</span></span>
+<span class="line"><span>   - Do tests follow AAA pattern?</span></span>
+<span class="line"><span>   - Are tests independent (no shared state between tests)?</span></span>
+<span class="line"><span>   - Grade: Pass / Fail with specific violations</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "code-quality-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Does implementation follow project conventions?</span></span>
+<span class="line"><span>   - Result&lt;T&gt; pattern used correctly?</span></span>
+<span class="line"><span>   - No `any` types?</span></span>
+<span class="line"><span>   - Proper error handling?</span></span>
+<span class="line"><span>   - data-testid on interactive elements?</span></span>
+<span class="line"><span>   - Grade: Pass / Needs Work with specific issues</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>All three report findings to my inbox. I synthesize into a unified review.</span></span></code></pre>
+<hr />
+<h2 id="pattern-4-competing-tdd-implementations">Pattern 4: Competing TDD Implementations</h2>
+<p>Best for: Exploring different approaches to the same problem.</p>
+<h3 id="prompt-3">Prompt</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "tdd-compete" to find the best approach for [feature].</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>SHARED: test-writer writes tests FIRST (one set of tests for all)</span></span>
+<span class="line"><span>- Task 1: test-writer creates src/services/cache.test.ts with comprehensive tests</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>COMPETING IMPLEMENTATIONS (all blocked by Task 1):</span></span>
+<span class="line"><span>- Task 2A: "impl-memory" implements using in-memory Map</span></span>
+<span class="line"><span>- Task 2B: "impl-indexeddb" implements using Dexie/IndexedDB</span></span>
+<span class="line"><span>- Task 2C: "impl-localstorage" implements using localStorage</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ALL implementations must pass the SAME tests.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>After all complete, I compare:</span></span>
+<span class="line"><span>- Lines of code</span></span>
+<span class="line"><span>- Performance characteristics</span></span>
+<span class="line"><span>- Complexity</span></span>
+<span class="line"><span>- Edge case handling</span></span>
+<span class="line"><span>And pick the winner.</span></span></code></pre>
+<hr />
+<h2 id="pattern-5-self-improving-tdd-loop-long-sessions">Pattern 5: Self-Improving TDD Loop (Long Sessions)</h2>
+<p>For extended development sessions with knowledge accumulation.</p>
+<h3 id="prompt-4">Prompt</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>We're doing a TDD sprint on [project]. For EACH feature:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. Plan Mode: read spec, identify requirements, plan tests</span></span>
+<span class="line"><span>2. Red: test-writer creates failing tests</span></span>
+<span class="line"><span>3. Green: implementer passes all tests</span></span>
+<span class="line"><span>4. Refactor: refactorer cleans up</span></span>
+<span class="line"><span>5. Review: I review the output</span></span>
+<span class="line"><span>6. Learn: update AGENTS.md with any gotchas discovered</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>CRITICAL: After each feature:</span></span>
+<span class="line"><span>- Log what went well and what didn't in AGENTS.md</span></span>
+<span class="line"><span>- Note any technology-specific gotchas discovered</span></span>
+<span class="line"><span>- Update the Recent Changes Log</span></span>
+<span class="line"><span>- If context is getting large, I'll start a new session</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>AGENTS.md persists across sessions, so learnings compound.</span></span></code></pre>
+<h3 id="the-learning-loop">The Learning Loop</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Session 1: Feature A</span></span>
+<span class="line"><span>  → Discovery: "LightningFS requires init() before operations"</span></span>
+<span class="line"><span>  → Added to AGENTS.md</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Session 2: Feature B</span></span>
+<span class="line"><span>  → Agent reads AGENTS.md, already knows about LightningFS</span></span>
+<span class="line"><span>  → Discovery: "Monaco editor needs automaticLayout: true"</span></span>
+<span class="line"><span>  → Added to AGENTS.md</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Session 3: Feature C</span></span>
+<span class="line"><span>  → Agent knows both gotchas from previous sessions</span></span>
+<span class="line"><span>  → Fewer errors, faster implementation</span></span>
+<span class="line"><span>  → Discovery: "Zustand selectors prevent re-renders"</span></span>
+<span class="line"><span>  → Added to AGENTS.md</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Session N: Agent has accumulated all project knowledge</span></span>
+<span class="line"><span>  → Faster, fewer mistakes, better code</span></span></code></pre>
+<hr />
+<h2 id="file-ownership-rules-for-multi-agent-tdd">File Ownership Rules for Multi-Agent TDD</h2>
+<h3 id="the-golden-rule">The Golden Rule</h3>
+<p><strong>No two agents modify the same file in the same session.</strong></p>
+<h3 id="ownership-assignment">Ownership Assignment</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>File Pattern</th><th>Owner</th><th>Why</th></tr></thead><tbody><tr><td><code>*.test.ts</code>, <code>*.test.tsx</code></td><td>test-writer ONLY</td><td>Tests are the spec; protect them</td></tr><tr><td><code>src/services/*.ts</code></td><td>implementer/refactorer</td><td>Business logic</td></tr><tr><td><code>src/components/*.tsx</code></td><td>implementer/refactorer</td><td>UI code</td></tr><tr><td><code>src/types/index.ts</code></td><td><strong>LEAD ONLY</strong></td><td>Type changes cascade everywhere</td></tr><tr><td><code>src/store/*.ts</code></td><td><strong>LEAD ONLY</strong></td><td>State schema is shared</td></tr><tr><td><code>vitest.config.ts</code></td><td><strong>LEAD ONLY</strong></td><td>Test infrastructure</td></tr><tr><td><code>AGENTS.md</code></td><td><strong>LEAD ONLY</strong></td><td>Knowledge base</td></tr></tbody></table>
+<h3 id="if-types-need-updating">If Types Need Updating</h3>
+<p>The test-writer may need new types. Instead of modifying <code>types/index.ts</code> directly:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>test-writer messages lead:</span></span>
+<span class="line"><span>"I need a BlameData type with fields: { line: number, author: string, date: Date, commit: string }.</span></span>
+<span class="line"><span>Please add it to src/types/index.ts so I can write tests against it."</span></span></code></pre>
+<p>Lead adds the type, then test-writer proceeds.</p>
+<hr />
+<h2 id="quality-gates-for-agent--tdd">Quality Gates for Agent + TDD</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Gate</th><th>Who</th><th>What</th><th>Blocks</th></tr></thead><tbody><tr><td>G1: Plan Approval</td><td>Lead</td><td>Reviews implementation plan</td><td>All work</td></tr><tr><td>G2: Red Verification</td><td>Lead</td><td>Confirms tests fail, tests are meaningful</td><td>Green phase</td></tr><tr><td>G3: Green Verification</td><td>Lead</td><td>Confirms all tests pass, no shortcuts</td><td>Refactor phase</td></tr><tr><td>G4: Refactor Verification</td><td>Lead</td><td>Confirms tests still green, code improved</td><td>Commit</td></tr><tr><td>G5: Coverage Check</td><td>Hook</td><td>80%+ coverage</td><td>Stop</td></tr><tr><td>G6: Full Validation</td><td>Hook</td><td>type-check + lint + build</td><td>Stop</td></tr><tr><td>G7: AGENTS.md Update</td><td>Lead</td><td>Learnings logged</td><td>Session end</td></tr></tbody></table>
+<hr />
+<h2 id="cost-benefit-analysis">Cost-Benefit Analysis</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Approach</th><th>Tokens per Feature</th><th>Time</th><th>Quality</th></tr></thead><tbody><tr><td>Solo, no TDD</td><td>~100K</td><td>15 min</td><td>Low (no tests)</td></tr><tr><td>Solo, TDD</td><td>~200K</td><td>25 min</td><td>High (tested)</td></tr><tr><td>2 agents, TDD pipeline</td><td>~400K</td><td>15 min</td><td>High (tool-enforced TDD)</td></tr><tr><td>3 agents, parallel TDD</td><td>~800K</td><td>10 min</td><td>Highest (parallel + enforced)</td></tr></tbody></table>
+<p><strong>When to use multi-agent TDD:</strong></p>
+<ul>
+<li>Features that touch multiple subsystems</li>
+<li>Greenfield projects where establishing patterns matters</li>
+<li>Sprint bursts where speed justifies token cost</li>
+<li>When you want TDD discipline enforced at the tool level, not just the prompt level</li>
+</ul>
+<p><strong>When to use solo TDD:</strong></p>
+<ul>
+<li>Single-file changes</li>
+<li>Bug fixes with clear scope</li>
+<li>Cost-sensitive work</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="test-writer-wrote-implementation-code">“Test-writer wrote implementation code”</h3>
+<p>The <code>disallowedTools</code> should prevent this. If it doesn’t:</p>
+<ol>
+<li>Check agent definition: <code>disallowedTools: Write(src/*.ts), Write(src/*.tsx), Edit(src/*.ts), Edit(src/*.tsx)</code></li>
+<li>Add explicit instruction: “You CANNOT write files outside <code>*.test.*</code> or <code>*.spec.*</code>”</li>
+</ol>
+<h3 id="implementer-modified-test-files">“Implementer modified test files”</h3>
+<p>Same fix: verify <code>disallowedTools</code> in agent definition.</p>
+<h3 id="tests-are-too-trivial">“Tests are too trivial”</h3>
+<p>Add to test-writer prompt: “Each test must verify a specific behavior. Tests like <code>expect(true).toBe(true)</code> are forbidden. Include at minimum: happy path, error path, edge cases, boundary values.”</p>
+<h3 id="implementer-over-engineers">“Implementer over-engineers”</h3>
+<p>Add to implementer prompt: “Write the MINIMUM code. If a test expects a string, return a string. Don’t build an abstraction layer for one use case.”</p>
+<h3 id="refactorer-breaks-tests">“Refactorer breaks tests”</h3>
+<p>The Stop hook catches this. Also add: “Run <code>pnpm test</code> before AND after each change. If any test fails after a change, immediately revert that specific change.”</p>
+<h3 id="agents-stepping-on-each-others-files">“Agents stepping on each other’s files”</h3>
+<p>Review the file ownership table. If two agents need the same file, either:</p>
+<ol>
+<li>Assign it to one agent, other communicates via messages</li>
+<li>Split the feature into sequential (not parallel) tasks</li>
+</ol>
+<hr />
+<h2 id="sources">Sources</h2>
+<ul>
+<li>browser-ide TDD_APPROACH.md (5-phase TDD framework with self-improving agent loop)</li>
+<li>browser-ide AGENT_SPEC.md (6-section agent spec, boundary system)</li>
+<li>browser-ide AGENT_BOUNDARIES.md (3-tier boundary system with safeguards)</li>
+<li><a href="https://code.claude.com/docs/en/agent-teams" target="_blank" rel="noopener noreferrer">Claude Code Agent Teams Docs</a></li>
+<li><a href="https://code.claude.com/docs/en/sub-agents" target="_blank" rel="noopener noreferrer">Claude Code Custom Subagents</a></li>
+<li><a href="https://thenewstack.io/claude-code-and-the-art-of-test-driven-development/" target="_blank" rel="noopener noreferrer">Claude Code TDD (The New Stack)</a></li>
+<li><a href="https://alexop.dev/posts/custom-tdd-workflow-claude-code-vue/" target="_blank" rel="noopener noreferrer">Forcing Claude Code to TDD (alexop.dev)</a></li>
+<li><a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Claude Code Swarms (Addy Osmani)</a></li>
+<li><a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener noreferrer">Claude Code Hooks Guide</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

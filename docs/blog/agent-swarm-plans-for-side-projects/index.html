@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Agent Swarm Plans for Side Projects — Ankur’s Writing</title><meta name="description" content="Why: Complex multi-layer project with ~27 components, ~24 services, E2E tests across 3 browsers + mobile. Clear layer separation. Independent subsystems…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/agent-swarm-plans-for-side-projects/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Agent Swarm Plans for Side Projects — Ankur’s Writing"><meta property="og:description" content="Why: Complex multi-layer project with ~27 components, ~24 services, E2E tests across 3 browsers + mobile. Clear layer separation. Independent subsystems…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/agent-swarm-plans-for-side-projects/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Agent Swarm Plans for Side Projects — Ankur’s Writing"><meta name="twitter:description" content="Why: Complex multi-layer project with ~27 components, ~24 services, E2E tests across 3 browsers + mobile. Clear layer separation. Independent subsystems…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Project Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Project Research</span> </div> <h1>Agent Swarm Plans for Side Projects</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>6 min read</span> <span>·</span> <span>1,194 words</span> </p> </header>  <div class="prose"><h1 id="agent-swarm-plans-for-side-projects">Agent Swarm Plans for Side Projects</h1>
+<blockquote>
+<p>Project-specific plans for applying Claude Code Agent Teams across all open-source projects in <code>~/Projects/side-projects/</code>, ordered by swarm value.</p>
+</blockquote>
+<hr />
+<h2 id="tier-1-high-swarm-value">Tier 1: High Swarm Value</h2>
+<h3 id="1-browser-ide">1. browser-ide</h3>
+<p><strong>Why:</strong> Complex multi-layer project with ~27 components, ~24 services, E2E tests across 3 browsers + mobile. Clear layer separation. Independent subsystems (editor, terminal, git, AI, filesystem). Files are large (27KB-38KB) making context separation critical.</p>
+<h4 id="swarm-plan-a-cross-layer-feature-development">Swarm Plan A: Cross-Layer Feature Development</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create an agent team for implementing [feature]:</span></span>
+<span class="line"><span>- 'service-engineer': owns src/services/, src/store/, src/types/</span></span>
+<span class="line"><span>- 'ui-engineer': owns src/components/IDE/, src/hooks/</span></span>
+<span class="line"><span>- 'test-engineer': writes vitest + playwright tests only</span></span>
+<span class="line"><span>Each agent should message findings to others when interface contracts change."</span></span></code></pre>
+<p><strong>File ownership map:</strong></p></div>  <div class="prose">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Agent</th><th>Files</th></tr></thead><tbody><tr><td>service-engineer</td><td>services/<em>.ts, store/</em>.ts, types/index.ts, lib/database.ts</td></tr><tr><td>ui-engineer</td><td>components/IDE/<em>.tsx, components/Git/</em>.tsx, hooks/*.ts</td></tr><tr><td>test-engineer</td><td>*.test.tsx, *.test.ts, playwright tests</td></tr></tbody></table>
+<h4 id="swarm-plan-b-parallel-code-review">Swarm Plan B: Parallel Code Review</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a review team:</span></span>
+<span class="line"><span>- 'security-sentinel': audit COOP/COEP headers (vite.config.ts), CSP policy,</span></span>
+<span class="line"><span>  WebContainer sandboxing (webcontainer-security.test.ts), API key handling (.env),</span></span>
+<span class="line"><span>  XSS vectors in terminal commands</span></span>
+<span class="line"><span>- 'performance-oracle': audit Monaco editor lazy loading, xterm.js rendering,</span></span>
+<span class="line"><span>  Zustand store size (23KB useIDEStore.ts), Dexie DB queries, bundle splitting</span></span>
+<span class="line"><span>- 'architecture-strategist': review service layer patterns, singleton usage,</span></span>
+<span class="line"><span>  store design, component responsibilities, hook abstractions"</span></span></code></pre>
+<h4 id="swarm-plan-c-parallel-e2e-testing">Swarm Plan C: Parallel E2E Testing</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a QA swarm:</span></span>
+<span class="line"><span>- 'qa-chromium': run playwright tests on Chromium</span></span>
+<span class="line"><span>- 'qa-firefox': run playwright tests on Firefox</span></span>
+<span class="line"><span>- 'qa-webkit': run playwright tests on WebKit</span></span>
+<span class="line"><span>- 'qa-mobile': run playwright tests on mobile viewports</span></span>
+<span class="line"><span>Report failures to each other to identify browser-specific vs universal bugs."</span></span></code></pre>
+<h4 id="swarm-plan-d-bug-investigation-competing-hypotheses">Swarm Plan D: Bug Investigation (Competing Hypotheses)</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Investigate [bug]. Create a team:</span></span>
+<span class="line"><span>- 'hypothesis-monaco': investigate if the bug is in Editor.tsx / Monaco config</span></span>
+<span class="line"><span>- 'hypothesis-webcontainer': investigate if it's a WebContainer / filesystem issue</span></span>
+<span class="line"><span>- 'hypothesis-state': investigate if it's a Zustand store / state management issue</span></span>
+<span class="line"><span>First agent to find a confirmed root cause messages all others."</span></span></code></pre>
+<hr />
+<h3 id="2-building-management">2. building-management</h3>
+<p><strong>Why:</strong> Full-stack PWA (Astro 5 + React 19 + TailwindCSS v4). Multiple domains (residents, flats, billing). PWA features need testing.</p>
+<h4 id="swarm-plan-a-new-module-eg-billing-maintenance-requests">Swarm Plan A: New Module (e.g., billing, maintenance requests)</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team for the [module]:</span></span>
+<span class="line"><span>- 'data-architect': design data model, TypeScript interfaces, Astro data fetching</span></span>
+<span class="line"><span>- 'ui-engineer': build React components with Tailwind v4</span></span>
+<span class="line"><span>- 'pwa-engineer': handle offline support, service worker updates, caching strategy"</span></span></code></pre>
+<h4 id="swarm-plan-b-accessibility--pwa-audit">Swarm Plan B: Accessibility + PWA Audit</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create an audit team:</span></span>
+<span class="line"><span>- 'a11y-reviewer': audit all pages for WCAG 2.1 AA compliance</span></span>
+<span class="line"><span>- 'pwa-reviewer': audit service worker, manifest, offline behavior, install prompts</span></span>
+<span class="line"><span>- 'responsive-reviewer': audit all breakpoints, test mobile/tablet/desktop layouts"</span></span></code></pre>
+<hr />
+<h3 id="3-coding-challenges">3. coding-challenges</h3>
+<p><strong>Why:</strong> 94+ independent challenge directories. Perfect for self-organizing swarm since each challenge is isolated.</p>
+<h4 id="swarm-plan-bulk-improvement">Swarm Plan: Bulk Improvement</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a self-organizing swarm. Task pool:</span></span>
+<span class="line"><span>- For each challenge directory (01-wc-tool through 20+), check:</span></span>
+<span class="line"><span>  1. Has README with problem description?</span></span>
+<span class="line"><span>  2. Has tests that pass?</span></span>
+<span class="line"><span>  3. Code follows consistent style?</span></span>
+<span class="line"><span>  4. GitHub Pages deployment works?</span></span>
+<span class="line"><span>Workers: spawn 3 agents, each grabs a challenge from the pool, improves it, marks done."</span></span></code></pre>
+<hr />
+<h3 id="4-de-encrypt-hub">4. de-encrypt-hub</h3>
+<p><strong>Why:</strong> Multiple independent encryption algorithms (AES, RSA, hashing, digital signatures, image encryption). Each algorithm is isolated.</p>
+<h4 id="swarm-plan-parallel-algorithm-implementationaudit">Swarm Plan: Parallel Algorithm Implementation/Audit</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team:</span></span>
+<span class="line"><span>- 'crypto-auditor': verify cryptographic correctness of all implementations</span></span>
+<span class="line"><span>  (AES modes, RSA key sizes, hash functions)</span></span>
+<span class="line"><span>- 'ui-engineer': improve UX for each tool (input validation, error messages, copy buttons)</span></span>
+<span class="line"><span>- 'test-engineer': write comprehensive tests for edge cases (empty input, max size, invalid keys)"</span></span></code></pre>
+<hr />
+<h2 id="tier-2-medium-swarm-value">Tier 2: Medium Swarm Value</h2>
+<h3 id="5-html-to-pdf-generator">5. html-to-pdf-generator</h3>
+<p><strong>Why:</strong> Multi-framework library with React/Vue/Svelte/Node adapters. Each adapter is independent.</p>
+<h4 id="swarm-plan-cross-framework-testing">Swarm Plan: Cross-Framework Testing</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team:</span></span>
+<span class="line"><span>- 'react-agent': test and fix React adapter, ensure SSR compatibility</span></span>
+<span class="line"><span>- 'vue-agent': test and fix Vue adapter, verify Vue 3 composition API support</span></span>
+<span class="line"><span>- 'svelte-agent': test and fix Svelte adapter, check SvelteKit integration</span></span>
+<span class="line"><span>- 'node-agent': test and fix Node.js adapter, verify CLI usage"</span></span></code></pre>
+<p><strong>Note:</strong> Each agent owns one adapter directory. No file overlap.</p>
+<hr />
+<h3 id="6-private-chat">6. private-chat</h3>
+<p><strong>Why:</strong> WebAssembly LLM runtime. Performance-sensitive with multiple model formats.</p>
+<h4 id="swarm-plan-model-support--performance">Swarm Plan: Model Support + Performance</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team:</span></span>
+<span class="line"><span>- 'model-engineer': add support for new GGUF model formats, test loading/inference</span></span>
+<span class="line"><span>- 'performance-engineer': profile WASM execution, optimize WebWorker messaging,</span></span>
+<span class="line"><span>  implement response streaming</span></span>
+<span class="line"><span>- 'ui-engineer': improve chat UI, add conversation management, export features"</span></span></code></pre>
+<hr />
+<h3 id="7-portfolio-template">7. portfolio-template</h3>
+<p><strong>Why:</strong> React + Chakra UI portfolio. Multiple independent sections (projects, skills, AI chat).</p>
+<h4 id="swarm-plan-parallel-section-updates">Swarm Plan: Parallel Section Updates</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team:</span></span>
+<span class="line"><span>- 'content-agent': update project data, skills list, and copy</span></span>
+<span class="line"><span>- 'design-agent': refresh visual design, animations, responsive layout</span></span>
+<span class="line"><span>Each owns different component files — no overlap."</span></span></code></pre>
+<p><strong>Note:</strong> Subagents (not full teams) may be sufficient here given the smaller codebase.</p>
+<hr />
+<h3 id="8-linkedinify">8. linkedinify</h3>
+<p><strong>Why:</strong> PWA with Markdown parsing, offline-first. Two clear domains: parser and UI.</p>
+<h4 id="swarm-plan-feature--pwa">Swarm Plan: Feature + PWA</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Prompt: "Create a team:</span></span>
+<span class="line"><span>- 'parser-agent': improve Markdown-to-LinkedIn conversion rules, handle edge cases</span></span>
+<span class="line"><span>- 'pwa-agent': audit service worker caching, offline behavior, install experience"</span></span></code></pre>
+<hr />
+<h2 id="tier-3-use-subagents-instead-not-full-teams">Tier 3: Use Subagents Instead (Not Full Teams)</h2>
+<h3 id="9-markdown-to-medium-tool">9. markdown-to-medium-tool</h3>
+<p><strong>Why:</strong> React + Redux Toolkit + MUI. Single-purpose tool. Not enough independent subsystems.</p>
+<p><strong>Use instead:</strong> 2 subagents for parallel review (one for converter logic, one for UI).</p>
+<hr />
+<h3 id="10-markdown-to-slide">10. markdown-to-slide</h3>
+<p><strong>Why:</strong> Next.js + pdfmake. In development. Single-purpose.</p>
+<p><strong>Use instead:</strong> 1 subagent for research (slide generation libraries), then solo implementation.</p>
+<hr />
+<h3 id="11-node-typescript-koa-rest--nestjs-vuejs-typescript-boilerplate">11. node-typescript-koa-rest / nestjs-vuejs-typescript-boilerplate</h3>
+<p><strong>Why:</strong> Boilerplate projects. Small scope, well-defined patterns.</p>
+<p><strong>Use instead:</strong> Subagents for parallel dependency updates or documentation generation.</p>
+<hr />
+<h3 id="12-frontend-vue3-boilerplate--vite-boot">12. frontend-vue3-boilerplate / vite-boot</h3>
+<p><strong>Why:</strong> Vue starter templates. Small, templated projects.</p>
+<p><strong>Use instead:</strong> Solo session for updates. Subagent for dependency audit.</p>
+<hr />
+<h2 id="tier-4-solo-session-only">Tier 4: Solo Session Only</h2>
+<h3 id="13-blogs--content-plans">13. blogs / content-plans</h3>
+<p>Content repos. No code. Solo session for writing, subagent for cross-referencing links.</p>
+<h3 id="14-ccsh-shell">14. ccsh-shell</h3>
+<p>Single C file (27KB). No parallelizable subsystems.</p>
+<h3 id="15-career-highlights--encryptioner--encryptionergithubio">15. career-highlights / encryptioner / encryptioner.github.io</h3>
+<p>Static sites. Too simple for swarm overhead.</p>
+<h3 id="16-fish-boat-ludu">16. fish-boat-ludu</h3>
+<p>Vanilla JS game. Single-file logic.</p>
+<h3 id="17-testjs--test-project--test-design-patterns--tools-test">17. testjs / test-project / test-design-patterns / tools-test</h3>
+<p>Test/experimental projects. Not worth token cost.</p>
+<hr />
+<h2 id="quick-setup-enable-swarms-across-projects">Quick Setup: Enable Swarms Across Projects</h2>
+<p>For each Tier 1-2 project, add to <code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"1"</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Projects that benefit from this:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Tier 1</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/browser-ide/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/building-management/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/coding-challenges/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/de-encrypt-hub/.claude</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Tier 2</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/html-to-pdf-generator/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/private-chat/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/portfolio-template/.claude</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/linkedinify/.claude</span></span></code></pre>
+<p>Then create <code>settings.json</code> in each with the feature flag.</p>
+<hr />
+<h2 id="starting-sequence-recommended">Starting Sequence (Recommended)</h2>
+<ol>
+<li><strong>browser-ide</strong> — Start with <strong>Swarm Plan B (Code Review)</strong>. Low risk, high visibility, proves the concept.</li>
+<li><strong>browser-ide</strong> — Graduate to <strong>Swarm Plan C (E2E Testing)</strong>. Highly parallelizable, clear boundaries.</li>
+<li><strong>browser-ide</strong> — Attempt <strong>Swarm Plan A (Feature Development)</strong>. Full cross-layer coordination.</li>
+<li><strong>coding-challenges</strong> — Try <strong>Self-Organizing Swarm</strong>. Tests the worker-pool pattern.</li>
+<li><strong>building-management</strong> — Try <strong>Audit Team</strong>. Multiple independent reviewers.</li>
+<li><strong>Remaining projects</strong> — Apply learnings from above.</li>
+</ol>
+<hr />
+<h2 id="key-rules-from-all-sources">Key Rules (From All Sources)</h2>
+<ol>
+<li>Never start with “build me X” — always decompose into 5-6 tasks per agent first</li>
+<li>Define file ownership boundaries in every spawn prompt</li>
+<li>Cap at 3-4 agents (coordination scales quadratically)</li>
+<li>Start with review tasks, graduate to implementation</li>
+<li>Use plan approval gates for anything that writes code</li>
+<li>Pre-approve permissions before spawning</li>
+<li>Always cleanup after — orphaned teams waste resources</li>
+<li>Verify output — agent activity metrics lie about quality</li>
+</ol></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

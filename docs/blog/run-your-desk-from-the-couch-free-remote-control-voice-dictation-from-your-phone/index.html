@@ -1,0 +1,917 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone — Ankur’s Writing</title><meta name="description" content="A build's running upstairs. You're on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/run-your-desk-from-the-couch-free-remote-control-voice-dictation-from-your-phone/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone — Ankur’s Writing"><meta property="og:description" content="A build's running upstairs. You're on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/run-your-desk-from-the-couch-free-remote-control-voice-dictation-from-your-phone/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-24/control-path-macos.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone — Ankur’s Writing"><meta name="twitter:description" content="A build's running upstairs. You're on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent…"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-24/control-path-macos.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-08-18"><meta property="article:modified_time" content="2026-08-27"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a>  </div> <h1>Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone</h1> <p class="article-meta mono"> <time datetime="2026-08-27">27 Aug 2026</time> <span>·</span> <span>59 min read</span> <span>·</span> <span>11,712 words</span> </p> </header>  <div class="prose"><h1 id="run-your-desk-from-the-couch--free-remote-control--voice-dictation-from-your-phone">Run Your Desk From the Couch — Free Remote Control + Voice Dictation From Your Phone</h1>
+<blockquote>
+<p>The gap between having a thought worth acting on and acting on it shouldn’t cost a walk to the desk.</p>
+</blockquote>
+<p>A build’s running upstairs. You’re on the couch, not working, mostly resting — and a thought worth acting on shows up: reply to that message, nudge the agent that’s mid-task, check whether the tests actually passed. None of that needs you to get up and sit back down at a desk. It needs a phone, pointed at a machine that’s already on.</p>
+<p>That’s the actual shape of this setup once it’s running: <strong>occasional, light touches on real work, from wherever you already are</strong> — another room, the couch, bed, mid-chore. Not a full workstation replacement, not “work from anywhere all day.” Just the ability to act on a thought without that gap costing you a walk every time. And once you can <em>drive</em> the machine from the phone, dictating into it is a natural second step — speaking at roughly 3x typing speed, into any app, without compressing the message down to what’s bearable to thumb-type.</p></div>  <div class="prose">
+<p>This post has two parts, in that order:</p>
+<ul>
+<li><strong>Part 1 — Remote control.</strong> The phone becomes a real screen + keyboard + mouse for your desktop, over your home network. One VNC client app on the phone (<code>RealVNC Viewer</code>), works against both macOS and Ubuntu. This is the part to set up first; everything else builds on it.</li>
+<li><strong>Part 2 — Voice dictation.</strong> The phone’s mic becomes a real input device on the desktop, so a local dictation engine (<a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener noreferrer">Handy</a>) transcribes your voice into any focused app — terminal included — with no cloud speech service involved.</li>
+</ul>
+<p><strong>The setup cost is a weekend, once. The payoff doesn’t expire.</strong> Everything below is free, runs on your local network, and — once wired — needs nothing further from you: no subscription to keep paying, no cloud account to manage, no model to retrain. Set it up on a Saturday, and every day after that, the couch is a valid place to get something done.</p>
+<h2 id="topic-flow">Topic flow</h2>
+<p>Each Part below splits in two: <strong>build it</strong> — read straight through, in order — then <strong>Reference</strong>, where the troubleshooting tables, gotchas, and security notes live. Skip straight to Reference when something breaks; skip it entirely on a first read.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>PART 1 — REMOTE CONTROL (set up first)      PART 2 — VOICE DICTATION (builds on Part 1)</span></span>
+<span class="line"><span>────────────────────────────────────        ──────────────────────────────────────────</span></span>
+<span class="line"><span>Why VNC, not SSH                            Handy — the dictation engine (macOS/Ubuntu)</span></span>
+<span class="line"><span> ├─ macOS machine: Screen Sharing             ├─ hotkey + toggle-mode tuning</span></span>
+<span class="line"><span> └─ Ubuntu machine: x11vnc                    ├─ Ubuntu mic relay: DroidCam + loopback</span></span>
+<span class="line"><span>Phone client: RealVNC Viewer (one app,        └─ macOS mic relay: AudioRelay + BlackHole</span></span>
+<span class="line"><span> both machines; bVNC optional for Ubuntu)       (or an iPhone's Continuity mic)</span></span>
+<span class="line"><span>Driving the desktop: gestures, modifiers,   Reference — troubleshooting, daily</span></span>
+<span class="line"><span> keystroke shortcuts                        scenarios, teardown</span></span>
+<span class="line"><span>Reference — troubleshooting &amp; security</span></span>
+<span class="line"><span>────────────────────────────────────        ──────────────────────────────────────────</span></span>
+<span class="line"><span>             └──► WHAT'S NEXT: same rig off the home network (Part 3) + how it all</span></span>
+<span class="line"><span>                  works inside — protocols on the wire (Part 4)</span></span></code></pre>
+<p>Read Part 1 fully, then your own OS’s subsections in Part 2, and skip the other OS wherever you like — each machine’s route is self-contained.</p>
+<h2 id="what-it-actually-looks-like">What it actually looks like</h2>
+<ul>
+<li><strong>Mid-rest, an AI agent needs a nudge.</strong> Tap the phone, type “looks good, continue” — or dictate it (Part 2) — and it lands as a real keypress in the real terminal, same as if you’d walked over and typed it.</li>
+<li><strong>A build’s running, you want to know without getting up.</strong> Pull up the phone, glance at the terminal on the mirrored screen, done. No SSH session to remember, no separate monitoring app.</li>
+<li><strong>A reply is worth sending now, not in twenty minutes.</strong> Type it from the phone’s keyboard — or dictate it into Slack, an email, a commit message, at roughly 3x typing speed, without the usual tax of compressing the thought to make typing it bearable.</li>
+<li><strong>You’re doing something else entirely</strong> — cooking, stretching, half-watching something — and a stray thought about the code is worth capturing before it’s gone. Speak it. It’s text on the screen before you’ve even sat back down.</li>
+<li><strong>Something needs a click, not a sentence.</strong> Dismiss a dialog, pause a download, check a setting, switch a song — full mouse and keyboard, in your pocket.</li>
+</ul>
+<p>Two tools make this work, both free: a <strong>VNC remote-control rig</strong> (built from what your OS already ships, plus one phone app) for seeing and driving the desktop, and <strong>Handy</strong> for the voice-to-text part. How each gets wired — once — is the rest of this post.</p>
+<hr />
+<h2 id="the-route-this-post-takes">The route this post takes</h2>
+<ol>
+<li><strong>Part 1 — Remote control from the phone.</strong> Why VNC (not SSH), then per-OS server setup: macOS’s built-in Screen Sharing, Ubuntu’s <code>x11vnc</code>. One phone client — <strong>RealVNC Viewer</strong> — for both. Then the phone-side skills: gestures, modifier keys, and typing with your normal mobile keyboard.</li>
+<li><strong>Part 2 — Voice dictation.</strong> Handy on both OSes (models, hotkey tuning, the Wayland question), plus wiring the phone’s mic in as a system input: DroidCam + PulseAudio loopback on Ubuntu, AudioRelay + BlackHole (or an iPhone’s Continuity mic) on macOS. Start/stop scripts and troubleshooting close it out.</li>
+</ol>
+<p>Read Part 1 fully, then <em>your</em> machine’s subsection in Part 2 — skip the other OS wherever you like; each route is self-contained.</p>
+<p>The one table worth internalizing before anything else — <strong>the same phone app drives both machines</strong>, one saved entry per box:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>The job</th><th>Ubuntu machine</th><th>macOS machine</th></tr></thead><tbody><tr><td>Share + control the screen</td><td>x11vnc</td><td>built-in Screen Sharing</td></tr><tr><td>Phone VNC client</td><td><strong>RealVNC Viewer</strong> (Android/iOS)</td><td><strong>RealVNC Viewer</strong> — same app, second entry</td></tr><tr><td>Phone mic → system input <em>(Part 2)</em></td><td>DroidCam + PulseAudio loopback</td><td>AudioRelay + BlackHole — or iPhone Continuity mic</td></tr><tr><td>Switch default input <em>(Part 2)</em></td><td><code>pactl set-default-source</code></td><td><code>SwitchAudioSource -t input -s …</code> or Sound settings</td></tr><tr><td>OS-specific extras</td><td>none needed</td><td>none needed</td></tr></tbody></table>
+<p>Security and license notes for every tool close the post.</p>
+<hr />
+<h2 id="part-1--remote-control-from-the-phone">Part 1 — Remote control from the phone</h2>
+<h3 id="why-vnc-and-not-just-ssh">Why VNC, and not just SSH</h3>
+<p>If you’ve remoted into a machine before, it was probably SSH — and SSH can’t do this job. An SSH session drops you into a <em>new</em> text shell: it can’t show you the desktop you left running, can’t click anything, can’t type into the apps already open, and can’t fire global hotkeys (which Part 2’s dictation engine depends on). It’s a parallel door into the basement.</p>
+<p>VNC is a mirror plus a hand: the phone sees the actual desktop, and every tap and keystroke is injected as a <strong>real input event</strong> — indistinguishable, to every app and every hotkey listener, from sitting at the keyboard. That single property is what makes the whole rig work: switch apps, run shortcuts, check a build, and later trigger dictation, all with the same mechanism.</p>
+<p>Both halves are standard: macOS and Ubuntu can each serve VNC with either built-in or one-command-free tooling, and any standards-compliant client can connect. That’s why one phone app is enough for both machines.</p>
+<h3 id="the-macos-machine-screen-sharing-already-installed">The macOS machine: Screen Sharing, already installed</h3>
+<p>The Mac ships with the VNC server — this is mostly a matter of turning it on. This route was shaken down live on a Sequoia Mac with an Android phone in hand: Screen Sharing answering on port 5900, a phone client driving the screen, everything below marked “tested live” came off that machine.</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-24/control-path-macos.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to a Mac. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into macOS's built-in Screen Sharing server, which injects real mouse and keyboard events into the desktop input stack — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical. Keyboard commits — typing, glide input, voice typing — send as keystrokes; bVNC cannot connect to a Mac (Apple-DH handshake only)." />
+  <br />
+  <sub>The macOS control path — the server is already installed; one toggle and a VNC password turn it on.</sub>
+</div>
+<ol>
+<li><strong>System Settings → General → Sharing → Screen Sharing</strong> — flip it on. Keep it plain Screen Sharing: if <strong>Remote Management</strong> is the enabled one instead, legacy-VNC clients get served the login window even while you’re logged in, and typing into that over VNC drops focus (tested live — Remote Management off, Screen Sharing on, and the phone landed straight on the desktop; logging in over VNC works too, for the after-reboot case).</li>
+<li>For a <em>third-party</em> client (RealVNC Viewer — anything not Apple’s own Screen Sharing app), click the ⓘ next to Screen Sharing and enable <strong>“VNC viewers may control screen with password”</strong>, then set that password. Without it, macOS expects Apple’s own authentication handshake and most phone clients fail to connect at all.</li>
+<li>Connect from the phone to <code>&lt;mac-lan-ip&gt;:5900</code>, password = the VNC password from step 2. Same separate-from-WiFi-password logic as below on Ubuntu — it controls who can drive the Mac, not who can join the network.</li>
+</ol>
+<p>Or skip the GUI for step 1: <code>sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist</code> — but step 2 has no equally clean CLI path, so most of this toggle lives in System Settings either way. There’s also a CLI for the whole thing (<code>.../ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -clientopts -setvnclegacy -vnclegacy yes -setvncpw &lt;pw&gt; -restart -agent -privs -all</code>), but on Sequoia it sets privileges and the password while <strong>refusing to actually open the service</strong> — it prints <em>“Screen Sharing or Remote Management must be enabled from System Settings or via MDM”</em> and the port stays closed until you flip the GUI toggle once. Count on ending in System Settings regardless.</p>
+<p>Three auth behaviors worth knowing before a phone client rejects a correct-looking password:</p>
+<ul>
+<li><strong>The VNC password is effectively 8 characters.</strong> System Settings happily accepts a longer one, but legacy VNC auth is a <a href="https://datatracker.ietf.org/doc/html/rfc6143#section-7.2.2" target="_blank" rel="noopener noreferrer">DES challenge-response</a> capped at 8 — if the client keeps rejecting the password you set, the first 8 characters are the password. (Part 4 of this series opens up the mechanism, for the curious.)</li>
+<li><strong>macOS serves two auth types side by side</strong>: Mac account auth (a username + your Mac login password, Apple’s ARD-style handshake) <em>and</em> the legacy VNC password. A client looping on “enter VNC credentials” is often answering the wrong one — the server offers both, and which one you get depends on the client’s negotiation. Note Screen Sharing and Remote Management each have their <strong>own</strong> VNC-password setting; only the one for the service you actually enabled is consulted.</li>
+<li><strong>Client choice matters — tested live.</strong> <strong>RealVNC Viewer</strong> connects with the plain VNC password, username blank. <strong>bVNC</strong> (another popular Android client) fails against a Mac — see the troubleshooting table in the Reference section below.</li>
+</ul>
+<p>What you <em>don’t</em> need, relative to Ubuntu below: no display-number hunting, no Xauthority chase, no autostart file, no reconnect/key-repeat flag tuning — Apple’s server handles those correctly by default. And one genuine upgrade: Screen Sharing is a system daemon that serves the <strong>login window</strong> too, so after a reboot you can VNC in and log in remotely — the Ubuntu route can’t do that (x11vnc only starts after a graphical login).</p>
+<h3 id="the-ubuntu-machine-x11vnc">The Ubuntu machine: x11vnc</h3>
+<p>x11vnc shares and drives the <strong>existing</strong> desktop session — the one you’re actually logged into, with your apps already open — rather than spawning a fresh virtual one. It’s in the standard repos:</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-24/control-path-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer connects over home WiFi to an Ubuntu desktop. Touch and soft-keyboard input from the client is carried by the VNC protocol over port 5900 into x11vnc, which injects real mouse and keyboard events into the existing X11 session — GUI apps, terminals, and any global hotkey listener all respond as if the inputs were physical." />
+  <br />
+  <sub>The Ubuntu control path — x11vnc turns the desktop session you're already logged into into a VNC server.</sub>
+</div>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> apt</span><span style="color:#98C379"> install</span><span style="color:#D19A66"> -y</span><span style="color:#98C379"> x11vnc</span></span></code></pre>
+<h4 id="run-it">Run it</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">x11vnc</span><span style="color:#D19A66"> -display</span><span style="color:#98C379"> :</span><span style="color:#ABB2BF">&lt;</span><span style="color:#98C379">real-display-numbe</span><span style="color:#ABB2BF">r&gt; </span><span style="color:#D19A66">-auth</span><span style="color:#98C379"> guess</span><span style="color:#D19A66"> -usepw</span><span style="color:#D19A66"> -shared</span><span style="color:#D19A66"> -repeat</span><span style="color:#D19A66"> -forever</span></span></code></pre>
+<p>Find <code>&lt;real-display-number&gt;</code> with <code>who</code> (look for <code>&lt;user&gt;  :N  &lt;date&gt;</code>) from a terminal that’s actually part of the graphical session.</p>
+<ul>
+<li>First run is interactive: no password file exists yet, so <code>-usepw</code> prompts you to set one. Always do this — never run x11vnc without auth.</li>
+<li><code>-forever</code> keeps listening after the first client disconnects.</li>
+<li><strong><code>-shared</code> matters.</strong> Without it, x11vnc allows exactly one client at a time — a stale half-open connection from a WiFi blip or app switch makes every reconnect fail with <code>refusing new client ... Not shared &amp; existing client</code> until you restart the server. With it, reconnects just work.</li>
+<li><strong><code>-repeat</code> matters too.</strong> x11vnc turns <em>off</em> the X server’s key autorepeat by default while a client keyboard is active — its log even says so (<code>active keyboard: turning X autorepeat off</code>). Without this flag, holding an arrow key (or any key) from the phone does nothing beyond the first tap — no repeat, one character per touch, forever. <code>-repeat</code> keeps autorepeat on so a held key behaves like a physical one. Only drop it if your specific client does its own repeat and you start seeing doubled characters.</li>
+<li><strong><code>-auth guess</code></strong> (x11vnc ≥0.9.9) finds the right Xauthority cookie itself. Modern GNOME/gdm sessions often keep it at <code>/run/user/&lt;uid&gt;/gdm/Xauthority</code>, not the default <code>~/.Xauthority</code> — hardcoding the default path is a common source of a silent auth failure.</li>
+<li>There’s no <code>-localhost=no</code> flag — that’s not real; <code>-localhost</code> (no value) <em>restricts</em> to loopback, and passing <code>=no</code> gets rejected as unrecognized. Allowing LAN connections is the default when you omit the flag entirely.</li>
+<li>Scope the port to your LAN: <code>sudo ufw allow from &lt;your-subnet&gt; to any port 5900</code> — never expose it to the internet. If you’ve never touched <code>ufw</code> before and only use SSH <em>outbound</em> to other machines (not inbound into this one), you don’t need <code>sudo ufw allow OpenSSH</code> — that rule only matters for a device that accepts incoming SSH connections; ufw’s default policy already allows all outbound traffic regardless of any inbound rule you add.</li>
+</ul>
+<p><strong>What the VNC password actually is</strong> — easy to conflate with the WiFi password, but it’s a separate thing: it’s set by you via <code>x11vnc -storepasswd</code> (not your router), it controls who can drive <em>this</em> desktop once already on the network (not who can join the network), and it doesn’t change when you switch WiFi networks — phone and desktop just need to be on the <em>same</em> network at connection time, whichever one that is. Like the Mac’s, it’s capped at 8 effective characters by the classic VNC auth protocol.</p>
+<h4 id="persist-across-reboots--the-autostart-file">Persist across reboots — the autostart file</h4>
+<p>There’s no separate script to write here — GNOME (and most desktops) autostarts anything dropped as a <code>.desktop</code> file in <code>~/.config/autostart/</code>, once per graphical login, which is the earliest point a display actually exists to serve. Set the password once first (<code>x11vnc -storepasswd</code>), then create this file:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="ini"><code><span class="line"><span style="color:#7F848E;font-style:italic"># ~/.config/autostart/x11vnc.desktop</span></span>
+<span class="line"><span style="color:#61AFEF">[Desktop Entry]</span></span>
+<span class="line"><span style="color:#C678DD">Type</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">Application</span></span>
+<span class="line"><span style="color:#C678DD">Name</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">x11vnc</span></span>
+<span class="line"><span style="color:#C678DD">Exec</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">x11vnc -display :&lt;N&gt; -auth guess -rfbauth /home/&lt;you&gt;/.vnc/passwd -shared -repeat -forever</span></span>
+<span class="line"><span style="color:#C678DD">X-GNOME-Autostart-enabled</span><span style="color:#ABB2BF">=</span><span style="color:#98C379">true</span></span></code></pre>
+<p><code>&lt;N&gt;</code> is your real display number from <code>who</code> (see above); <code>&lt;you&gt;</code> is your Linux username — <code>Exec=</code> needs the absolute path, <code>~</code> isn’t expanded there. <code>X-GNOME-Autostart-enabled=true</code> is what actually flips it on; a <code>.desktop</code> file without that line sits inert. Verify it’s live any time with <code>pgrep -af x11vnc</code> after a fresh login — no separate “did it start” step needed beyond that.</p>
+<p>One consequence of the after-login design: if the machine reboots (or loses power) and sits at a lock screen, nothing’s listening yet — someone has to log in locally once before the phone can reach it. The Mac’s Screen Sharing doesn’t have that limitation; this is the one thing it does better.</p>
+<h3 id="the-phone-client-realvnc-viewer-one-app-both-machines">The phone client: RealVNC Viewer (one app, both machines)</h3>
+<p><strong><a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank" rel="noopener noreferrer">RealVNC Viewer</a></strong> (free on Android and iOS) is the client this post standardizes on, for one reason that matters more than any feature list: <strong>it speaks the classic VNC authentication that both servers above serve</strong>, so the same app — the same UI, the same gestures, the same saved-entries list — drives the Mac and the Ubuntu box. Two entries, one muscle memory. On the Mac side that’s live-tested end to end; against x11vnc it’s the same standard handshake (the one <code>x11vnc -storepasswd</code> sets), so it connects the same way — and if your phone-side app ever refuses, the fallback below is proven on Ubuntu.</p>
+<p>Worth knowing where the line sits: RealVNC the <em>company</em> sells a cloud-connected ecosystem (account, device list, “connect from anywhere”). None of that is needed here — the Viewer app connects <strong>directly</strong>, machine-to-machine over your LAN, with no account and nothing routed through anyone’s cloud. Don’t sign in; just add an address and connect. The same company’s download page markets a comparison table implying classic direct connections to third-party servers are unsupported — the Mac test above (direct LAN, third-party… well, Apple’s server, plain VNC password) says otherwise, and that’s the configuration this post uses.</p>
+<p><strong>bVNC — the optional Ubuntu-only alternative.</strong> Before standardizing on RealVNC Viewer, this rig ran on <a href="https://github.com/iiordanov/remote-desktop-clients" target="_blank" rel="noopener noreferrer">bVNC</a> (free, GPL, Android), and it’s a solid client against x11vnc — every Ubuntu-side behavior in this post was verified through it. It stays a fine choice if you prefer its gesture modes, or want free built-in SSH tunneling. Two reasons it’s demoted to optional: it <strong>cannot</strong> connect to the Mac (the DH-handshake failure covered in Reference below — no security-type override in its UI), and its right-click is a hold-plus-second-finger-tap rather than RealVNC’s plain two-finger tap. If you use one phone for both machines, one client that reaches both beats two clients to remember.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>RealVNC Viewer</th><th>bVNC (optional)</th></tr></thead><tbody><tr><td>Connects to Ubuntu (x11vnc)</td><td>✅ standard VNC auth</td><td>✅ tested daily driver</td></tr><tr><td>Connects to macOS (Screen Sharing)</td><td>✅ live-tested</td><td>❌ DH-handshake failure</td></tr><tr><td>Right-click</td><td>tap with two fingers</td><td>hold + second-finger tap (learnable)</td></tr><tr><td>Account / cloud anything</td><td>not needed — direct connect</td><td>none</td></tr><tr><td>Extras</td><td>—</td><td>SSH/TLS tunneling built in, GPL</td></tr></tbody></table>
+<p>(On iOS, RealVNC’s VNC Viewer app is the equivalent client for either machine.)</p>
+<p><strong>Try it now — first win.</strong> Server on (either machine), Viewer installed: add an entry with the machine’s LAN IP and port <code>5900</code>, connect, enter the VNC password with the username blank. Your desktop should fill the phone’s screen, and a tap anywhere should move the real cursor. If it does, the rig works — everything left in this part is technique. If it doesn’t, the Reference section’s troubleshooting tables are ordered by likelihood; start at the top.</p>
+<h3 id="driving-the-desktop-from-the-phone">Driving the desktop from the phone</h3>
+<p>Everything here is VNC-client behavior, not OS behavior — it works the same against the Ubuntu machine and the Mac. Client-specific bits are labeled. The connection details, in one place:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>Ubuntu machine</th><th>macOS machine</th></tr></thead><tbody><tr><td>Client</td><td><strong>RealVNC Viewer</strong></td><td><strong>RealVNC Viewer</strong> — same app</td></tr><tr><td>Address</td><td><code>&lt;ubuntu-lan-ip&gt;:5900</code></td><td><code>&lt;mac-lan-ip&gt;:5900</code></td></tr><tr><td>Password</td><td>the <code>x11vnc -storepasswd</code> one</td><td>the 8-character VNC password</td></tr></tbody></table>
+<p>Both passwords are separate from your WiFi password and unaffected by switching networks — phone and desktop just need to be on the <em>same</em> network at connection time, whichever one that is.</p>
+<p>VNC just mirrors real mouse and keyboard input — there’s no VNC-specific “select an app” step, it behaves exactly like sitting at the desktop:</p>
+<ul>
+<li><strong>Focus a window</strong>: tap it directly in the mirrored screen — a real click.</li>
+<li><strong>Type</strong>: tap the field to focus it, tap the keyboard icon to bring up the phone’s soft keyboard. Everything typed sends as real keystrokes — no special “VNC mode.”</li>
+<li><strong>Modifier combos</strong> (Ctrl+key, Alt+key, Cmd+key): use the client’s extra-keys toolbar, the row of dedicated <code>Ctrl</code>/<code>Alt</code>/<code>Shift</code>/<code>Esc</code>/<code>Tab</code> buttons you tap to hold, then tap the other key.</li>
+</ul>
+<h4 id="switching-between-applications">Switching between applications</h4>
+<p>Three ways, in the order actually worth trying on a phone:</p>
+<ul>
+<li><strong>The desktop’s hot corner (no keys needed at all)</strong>: on GNOME, tap the very top-left pixel of the mirrored screen, just under where “Activities” would show — the overview opens with every open window as a thumbnail; tap the one you want. macOS has the same feature: System Settings → Desktop &amp; Dock → Hot Corner (e.g. top-left → Mission Control). This is the one to reach for first: it needs no modifier key, works even if your VNC client’s extra-keys toolbar doesn’t expose <code>Tab</code> (some builds don’t), and is one tap instead of a hold-plus-tap combo.</li>
+<li><strong>Alt+Tab / Cmd+Tab, if your client has both keys</strong>: hold <code>Alt</code> (or <code>Cmd</code> on the Mac) and tap <code>Tab</code> from the extra-keys toolbar to cycle, same as at a physical keyboard — same toggle-then-tap mechanism as the multi-key shortcuts below. Falls back to the hot corner if <code>Tab</code> isn’t in your toolbar’s default row.</li>
+<li><strong>Between terminals/shells specifically</strong>: don’t alt-tab or hot-corner between separate GUI terminal windows at all if you can help it — hunting for the right thumbnail among several is more taps than it’s worth. Use the desktop’s window overview (hot corner or Alt+Tab) instead.</li>
+</ul>
+<p>All three are the same underlying trick: VNC sends real input events, so every desktop-level shortcut or gesture you’d use at the keyboard works identically from the phone.</p>
+<h4 id="multi-key-shortcuts-eg-supera">Multi-key shortcuts, e.g. <code>Super+A</code></h4>
+<p>A touchscreen can’t physically hold two keys down at once, so the extra-keys toolbar buttons don’t work like a normal press-and-release key — they’re <strong>toggles</strong>. Tapping a modifier arms it (it stays visually pressed/highlighted); tapping the next key sends both together as one combo, and the modifier releases automatically right after.</p>
+<p>To fire <code>Super+A</code> (or any modifier combo — <code>Ctrl+Shift+T</code>, <code>Alt+F4</code>, <code>Cmd+Q</code> on the Mac):</p>
+<ol>
+<li>Open the extra-keys toolbar (the keyboard/gear icon in the client’s in-session toolbar).</li>
+<li>Tap the <strong>Super</strong>/<strong>Win</strong>/<strong>Cmd</strong> key icon (labeled <code>Super</code>, <code>Win</code>, <code>Cmd</code>, or shown as a ⊞-style icon depending on client) — it stays highlighted, armed.</li>
+<li>Tap <code>A</code> on the soft keyboard — the combo fires as <code>Super+A</code>, and the modifier releases on its own.</li>
+</ol>
+<p>Same mechanism for stacking more than one modifier — tap <code>Ctrl</code>, tap <code>Shift</code>, then tap the letter key, and all three go through together. If the client’s default extra-keys row doesn’t show a Super/Win button, check its settings for a toolbar/keys customization option before assuming the key isn’t supported — most VNC clients that expose Ctrl/Alt as toggles expose Super the same way.</p>
+<h4 id="right-click-and-where-enterbackspace-live">Right-click, and where Enter/Backspace live</h4>
+<p><strong>Right-click</strong> in RealVNC Viewer: <strong>tap with two fingers at once</strong>. One finger tap = left click, two fingers = right, three = middle — and the click lands where the mouse cursor sits, not where your fingers touch (default mode drags the cursor with one finger, offset so you can see it). Two other gestures from the same official table worth knowing: two fingers dragged up/down = scroll, and <strong>double-tap + hold + drag</strong> = select text or drag-and-drop. (<a href="https://help.realvnc.com/hc/en-us/articles/360018541231-Using-RealVNC-Viewer-for-Mobile-to-control-a-remote-device" target="_blank" rel="noopener noreferrer">RealVNC’s gesture reference</a>.) In <strong>bVNC</strong> it’s the one gesture people assume and get wrong — right-click is <em>not</em> a plain long-press:</p>
+<ol>
+<li><strong>Press and hold</strong> one finger on the target (keep it down).</li>
+<li><strong>Tap anywhere else</strong> on the screen with a second finger.</li>
+<li>Lift both — the right-click fires where the first finger sits, and the menu opens.</li>
+</ol>
+<p>That hold-then-second-finger-tap gesture is bVNC’s documented right-click in its default input modes (hold and <em>swipe</em> instead of tapping and you get a right-drag). Alternatives, in order of usefulness: <strong>Single-Handed input mode</strong> (long-press pops a small panel with a dedicated <strong>right</strong> button), <strong>touchpad-style modes</strong> (two fingers together = right-click, three = middle), or a <strong>Bluetooth mouse</strong> (actual right button just works). Gestures aren’t gated behind bVNC Pro — full per-mode reference lives in-app: Menu → More → Input Mode Help.</p>
+<p><strong>Enter and Backspace</strong> — not special VNC buttons, just the ordinary keys on Android’s own soft keyboard, same as any other key you tap. The extra-keys toolbar exists specifically for keys a <em>normal</em> mobile keyboard doesn’t have — Ctrl, Alt, Esc, Tab, arrows.</p>
+<h4 id="the-everyday-actions-new-tab-ctrlc-close--both-clients">The everyday actions: new tab, Ctrl+C, close — both clients</h4>
+<p>The four things you’ll do a hundred times from the couch, in one place. Modifier mechanics in <strong>both</strong> clients are the toggles from the multi-key section above — tap the modifier, it arms, tap the key, the combo fires — so only the gestures differ:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Everyday action</th><th>RealVNC Viewer</th><th>bVNC</th></tr></thead><tbody><tr><td><strong>Open a new terminal tab</strong> on the desktop</td><td><code>Ctrl+Shift+T</code> (Ubuntu’s GNOME Terminal): tap Ctrl, tap Shift, tap T. Mac Terminal: <code>Cmd+T</code> — Super toggle, then T</td><td>Same keys, same arm-then-tap — its Ctrl/Shift buttons work identically</td></tr><tr><td><strong>Right-click</strong></td><td>Tap with two fingers at once</td><td>Hold one finger, tap with a second — the full guide is the section above</td></tr><tr><td><strong>Stop a running command (<code>Ctrl+C</code>)</strong></td><td>Tap <strong>Ctrl</strong> in the extra-keys row, tap <code>c</code> → sends <code>Ctrl+C</code>, which <strong>interrupts the foreground process</strong>. It closes nothing — not the tab, not the session</td><td>Identical: Ctrl toggle in its keys row, then <code>c</code></td></tr><tr><td><strong>Close the tab / end the shell</strong></td><td><code>exit</code>, or <code>Ctrl+D</code> (Ctrl toggle + <code>d</code>) — the thing people wrongly reach for <code>Ctrl+C</code> to do. Different key, different job</td><td>Same</td></tr><tr><td><strong>Done — end the phone session</strong></td><td>Disconnect from the toolbar; the desktop keeps running</td><td>Same</td></tr></tbody></table>
+<p>The pair worth memorizing: <strong><code>Ctrl+C</code> stops a program, <code>Ctrl+D</code> ends the shell.</strong> C is “interrupt what’s running,” D is “I’m leaving” — and neither ever touches the VNC session itself.</p>
+<p>More of the everyday, grouped by who’s holding the phone — every row uses the same three mechanics already covered (modifier toggles, the extra-keys row, touch gestures), just combined:</p>
+<p><strong>If you’re developing:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>From the phone</th></tr></thead><tbody><tr><td>Copy / paste in a terminal</td><td>Double-tap, hold the second tap, drag to select, then <code>Ctrl+Shift+C</code> / <code>Ctrl+Shift+V</code> — the terminal is the one app that needs the Shift; everywhere else plain <code>Ctrl+C</code>/<code>Ctrl+V</code></td></tr><tr><td>Reopen a browser tab you closed by accident</td><td><code>Ctrl+Shift+T</code> — the same three-tap combo as “new terminal tab,” but in the browser it resurrects the dead tab</td></tr><tr><td>New / close browser tab</td><td><code>Ctrl+T</code> / <code>Ctrl+W</code></td></tr><tr><td>Jump to the address bar (or type a file path)</td><td><code>Ctrl+L</code> — browser address bar, and GNOME Terminal’s “type a path” prompt</td></tr><tr><td>Run the last command again</td><td><code>↑</code> from the extra-keys row, then Enter — no modifier needed</td></tr><tr><td>Search shell history by fragment</td><td><code>Ctrl+R</code>, type a fragment of the command, Enter</td></tr><tr><td>Close the focused app window</td><td><code>Alt+F4</code> (Linux) / <code>Cmd+Q</code> (Mac)</td></tr><tr><td>Lock the screen when you walk away</td><td><code>Super+L</code> (GNOME) / <code>Ctrl+Cmd+Q</code> (Mac) — client stays connected</td></tr></tbody></table>
+<p><strong>If you’re exploring the machine:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>From the phone</th></tr></thead><tbody><tr><td>Middle-click paste (Linux’s best-kept secret)</td><td>Tap with three fingers at once — RealVNC’s native middle click (or a Bluetooth mouse’s middle button)</td></tr><tr><td>Zoom the remote screen</td><td>Pinch — client-side zoom, sharp on a phone’s high-DPI panel, touches nothing on the desktop</td></tr><tr><td>Scroll a terminal</td><td>Two-finger swipe (works in most terminals; check scrollback settings if not)</td></tr><tr><td>Move a window</td><td>Touch mode: drag its title bar like a real finger would</td></tr><tr><td>Dismiss a dialog / cancel a popup</td><td><code>Esc</code> from the extra-keys row — one tap, no modifiers</td></tr></tbody></table>
+<p><strong>If you’re just using the computer:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>From the phone</th></tr></thead><tbody><tr><td>Passwords</td><td>The phone keyboard’s <strong>autofill</strong> — your password manager fills straight into the desktop login field, nothing to type</td></tr><tr><td>Emoji into a desktop chat</td><td>The phone keyboard’s own emoji panel — arrives as real keystrokes, no desktop setup</td></tr><tr><td>Play / pause video</td><td><code>Space</code> — a key the phone keyboard already has</td></tr><tr><td>Long text (URLs, messages)</td><td>Copy on the phone, paste with the keyboard’s paste button — or dictate it (mic button, sections below)</td></tr></tbody></table>
+<p>That’s the quiet point of the whole rig: if the phone’s keyboard can produce it, the desktop receives it — and everything else is one armed modifier away.</p>
+<h4 id="editing-text-in-a-terminal">Editing text in a terminal</h4>
+<p>Faster than arrow-key nudging on touch, works on both machines: standard readline bindings work over VNC exactly like they do locally — <code>Ctrl+A</code>/<code>Ctrl+E</code> jump to line start/end, <code>Ctrl+W</code> deletes the last word, <code>Ctrl+U</code> clears back to cursor.</p>
+<h4 id="typing-on-the-desktop-with-your-phone-keyboard">Typing on the desktop with your phone keyboard</h4>
+<p>The soft keyboard that appears when you tap the keyboard icon is your phone’s <strong>normal keyboard app</strong> — whatever you already use, nothing new installed. Everything the keyboard app is good at carries over, because VNC just receives whatever the keyboard commits and sends it as real keystrokes:</p>
+<ul>
+<li><strong>Glide typing / swipe input</strong> — drag through the letters, same as texting.</li>
+<li><strong>Autocorrect and next-word prediction</strong> — actively helpful in chat and email apps on the desktop.</li>
+<li><strong>Long-press for numbers and symbols</strong> — long-press the top-row letters, same as anywhere.</li>
+<li><strong>Clipboard</strong> — copy on the phone (from anywhere), paste into the desktop app with the keyboard’s paste button. Copy on the desktop, read it on the phone.</li>
+<li><strong>Multilingual typing</strong> — your keyboard’s per-language or multi-language modes work as usual; typing Bangla or any other language into a desktop app needs no desktop-side setup beyond the app accepting text.</li>
+<li><strong>One-handed / floating mode</strong> — shrink the keyboard to a thumb-zone corner for couch use.</li>
+</ul>
+<p>Two cautions from the terminal-shaped parts of this rig:</p>
+<ul>
+<li><strong>Autocorrect + terminals don’t mix.</strong> Suggestions will happily “fix” flags, paths, and <code>git</code> subcommands. Your keyboard app’s settings (its own toolbar, or Settings → System → Languages &amp; input) usually offer a suggestions/autocorrect toggle — disable it when a terminal is focused, or type flags carefully and proofread before Enter. There’s no desktop-side guard; the keystrokes arrive already “corrected.”</li>
+<li><strong>Voice typing works — mind where it transcribes.</strong> Any keyboard with voice-typing support works over VNC (tested live): the keyboard’s speech engine does the transcribing, and the committed text arrives as keystrokes like any other typing. The catch isn’t injection — it’s that most keyboards dictate through their maker’s cloud speech service, the opposite of this rig’s offline promise. Part 2 exists for the local version: the phone’s mic streaming to the desktop, transcribed <strong>locally</strong> by Handy, landing in any app — no cloud in the loop.</li>
+</ul>
+<h4 id="a-note-on-global-hotkeys">A note on global hotkeys</h4>
+<p>Any app that listens for a global hotkey (launcher, dictation engine, window manager action) can be triggered from the phone — VNC delivers the key to the desktop’s real input stack, and the listener fires. The practical rule for <em>which</em> hotkey to pick for phone use: a <strong>single key with no modifier</strong> (<code>End</code>, <code>Insert</code>, <code>Home</code>, <code>Page Up/Down</code>) beats any combo, because a combo means arming a toggle button and then tapping a second key — two taps instead of one, every single time. Part 2 applies exactly this rule to Handy’s dictation hotkey.</p>
+<h2 id="part-1--reference-troubleshooting--security">Part 1 — Reference: troubleshooting &amp; security</h2>
+<p>Everything above gets the phone driving either machine. What follows is what to check when a step doesn’t behave, plus the security notes for Part 1 — read now, or bookmark it for later.</p>
+<h3 id="if-the-phone-client-wont-connect-macos">If the phone client won’t connect (macOS)</h3>
+<p>Every failure below was either hit live on this rig or traced to a documented server behavior — check symptoms in order:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td><strong>bVNC pops a username+password dialog and rejects both credential sets</strong>, even with the correct VNC password stored</td><td>bVNC negotiates macOS’s DH-based (Apple ARD) handshake and can’t complete it — its UI has <strong>no security-type override</strong> to force classic VNC auth. This is a bVNC limitation on Mac, not a misconfiguration</td><td>Use <strong>RealVNC Viewer</strong> against the Mac (plain VNC password, username blank). bVNC remains a perfectly good <strong>option for the Ubuntu machine</strong> — keep it there if you like it, just don’t use it for macOS</td></tr><tr><td>Client loops on “enter VNC credentials” with a password you know is right</td><td>One of the two auth types being served (Mac-account vs VNC-password) is being answered with the wrong credential — or the password is longer than 8 characters and got silently truncated (DES cap)</td><td>Enter the <strong>VNC password</strong>, username blank; if longer than 8 chars, the first 8 are the real password</td></tr><tr><td>Nothing can connect at all</td><td>“VNC viewers may control screen with password” never enabled — macOS is waiting for Apple’s own auth</td><td>Enable it via the ⓘ next to Screen Sharing (step 2 in the macOS setup above), set the password, retry</td></tr><tr><td>Connects but lands on the <strong>login window</strong> instead of your desktop; typing into it drops focus</td><td><strong>Remote Management</strong> is the enabled service, not plain Screen Sharing — legacy-VNC clients get served the login window under Remote Management (tested live)</td><td>System Settings → General → Sharing → disable Remote Management, enable <strong>Screen Sharing</strong>; reconnect and you land on the desktop</td></tr><tr><td>Worked yesterday, won’t connect today (after a reboot)</td><td>The Mac’s LAN IP re-leased to a different address</td><td>Recheck with <code>ipconfig getifaddr en0</code>, update the saved entry — or set a DHCP reservation in the router</td></tr><tr><td><strong>Times out</strong> — “but I’m on the same WiFi”</td><td>Traffic never arrived: phone silently off the LAN, router guest/AP isolation, or a VPN on the phone — not a Mac-side failure</td><td>Check the phone’s WiFi details page (SSID + gateway match the router); watch <code>log stream --predicate 'process == "screensharingd"' --info</code> while tapping Connect — nothing logged = it never arrived. <strong>“Refused”</strong> = arrived, nothing listening → the server rows above</td></tr><tr><td>VNC view freezes/blank after the Mac sits idle</td><td>The Mac auto-locked; the lock screen’s password field fights phone-client keystrokes for focus</td><td>Unlock once at the Mac’s keyboard; for couch sessions set Lock Screen → “Require password…” to a long interval</td></tr></tbody></table>
+<p>Two closing notes on the macOS side. First, much of the “Sequoia is rough on third-party VNC clients” chatter traces back to the Remote Management behavior in the table above, not the OS itself — with plain Screen Sharing and the VNC password, RealVNC Viewer connected cleanly here through reboots and IP changes. Reports of screen-recording/share permissions demanding roughly-monthly reauthorization do exist; if a client won’t connect, first try Apple’s own Screen Sharing app from another Mac to isolate server-toggle vs client. Second, <strong>firewall</strong>: macOS’s application firewall allows the signed system Screen Sharing service through by default — no <code>ufw</code>-style rule to add. The LAN-only hygiene advice still applies: don’t port-forward 5900 out of your router, ever. Third: the timeout-vs-refused split from the Ubuntu section below applies to the Mac unchanged — “refused” is the server rows in this table, “timed out” is the phone’s network path — and the Mac’s ten-second instrument is <code>log stream --predicate 'process == "screensharingd"' --info</code>, watched live while you tap Connect (the unified-log equivalent of Ubuntu’s <code>journalctl</code> watch: silence = the traffic never arrived).</p>
+<p>Session realities (tested across a reboot): everything server-side comes back after a restart, but the Mac’s LAN IP can re-lease (ours changed on one reboot — if the saved phone entry stops connecting, recheck with <code>ipconfig getifaddr en0</code>, or give the Mac a DHCP reservation in the router). And multiple displays arrive as one wide canvas — pinch out in the client and pan; VNC has no per-monitor concept.</p>
+<h3 id="if-the-phone-wont-connect-ubuntu">If the phone won’t connect (Ubuntu)</h3>
+<p><strong>“Connection refused”</strong> — port 5900 has nothing listening, x11vnc either never started or died on launch:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pgrep</span><span style="color:#D19A66"> -af</span><span style="color:#98C379"> x11vnc</span><span style="color:#7F848E;font-style:italic">     # nothing = not running</span></span>
+<span class="line"><span style="color:#61AFEF">ss</span><span style="color:#D19A66"> -tln</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">grep</span><span style="color:#D19A66"> 5900</span><span style="color:#7F848E;font-style:italic">  # nothing = nothing listening</span></span></code></pre>
+<p>If it’s not running, re-run it and actually read what it prints. x11vnc fails fast on a bad flag or auth error and drops straight back to a clean-looking shell prompt — nothing visually distinguishes “crashed instantly” from “idle and fine” unless you read the output. The two causes that hit here:</p>
+<ul>
+<li><strong>Wrong display number.</strong> <code>-display :0</code> failed with an Xauthority error on a session that was actually <code>:1</code>. Check with <code>who</code> (<code>&lt;user&gt;  :1  &lt;date&gt;</code> — the number after the colon) from a terminal that’s part of the actual graphical session, not an unrelated SSH shell.</li>
+<li><strong>Xauthority not at the default path.</strong> Modern GNOME/gdm often keeps it at <code>/run/user/&lt;uid&gt;/gdm/Xauthority</code> instead of <code>~/.Xauthority</code>. <code>-auth guess</code> finds it automatically; the explicit fallback is <code>-auth /run/user/&lt;uid&gt;/gdm/Xauthority</code>.</li>
+</ul>
+<p>If it’s still refused after that: check <code>ufw status verbose</code> actually shows the port-5900 rule as active, confirm phone and desktop are on the <em>same</em> WiFi — not just by the icon but on the phone’s WiFi details page (SSID matches, and the <em>gateway</em> is your router’s LAN address; a silent fallback to mobile data or a guest band puts the phone on a different path) — and re-check the desktop’s LAN IP hasn’t drifted from a DHCP re-lease (<code>hostname -I</code> is the one-glance version: ignore the <code>172.x.x.x</code> Docker/VM bridges, read the <code>192.168.x.x</code> one). And learn the distinction that saves the most time: <strong>“timed out” means the packets never arrived</strong> (phone on the wrong network, guest/AP isolation on the router, or a VPN running on the phone) while <strong>“refused” means they arrived and nothing was listening</strong> — server-side, above. The ten-second instrument that settles it: <code>journalctl --user -f | grep -i x11vnc</code> while you tap Connect on the phone. Nothing logged = traffic isn’t arriving; <code>Got connection from client &lt;ip&gt;</code> then an auth failure = the network is fine, it’s the password.</p>
+<h3 id="part-1-security-recap">Part 1 security recap</h3>
+<ul>
+<li><strong>Keep port 5900 LAN-scoped.</strong> <code>ufw allow from &lt;your-subnet&gt; to any port 5900</code> on Ubuntu; on macOS the firewall already permits Screen Sharing — and on <em>both</em>, the rule that matters is at the router: never port-forward 5900 to the internet. If you ever need in from outside your LAN, that’s a VPN job (see the roadmap below), not a port-forward job.</li>
+<li><strong>VNC passwords are weak by protocol.</strong> Classic VNC auth is a DES challenge-response <strong>capped at 8 characters</strong> — both servers in this post use it. On a firewalled home LAN that’s an acceptable trade; anywhere shared, tunnel VNC through SSH (bVNC supports SSH tunnels natively) or use x11vnc’s TLS/VeNCrypt options.</li>
+<li><strong>No cloud in the control path.</strong> RealVNC Viewer connects direct, machine-to-machine; nothing in Part 1 routes through or requires anyone’s servers.</li>
+</ul>
+<p>That’s the control half done: the phone can see and drive either machine. But every input so far has been thumb-typed — and thumbs are the bottleneck this rig exists to remove. Part 2 replaces them with the phone’s microphone.</p>
+<hr />
+<h2 id="part-2--voice-dictation-handy--your-phones-mic">Part 2 — Voice dictation: Handy + your phone’s mic</h2>
+<p>Typing on a phone is fine for a sentence. For a paragraph — a prompt for an AI agent, a code-review reply, a commit message with actual context — it’s the bottleneck. This part removes it: <strong>speak, and the words land in whatever desktop app is focused</strong>, transcribed locally, offline, by <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener noreferrer">Handy</a>.</p>
+<p>Two facts about Handy shape everything below:</p>
+<ul>
+<li><strong>Handy has no always-listening mode</strong> — it needs a real keypress on its global hotkey to start recording, and that hotkey is a listener hooked into the desktop’s own input stack. This is the second reason the rig is VNC-based, not SSH-based: VNC’s remote keyboard <em>does</em> synthesize real input events, so a VNC-triggered hotkey fires Handy exactly like a physical keypress would. (Part 1’s “global hotkeys” note is the generic version of this rule.)</li>
+<li><strong>Handy has no in-app microphone picker</strong> — it just uses whatever the OS default input device is. That’s what makes swapping in the phone’s mic possible without touching a single Handy setting: make the phone a default-able system input, and the integration is done.</li>
+</ul>
+<h3 id="handy-the-dictation-engine-macos-and-ubuntu">Handy: the dictation engine (macOS and Ubuntu)</h3>
+<p>Handy runs natively on both macOS and Ubuntu — same app, same models, same settings structure. Set it up at the desk first; everything remote depends on it working locally.</p>
+<h4 id="macos--install">macOS — install</h4>
+<ul>
+<li>Official Homebrew cask: <code>brew install --cask handy</code> — confirmed it’s maintained in the <code>homebrew-cask</code> repo itself, not a third-party tap, before running it.</li>
+<li>The app bundle is small, ~40 MB, before any model download.</li>
+<li>First launch asks for two one-time OS permissions (Microphone, Accessibility) — click-through, no config editing.</li>
+<li>It works system-wide by design: hold the shortcut, speak, release, text pastes wherever the cursor currently is. Terminal included.</li>
+</ul>
+<h4 id="macos--model-choice-multilingual-english--bangla">macOS — model choice: multilingual (English + Bangla)</h4>
+<p>Handy’s default model, Parakeet, only covers 25 European languages — no Bangla yet (an open feature request, unresolved). Whisper covers Bangla among 99 languages, from a single multilingual model file — no swapping per language, it detects (or can be pinned to) whichever one you’re speaking.</p>
+<ul>
+<li><strong>Whisper Medium</strong> (~492 MB) — good English quality, decent-enough Bangla for daily use. Set as default.</li>
+<li><strong>Whisper Large</strong> (~1.1 GB) — a one-click model swap from Settings if Bangla accuracy needs it later, no reinstall.</li>
+</ul>
+<p>Two decoding concepts worth knowing if you’re picking a model yourself: <strong>transcribe vs translate</strong> — transcribe outputs the language you spoke, translate always outputs English regardless of input (skips a separate translation step, but Handy doesn’t expose a UI toggle for it yet). And <strong>auto-detect vs pinned language</strong> — auto-detect guesses per clip (Whisper only; Parakeet-family models don’t detect at all and silently default to English), pinning skips that step for speed and avoids misdetection on short clips.</p>
+<h4 id="macos--speed-fix-switch-to-a-streaming-model">macOS — speed fix: switch to a streaming model</h4>
+<p>Whisper Medium (picked for Bangla) felt slow for everyday English dictation. Handy added streaming model support in v0.9.0 — <strong>Parakeet Unified EN (0.6B)</strong> is the streaming-capable engine, now Handy’s recommended default: English-only, ~160ms latency, live preview while you’re still speaking. Set that as the daily driver, and switch to Whisper Medium/Large only for the occasional Bangla session — same one-click swap, no reinstall.</p>
+<h4 id="macos--tuning-that-mattered">macOS — tuning that mattered</h4>
+<ul>
+<li><strong>Custom vocabulary</strong>: Settings → Advanced → Transcription → Custom Words — a <code>misheard → corrected</code> pair list for names and jargon the model gets wrong (e.g. “nerd devs” → “NerdDevs”). For cleanup beyond a fixed word list, Experimental → Post-Processing runs a second AI pass over the transcript, at the cost of a bit more latency.</li>
+<li><strong>RAM</strong>: idle process measured <strong>~823 MB RSS</strong> with a model resident in memory. Noticeable if you keep it always-on on an 8 GB machine — Settings → Advanced → Unload Model frees that after a configurable idle timeout, at the cost of first-word latency on the next dictation.</li>
+<li><strong>Shortcut conflict</strong>: default <code>Option+Space</code> clashed with Spotlight’s own binding. Switched to Right Option held alone (not a macOS system action by itself, no collision). Alternative that’s popular in Handy’s own docs: hold <code>Fn</code>, with System Settings → Keyboard → “Press Globe key to…” → <em>Do Nothing</em> so its default tap-action doesn’t also fire.</li>
+</ul>
+<h4 id="ubuntu--install-and-the-wayland-question">Ubuntu — install, and the Wayland question</h4>
+<p>Check the session type first — the Wayland notes below only apply if you’re actually on Wayland:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#56B6C2">echo</span><span style="color:#E06C75"> $XDG_SESSION_TYPE</span><span style="color:#7F848E;font-style:italic">   # "x11" or "wayland"</span></span></code></pre>
+<p>On Ubuntu 22.04 GNOME, logging in via the <strong>“Ubuntu on Xorg”</strong> option (still offered at the login screen) gives X11, and Handy needs none of the tuning below under X11 — it worked out of the box.</p>
+<h4 id="install-deb-works-on-both-x11-and-wayland">Install (<code>.deb</code>, works on both X11 and Wayland)</h4>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">curl</span><span style="color:#D19A66"> -fL</span><span style="color:#D19A66"> -o</span><span style="color:#98C379"> /tmp/Handy_amd64.deb</span><span style="color:#56B6C2"> \</span></span>
+<span class="line"><span style="color:#98C379">  https://github.com/cjpais/Handy/releases/latest/download/Handy_0.9.5_amd64.deb</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> apt</span><span style="color:#98C379"> install</span><span style="color:#D19A66"> -y</span><span style="color:#98C379"> /tmp/Handy_amd64.deb</span></span></code></pre>
+<p>Swap <code>amd64</code> for <code>arm64</code> on ARM; <code>.rpm</code> and <code>.AppImage</code> builds are published too.</p>
+<p><strong>Gotcha</strong>: <code>apt</code> downloads/verifies as the unprivileged <code>_apt</code> user, which needs execute permission on every directory in the file’s path. A <code>.deb</code> sitting in a locked-down tmp dir (e.g. <code>chmod 700</code>) fails with <code>couldn't be accessed by user '_apt'</code> even though the file itself is readable. Fix is downloading into a world-traversable path like <code>/tmp</code>, not loosening the original directory’s permissions.</p>
+<h4 id="if-youre-on-wayland-gnome-default-2204">If you’re on Wayland (GNOME default, 22.04+)</h4>
+<p>Wayland breaks Handy’s default paste/typing out of the box, with known fixes:</p>
+<ul>
+<li><code>sudo apt install ydotool</code>, run the <code>ydotoold</code> daemon, then set <strong>Advanced → Keyboard Implementation → ydotool</strong> — Wayland blocks the default typing method entirely.</li>
+<li><strong>Advanced → Overlay Position → None</strong> — the overlay steals focus from the target window under Wayland, breaking paste.</li>
+<li><strong>Paste method → Direct</strong>.</li>
+<li>Avoid the <code>Handy Keys</code> backend on Wayland — it re-injects keystrokes via ydotool and can loop, flooding the focused window with garbage text.</li>
+<li>Avoid bare single-key shortcuts (F13, Fn alone) — they can silently fail to fire on Wayland. Use a modifier combo instead, e.g. <code>Ctrl+Alt+Space</code>. Right Alt is commonly reserved as AltGr on Linux layouts — use Right Ctrl if you’re carrying over a Mac Right-Option habit.</li>
+<li>Escape hatch: log in via “Ubuntu on Xorg” instead — none of the above tuning is needed under X11.</li>
+</ul>
+<p>Model choice carries over unchanged: Parakeet Unified EN as the daily default, Whisper for occasional Bangla.</p>
+<h3 id="the-hotkey-and-the-mode-tuning-handy-for-phone-use">The hotkey and the mode: tuning Handy for phone use</h3>
+<p>Two settings decide whether dictation works from the couch. Both are in Handy’s settings; both were tuned specifically against a VNC soft keyboard.</p>
+<p><strong>Toggle mode, not push-to-talk.</strong> A VNC soft keyboard sends every key as an instant press+release — it physically cannot <em>hold</em> a key down. In push-to-talk mode, Handy sees the tap, flickers its recording indicator for a split second, and stops before anything is captured. Switch Handy’s recording style to toggle (press once to start, press again to stop and transcribe) and single taps from the phone work exactly like a physical hold-and-release would.</p>
+<p><strong>A single-key hotkey.</strong> The default hotkey (<code>Option+Space</code> on Mac) is the <em>worst</em> shape for VNC: a modifier combo means arming a toggle button and then tapping a second key every single time you want to dictate. Handy’s hotkey is fully rebindable in <strong>Settings → Shortcut</strong> — click the field, press whatever you want it to be, done. For phone use, pick a <strong>single key with no modifier</strong>: <code>End</code>, <code>Insert</code>, <code>Home</code>, or <code>Page Up</code>/<code>Page Down</code> all work well — they’re plain keys on the extra-keys toolbar, so triggering dictation is one tap, not an arm-then-tap sequence. Avoid anything that isn’t a standard key a mobile soft keyboard or extra-keys row can actually send — media keys and vendor-specific function keys often just don’t reach the desktop over VNC at all.</p>
+<p>Two Mac-specific notes from testing: Mac keyboards have no dedicated <code>End</code> — it’s <code>Fn</code>+<code>→</code>, and Handy registers the <em>keysym</em>, so <code>Fn</code>+<code>→</code> at the desk and <code>End</code> in the client’s key panel both trigger it. And don’t pick a bare <em>modifier</em> like right-Option just because it’s comfy locally — VNC soft keyboards can’t send side-specific modifiers, so it will never fire from the phone. (This is Part 1’s global-hotkey rule applied; the OS-level conflict fixes above — Spotlight on Mac, Wayland’s single-key restrictions — are the other half of picking a hotkey that fires at all.)</p>
+<h3 id="ubuntu-mic-relay-droidcam--pulseaudio-loopback">Ubuntu mic relay: DroidCam + PulseAudio loopback</h3>
+<p>The mic half of the Ubuntu rig: <strong>DroidCam</strong> (Android app + Linux client) streams the phone’s mic over WiFi into a virtual PulseAudio source. Since Handy just follows the system default input device, setting that virtual source as default <em>is</em> the entire integration.</p>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-24/architecture-ubuntu.png" alt="Diagram: Android phone running RealVNC Viewer and DroidCam connects over local WiFi to an Ubuntu desktop. The VNC client's touch and soft keyboard send real mouse/keyboard events to x11vnc over VNC port 5900, which feeds the desktop input stack (GUI windows, terminals, and Handy's global hotkey listener). DroidCam streams the phone mic over port 4747 into a PulseAudio source (alsa_input.hw_Loopback_1_0, 16kHz mono, device 1 capture), set as the default input so Handy transcribes from it." />
+  <br />
+  <sub>The Ubuntu rig: VNC carries control (blue), DroidCam carries audio (green) — Handy never knows the input isn't local.</sub>
+</div>
+<p><code>droidcam</code> is <strong>not</strong> an apt package — it ships its own installer from dev47apps.com. Keep it in a separate command from apt installs: bundling a real package name with a nonexistent one fails the <em>whole</em> <code>apt install</code> transaction atomically.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> /tmp</span><span style="color:#ABB2BF"> &amp;&amp; </span><span style="color:#61AFEF">wget</span><span style="color:#D19A66"> -O</span><span style="color:#98C379"> droidcam.zip</span><span style="color:#98C379"> https://files.dev47apps.net/linux/droidcam_2.1.5.zip</span></span>
+<span class="line"><span style="color:#61AFEF">unzip</span><span style="color:#D19A66"> -o</span><span style="color:#98C379"> droidcam.zip</span><span style="color:#D19A66"> -d</span><span style="color:#98C379"> droidcam</span><span style="color:#ABB2BF"> &amp;&amp; </span><span style="color:#56B6C2">cd</span><span style="color:#98C379"> droidcam</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> ./install-client</span><span style="color:#7F848E;font-style:italic">   # main app</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> ./install-sound</span><span style="color:#7F848E;font-style:italic">    # ALSA loopback — needed for mic-as-input-device</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> ./install-video</span><span style="color:#7F848E;font-style:italic">    # required even for audio-only, see below</span></span></code></pre>
+<p>Three gotchas here, in the order they’ll actually bite:</p>
+<ol>
+<li><strong><code>install-video</code> isn’t optional for mic-only use.</strong> <code>droidcam-cli -a &lt;ip&gt; &lt;port&gt;</code> (audio-only flag) still hard-fails with <code>Error: Missing video device</code> without the <code>v4l2loopback-dc</code> kernel module — the client checks for a video device unconditionally, flags or not. Needs <code>linux-headers-$(uname -r)</code>, <code>gcc</code>, <code>make</code> (present on a normal desktop install).</li>
+<li><strong>Flag order is not cosmetic.</strong> <code>droidcam-cli &lt;ip&gt; &lt;port&gt; -a</code> (trailing flag) silently ignores <code>-a</code> — the parser stops scanning for flags at the first non-flag token and falls back to video-only. It prints <code>Video: /dev/video0</code>, no <code>Audio:</code> line, and exits clean — nothing <em>looks</em> wrong. Flags go <strong>before</strong> the IP: <code>droidcam-cli -a &lt;ip&gt; &lt;port&gt;</code>. Correct output for audio-only:
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Audio: hw:2,1,0</span></span></code></pre>
+</li>
+<li><strong>Two DroidCam Android apps exist, only one works here.</strong> “DroidCam Webcam (Classic)” is what <code>droidcam-cli</code> is built for. The OBS-companion variant connects fine for video but sends silent audio — the handshake answers, no mic samples ever flow. If both are installed, force-close both and open only Classic; they also fight over port 4747.</li>
+</ol>
+<h4 id="audio-only-mode--worth-it-for-phone-battery">Audio-only mode — worth it for phone battery</h4>
+<p><code>-v</code> streams the camera continuously (capture, encode, WiFi upload) for the entire session, which drains the phone noticeably faster than audio alone — if all you want is the mic, skip it. <code>-a</code> alone is a <em>separate</em> code path in the client (its own <code>AudioThreadProc</code> thread, independent of the video path — confirmed reading <code>droidcam-cli.c</code>), so it doesn’t need <code>-v</code> running alongside it to work:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">droidcam-cli</span><span style="color:#D19A66"> -a</span><span style="color:#ABB2BF"> &lt;</span><span style="color:#98C379">phone-lan-i</span><span style="color:#ABB2BF">p&gt; </span><span style="color:#D19A66">4747</span></span></code></pre>
+<p>The <code>install-video</code> step from above is still required once at setup time regardless — the client checks that the <code>v4l2loopback-dc</code> kernel module exists at startup and refuses to run without it, even when you never pass <code>-v</code>. That’s a one-time install-time dependency, not an ongoing battery cost — once the module’s installed, <code>-a</code> alone never touches the camera or the video path at runtime. If <code>-a</code> alone doesn’t produce audio on your setup after the loopback-source fix below, add <code>-v</code> back as a fallback (some app-version combinations reportedly need it to keep the mic thread alive) — but confirm with the <code>parecord</code>/<code>sox</code> check further down before assuming you need it.</p>
+<h4 id="wiring-the-mic-through-correctly">Wiring the mic through correctly</h4>
+<p>After <code>install-sound</code>, PulseAudio claims the new “Loopback” ALSA card in full duplex (<code>output:analog-stereo+input:analog-stereo</code>) — but <code>droidcam-cli</code> needs to open the playback side itself, so free it:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> list</span><span style="color:#98C379"> cards</span><span style="color:#98C379"> short</span><span style="color:#7F848E;font-style:italic">   # find the loopback card's exact name</span></span>
+<span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> set-card-profile</span><span style="color:#98C379"> alsa_card.platform-snd_aloop.0</span><span style="color:#98C379"> input:analog-stereo</span></span></code></pre>
+<p>That fixes the connection — but not the audio. The PulseAudio source udev auto-creates for that card reads the <em>wrong</em> half of the loopback: <code>droidcam-cli</code> plays into ALSA device 0 playback, and <code>snd_aloop</code> cross-wires that onto device <strong>1</strong> capture, not device 0 capture (which is what the auto-created source listens to). Every recording from the wrong source measures a flat <code>0.000000</code> amplitude — connection and handshake both look healthy, the data just lands on a device nobody’s reading. The fix is one line droidcam’s own installer prints at the end (easy to miss, it scrolls past):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> load-module</span><span style="color:#98C379"> module-alsa-source</span><span style="color:#98C379"> device=hw:Loopback,1,0</span></span>
+<span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> set-default-source</span><span style="color:#98C379"> alsa_input.hw_Loopback_1_0</span></span></code></pre>
+<p>The new source runs at 16 kHz mono — a useful tell that it’s the right one (that’s the phone-mic format). Verify before trusting it:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">parecord</span><span style="color:#D19A66"> --device=alsa_input.hw_Loopback_1_0</span><span style="color:#D19A66"> -d</span><span style="color:#D19A66"> 5</span><span style="color:#98C379"> /tmp/t.wav</span><span style="color:#7F848E;font-style:italic">   # speak for the full 5s</span></span>
+<span class="line"><span style="color:#61AFEF">sox</span><span style="color:#98C379"> /tmp/t.wav</span><span style="color:#D19A66"> -n</span><span style="color:#98C379"> stat</span><span style="color:#ABB2BF"> 2&gt;&amp;1 | </span><span style="color:#61AFEF">grep</span><span style="color:#D19A66"> -i</span><span style="color:#98C379"> amplitude</span><span style="color:#7F848E;font-style:italic">                # &gt; 0 means real audio</span></span></code></pre>
+<p>The corrected PulseAudio source needs to survive restarts too, since <code>pactl load-module</code> doesn’t — add it to <code>~/.config/pulse/default.pa</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span># ~/.config/pulse/default.pa</span></span>
+<span class="line"><span>.include /etc/pulse/default.pa</span></span>
+<span class="line"><span>set-card-profile alsa_card.platform-snd_aloop.0 input:analog-stereo</span></span>
+<span class="line"><span>load-module module-alsa-source device=hw:Loopback,1,0</span></span></code></pre>
+<p>(A user <code>default.pa</code> <em>replaces</em> the system one, so the <code>.include</code> line matters. On systems running PipeWire instead, this file is ignored — check <code>pactl info | grep -i server</code>.)</p>
+<h4 id="daily-use-on-ubuntu--scripts">Daily use on Ubuntu — scripts</h4>
+<p>Everything above assumes x11vnc autostarts at login (Part 1) and the corrected PulseAudio source is already in <code>default.pa</code> — only DroidCam needs a manual start each session. Rather than retyping the two commands every time, save them as a script:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># ~/bin/dictation-remote-start.sh</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#!/usr/bin/env bash</span></span>
+<span class="line"><span style="color:#56B6C2">set</span><span style="color:#D19A66"> -euo</span><span style="color:#98C379"> pipefail</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">PHONE_IP</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"</span><span style="color:#E06C75;font-style:italic">${1</span><span style="color:#ABB2BF">:?</span><span style="color:#E06C75">Usage</span><span style="color:#ABB2BF">:</span><span style="color:#E06C75"> dictation-remote-start</span><span style="color:#98C379">.</span><span style="color:#E06C75">sh</span><span style="color:#98C379"> &lt;</span><span style="color:#E06C75">phone-lan-ip</span><span style="color:#98C379">&gt;</span><span style="color:#E06C75;font-style:italic">}</span><span style="color:#98C379">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#ABB2BF"> ! </span><span style="color:#61AFEF">pgrep</span><span style="color:#D19A66"> -x</span><span style="color:#98C379"> x11vnc</span><span style="color:#ABB2BF"> &gt;</span><span style="color:#98C379">/dev/null</span><span style="color:#ABB2BF">; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#56B6C2">  echo</span><span style="color:#98C379"> "x11vnc isn't running — start it manually first (see Part 1)"</span></span>
+<span class="line"><span style="color:#56B6C2">  exit</span><span style="color:#D19A66"> 1</span></span>
+<span class="line"><span style="color:#C678DD">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">nohup</span><span style="color:#98C379"> droidcam-cli</span><span style="color:#D19A66"> -a</span><span style="color:#98C379"> "${</span><span style="color:#E06C75">PHONE_IP</span><span style="color:#98C379">}"</span><span style="color:#D19A66"> 4747</span><span style="color:#ABB2BF"> &gt;</span><span style="color:#98C379">/dev/null</span><span style="color:#ABB2BF"> 2&gt;&amp;1 &amp;</span></span>
+<span class="line"><span style="color:#61AFEF">sleep</span><span style="color:#D19A66"> 3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">if</span><span style="color:#61AFEF"> pactl</span><span style="color:#98C379"> list</span><span style="color:#98C379"> sources</span><span style="color:#98C379"> short</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">grep</span><span style="color:#D19A66"> -q</span><span style="color:#98C379"> "Loopback.*RUNNING"</span><span style="color:#ABB2BF">; </span><span style="color:#C678DD">then</span></span>
+<span class="line"><span style="color:#61AFEF">  pactl</span><span style="color:#98C379"> set-default-source</span><span style="color:#98C379"> alsa_input.hw_Loopback_1_0</span></span>
+<span class="line"><span style="color:#56B6C2">  echo</span><span style="color:#98C379"> "phone mic live — connect from the phone and dictate"</span></span>
+<span class="line"><span style="color:#C678DD">else</span></span>
+<span class="line"><span style="color:#56B6C2">  echo</span><span style="color:#98C379"> "loopback source not RUNNING yet — check: pactl list sources short | grep Loopback"</span></span>
+<span class="line"><span style="color:#C678DD">fi</span></span></code></pre>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">chmod</span><span style="color:#98C379"> +x</span><span style="color:#98C379"> ~/bin/dictation-remote-start.sh</span></span>
+<span class="line"><span style="color:#ABB2BF">~/bin/dictation-remote-start.sh &lt;phone-lan-ip&gt;</span></span></code></pre>
+<p>Open the Classic DroidCam app on the phone <em>before</em> running it. The script’s own check covers the same verification you’d otherwise do by hand — the loopback can look connected while silently dead, which is why it greps for <code>RUNNING</code>, not just presence:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> list</span><span style="color:#98C379"> sources</span><span style="color:#98C379"> short</span><span style="color:#ABB2BF"> | </span><span style="color:#61AFEF">grep</span><span style="color:#98C379"> Loopback</span><span style="color:#7F848E;font-style:italic">   # want: alsa_input.hw_Loopback_1_0 ... 16000Hz ... RUNNING</span></span></code></pre>
+<p><strong>Dictate</strong>: connect from the phone’s VNC client → focus a text field → tap Handy’s hotkey (toggle: tap to start, tap to stop) → speak into the phone → tap again → text pastes at the cursor. That sequence is the whole post delivered — voice in your hand, words on the desktop, and not one byte of it through anyone’s cloud.</p>
+<p><strong>Switch mic, phone ↔ desktop</strong> — both exist as PulseAudio sources side by side; Handy just uses whichever is currently default:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> set-default-source</span><span style="color:#98C379"> alsa_input.hw_Loopback_1_0</span><span style="color:#7F848E;font-style:italic">                    # phone mic</span></span>
+<span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> set-default-source</span><span style="color:#98C379"> alsa_input.pci-0000_2d_00.4.analog-stereo</span><span style="color:#7F848E;font-style:italic">     # desktop mic</span></span></code></pre>
+<p>Find the desktop mic’s exact name with <code>pactl list sources short</code> — it’s the <code>pci-...</code> one, not a <code>.monitor</code>. <code>pavucontrol</code> → Input Devices gives the same switch with a click instead of a command.</p>
+<p><strong>Stop cleanly:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># ~/bin/dictation-remote-stop.sh</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#!/usr/bin/env bash</span></span>
+<span class="line"><span style="color:#56B6C2">set</span><span style="color:#D19A66"> -euo</span><span style="color:#98C379"> pipefail</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">DESKTOP_MIC</span><span style="color:#56B6C2">=</span><span style="color:#98C379">"</span><span style="color:#E06C75;font-style:italic">${1</span><span style="color:#ABB2BF">:?</span><span style="color:#E06C75">Usage</span><span style="color:#ABB2BF">:</span><span style="color:#E06C75"> dictation-remote-stop</span><span style="color:#98C379">.</span><span style="color:#E06C75">sh</span><span style="color:#98C379"> &lt;</span><span style="color:#E06C75">desktop-mic-source-name</span><span style="color:#98C379">&gt;</span><span style="color:#E06C75;font-style:italic">}</span><span style="color:#98C379">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#61AFEF">pkill</span><span style="color:#D19A66"> -f</span><span style="color:#98C379"> "droidcam-cli"</span><span style="color:#ABB2BF"> 2&gt;</span><span style="color:#98C379">/dev/null</span><span style="color:#ABB2BF"> || </span><span style="color:#56B6C2">true</span></span>
+<span class="line"><span style="color:#61AFEF">pactl</span><span style="color:#98C379"> set-default-source</span><span style="color:#98C379"> "${</span><span style="color:#E06C75">DESKTOP_MIC</span><span style="color:#98C379">}"</span></span>
+<span class="line"><span style="color:#56B6C2">echo</span><span style="color:#98C379"> "phone mic session stopped, desktop mic restored"</span></span></code></pre>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">chmod</span><span style="color:#98C379"> +x</span><span style="color:#98C379"> ~/bin/dictation-remote-stop.sh</span></span>
+<span class="line"><span style="color:#ABB2BF">~/bin/dictation-remote-stop.sh alsa_input.pci-0000_2d_00.4.analog-stereo</span></span></code></pre>
+<p>DroidCam’s phone app stops streaming on its own once the client disconnects.</p>
+<h3 id="macos-mic-relay-audiorelay--blackhole-or-an-iphone">macOS mic relay: AudioRelay + BlackHole, or an iPhone</h3>
+<p>Handy’s limitation is the same on both OSes — it uses whatever the system default input is — so the whole integration is “make the phone a default-able input device”:</p>
+<ul>
+<li><strong>iPhone (the clean path)</strong>: Continuity makes the iPhone’s mic show up as a plain input device on the Mac — <strong>System Settings → Sound → Input → iPhone Microphone</strong> once the phone is nearby and unlocked. No driver install, no loopback wiring, no wrong-device-half bug to chase, because macOS treats it as a first-class input. Requirements: both devices on the same Apple ID, Bluetooth and Wi-Fi on, iOS 16+/macOS 13+. Set it as default input and Handy just follows. This is the entire setup. (The one piece of this post still untested here.)</li>
+<li><strong>Android (the tested path — AudioRelay + BlackHole)</strong>: DroidCam publishes its standalone client for Windows and Linux only, so the Ubuntu recipe doesn’t port. What works instead, tested end to end:
+<ul>
+<li><strong><a href="https://audiorelay.net/" target="_blank" rel="noopener noreferrer">AudioRelay</a></strong> on the phone in <strong>Microphone</strong> mode streams over WiFi to the AudioRelay app on the Mac.</li>
+<li>Point that app’s output at <strong><a href="https://existential.audio/" target="_blank" rel="noopener noreferrer">BlackHole 2ch</a></strong> — a free virtual audio device, <code>brew install --cask blackhole-2ch</code> — and BlackHole’s far end shows up as a normal <em>input</em> device. Set it as the default input and Handy follows it: the same trick as Ubuntu’s PulseAudio loopback.</li>
+<li><strong>Why the BlackHole hop exists at all</strong>: macOS has no loopback module — an app receiving audio can only <em>play</em> it into an output device, and BlackHole is the virtual output whose other end is a recordable input.</li>
+<li><strong>Gotchas hit live</strong>: the audio setup (output device) lives in the <strong>Player</strong> panel for the connected stream — if the phone doesn’t auto-appear in the Mac app, <strong>Connect by address</strong> with the phone’s IP (shown in the phone app) beats waiting on discovery; BlackHole only appears in device lists after <code>sudo killall coreaudiod</code> post-install; and if you script the input switch, <code>SwitchAudioSource -t input -s "BlackHole 2ch"</code> (from <code>brew install switchaudio-osx</code>) is the <code>pactl set-default-source</code> equivalent — note <code>-s</code> takes the device <em>name</em>, <code>-i</code> takes a numeric id.</li>
+<li><strong>Verified</strong> with a 12-second spoken recording off the default input — clean signal, no clipping. AudioRelay is closed-source; read the Reference section below before running it anywhere beyond a home LAN.</li>
+</ul>
+</li>
+</ul>
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-24/architecture-macos.png" alt="Diagram: Android phone running RealVNC Viewer and AudioRelay connects over local WiFi to a Mac. RealVNC's touch and key panel send real mouse/keyboard events to macOS's built-in Screen Sharing (VNC port 5900), which feeds the desktop input stack that GUI apps, terminals, and Handy's global hotkey listener all sit on. AudioRelay streams the phone mic over WiFi into the AudioRelay Mac app, whose output plays into the BlackHole 2ch virtual device; BlackHole's far end appears as a normal input device, set as the default in Sound settings so Handy transcribes from it." />
+  <br />
+  <sub>The macOS rig: same two paths — VNC carries control (blue), AudioRelay carries audio (green).</sub>
+</div>
+<h4 id="switching-input-devices-on-macos--the-move-youll-make-daily">Switching input devices on macOS — the move you’ll make daily</h4>
+<p>The two names that matter: <code>BlackHole 2ch</code> <em>is</em> the phone’s mic (via AudioRelay), <code>MacBook Air Microphone</code> (or your Mac’s model name) is the built-in one.</p>
+<ul>
+<li><strong>GUI</strong>: <strong>System Settings → Sound → Input</strong> → click the device. Verify with the live level meter next to it — speak and watch the bar bounce on the device you picked; that meter is the fastest “is anything hearing me” check there is. Note Control Center’s sound module switches <em>output</em> (speakers) only — input always lives in Sound settings, and mixing the two up is the classic “Handy stopped hearing me” cause.</li>
+<li><strong>CLI</strong>: the <code>pactl set-default-source</code> equivalent is <code>SwitchAudioSource -t input -s "BlackHole 2ch"</code> (and <code>-s "MacBook Air Microphone"</code> to come back). <code>-c -t input</code> prints the current device, <code>-a -t input</code> lists them all.</li>
+</ul>
+<h3 id="part-2--reference-troubleshooting-daily-scenarios--teardown">Part 2 — Reference: troubleshooting, daily scenarios &amp; teardown</h3>
+<p>The setup above is a one-time build. What follows is what to check when dictation goes quiet, the day-to-day scenario table, and how to stop or remove it all — none of it needed on a first pass, all of it worth bookmarking.</p>
+<h4 id="dictation-troubleshooting-quick-reference">Dictation troubleshooting quick reference</h4>
+<p><strong>Ubuntu:</strong></p>
+<ul>
+<li><strong>“Busy with another client” right after restarting droidcam</strong>: the phone holds the old connection open for a few seconds after the desktop client is killed. Kill it, wait ~5s, reconnect.</li>
+<li><strong>Dictation transcribes nothing / Handy “hears silence”</strong>: check the source is the <em>right</em> one and actually running — <code>pactl list sources short | grep Loopback</code> should end in <code>RUNNING</code> at 16000Hz. If it’s the udev auto-created source (<code>alsa_input.platform-snd_aloop.0.analog-stereo</code>), that’s the wrong-half bug above — apply the <code>load-module</code> fix.</li>
+<li><strong>Source exists, droidcam is connected and streaming, but <code>parecord</code> captures literally 0 samples</strong> (hit live): the <code>module-alsa-source</code> was loaded when no client was streaming and froze a <code>2ch 44100Hz</code> spec — the loopback pair refuses mismatched channels, so the source opens, “runs,” and delivers nothing. Fix: while <code>droidcam-cli</code> is streaming, <code>pactl unload-module &lt;its-index&gt;</code> then reload <code>pactl load-module module-alsa-source device=hw:Loopback,1,0</code> — the fresh module negotiates <code>1ch 16000Hz</code> and audio appears immediately. (A source named <code>hw_Loopback_1_0.2</code> means two modules collided — unload the stale one, reload once.) Raw <code>arecord -D hw:2,1,0 -f S16_LE -c 1 -r 16000</code> is the bypass check that proves the cable itself is fine.</li>
+<li><strong>droidcam-cli dies with <code>Audio connection reset</code></strong>: the desktop–network path is fine; the phone app’s audio server isn’t up. Open DroidCam and leave it in the foreground on its start screen, make sure its audio/mic toggle is on, and set the app’s battery use to Unrestricted — Android will kill a backgrounded mic stream. Same symptom on WiFi and tailnet = app-side, not network.</li>
+</ul>
+<p><strong>macOS:</strong></p>
+<ul>
+<li><strong>Dictation went silent</strong> — the input is still on BlackHole with no stream behind it. Switch the input back to the built-in mic, or restart the phone’s AudioRelay stream (Microphone → Start).</li>
+<li><strong>The classic stop-for-the-evening mistake</strong>: switching the <em>speakers</em> back but not the <em>input</em>. Quitting AudioRelay and putting output back to <code>MacBook Air Speakers</code> still leaves the input on BlackHole — which now delivers silence, so dictation mysteriously “stops hearing you” while everything looks configured.</li>
+</ul>
+<p><strong>Both:</strong></p>
+<ul>
+<li><strong>Nothing lands when you tap the hotkey</strong>: Handy is in push-to-talk instead of toggle mode — re-read the toggle-mode section above; that’s the single most common phone-side failure.</li>
+<li><strong>Hotkey taps do nothing at all</strong>: it’s a modifier combo, and the modifier toggle isn’t being armed — rebind to a single key (<code>End</code>-style), per the hotkey section.</li>
+</ul>
+<h4 id="common-real-life-scenarios-whole-rig">Common real-life scenarios (whole rig)</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scenario</th><th>What to do</th></tr></thead><tbody><tr><td>Starting the day</td><td>x11vnc is already running (autostart) — start DroidCam (Ubuntu script above / AudioRelay on the phone for Mac), then connect from the phone.</td></tr><tr><td>Done for now / stepping away</td><td>Run the stop script. Leave x11vnc running — it’s fine indefinitely, low overhead — just stop the mic stream so it’s not holding your phone’s mic and battery for nothing.</td></tr><tr><td>Need the desktop mic back quickly (e.g. a call)</td><td><code>pactl set-default-source &lt;desktop-mic&gt;</code> (Ubuntu) / switch Input in Sound settings (Mac) — instant, no need to stop the phone stream first.</td></tr><tr><td>WiFi drops and reconnects</td><td>VNC: just reconnect — <code>-shared</code> means a dead old connection won’t block the new one. DroidCam: the client process usually needs a manual restart — rerun the start command.</td></tr><tr><td>Phone’s IP changed (DHCP re-lease)</td><td>Check the new IP on the DroidCam app screen, kill the <code>droidcam-cli</code> process, reconnect with the new IP.</td></tr><tr><td>Long idle session, phone screen off</td><td>Android’s battery optimization can throttle or kill a backgrounded app’s mic stream over time — exclude DroidCam/AudioRelay from battery optimization if you’re leaving this running for hours; for a quick check-in it won’t matter.</td></tr><tr><td>Desktop reboots or loses power</td><td>Ubuntu: x11vnc’s autostart only fires <strong>after graphical login</strong> — someone has to log in locally once. Mac: Screen Sharing serves the login window, so you can VNC in and log in remotely.</td></tr><tr><td>Away from home / different WiFi</td><td>Nothing to do — the rig is firewalled to your home subnet, so it’s simply unreachable from outside it. That’s the intended behavior, not a setting to flip. (See the roadmap below for taking it past the LAN.)</td></tr><tr><td>Quick “is this actually working” check</td><td><code>pgrep -x x11vnc &amp;&amp; pactl list sources short | grep Loopback</code> (Ubuntu) — both should return something, the source line should say <code>RUNNING</code>. Mac: the Input level meter in Sound settings.</td></tr></tbody></table>
+<h4 id="stopping-resuming-and-removing-it-all-macos">Stopping, resuming, and removing it all (macOS)</h4>
+<p><strong>Stop for the evening.</strong> The one step people get wrong (we did): switch the <strong>input</strong>, not just the speakers.</p>
+<ol>
+<li>Phone: stop the AudioRelay mic stream; close RealVNC.</li>
+<li>Mac: <code>SwitchAudioSource -t input -s "MacBook Air Microphone"</code> — or System Settings → Sound, Input; either way, it’s the <em>input</em> side.</li>
+<li>Optional: quit AudioRelay from its <strong>menu-bar icon</strong> — closing the window only hides it, the app keeps running.</li>
+<li>Optional: close port 5900 while nobody’s using it — <code>sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist</code> (verified live on Sequoia; the System Settings → General → Sharing toggle does the same thing). Stays off across reboots until you load it again.</li>
+</ol>
+<p><strong>Start again</strong> (post-setup, takes ~30 seconds; prefix <code>sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist</code> if you closed 5900 the night before):</p>
+<ol>
+<li>Mac: AudioRelay open — the menu-bar icon is enough; use <strong>Connect by address</strong> if the phone doesn’t auto-appear.</li>
+<li>Phone: AudioRelay → <strong>Microphone → Start</strong>.</li>
+<li>Mac: <code>SwitchAudioSource -t input -s "BlackHole 2ch"</code>.</li>
+<li>Phone: RealVNC → connect to the Mac’s IP (recheck with <code>ipconfig getifaddr en0</code> if the Mac rebooted — DHCP moves it).</li>
+<li>Focus a text field → <code>End</code> → speak → <code>End</code>.</li>
+</ol>
+<p><strong>Remove everything</strong> (full teardown):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">SwitchAudioSource</span><span style="color:#D19A66"> -t</span><span style="color:#98C379"> input</span><span style="color:#D19A66"> -s</span><span style="color:#98C379"> "MacBook Air Microphone"</span><span style="color:#7F848E;font-style:italic">   # input off BlackHole FIRST</span></span>
+<span class="line"><span style="color:#61AFEF">brew</span><span style="color:#98C379"> uninstall</span><span style="color:#D19A66"> --cask</span><span style="color:#98C379"> blackhole-2ch</span><span style="color:#98C379"> audiorelay</span><span style="color:#7F848E;font-style:italic">            # virtual device + player app</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> killall</span><span style="color:#98C379"> coreaudiod</span><span style="color:#7F848E;font-style:italic">                                   # flush the stale device entry</span></span>
+<span class="line"><span style="color:#61AFEF">brew</span><span style="color:#98C379"> uninstall</span><span style="color:#98C379"> switchaudio-osx</span><span style="color:#7F848E;font-style:italic">                            # optional CLI helper</span></span>
+<span class="line"><span style="color:#61AFEF">sudo</span><span style="color:#98C379"> launchctl</span><span style="color:#98C379"> unload</span><span style="color:#D19A66"> -w</span><span style="color:#98C379"> /System/Library/LaunchDaemons/com.apple.screensharing.plist</span><span style="color:#7F848E;font-style:italic">  # VNC server off, stays off</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#   (equivalent: System Settings → General → Sharing → Screen Sharing → OFF —</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#    the GUI toggle is authoritative; confirm it flipped)</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Handy: quit it, remove from Login Items, or `brew uninstall --cask handy`</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">#   its recordings/history live in ~/Library/Application Support/com.pais.handy</span></span></code></pre>
+<hr />
+<h3 id="where-this-landed">Where this landed</h3>
+<p>Full chain confirmed working over LAN: VNC view/control from the phone (window switching, multi-key shortcuts, full keyboard access — RealVNC Viewer against both the Mac and the Ubuntu box end to end, bVNC as the long-standing Ubuntu alternative), phone-mic audio reaching the desktop as a real PulseAudio source (16 kHz mono, verified non-silent), Handy pointed at that source in toggle mode, and on the Mac the Android mic route (AudioRelay → BlackHole) delivering clean speech with a full Handy dictation round-trip — toggle hotkey tapped from the phone’s key panel, spoken sentence, transcription landing in the focused app. Ubuntu is confirmed on X11 — still untested on an actual Wayland session, where I’d fall back to <strong>nerd-dictation</strong> or <strong>Vocalinux</strong> if Handy proves too fiddly. One piece remains honestly untested: the iPhone Continuity route.</p>
+<p>The setup is more moving parts than a typical dictation write-up — a phone-mic relay and a remote desktop protocol is a lot of infrastructure for a keyboard shortcut. But each piece is free, each piece is offline, and what it buys is a full second input surface for the desktop: drive the machine outright, dictate into anything — a commit message, a Slack reply, a doc, an AI agent prompt — all from whatever’s in your pocket, without a subscription and without a cloud service listening in.</p>
+<hr />
+<h3 id="where-this-goes-next">Where this goes next</h3>
+<p>Part 1 and Part 2 both live on one constraint: <strong>phone and desktop on the same network.</strong> That’s the right scope for a couch rig — but it’s not the end of the road. Both follow-ups now live in one post:</p>
+<ul>
+<li><strong>Off the LAN (Part 3).</strong> Same rig, different network layer: a mesh VPN (Tailscale-shaped) puts the phone and desktop on a shared private network wherever either physically is, with no port ever opened to the internet. VNC, the mic relay, and every skill from this post carry over unchanged — only the IP addresses change shape.</li>
+<li><strong>The deep dive (Part 4).</strong> For the curious: what’s actually on the wire. The RFB protocol a VNC session speaks, how x11vnc injects events into X11, what an ALSA loopback <em>is</em> such that the wrong half is silent, why 16 kHz mono is the phone-mic format, and where the real security boundaries sit.</li>
+</ul>
+
+<p>→ <a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet"><strong>Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</strong></a> has both.</p>
+<hr />
+<h3 id="tool-info-licenses-and-security">Tool info, licenses, and security</h3>
+<p>Every tool in this post, checked against primary sources — the repo’s actual LICENSE file, not its README claim; CVE databases; and the vendor’s own privacy policy. Two verdicts matter more than the rest and are called out below the table.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>What it is / link</th><th>Publisher</th><th>License (verified)</th><th>Open source</th><th>CVE history</th><th>Verdict</th></tr></thead><tbody><tr><td><a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener noreferrer">Handy</a></td><td>Dictation (macOS/Ubuntu)</td><td>CJ Pais (solo)</td><td>MIT (name/logo excepted)</td><td>✅</td><td>None found</td><td>Acceptable — active (v0.9.5, Aug 2026), fully offline, no telemetry found; young solo-maintained project, no third-party audit</td></tr><tr><td><a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank" rel="noopener noreferrer">RealVNC Viewer</a></td><td>VNC client (Android/iOS/desktop)</td><td>RealVNC Ltd</td><td>Proprietary, free to use</td><td>❌</td><td>None found for the client (vendor’s server products have past CVEs; not used here)</td><td>Acceptable — mature vendor, original VNC authors; used here in direct-connection mode with no account, nothing routed via their cloud</td></tr><tr><td><a href="https://github.com/LibVNC/x11vnc" target="_blank" rel="noopener noreferrer">x11vnc</a></td><td>VNC server (Ubuntu)</td><td>LibVNC org</td><td>GPL</td><td>✅</td><td>Several (2018–2020, incl. CVE-2020-29074) — all addressed by 0.9.17</td><td>Acceptable — actively maintained; use TLS/SSH on untrusted LANs (see below)</td></tr><tr><td><a href="https://github.com/iiordanov/remote-desktop-clients" target="_blank" rel="noopener noreferrer">bVNC</a></td><td>VNC client (Android, optional)</td><td>Iordan Iordanov</td><td>GPL-3.0</td><td>✅ (free = same code as Pro)</td><td>None specific; bundles libvncclient which has 2026 decoder CVEs (client-side, malicious-server scenario)</td><td>Acceptable — mature; SSH/TLS tunneling built in</td></tr><tr><td><a href="https://droidcam.app/" target="_blank" rel="noopener noreferrer">DroidCam</a></td><td>Phone mic/camera → desktop</td><td>Dev47Apps</td><td>GPL-2.0 <strong>Linux client only</strong> — Android/desktop apps closed</td><td>⚠️ partial</td><td>None found (weak evidence — closed source has no audit surface)</td><td><strong>Concerns</strong> — see below</td></tr><tr><td><a href="https://audiorelay.net/" target="_blank" rel="noopener noreferrer">AudioRelay</a></td><td>Phone mic → desktop (the macOS Android route)</td><td>Asapha Halifa (solo, France)</td><td>Closed</td><td>❌</td><td>None found (weak evidence)</td><td><strong>Concerns</strong> — see below</td></tr><tr><td><a href="https://existential.audio/" target="_blank" rel="noopener noreferrer">BlackHole</a></td><td>Virtual audio device (macOS)</td><td>Existential Audio Inc.</td><td>GPL-3.0 source (official installers proprietary; name trademarked)</td><td>✅ source</td><td>None found; DriverKit userspace driver, no kext, no telemetry, no network code</td><td><strong>Publicly trusted</strong> — active (v0.7.1); installers signed + notarized</td></tr><tr><td><a href="https://github.com/deweller/switchaudio-osx" target="_blank" rel="noopener noreferrer">switchaudio-osx</a></td><td>CLI default-device switcher (macOS)</td><td>deweller/Honza Bambas</td><td>MIT</td><td>✅</td><td>None found</td><td>Acceptable — dormant since 2023 but a tiny no-network C CLI still packaged in homebrew-core; dormancy is a smell, not a finding</td></tr></tbody></table>
+<p><strong>The two findings worth acting on:</strong></p>
+<ul>
+<li><strong>DroidCam’s WiFi stream is plaintext with no authentication</strong> — anyone on the same network can connect to the stream (<a href="https://github.com/dev47apps/droidcam/issues/158" target="_blank" rel="noopener noreferrer">their own long-open issue #158</a>). AudioRelay is closed-source with a heavier-than-expected telemetry stack (Firebase Analytics, PostHog, Crashlytics/Sentry, advertising IDs, phone-state permission on Android per its <a href="https://www.iubenda.com/privacy-policy/31266111" target="_blank" rel="noopener noreferrer">privacy policy</a>), and while its streams are designed to go LAN-direct, <strong>stream encryption is officially undocumented</strong> — an AES-256-GCM claim circulates from a developer comment but appears nowhere in official docs. Both tools are fine on a <strong>trusted home LAN</strong>; neither should touch a shared/office/public network. DroidCam’s USB mode sidesteps the WiFi exposure entirely.</li>
+<li><strong>Legacy VNC passwords are weak by protocol</strong> — the classic VNC auth this rig uses (x11vnc <code>-usepw</code>, macOS “VNC viewers may control screen with password”) is a DES challenge-response <strong>capped at 8 characters</strong>. On a firewalled home LAN that’s an acceptable trade; anywhere else, tunnel VNC through SSH (bVNC supports SSH tunnels natively) or use x11vnc’s TLS/VeNCrypt options — and never port-forward 5900.</li>
+</ul>
+<p><strong>Install-channel integrity</strong>: on macOS, Homebrew casks pin a SHA-256 for every download and fail closed on mismatch — but the bits come from vendor CDNs (<code>dl.audiorelay.net</code>, <code>existential.audio</code>), so the checksum guarantees integrity against the cask snapshot, not the vendor’s server hygiene. Locally installed apps verified: Handy and AudioRelay both carry notarized Developer IDs and pass <code>codesign --verify --deep --strict</code>.</p>
+<hr />
+<h3 id="appendix-other-dictation-tools-considered">Appendix: other dictation tools considered</h3>
+<p>Handy won on a specific bar — free, fully offline, no account, no mode caps, works in a terminal. For reference, what else was on the table:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>Free tier</th><th>Offline model</th><th>macOS</th><th>Ubuntu</th></tr></thead><tbody><tr><td>superwhisper</td><td>Free (tiny/base, 3 modes cap); Pro $8.49/mo unlocks large-v3</td><td>Yes</td><td>Native</td><td>No</td></tr><tr><td><strong>Handy</strong></td><td>100% free, MIT, no tiers</td><td>whisper.cpp + Parakeet, unlimited</td><td>Native</td><td>Native</td></tr><tr><td>VoiceInk</td><td>$25–49 one-time (GPLv3, buildable free)</td><td>Local Whisper</td><td>Native</td><td>No</td></tr><tr><td><a href="https://github.com/epicenter-so/epicenter" target="_blank" rel="noopener noreferrer">Epicenter</a> (formerly Whispering)</td><td>Free OSS; local via Speaches/whisper.cpp</td><td>Yes (AGPL-3.0 apps / MIT toolkit pkgs)</td><td>Yes</td><td>Yes</td></tr><tr><td>OpenWhispr</td><td>Free local; cloud tier adds paid quota</td><td>whisper.cpp + Parakeet</td><td>Yes</td><td>Yes</td></tr><tr><td>Wispr Flow</td><td>~2,000 words/week free</td><td><strong>No offline mode</strong></td><td>Yes</td><td>No</td></tr></tbody></table>
+<p>One naming gotcha: <code>apt search handy</code> on Ubuntu surfaces <code>libhandy-1-0</code>/<code>gir1.2-handy-1</code> first — an unrelated GTK widget library, same name, different project. The tool here always comes from <code>github.com/cjpais/Handy</code> releases directly.</p>
+<hr />
+<h3 id="lets-connect">Let’s Connect</h3>
+<p>Thank you for the time — genuinely. If you try any of this, I’d rather hear what broke than what worked:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+<li><strong>Support</strong>: <a href="https://www.supportkori.com/mirmursalinankur" target="_blank" rel="noopener noreferrer">SupportKori</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

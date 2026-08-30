@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Claude Code for Existing Projects: Onboarding Guide — Ankur’s Writing</title><meta name="description" content="You have an existing project with established patterns, conventions, and tribal knowledge. Claude Code knows nothing about it. Without proper setup, Claude…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/claude-code-for-existing-projects-onboarding-guide/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Claude Code for Existing Projects: Onboarding Guide — Ankur’s Writing"><meta property="og:description" content="You have an existing project with established patterns, conventions, and tribal knowledge. Claude Code knows nothing about it. Without proper setup, Claude…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/claude-code-for-existing-projects-onboarding-guide/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Code for Existing Projects: Onboarding Guide — Ankur’s Writing"><meta name="twitter:description" content="You have an existing project with established patterns, conventions, and tribal knowledge. Claude Code knows nothing about it. Without proper setup, Claude…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Global Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Global Research</span> </div> <h1>Claude Code for Existing Projects: Onboarding Guide</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>7 min read</span> <span>·</span> <span>1,424 words</span> </p> </header>  <div class="prose"><h1 id="claude-code-for-existing-projects-onboarding-guide">Claude Code for Existing Projects: Onboarding Guide</h1>
+<blockquote>
+<p>How to effectively onboard Claude Code onto an existing codebase. Step-by-step setup for CLAUDE.md, permissions, hooks, agents, and skills - with real examples from production projects.</p>
+</blockquote>
+<hr />
+<h2 id="the-problem">The Problem</h2>
+<p>You have an existing project with established patterns, conventions, and tribal knowledge. Claude Code knows nothing about it. Without proper setup, Claude will:</p>
+<ul>
+<li>Reinvent patterns you’ve already established</li>
+<li>Use <code>console.log</code> when you have a custom logger</li>
+<li>Write relative imports when you use path aliases</li>
+<li>Skip your Result pattern and use raw try/catch</li>
+<li>Ignore your test conventions</li>
+</ul>
+<p><strong>The fix:</strong> A 30-60 minute onboarding session that pays dividends across every future Claude session.</p></div>  <div class="prose">
+<hr />
+<h2 id="step-1-generate-starter-claudemd-5-minutes">Step 1: Generate Starter CLAUDE.md (5 minutes)</h2>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> your-project</span></span>
+<span class="line"><span style="color:#61AFEF">claude</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Inside Claude Code:</span></span>
+<span class="line"><span style="color:#61AFEF">/init</span></span></code></pre>
+<p>This generates a starter CLAUDE.md from your project structure. Then refine it.</p>
+<h3 id="what-to-include">What to Include</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E06C75"># Project: [</span><span style="color:#61AFEF">Name</span><span style="color:#E06C75">]</span></span>
+<span class="line"><span style="color:#ABB2BF">One-line description.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Tech Stack</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [</span><span style="color:#61AFEF">Language</span><span style="color:#ABB2BF">] [</span><span style="color:#61AFEF">version</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [</span><span style="color:#61AFEF">Framework</span><span style="color:#ABB2BF">] [</span><span style="color:#61AFEF">version</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Test framework]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Build tool]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Commands</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">[package-manager] dev</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> - start dev server</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">[package-manager] test</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> - run tests</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">[package-manager] lint</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> - lint check</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">[package-manager] build</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> - production build</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Architecture</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">src/[dir]/</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> - [</span><span style="color:#61AFEF">purpose</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> (repeat for each key directory)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Code Conventions</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Your patterns - Result types, error handling, imports]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Your naming conventions]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Your state management patterns]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Critical Gotchas</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Things Claude WILL get wrong without being told]</span></span></code></pre>
+<h3 id="what-not-to-include">What NOT to Include</h3>
+<ul>
+<li>Formatting rules (use a linter - deterministic and faster)</li>
+<li>Information for rare situations (use skills instead)</li>
+<li>More than ~150 lines (brevity &gt; completeness)</li>
+<li>User-specific preferences (use <code>CLAUDE.local.md</code>)</li>
+</ul>
+<h3 id="reference-detailed-docs">Reference Detailed Docs</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">See @docs/architecture.md for system design.</span></span>
+<span class="line"><span style="color:#ABB2BF">See @AGENTS.md for technology-specific gotchas.</span></span></code></pre>
+<hr />
+<h2 id="step-2-create-agentsmd-living-knowledge-base-15-minutes">Step 2: Create AGENTS.md (Living Knowledge Base) (15 minutes)</h2>
+<p>AGENTS.md is a living document that persists learnings across agent iterations. Start from your team’s tribal knowledge.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E06C75"># Agent Knowledge Base</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Project Patterns &amp; Conventions</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Service Layer Pattern: all services return </span><span style="color:#E5C07B">`</span><span style="color:#98C379">{ success: boolean, data?: T, error?: string }</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Import conventions: always use </span><span style="color:#E5C07B">`</span><span style="color:#98C379">@/</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> aliases</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Component patterns: all need </span><span style="color:#E5C07B">`</span><span style="color:#98C379">data-testid</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> for E2E</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> State management: Zustand with specific selectors (not whole-state destructuring)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Technology-Specific Gotchas</span></span>
+<span class="line"><span style="color:#E06C75">### [Your ORM/DB]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Common pitfall and fix]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">### [Your UI Framework]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Common pitfall and fix]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">### [Your Test Framework]</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Common pitfall and fix]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Lessons Learned</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [</span><span style="color:#61AFEF">Date</span><span style="color:#ABB2BF">]: [What happened, what was the fix, which files]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Recent Changes Log</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [</span><span style="color:#61AFEF">Date</span><span style="color:#ABB2BF">]: [Changed X in Y files]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Performance Notes</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Bundle sizes, memory concerns, lazy loading requirements]</span></span></code></pre>
+<p><strong>Key principle:</strong> Update AGENTS.md after every significant debugging session or discovery. It compounds in value.</p>
+<hr />
+<h2 id="step-3-set-up-permissions-10-minutes">Step 3: Set Up Permissions (10 minutes)</h2>
+<p>Create <code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test:*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm validate)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git status)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git diff *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git log *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git branch *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Read(./secrets/**)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./.env)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Write(./.env.*)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(rm -rf *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(git push --force *)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(DROP TABLE *)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Create <code>.claude/settings.local.json</code> for personal overrides (gitignored):</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm dev)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="step-4-add-hooks-10-minutes">Step 4: Add Hooks (10 minutes)</h2>
+<p>Add to <code>.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "hooks"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "PostToolUse"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"npx prettier --write </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$CLAUDE_TOOL_INPUT_FILE_PATH</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> 2&gt;/dev/null || true"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "PreToolUse"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"bash -c 'FILE=$(cat | jq -r </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">.tool_input.file_path // empty</span><span style="color:#56B6C2">\"</span><span style="color:#98C379">); [[ </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">$FILE</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> == *.env* ]] &amp;&amp; echo </span><span style="color:#56B6C2">\"</span><span style="color:#98C379">Protected file</span><span style="color:#56B6C2">\"</span><span style="color:#98C379"> &gt;&amp;2 &amp;&amp; exit 2 || exit 0'"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "Stop"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"pnpm test --silent 2&gt;/dev/null || (echo 'Tests must pass before finishing' &gt;&amp;2 &amp;&amp; exit 2)"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "SessionStart"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"startup|resume"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"echo '## Session Context' &amp;&amp; git branch --show-current &amp;&amp; git log --oneline -3 &amp;&amp; echo '---' &amp;&amp; git status --short | head -10"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      },</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"compact"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"cat CLAUDE.md | head -50"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }]</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>What each does:</strong></p>
+<ul>
+<li><strong>PostToolUse (Write|Edit):</strong> Auto-formats every file Claude creates or modifies</li>
+<li><strong>PreToolUse (Write|Edit):</strong> Blocks writes to .env files</li>
+<li><strong>Stop:</strong> Prevents Claude from claiming “done” if tests fail</li>
+<li><strong>SessionStart (startup):</strong> Gives Claude git context immediately</li>
+<li><strong>SessionStart (compact):</strong> Re-injects critical rules after context compression</li>
+</ul>
+<hr />
+<h2 id="step-5-create-custom-agents-10-minutes">Step 5: Create Custom Agents (10 minutes)</h2>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> .claude/agents</span></span></code></pre>
+<h3 id="security-reviewer-read-only">Security Reviewer (Read-Only)</h3>
+<p><code>.claude/agents/security-reviewer.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: security-reviewer</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Use for security audits, vulnerability scanning, credential checks, and reviewing code for OWASP top 10 issues.</span></span>
+<span class="line"><span style="color:#ABB2BF">model: opus</span></span>
+<span class="line"><span style="color:#ABB2BF">color: red</span></span>
+<span class="line"><span style="color:#ABB2BF">tools: Read, Glob, Grep, Bash(git diff *), Bash(git log *)</span></span>
+<span class="line"><span style="color:#ABB2BF">disallowedTools: Write, Edit</span></span>
+<span class="line"><span style="color:#ABB2BF">maxTurns: 15</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Security Reviewer</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">Check for:</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#ABB2BF"> Hardcoded secrets, API keys, credentials</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#ABB2BF"> SQL injection, XSS, CSRF vulnerabilities</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#ABB2BF"> Authentication/authorization bypass</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#ABB2BF"> Input validation gaps</span></span>
+<span class="line"><span style="color:#E5C07B">5.</span><span style="color:#ABB2BF"> Insecure dependencies</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">Report with severity: Critical / High / Medium / Low</span></span></code></pre>
+<h3 id="test-writer-can-only-write-test-files">Test Writer (Can Only Write Test Files)</h3>
+<p><code>.claude/agents/test-writer.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: test-writer</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Use when writing tests for existing code. Creates unit tests, integration tests, and E2E tests following project conventions.</span></span>
+<span class="line"><span style="color:#ABB2BF">model: sonnet</span></span>
+<span class="line"><span style="color:#ABB2BF">color: green</span></span>
+<span class="line"><span style="color:#ABB2BF">tools: Read, Glob, Grep, Bash(pnpm test </span><span style="color:#C678DD;font-style:italic">*), Write(*</span><span style="color:#ABB2BF">.test.</span><span style="color:#C678DD;font-style:italic">*), Write(*</span><span style="color:#ABB2BF">.spec.</span><span style="color:#C678DD;font-style:italic">*), Edit(*</span><span style="color:#ABB2BF">.test.</span><span style="color:#C678DD;font-style:italic">*), Edit(*</span><span style="color:#ABB2BF">.spec.*)</span></span>
+<span class="line"><span style="color:#ABB2BF">maxTurns: 25</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Test Writer</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">Follow project test conventions:</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Co-locate tests with source files</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Naming: "should [</span><span style="color:#61AFEF">behavior</span><span style="color:#ABB2BF">] when [</span><span style="color:#61AFEF">condition</span><span style="color:#ABB2BF">]"</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Use AAA pattern: Arrange, Act, Assert</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Mock external services, not internal logic</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Add data-testid for E2E tests</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Aim for edge cases, not just happy paths</span></span></code></pre>
+<hr />
+<h2 id="step-6-create-project-specific-skills-optional-10-minutes">Step 6: Create Project-Specific Skills (Optional, 10 minutes)</h2>
+<h3 id="code-review-skill">Code Review Skill</h3>
+<p><code>.claude/skills/review/SKILL.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: review</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Review recent changes for quality, security, and adherence to project conventions.</span></span>
+<span class="line"><span style="color:#ABB2BF">allowed-tools: Read, Grep, Glob, Bash(git diff *), Bash(git log *)</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Code Review</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#ABB2BF"> Run </span><span style="color:#E5C07B">`</span><span style="color:#98C379">git diff --cached --name-only</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> and </span><span style="color:#E5C07B">`</span><span style="color:#98C379">git diff --name-only</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> to find changed files</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#ABB2BF"> Read each changed file</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#ABB2BF"> For each file, check:</span></span>
+<span class="line"><span style="color:#E5C07B">   -</span><span style="color:#ABB2BF"> Follows project conventions (from CLAUDE.md)</span></span>
+<span class="line"><span style="color:#E5C07B">   -</span><span style="color:#ABB2BF"> No security vulnerabilities</span></span>
+<span class="line"><span style="color:#E5C07B">   -</span><span style="color:#ABB2BF"> Proper error handling (Result pattern)</span></span>
+<span class="line"><span style="color:#E5C07B">   -</span><span style="color:#ABB2BF"> Tests exist for new/changed code</span></span>
+<span class="line"><span style="color:#E5C07B">   -</span><span style="color:#ABB2BF"> No </span><span style="color:#E5C07B">`</span><span style="color:#98C379">any</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> types, no console.log</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#ABB2BF"> Output structured review</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">$ARGUMENTS</span></span></code></pre>
+<h3 id="validate-skill">Validate Skill</h3>
+<p><code>.claude/skills/validate/SKILL.md</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: validate</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Run full project validation - type check, lint, test, build.</span></span>
+<span class="line"><span style="color:#ABB2BF">allowed-tools: Bash(pnpm *), Read</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Full Validation</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">Run in order, stop on first failure:</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm type-check</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm lint</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm test</span><span style="color:#E5C07B">`</span></span>
+<span class="line"><span style="color:#E5C07B">4.</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm build</span><span style="color:#E5C07B">`</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">Report results with pass/fail for each step.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#ABB2BF">$ARGUMENTS</span></span></code></pre>
+<hr />
+<h2 id="step-7-add-mcp-servers-optional-5-minutes">Step 7: Add MCP Servers (Optional, 5 minutes)</h2>
+<p>Create <code>.mcp.json</code> in project root:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "mcpServers"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "context7"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">      "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"stdio"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"npx"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "args"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"-y"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"@context7/mcp-server"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Add GitHub integration if needed:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "mcpServers"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "github"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">      "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"stdio"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"npx"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "args"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"-y"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"@modelcontextprotocol/server-github"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">      "env"</span><span style="color:#ABB2BF">: { </span><span style="color:#E06C75">"GITHUB_TOKEN"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"${GITHUB_TOKEN}"</span><span style="color:#ABB2BF"> }</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<hr />
+<h2 id="final-file-structure">Final File Structure</h2>
+<p>After onboarding, your project should have:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>your-project/</span></span>
+<span class="line"><span>  CLAUDE.md              # Main project context (in git)</span></span>
+<span class="line"><span>  CLAUDE.local.md        # Personal overrides (gitignored)</span></span>
+<span class="line"><span>  AGENTS.md              # Living knowledge base (in git)</span></span>
+<span class="line"><span>  .mcp.json              # MCP server configs (in git)</span></span>
+<span class="line"><span>  .claude/</span></span>
+<span class="line"><span>    settings.json        # Permissions, hooks (in git)</span></span>
+<span class="line"><span>    settings.local.json  # Personal settings (gitignored)</span></span>
+<span class="line"><span>    agents/</span></span>
+<span class="line"><span>      security-reviewer.md</span></span>
+<span class="line"><span>      test-writer.md</span></span>
+<span class="line"><span>    skills/</span></span>
+<span class="line"><span>      review/</span></span>
+<span class="line"><span>        SKILL.md</span></span>
+<span class="line"><span>      validate/</span></span>
+<span class="line"><span>        SKILL.md</span></span></code></pre>
+<p>Add to <code>.gitignore</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>CLAUDE.local.md</span></span>
+<span class="line"><span>.claude/settings.local.json</span></span></code></pre>
+<hr />
+<h2 id="onboarding-checklist">Onboarding Checklist</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Step</th><th>Time</th><th>Impact</th></tr></thead><tbody><tr><td>1. <code>/init</code> + refine CLAUDE.md</td><td>5 min</td><td>Critical - project context</td></tr><tr><td>2. Create AGENTS.md</td><td>15 min</td><td>High - technology gotchas</td></tr><tr><td>3. Set up permissions</td><td>10 min</td><td>High - safety + speed</td></tr><tr><td>4. Add hooks</td><td>10 min</td><td>High - auto-format, test enforcement</td></tr><tr><td>5. Create custom agents</td><td>10 min</td><td>Medium - specialized reviews</td></tr><tr><td>6. Create skills</td><td>10 min</td><td>Medium - repeatable workflows</td></tr><tr><td>7. Add MCP servers</td><td>5 min</td><td>Low-Medium - external integrations</td></tr><tr><td><strong>Total</strong></td><td><strong>~60 min</strong></td><td><strong>Compounds across every future session</strong></td></tr></tbody></table>
+<hr />
+<h2 id="what-to-do-after-onboarding">What to Do After Onboarding</h2>
+<h3 id="first-session">First Session</h3>
+<p>Ask Claude to explore the codebase:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Enter plan mode. Explore this codebase and tell me:</span></span>
+<span class="line"><span>1. What patterns do you see?</span></span>
+<span class="line"><span>2. What's unclear or inconsistent?</span></span>
+<span class="line"><span>3. What would you add to CLAUDE.md or AGENTS.md?</span></span></code></pre>
+<p>Then update CLAUDE.md and AGENTS.md with any missing patterns Claude identifies.</p>
+<h3 id="ongoing-maintenance">Ongoing Maintenance</h3>
+<p>After every significant session:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Based on what you learned in this session, what should we add to AGENTS.md?</span></span></code></pre>
+<p>Or use the <code>/claude-md-improver</code> skill if available.</p>
+<h3 id="team-adoption">Team Adoption</h3>
+<ol>
+<li>Commit <code>.claude/settings.json</code>, <code>.claude/agents/</code>, <code>.claude/skills/</code>, CLAUDE.md, AGENTS.md</li>
+<li>Each developer creates their own <code>CLAUDE.local.md</code> and <code>.claude/settings.local.json</code></li>
+<li>Review and update AGENTS.md in PRs (like you would README.md)</li>
+</ol>
+<hr />
+<h2 id="sources">Sources</h2>
+<ul>
+<li><a href="https://www.humanlayer.dev/blog/writing-a-good-claude-md" target="_blank" rel="noopener noreferrer">Writing a Good CLAUDE.md (humanlayer.dev)</a></li>
+<li><a href="https://www.builder.io/blog/claude-md-guide" target="_blank" rel="noopener noreferrer">How to Write a Good CLAUDE.md (builder.io)</a></li>
+<li><a href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/" target="_blank" rel="noopener noreferrer">Claude Code Customization (alexop.dev)</a></li>
+<li><a href="https://code.claude.com/docs/en/best-practices" target="_blank" rel="noopener noreferrer">Claude Code Best Practices (code.claude.com)</a></li>
+<li><a href="https://aiorg.dev/blog/claude-code-hooks" target="_blank" rel="noopener noreferrer">Claude Code Hooks: Complete Guide (aiorg.dev)</a></li>
+<li><a href="https://www.eesel.ai/blog/claude-code-permissions" target="_blank" rel="noopener noreferrer">Claude Code Permissions Guide (eesel.ai)</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

@@ -1,0 +1,666 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Agent Teams for browser-ide: Deep Analysis and Steps — Ankur’s Writing</title><meta name="description" content="These hotspot files must be assigned to exactly ONE agent per team session. If a feature requires changes to useIDEStore.ts, one agent owns it; others…"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/agent-teams-for-browser-ide-deep-analysis-and-steps/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Agent Teams for browser-ide: Deep Analysis and Steps — Ankur’s Writing"><meta property="og:description" content="These hotspot files must be assigned to exactly ONE agent per team session. If a feature requires changes to useIDEStore.ts, one agent owns it; others…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/agent-teams-for-browser-ide-deep-analysis-and-steps/"><meta property="og:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Agent Teams for browser-ide: Deep Analysis and Steps — Ankur’s Writing"><meta name="twitter:description" content="These hotspot files must be assigned to exactly ONE agent per team session. If a feature requires changes to useIDEStore.ts, one agent owns it; others…"><meta name="twitter:image" content="https://encryptioner.github.io/logo.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-10"><meta property="article:modified_time" content="2026-03-10"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code / Project Research</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code / Project Research</span> </div> <h1>Agent Teams for browser-ide: Deep Analysis and Steps</h1> <p class="article-meta mono"> <time datetime="2026-03-10">10 Mar 2026</time> <span>·</span> <span>14 min read</span> <span>·</span> <span>2,897 words</span> </p> </header>  <div class="prose"><h1 id="agent-teams-for-browser-ide-deep-analysis-and-steps">Agent Teams for browser-ide: Deep Analysis and Steps</h1>
+<blockquote>
+<p>A detailed, architecture-aware guide for applying Claude Code Agent Teams to the browser-ide project. Based on actual dependency analysis of 87 source files, 12 test suites, and 21 services.</p>
+</blockquote>
+<hr />
+<h2 id="why-browser-ide-is-ideal-for-agent-teams">Why browser-ide Is Ideal for Agent Teams</h2>
+<ol>
+<li>
+<p><strong>Large files exhaust single-agent context</strong> - 20+ files exceed 15KB. <code>terminalCommands.ts</code> alone is 38KB. A single agent working across Editor (15KB) + useIDEStore (23KB) + terminalCommands (38KB) consumes 76KB of context just reading 3 files — nearly 40% of useful context window before reasoning even begins.</p>
+</li>
+<li>
+<p><strong>Clear subsystem boundaries</strong> - 6 independent subsystems (Editor, Git, Terminal, AI, Filesystem, Debug) with well-defined interfaces between them.</p></div>  <div class="prose">
+</li>
+<li>
+<p><strong>Existing CLAUDE.md and AGENTS.md</strong> - All teammates automatically inherit project context, reducing exploration overhead per agent.</p>
+</li>
+<li>
+<p><strong>Independent test suites</strong> - Each subsystem has its own test files. Agents can run tests in isolation without stepping on each other.</p>
+</li>
+<li>
+<p><strong>Build splits match subsystem boundaries</strong> - Vite config already code-splits by feature (monaco, terminal, git, ai, webcontainer), validating that subsystems are independently loadable.</p>
+</li>
+</ol>
+<hr />
+<h2 id="architecture-map-dependency-analysis">Architecture Map: Dependency Analysis</h2>
+<h3 id="service-dependency-chain">Service Dependency Chain</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>filesystem.ts (ROOT - no service dependencies)</span></span>
+<span class="line"><span>    |</span></span>
+<span class="line"><span>    +---&gt; git.ts (depends on: filesystem)</span></span>
+<span class="line"><span>    |       +---&gt; sourceControlService.ts</span></span>
+<span class="line"><span>    |       +---&gt; terminalCommands.ts</span></span>
+<span class="line"><span>    |       +---&gt; importExport.ts</span></span>
+<span class="line"><span>    |</span></span>
+<span class="line"><span>    +---&gt; claude-agent.ts (depends on: filesystem, git)</span></span>
+<span class="line"><span>    |       +---&gt; claude-cli.ts</span></span>
+<span class="line"><span>    |       +---&gt; terminalCommands.ts</span></span>
+<span class="line"><span>    |</span></span>
+<span class="line"><span>    +---&gt; terminalSession.ts</span></span>
+<span class="line"><span>    |       +---&gt; terminalCommands.ts</span></span>
+<span class="line"><span>    |</span></span>
+<span class="line"><span>    +---&gt; terminalCommands.ts (MOST CONNECTED - depends on: filesystem, git, webcontainer, claude-agent, terminalSession)</span></span>
+<span class="line"><span>    |</span></span>
+<span class="line"><span>    +---&gt; importExport.ts (depends on: filesystem, git)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>webcontainer.ts (SEPARATE ROOT - only consumed by terminalCommands)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>intellisense.ts, linter.ts, snippets.ts, vscode-extensions.ts (STANDALONE - depend only on types/utils)</span></span></code></pre>
+<h3 id="shared-hotspot-files-conflict-zones">Shared Hotspot Files (Conflict Zones)</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>File</th><th>Imported By</th><th>Risk If Edited by Multiple Agents</th></tr></thead><tbody><tr><td><code>store/useIDEStore.ts</code></td><td>21 files</td><td>CRITICAL - never assign to &gt;1 agent</td></tr><tr><td><code>types/index.ts</code></td><td>17 files</td><td>HIGH - type changes cascade everywhere</td></tr><tr><td><code>utils/logger.ts</code></td><td>11 files</td><td>MEDIUM - interface is stable</td></tr><tr><td><code>services/filesystem.ts</code></td><td>9 files</td><td>HIGH - foundational service</td></tr><tr><td><code>services/git.ts</code></td><td>8 files</td><td>HIGH - many consumers</td></tr><tr><td><code>services/sourceControlService.ts</code></td><td>6 files</td><td>MEDIUM</td></tr></tbody></table>
+<h3 id="rule-no-two-agents-touch-the-same-file">Rule: No Two Agents Touch the Same File</h3>
+<p>These hotspot files must be assigned to exactly ONE agent per team session. If a feature requires changes to <code>useIDEStore.ts</code>, one agent owns it; others communicate needed state changes via messages.</p>
+<hr />
+<h2 id="subsystem-ownership-map">Subsystem Ownership Map</h2>
+<h3 id="subsystem-1-editor--code-intelligence">Subsystem 1: Editor &amp; Code Intelligence</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>Editor.tsx</code> (15K), <code>EditorStatusBar.tsx</code>, <code>SplitEditor.tsx</code>, <code>ProblemsPanel.tsx</code> (24K), <code>CommandPalette.tsx</code> (30K)</td></tr><tr><td>Services</td><td><code>intellisense.ts</code> (32K), <code>linter.ts</code> (11K), <code>snippets.ts</code> (23K), <code>vscode-extensions.ts</code> (8.7K)</td></tr><tr><td>Tests</td><td><code>Editor.test.tsx</code> (32K)</td></tr><tr><td>Dependencies</td><td>Monaco Editor, useIDEStore (read-only for editor state)</td></tr></tbody></table>
+<p><strong>Total context load:</strong> ~155K for full subsystem. Needs a dedicated agent.</p>
+<h3 id="subsystem-2-git--source-control">Subsystem 2: Git &amp; Source Control</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>BranchesView.tsx</code> (7.8K), <code>ChangesView.tsx</code> (4.7K), <code>DiffViewer.tsx</code> (15K), <code>HistoryView.tsx</code> (2.3K), <code>SourceControlPanel.tsx</code> (8.6K), <code>StashView.tsx</code> (6.4K)</td></tr><tr><td>Services</td><td><code>git.ts</code> (28K), <code>sourceControlService.ts</code> (12K)</td></tr><tr><td>Tests</td><td><code>git.test.ts</code> (50K)</td></tr><tr><td>Dependencies</td><td>isomorphic-git, LightningFS, useIDEStore (git slice)</td></tr></tbody></table>
+<p><strong>Total context load:</strong> ~135K. Independent from Editor/Terminal. Clean boundary.</p>
+<h3 id="subsystem-3-terminal--webcontainer-runtime">Subsystem 3: Terminal &amp; WebContainer Runtime</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>Terminal.tsx</code> (13K), <code>TerminalTabs.tsx</code> (25K), <code>NanoEditor.tsx</code> (9.3K), <code>Preview.tsx</code> (1.5K)</td></tr><tr><td>Services</td><td><code>terminalCommands.ts</code> (38K), <code>terminalSession.ts</code> (11K), <code>webcontainer.ts</code> (10K)</td></tr><tr><td>Tests</td><td><code>Terminal.test.tsx</code> (20K), <code>webcontainer-security.test.ts</code> (8.2K)</td></tr><tr><td>Dependencies</td><td>xterm.js, WebContainers API, useIDEStore (terminal slice)</td></tr></tbody></table>
+<p><strong>Warning:</strong> <code>terminalCommands.ts</code> bridges to filesystem, git, AI. This is the most connected service. Agent working here must be aware of interfaces to other subsystems but NOT modify those other services.</p>
+<p><strong>Total context load:</strong> ~136K. Bounded but bridged.</p>
+<h3 id="subsystem-4-ai--claude-integration">Subsystem 4: AI &amp; Claude Integration</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>AIAssistant.tsx</code> (3.7K), <code>ClaudeCodePanel.tsx</code> (2.1K), <code>ClaudeCLI.tsx</code> (27K)</td></tr><tr><td>Services</td><td><code>ai-providers.ts</code> (14K), <code>claude-agent.ts</code> (13K), <code>claude-cli.ts</code> (15K)</td></tr><tr><td>Tests</td><td><code>ai-providers.test.ts</code> (30K)</td></tr><tr><td>Dependencies</td><td>Anthropic SDK, useIDEStore (AI slice)</td></tr></tbody></table>
+<p><strong>Total context load:</strong> ~105K. Well-isolated. Only connects to terminal through claude-cli.</p>
+<h3 id="subsystem-5-filesystem--project-management">Subsystem 5: Filesystem &amp; Project Management</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>FileExplorer.tsx</code> (24K), <code>SearchPanel.tsx</code> (14K), <code>CloneDialog.tsx</code> (3.9K), <code>WorkspaceSwitcher.tsx</code> (6.2K)</td></tr><tr><td>Services</td><td><code>filesystem.ts</code> (12K), <code>importExport.ts</code> (12K)</td></tr><tr><td>Store</td><td><code>useWorkspaceStore.ts</code> (9.2K)</td></tr><tr><td>Tests</td><td><code>filesystem.test.ts</code> (21K), <code>FileExplorer.test.tsx</code> (16K)</td></tr><tr><td>Dependencies</td><td>LightningFS, Dexie, useIDEStore (file/project slices)</td></tr></tbody></table>
+<p><strong>Total context load:</strong> ~118K. Foundation layer — other subsystems depend on this.</p>
+<h3 id="subsystem-6-infrastructure--app-shell">Subsystem 6: Infrastructure &amp; App Shell</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>Files</th></tr></thead><tbody><tr><td>Components</td><td><code>App.tsx</code> (25K), <code>BootScreen.tsx</code>, <code>ErrorBoundary.tsx</code>, <code>Loading.tsx</code>, <code>MobileOptimizedLayout.tsx</code>, <code>ResponsiveLayout.tsx</code>, <code>ServiceBanner.tsx</code>, <code>SettingsDialog.tsx</code> (8.9K), <code>HelpPanel.tsx</code> (6.3K), <code>Debugger.tsx</code> (30K), <code>ExtensionsPanel.tsx</code> (10K)</td></tr><tr><td>Store</td><td><code>useIDEStore.ts</code> (23K)</td></tr><tr><td>Config</td><td><code>vite.config.ts</code>, <code>environment.ts</code>, <code>breakpoints.ts</code></td></tr><tr><td>Lib</td><td><code>database.ts</code> (8K)</td></tr><tr><td>Types</td><td><code>types/index.ts</code> (13K)</td></tr><tr><td>Utils</td><td><code>logger.ts</code>, <code>json.ts</code>, <code>toast.ts</code></td></tr></tbody></table>
+<p><strong>This subsystem owns the shared hotspot files.</strong> Only one agent should modify these per session.</p>
+<hr />
+<h2 id="step-by-step-running-agent-teams-on-browser-ide">Step-by-Step: Running Agent Teams on browser-ide</h2>
+<h3 id="step-0-prerequisites">Step 0: Prerequisites</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Ensure Claude Code is up to date</span></span>
+<span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> update</span><span style="color:#D19A66"> -g</span><span style="color:#98C379"> @anthropic-ai/claude-code</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Enable agent teams for browser-ide</span></span>
+<span class="line"><span style="color:#61AFEF">mkdir</span><span style="color:#D19A66"> -p</span><span style="color:#98C379"> ~/Projects/side-projects/browser-ide/.claude</span></span></code></pre>
+<p>Add to <code>~/Projects/side-projects/browser-ide/.claude/settings.json</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "env"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"1"</span></span>
+<span class="line"><span style="color:#ABB2BF">  },</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm test:e2e)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm lint)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm type-check)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm build)"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#98C379">      "Bash(pnpm validate)"</span></span>
+<span class="line"><span style="color:#ABB2BF">    ]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Pre-approving test/lint/build permissions prevents prompt floods when 3+ agents all try to run tests simultaneously.</p>
+<h3 id="step-1-start-with-code-review-lowest-risk">Step 1: Start with Code Review (Lowest Risk)</h3>
+<p><strong>Goal:</strong> Validate the swarm setup with a read-only task before doing any implementation.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#7F848E;font-style:italic"># Start a tmux session for visibility</span></span>
+<span class="line"><span style="color:#61AFEF">tmux</span><span style="color:#98C379"> new-session</span><span style="color:#D19A66"> -s</span><span style="color:#98C379"> browser-ide-review</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># Launch Claude Code</span></span>
+<span class="line"><span style="color:#56B6C2">cd</span><span style="color:#98C379"> ~/Projects/side-projects/browser-ide</span></span>
+<span class="line"><span style="color:#61AFEF">claude</span></span></code></pre>
+<p><strong>Prompt:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "codebase-review" with 3 teammates:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "security-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Audit COOP/COEP header configuration in vite.config.ts</span></span>
+<span class="line"><span>   - Check CSP policy (no unsafe-inline in production)</span></span>
+<span class="line"><span>   - Review WebContainer sandboxing (webcontainer-security.test.ts)</span></span>
+<span class="line"><span>   - Verify API key handling: keys should be in sessionStorage, never persisted</span></span>
+<span class="line"><span>   - Check for XSS vectors in terminalCommands.ts command parsing</span></span>
+<span class="line"><span>   - Check json.ts for prototype pollution protection</span></span>
+<span class="line"><span>   - Report findings to my inbox with severity ratings</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "performance-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Check Monaco editor lazy loading in Editor.tsx</span></span>
+<span class="line"><span>   - Verify xterm.js fitAddon.fit() is called on resize in Terminal.tsx</span></span>
+<span class="line"><span>   - Analyze useIDEStore.ts for unnecessary re-render triggers (whole-state destructuring)</span></span>
+<span class="line"><span>   - Check code splitting config in vite.config.ts (monaco, terminal, git, ai, webcontainer bundles)</span></span>
+<span class="line"><span>   - Verify dispose/cleanup on unmount for Monaco and xterm</span></span>
+<span class="line"><span>   - Review Dexie IndexedDB query patterns in database.ts</span></span>
+<span class="line"><span>   - Report findings to my inbox with impact ratings</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "architecture-reviewer" (type: Explore):</span></span>
+<span class="line"><span>   - Review service layer patterns: do all services follow async Result&lt;Output&gt; pattern from AGENTS.md?</span></span>
+<span class="line"><span>   - Check store design: are Zustand selectors used properly to prevent re-renders?</span></span>
+<span class="line"><span>   - Verify component data-testid attributes exist for E2E testing</span></span>
+<span class="line"><span>   - Review import conventions: all use @/ aliases, no relative imports?</span></span>
+<span class="line"><span>   - Check error handling: try-catch with Result pattern, logger utility?</span></span>
+<span class="line"><span>   - Assess file sizes: which files should be split? (&gt;25K is a signal)</span></span>
+<span class="line"><span>   - Report findings to my inbox with priority ratings</span></span></code></pre>
+<p><strong>Expected outcome:</strong> 3 agents read the codebase in parallel, each from their specialized lens. Lead synthesizes findings into a prioritized issue list. Total time: ~3-5 minutes. Token cost: ~500-800K.</p>
+<p><strong>What to verify after first run:</strong></p>
+<ul>
+<li>Did all 3 agents complete their tasks?</li>
+<li>Are findings in your inbox? (<code>cat ~/.claude/teams/codebase-review/inboxes/team-lead.json | jq '.'</code>)</li>
+<li>Were there permission prompt interruptions? If yes, add more pre-approvals.</li>
+</ul>
+<h3 id="step-2-parallel-e2e-testing-high-parallelism">Step 2: Parallel E2E Testing (High Parallelism)</h3>
+<p><strong>Goal:</strong> Run E2E tests across all browser targets simultaneously.</p>
+<p><strong>Prompt:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "e2e-qa" with 3 teammates:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "qa-chromium" (type: general-purpose):</span></span>
+<span class="line"><span>   - Run: pnpm exec playwright test --project=chromium</span></span>
+<span class="line"><span>   - Report all failures with exact error messages and screenshots</span></span>
+<span class="line"><span>   - If tests pass, report "All Chromium tests passed" with test count</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "qa-firefox" (type: general-purpose):</span></span>
+<span class="line"><span>   - Run: pnpm exec playwright test --project=firefox</span></span>
+<span class="line"><span>   - Report all failures with exact error messages and screenshots</span></span>
+<span class="line"><span>   - If tests pass, report "All Firefox tests passed" with test count</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "qa-webkit" (type: general-purpose):</span></span>
+<span class="line"><span>   - Run: pnpm exec playwright test --project=webkit</span></span>
+<span class="line"><span>   - Report all failures with exact error messages and screenshots</span></span>
+<span class="line"><span>   - If tests pass, report "All WebKit tests passed" with test count</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>After all results are in, synthesize a cross-browser compatibility report: which tests fail on which browsers, and which are universal failures vs browser-specific.</span></span></code></pre>
+<p><strong>Why this works:</strong> Each browser target is 100% independent. Zero file conflicts. Clear deliverable per agent. Lead only needs to synthesize.</p>
+<h3 id="step-3-cross-layer-feature-development-full-coordination">Step 3: Cross-Layer Feature Development (Full Coordination)</h3>
+<p><strong>Goal:</strong> Implement a multi-subsystem feature using coordinated agents.</p>
+<p><strong>Example feature:</strong> “Add a new git blame view that shows inline blame annotations in the editor”</p>
+<p><strong>Prompt:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "git-blame-feature" with 3 teammates.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>IMPORTANT RULES:</span></span>
+<span class="line"><span>- Each teammate owns SPECIFIC files listed below. Do NOT modify files outside your ownership.</span></span>
+<span class="line"><span>- If you need a change in another agent's files, message that agent with the exact change needed.</span></span>
+<span class="line"><span>- All new code must follow patterns in CLAUDE.md and AGENTS.md.</span></span>
+<span class="line"><span>- Use @/ import aliases, never relative imports.</span></span>
+<span class="line"><span>- Add data-testid to all new elements.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Teammates:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "git-engineer" (type: general-purpose):</span></span>
+<span class="line"><span>   YOUR FILES (only modify these):</span></span>
+<span class="line"><span>   - src/services/git.ts — add a gitBlame(filePath, branch?) function using isomorphic-git</span></span>
+<span class="line"><span>   - src/services/sourceControlService.ts — add a getBlameForFile wrapper</span></span>
+<span class="line"><span>   - src/components/Git/ — create BlameView.tsx if needed</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   CONSTRAINTS:</span></span>
+<span class="line"><span>   - Follow the async Result&lt;Output&gt; pattern from existing services</span></span>
+<span class="line"><span>   - Use LightningFS (already initialized in git.ts)</span></span>
+<span class="line"><span>   - Add proper error handling with logger</span></span>
+<span class="line"><span>   - Run: pnpm test src/services/git.test.ts after changes</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   DELIVERABLE: Working gitBlame service function with tests. Message "editor-engineer" with the BlameData type shape when ready.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "editor-engineer" (type: general-purpose):</span></span>
+<span class="line"><span>   YOUR FILES (only modify these):</span></span>
+<span class="line"><span>   - src/components/IDE/Editor.tsx — add inline blame annotations using Monaco decorations API</span></span>
+<span class="line"><span>   - src/components/IDE/EditorStatusBar.tsx — add blame toggle button</span></span>
+<span class="line"><span>   - src/types/index.ts — add BlameData type (coordinate shape with git-engineer)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   CONSTRAINTS:</span></span>
+<span class="line"><span>   - Wait for git-engineer to message you the BlameData type shape before implementing</span></span>
+<span class="line"><span>   - Use Monaco decorationsAPI for inline annotations</span></span>
+<span class="line"><span>   - Lazy load blame data (don't fetch on every file open)</span></span>
+<span class="line"><span>   - Run: pnpm test src/components/IDE/Editor.test.tsx after changes</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   DELIVERABLE: Inline blame annotations in editor, togglable from status bar.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "test-engineer" (type: general-purpose):</span></span>
+<span class="line"><span>   YOUR FILES (only modify these):</span></span>
+<span class="line"><span>   - src/services/git.test.ts — add blame function tests</span></span>
+<span class="line"><span>   - src/components/IDE/Editor.test.tsx — add blame annotation tests</span></span>
+<span class="line"><span>   - tests/e2e/editor.spec.ts — add E2E test for blame toggle</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   CONSTRAINTS:</span></span>
+<span class="line"><span>   - Wait for both other agents to message you when their implementations are ready</span></span>
+<span class="line"><span>   - Test edge cases: empty file, binary file, file not in git, no commits</span></span>
+<span class="line"><span>   - Mock git service in component tests</span></span>
+<span class="line"><span>   - Run full test suite: pnpm test &amp;&amp; pnpm test:e2e</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   DELIVERABLE: Comprehensive test coverage for the blame feature.</span></span></code></pre>
+<p><strong>Task dependencies for this team:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Task 1: "Implement gitBlame in git.ts" (git-engineer) — no blockers</span></span>
+<span class="line"><span>Task 2: "Add BlameData type to types/index.ts" (editor-engineer) — blocked by Task 1</span></span>
+<span class="line"><span>Task 3: "Add blame annotations to Editor.tsx" (editor-engineer) — blocked by Task 1</span></span>
+<span class="line"><span>Task 4: "Write git.test.ts blame tests" (test-engineer) — blocked by Task 1</span></span>
+<span class="line"><span>Task 5: "Write Editor.test.tsx blame tests" (test-engineer) — blocked by Task 3</span></span>
+<span class="line"><span>Task 6: "Write E2E blame test" (test-engineer) — blocked by Tasks 1+3</span></span></code></pre>
+<p><strong>What can go wrong and how to handle it:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Issue</th><th>Signal</th><th>Fix</th></tr></thead><tbody><tr><td>git-engineer modifies types/index.ts</td><td>File conflict with editor-engineer</td><td>Reassign: only editor-engineer touches types/index.ts</td></tr><tr><td>editor-engineer starts before BlameData type is defined</td><td>Uses wrong type shape, work gets discarded</td><td>Enforce: “Wait for message from git-engineer” in prompt</td></tr><tr><td>test-engineer writes tests before implementations exist</td><td>Tests test nothing or wrong interface</td><td>Use <code>addBlockedBy</code> to enforce ordering</td></tr><tr><td>All agents modify useIDEStore.ts</td><td>Overwrites</td><td>Add to prompt: “Do NOT modify useIDEStore.ts. If you need new state, message the lead with exact state shape needed”</td></tr></tbody></table>
+<h3 id="step-4-competing-hypothesis-debugging">Step 4: Competing Hypothesis Debugging</h3>
+<p><strong>Goal:</strong> Diagnose a complex bug by investigating multiple root causes simultaneously.</p>
+<p><strong>Example:</strong> “Terminal output stops rendering after switching workspaces”</p>
+<p><strong>Prompt:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "debug-terminal-freeze" to investigate why terminal output stops rendering after workspace switch.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "hypothesis-terminal" (type: Explore):</span></span>
+<span class="line"><span>   Investigate if the issue is in Terminal.tsx / TerminalTabs.tsx / terminalSession.ts:</span></span>
+<span class="line"><span>   - Does xterm dispose/recreate properly on workspace switch?</span></span>
+<span class="line"><span>   - Is fitAddon.fit() called after workspace switch?</span></span>
+<span class="line"><span>   - Are terminal refs properly cleaned up?</span></span>
+<span class="line"><span>   Focus on: Terminal.tsx, TerminalTabs.tsx, terminalSession.ts</span></span>
+<span class="line"><span>   Report your findings with evidence (specific line numbers and code paths).</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "hypothesis-store" (type: Explore):</span></span>
+<span class="line"><span>   Investigate if the issue is in state management:</span></span>
+<span class="line"><span>   - Does useWorkspaceStore properly save/restore terminal state?</span></span>
+<span class="line"><span>   - Does useIDEStore.terminalTabs get corrupted on switch?</span></span>
+<span class="line"><span>   - Are there stale closures capturing old terminal references?</span></span>
+<span class="line"><span>   Focus on: useIDEStore.ts, useWorkspaceStore.ts, WorkspaceSwitcher.tsx</span></span>
+<span class="line"><span>   Report your findings with evidence.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. "hypothesis-webcontainer" (type: Explore):</span></span>
+<span class="line"><span>   Investigate if the issue is in WebContainer lifecycle:</span></span>
+<span class="line"><span>   - Does the WebContainer process survive workspace switch?</span></span>
+<span class="line"><span>   - Is the terminal stream properly reconnected?</span></span>
+<span class="line"><span>   - Does webcontainer.ts handle workspace isolation?</span></span>
+<span class="line"><span>   Focus on: webcontainer.ts, terminalCommands.ts</span></span>
+<span class="line"><span>   Report your findings with evidence.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>After all three report, I will evaluate which hypothesis has the strongest evidence and direct the fix.</span></span></code></pre>
+<h3 id="step-5-large-refactor-with-plan-approval-gates">Step 5: Large Refactor with Plan Approval Gates</h3>
+<p><strong>Goal:</strong> Split oversized files with safety gates.</p>
+<p><strong>Prompt:</strong></p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Create an agent team called "refactor-split" with plan approval required.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Context: These files are too large and should be split:</span></span>
+<span class="line"><span>- terminalCommands.ts (38K) — split into command groups</span></span>
+<span class="line"><span>- CommandPalette.tsx (30K) — extract command definitions</span></span>
+<span class="line"><span>- useIDEStore.ts (23K) — extract into slice files</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. "refactor-planner" (type: Plan, plan_mode_required: true):</span></span>
+<span class="line"><span>   Analyze the 3 files above and propose a split plan:</span></span>
+<span class="line"><span>   - For terminalCommands.ts: group commands by category (git commands, file commands, AI commands, system commands)</span></span>
+<span class="line"><span>   - For CommandPalette.tsx: extract command registry from rendering logic</span></span>
+<span class="line"><span>   - For useIDEStore.ts: identify state slices that can become separate files</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   CRITICAL: Propose the plan. Do NOT implement until I approve.</span></span>
+<span class="line"><span>   Show exact file boundaries, new file names, and what moves where.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. "refactor-tester" (type: general-purpose):</span></span>
+<span class="line"><span>   After the refactor plan is approved and implemented:</span></span>
+<span class="line"><span>   - Run full test suite: pnpm test</span></span>
+<span class="line"><span>   - Run type-check: pnpm type-check</span></span>
+<span class="line"><span>   - Run lint: pnpm lint</span></span>
+<span class="line"><span>   - Run build: pnpm build</span></span>
+<span class="line"><span>   - Report any failures</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>   DO NOT START until refactor-planner's plan is approved and implementation is complete.</span></span></code></pre>
+<hr />
+<h2 id="quick-reference-agent-team-prompts-by-scenario">Quick Reference: Agent Team Prompts by Scenario</h2>
+<h3 id="adding-a-new-service">Adding a New Service</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Team of 2:</span></span>
+<span class="line"><span>- "service-engineer": creates src/services/newService.ts following Result&lt;&gt; pattern, adds types to types/index.ts</span></span>
+<span class="line"><span>- "test-engineer": writes src/services/newService.test.ts with happy path + edge cases</span></span></code></pre>
+<h3 id="adding-a-new-component">Adding a New Component</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Team of 2:</span></span>
+<span class="line"><span>- "component-engineer": creates component in appropriate directory, adds data-testid, uses @/ imports</span></span>
+<span class="line"><span>- "test-engineer": writes co-located .test.tsx file, E2E test if user-facing</span></span></code></pre>
+<h3 id="dependency-upgrade">Dependency Upgrade</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Team of 3 (parallel, no dependencies):</span></span>
+<span class="line"><span>- "upgrade-agent": updates package.json, runs pnpm install, fixes breaking API changes</span></span>
+<span class="line"><span>- "test-agent": runs full test suite after upgrade, fixes failing tests</span></span>
+<span class="line"><span>- "build-agent": runs pnpm build, checks bundle sizes, verifies code splitting still works</span></span></code></pre>
+<h3 id="performance-audit">Performance Audit</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Team of 3 (parallel, read-only):</span></span>
+<span class="line"><span>- "bundle-analyzer": analyzes vite build output, identifies oversized chunks</span></span>
+<span class="line"><span>- "render-profiler": reviews React components for unnecessary re-renders</span></span>
+<span class="line"><span>- "memory-auditor": checks for cleanup/dispose patterns, leak-prone patterns</span></span></code></pre>
+<hr />
+<h2 id="files-that-should-never-be-modified-by-multiple-agents-simultaneously">Files That Should NEVER Be Modified by Multiple Agents Simultaneously</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>File</th><th>Why</th><th>Assignment Rule</th></tr></thead><tbody><tr><td><code>store/useIDEStore.ts</code></td><td>21 consumers, state schema changes cascade</td><td>Assign to infrastructure agent OR restrict all agents to read-only</td></tr><tr><td><code>types/index.ts</code></td><td>17 consumers, type changes break everything</td><td>Assign to ONE agent per session</td></tr><tr><td><code>services/filesystem.ts</code></td><td>Foundation layer, 9 consumers</td><td>Assign to filesystem agent only</td></tr><tr><td><code>services/git.ts</code></td><td>8 consumers, complex isomorphic-git state</td><td>Assign to git agent only</td></tr><tr><td><code>services/terminalCommands.ts</code></td><td>Bridges 5 subsystems</td><td>Assign to terminal agent only</td></tr><tr><td><code>App.tsx</code></td><td>Application shell, 25K, imports everything</td><td>Assign to infrastructure agent only</td></tr><tr><td><code>vite.config.ts</code></td><td>Build config, affects all agents’ work</td><td>Lead only</td></tr></tbody></table>
+<hr />
+<h2 id="cost-estimates-for-browser-ide-agent-teams">Cost Estimates for browser-ide Agent Teams</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scenario</th><th>Agents</th><th>Est. Tokens</th><th>Est. Time</th><th>Value</th></tr></thead><tbody><tr><td>Code Review (Step 1)</td><td>3 Explore</td><td>~500K</td><td>3-5 min</td><td>HIGH - find issues early</td></tr><tr><td>E2E Testing (Step 2)</td><td>3 general-purpose</td><td>~400K</td><td>5-8 min</td><td>HIGH - parallel browser testing</td></tr><tr><td>Cross-Layer Feature (Step 3)</td><td>3 general-purpose</td><td>~1.2M</td><td>15-25 min</td><td>HIGH - compresses multi-hour work</td></tr><tr><td>Bug Investigation (Step 4)</td><td>3 Explore</td><td>~600K</td><td>5-10 min</td><td>MEDIUM-HIGH - eliminates sequential hypothesis testing</td></tr><tr><td>Large Refactor (Step 5)</td><td>2 (Plan + general)</td><td>~800K</td><td>10-20 min</td><td>MEDIUM - plan approval gate adds safety</td></tr></tbody></table>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="agent-modified-a-file-it-shouldnt-own">“Agent modified a file it shouldn’t own”</h3>
+<p>Add explicit <code>DO NOT MODIFY</code> lists to spawn prompts. List the exact files the agent is forbidden from touching.</p>
+<h3 id="agent-didnt-wait-for-dependency">“Agent didn’t wait for dependency”</h3>
+<p>Use <code>TaskUpdate({ taskId: "X", addBlockedBy: ["Y"] })</code> in the task graph. Don’t rely on instructions alone.</p>
+<h3 id="agent-quality-degraded-mid-task">“Agent quality degraded mid-task”</h3>
+<p>The file is too large for the remaining context. Split the task into smaller pieces. Each agent task should target &lt;5 files.</p>
+<h3 id="tests-fail-after-multi-agent-changes">“Tests fail after multi-agent changes”</h3>
+<p>Run <code>pnpm validate</code> (type-check + lint + build) before committing. Assign a dedicated test-engineer agent to run the full suite last.</p>
+<h3 id="agents-keep-asking-about-project-setup">“Agents keep asking about project setup”</h3>
+<p>Verify CLAUDE.md and AGENTS.md exist in the project root. Teammates inherit these automatically. If they don’t, the instructions say to use pnpm, @/ aliases, etc. — which prevents basic setup questions.</p>
+<h3 id="permission-prompts-interrupting-every-agent">“Permission prompts interrupting every agent”</h3>
+<p>Add all test/lint/build commands to <code>.claude/settings.json</code> permissions allowlist (see Step 0).</p>
+<hr />
+<h2 id="sources">Sources</h2>
+<ul>
+<li><a href="https://code.claude.com/docs/en/agent-teams" target="_blank" rel="noopener noreferrer">Official Claude Code Agent Teams Docs</a></li>
+<li><a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">Claude Code Swarms - Addy Osmani</a></li>
+<li><a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank" rel="noopener noreferrer">Claude Code Agent Teams: The Complete Guide 2026 (claudefa.st)</a></li>
+<li><a href="https://gist.github.com/kieranklaassen/4f2aba89594a4aea4ad64d753984b2ea" target="_blank" rel="noopener noreferrer">Claude Code Swarm Orchestration Skill (kieranklaassen Gist)</a></li>
+<li><a href="https://paddo.dev/blog/claude-code-hidden-swarm/" target="_blank" rel="noopener noreferrer">Claude Code’s Hidden Multi-Agent System (paddo.dev)</a></li>
+<li><a href="https://www.eesel.ai/blog/claude-code-multiple-agent-systems-complete-2026-guide" target="_blank" rel="noopener noreferrer">Claude Code Multiple Agent Systems: Complete 2026 Guide (eesel.ai)</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>

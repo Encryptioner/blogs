@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain-Driven Design — Real Build</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+<style>
+:root{
+  --bg:#0B0E14;
+  --surface:#131826;
+  --elevated:#1A2036;
+  --border:#262D42;
+  --border-light:#333B56;
+  --text:#E8ECF5;
+  --muted:#8D96AE;
+  --dim:#5B6480;
+  --accent:#7C8CFF;
+  --accent-soft:rgba(124,140,255,.12);
+  --accent-glow:rgba(124,140,255,.28);
+  --gold:#F2B84B;
+  --success:#6EE7B7;
+  --danger:#FF8080;
+  --info:#7DD3FC;
+
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:6vh 7vw 10vh 7vw;opacity:0;transform:translateX(40px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.eyebrow.problem{color:var(--danger)}
+.eyebrow.problem::before{background:var(--danger)}
+h1.title{font-weight:800;font-size:clamp(2.2rem,5vw,4rem);line-height:1.06;letter-spacing:-.025em;margin-bottom:12px}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-weight:500;font-size:clamp(1.2rem,2vw,1.55rem);color:var(--muted);margin-bottom:26px;line-height:1.4}
+h3.section{font-weight:800;font-size:clamp(1.45rem,2.7vw,2.15rem);line-height:1.14;letter-spacing:-.02em;margin-bottom:12px}
+h3.section em{font-style:normal;color:var(--accent)}
+h3.section.problem em{color:var(--danger)}
+
+p{font-size:clamp(.95rem,1.22vw,1.1rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.05rem,1.5vw,1.3rem);color:var(--muted);line-height:1.6}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .gold{color:var(--gold)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.caption{font-style:italic;color:var(--muted);font-size:clamp(.86rem,1.08vw,.98rem);line-height:1.55;border-left:2px solid var(--border-light);padding-left:14px;margin-top:10px}
+
+ul.bullets{list-style:none;margin:10px 0}
+ul.bullets li{position:relative;padding-left:24px;margin-bottom:9px;font-size:clamp(.9rem,1.15vw,1.04rem);line-height:1.42}
+ul.bullets li::before{content:'';position:absolute;left:0;top:9px;width:7px;height:7px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--gold);font-weight:600}
+ul.bullets li code{font-family:'JetBrains Mono',monospace;background:var(--surface);padding:1px 6px;border-radius:3px;font-size:.84em;color:var(--accent);border:1px solid var(--border)}
+
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:clamp(.72rem,1.1vw,.86rem);line-height:1.5;color:var(--text);margin:12px 0;position:relative;overflow:auto}
+.code-block::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--accent),transparent)}
+.code-block.problem::before{background:linear-gradient(180deg,var(--danger),transparent)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--success)}
+.code-block .c{color:var(--dim);font-style:italic}
+.code-block .f{color:var(--gold)}
+.code-block .bad{color:var(--danger)}
+pre{white-space:pre}
+
+.table-wrap{overflow-x:auto;margin:12px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.8rem,1.02vw,.94rem)}
+table th{background:var(--elevated);text-align:left;padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600;border-bottom:1px solid var(--border)}
+table td{padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+table tr:last-child td{border-bottom:none}
+table td strong{color:var(--gold)}
+
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:10px 0}
+.callout.accent{border-color:rgba(124,140,255,.35);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.danger{border-color:rgba(255,128,128,.35)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.callout.danger .label{color:var(--danger)}
+
+.fig{margin:12px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface);max-width:100%}
+.fig img{display:block;width:100%;height:auto;cursor:zoom-in;transition:filter .2s;background:#fff}
+.fig img:hover{filter:brightness(1.05)}
+.fig.wide{max-width:760px}
+.fig-caption{font-style:italic;font-size:.9rem;color:var(--muted);padding:9px 15px;border-top:1px solid var(--border)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:12px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+.checklist{list-style:none;margin:14px 0}
+.checklist li{position:relative;padding-left:32px;margin-bottom:10px;font-size:clamp(.92rem,1.18vw,1.05rem);line-height:1.4}
+.checklist li::before{content:'';position:absolute;left:0;top:2px;width:16px;height:16px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:3px;top:5px;width:8px;height:4px;border-left:1.5px solid var(--accent);border-bottom:1.5px solid var(--accent);transform:rotate(-45deg);opacity:.7}
+
+.hero{justify-content:center;align-items:flex-start;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(124,140,255,.35);border-radius:30px;background:var(--accent-soft);margin-bottom:28px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 6px transparent}}
+.hero-meta{margin-top:auto;padding-top:36px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:28px;flex-wrap:wrap}
+.hero-meta .presenter strong{display:block;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.hero-meta .presenter .role{color:var(--muted);font-size:.98rem;line-height:1.5;max-width:460px}
+.hero-meta .hook{font-style:italic;font-size:1rem;color:var(--gold);max-width:400px;line-height:1.5;text-align:right}
+
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
+.ambient .b1{width:600px;height:600px;background:var(--accent);top:-200px;right:-150px}
+.ambient .b2{width:460px;height:460px;background:var(--gold);bottom:-200px;left:-100px;opacity:.08}
+
+.foot{margin-top:auto;padding-top:14px;font-style:italic;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+.foot a{color:var(--dim)}
+
+.flow-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:clamp(.62rem,.95vw,.78rem);line-height:1.45;color:var(--text);overflow:auto}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">11</span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01 / 11</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="dk-kbd-hint">
+  <span class="dk-kbd">←</span><span class="dk-kbd">→</span> navigate · <span class="dk-kbd">O</span> overview · <span class="dk-kbd">F</span> fullscreen · <span class="dk-kbd">G</span> go to
+</div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 -->
+<section class="slide hero" data-active="true" data-title="DDD Real Build">
+  <div class="badge"><span class="dot"></span> DDD Real Build</div>
+  <h1 class="title">Domain-Driven Design — <em>Real Build</em></h1>
+  <h2 class="subtitle">A real proposal, real issues, and what it means for agentic teams.</h2>
+  <div class="hero-meta">
+    <div class="presenter">
+      <strong>Mir Mursalin Ankur</strong>
+      <div class="role">Lead Software Engineer @ Nerddevs Ltd</div>
+    </div>
+    <div class="hook">Northwind is gone. Bengal Lens is a real editorial platform built for a news media house client — modeled with the patterns from <a href="intro.html" class="mono accent" target="_blank" rel="noopener">Intro</a> + <a href="deep-dive.html" class="mono accent" target="_blank" rel="noopener">Deep Dive</a>, and built by handing each bounded context to its own AI agent.</div>
+  </div>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide" data-title="The Proposal">
+  <div class="eyebrow">01 · The Proposal</div>
+  <h3 class="section">I Got a Proposal. <em>DDD Wasn't Part of It.</em></h3>
+  <p>A news media house needed articles to move through a real newsroom workflow — drafted, reviewed, fact-checked, approved, published, sometimes corrected — alongside image handling, search, and a public site that renders it all to readers. The existing codebase was organized by technical concern: a folder for articles, a folder for auth, a folder for media.</p>
+  <div class="callout accent">
+    <div class="label">The call I had to make</div>
+    Nobody said "use Domain-Driven Design." That decision was mine.
+  </div>
+</section>
+
+<!-- SLIDE 3 -->
+<section class="slide" data-title="Deciding the Domain">
+  <div class="eyebrow">02 · Decision</div>
+  <h3 class="section">Reading for Where <em>Language and Lifecycle Diverge</em></h3>
+  <ul class="bullets">
+    <li>Does deleting one thing imply deleting the other? (article ↔ its images: <strong>no</strong>)</li>
+    <li>Is this read completely differently than it's written? (search ↔ the article: <strong>yes</strong>)</li>
+    <li>Does this change on its own schedule, driven by different people? (an account ↔ an article: <strong>yes</strong>)</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Context</th><th>Owns</th><th>Core model</th></tr>
+      <tr><td><strong>Identity</strong></td><td>Users, auth, 2FA, RBAC</td><td class="mono">User, Credentials, Session</td></tr>
+      <tr><td><strong>Editorial</strong> (core)</td><td>draft→review→approve→publish→correct</td><td class="mono">Article, WorkflowState, Version</td></tr>
+      <tr><td><strong>Media</strong></td><td>Upload, processing, storage</td><td class="mono">MediaAsset, ImageVariant</td></tr>
+      <tr><td><strong>Content Discovery</strong></td><td>Search, sitemaps</td><td class="mono">SearchIndex (read model only)</td></tr>
+      <tr><td><strong>Public Delivery</strong></td><td>Rendering, locale, SEO</td><td>none — stateless consumer</td></tr>
+    </table>
+  </div>
+  <p class="caption">Rejected merges: Identity↛Editorial, Media↛Editorial, Discovery↛Editorial, Public Delivery↛Discovery — each kept apart for a stated reason, not by default.</p>
+</section>
+
+<!-- SLIDE 4 -->
+<section class="slide" data-title="Deciding the Standard">
+  <div class="eyebrow">03 · Decision</div>
+  <h3 class="section">What Actually <em>Earns Its Cost Here</em></h3>
+  <ul class="bullets">
+    <li><strong>Aggregates + an aggregate root per context</strong> — one place enforces the rules, not every caller.</li>
+    <li><strong>Clean, one-directional layering</strong> — business rules never import the database, storage, or login system.</li>
+    <li><strong>A translation layer at every boundary</strong> — Editorial only ever sees a small stand-in for a media file.</li>
+    <li><strong>Domain events for cross-context coupling</strong> — in-process first, a shared queue later, streaming only if scale demands it.</li>
+  </ul>
+</section>
+
+<!-- SLIDE 5 -->
+<section class="slide" data-title="Deciding How to Build It">
+  <div class="eyebrow">04 · Decision</div>
+  <h3 class="section">If the Domain Splits Cleanly, <em>Can the Build Split Too?</em></h3>
+  <p>Five independent contexts, modeled separately — the next question: are they independent enough to be <strong>built</strong> separately too, by different workers, without getting in each other's way?</p>
+  <div class="callout accent">
+    <div class="label">The decision</div>
+    Hand each piece to an AI agent starting completely fresh, no memory of a previous piece's decisions. Eight pieces of work on one branch: foundation → Identity → Editorial → Media → Discovery → public site → admin tool → integration.
+  </div>
+</section>
+
+<!-- SLIDE 6 -->
+<section class="slide" data-title="How Agentic AI Can Work">
+  <div class="eyebrow">05 · Framework</div>
+  <h3 class="section">A Framework, <em>Not Just an Anecdote</em></h3>
+  <ul class="bullets">
+    <li>Treat each bounded context as a self-contained unit of work — DDD already gives it its own model and interface.</li>
+    <li>Write the architecture decision down before any agent starts; make reading it step one.</li>
+    <li>Never let a single "all checks passed" report be the only gate — require an independent second look.</li>
+    <li>Require attribution, not just detection, when a check fails — work out what's actually yours before fixing it.</li>
+  </ul>
+  <p class="caption">The rest of this deck is the evidence for why each rule earned its place.</p>
+</section>
+
+<!-- SLIDE 7 -->
+<section class="slide" data-title="How Many Issues Came Up">
+  <div class="eyebrow problem">06 · The Count</div>
+  <h3 class="section problem">Six, <em>Not Three</em></h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>#</th><th>Issue</th><th>Shape</th></tr>
+      <tr><td>1</td><td>A required setup file couldn't be created — a permission restriction</td><td>Environment gap</td></tr>
+      <tr><td>2</td><td>Editorial reported all checks passing; an independent look found real errors</td><td>False-green</td></tr>
+      <tr><td>3</td><td>The first fix for #2 fixed one tool and broke another</td><td>Fix introduced a new mismatch</td></tr>
+      <tr><td>4</td><td>A maintenance task ran into two pre-existing gaps from the still-in-progress build</td><td>Cross-task drift</td></tr>
+      <tr><td>5</td><td>A test still encoded an old design (fixed role list) after the schema moved to free-form roles</td><td>Design drift</td></tr>
+      <tr><td>6</td><td>Two pieces of work disagreed on where transition rules should live</td><td>Ownership drift</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 8 -->
+<section class="slide" data-title="How Each Was Handled">
+  <div class="eyebrow">07 · Resolution</div>
+  <h3 class="section">Actual vs. <em>Standing Practice</em></h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Issue</th><th>How it was handled</th><th>How it should always be handled</th></tr>
+      <tr><td>1 — blocked file</td><td>Flagged, asked for it outside the restriction</td><td>Never bypass a deliberate permission boundary</td></tr>
+      <tr><td>2 — false-green</td><td>Independent tool caught it before the next piece began</td><td>Never advance on a single "passed" report</td></tr>
+      <tr><td>3 — fix broke a tool</td><td>Re-checked everything, fixed the new break</td><td>Re-run every check after any shared-config fix</td></tr>
+      <tr><td>4 — cross-task drift</td><td>Checked history file-by-file before fixing anything</td><td>Attribute before fixing — always</td></tr>
+      <tr><td>5 — stale test</td><td>Recognized the test, not the schema, was outdated</td><td>Ask "which side is actually stale?" first</td></tr>
+      <tr><td>6 — ownership drift</td><td>Checked against the written architecture doc</td><td>Only works if the decision was written down</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 9 -->
+<section class="slide" data-title="How I Applied This">
+  <div class="eyebrow">08 · Applied</div>
+  <h3 class="section">Proposal → Decision → <em>Build → Verification</em></h3>
+  <p>Read the proposal for where language and lifecycle diverged, not where old folders happened to be. Picked patterns for what they cost versus what they protect. Wrote the architecture decision down before any code existed. Split the build to match the contexts, handed each to a fresh AI agent.</p>
+  <p class="caption">Never trusted a single "passed" report — every piece got an independent look before the next began. Resolved disagreements by checking who caused what, or what was actually written down — never by guessing.</p>
+</section>
+
+<!-- SLIDE 10 -->
+<section class="slide" data-title="What Could Be Best">
+  <div class="eyebrow">09 · Looking Forward</div>
+  <h3 class="section">Three Things I'd Make <em>Standing Process</em></h3>
+  <ul class="bullets">
+    <li>A running issue log per context, from day one — not reconstructed afterward.</li>
+    <li>The independent second look as a mandatory gate, not a judgment call.</li>
+    <li>A scheduled, whole-project consistency sweep — not a maintenance task's lucky side effect.</li>
+  </ul>
+  <div class="callout accent">
+    <div class="label">The honest ending</div>
+    None of these three are DDD patterns. They're process discipline sitting on top of a structure that was already sound.
+  </div>
+</section>
+
+<!-- SLIDE 11 -->
+<section class="slide" data-title="Checklist & Resources">
+  <div class="eyebrow">10 · Wrap-Up</div>
+  <h3 class="section">Take It Back to <em>Your Own Workflow</em></h3>
+  <ul class="checklist">
+    <li>Write bounded-context decisions somewhere every piece of work reads first.</li>
+    <li>One bounded context per piece of work by default; split further only across genuinely different technology stacks.</li>
+    <li>Build the independent second look into the process as a standing gate.</li>
+    <li>Attribute before fixing anything an unrelated task's checks turn up.</li>
+    <li>When a test fails, ask whether the test or the design is the one that's outdated.</li>
+    <li>Keep a running issue log per context; schedule whole-project consistency checks.</li>
+  </ul>
+  <div class="callout accent">
+    <div class="label">Remember</div>
+    Simple CRUD apps, short-lived projects, no sustained access to people who understand the domain — none of this, human or agentic, pays for itself there.
+  </div>
+  <div class="foot">Sources: Bengal Lens (built for a news media house client) · ByteByteGo · Nikki Siapno, Level Up Coding · <a class="mono accent" href="https://github.com/Encryptioner/blogs/blob/master/topics/Software%20Architecture/Domain-Driven%20Design/Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Build%2C%20Real%20Drift%2C%20and%20What%20It%20Means%20for%20Agentic%20Teams.md" target="_blank" rel="noopener">↗ Read the blog</a> · <a href="deep-dive.html" target="_blank" rel="noopener">← Back to Deep Dive</a> · <a href="intro.html" target="_blank" rel="noopener">← Back to Intro</a></div>
+</section>
+
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-11">
+</div>
+
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide', reveal: 'attr', canvas: null,
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section,h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+});
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-6-domain-driven-design/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Whisper — A Private AI Chatbot That Lives in Your Browser</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>🤫</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+<style>
+:root{
+  --bg:#0B0913;
+  --surface:#14111F;
+  --elevated:#1B1730;
+  --border:#2A2440;
+  --border-light:#3A3354;
+  --text:#EDEAF5;
+  --muted:#A39DB8;
+  --dim:#6B6580;
+  --accent:#A78BFA;            /* violet — AI */
+  --accent-2:#C4B5FD;
+  --accent-soft:rgba(167,139,250,.12);
+  --accent-glow:rgba(167,139,250,.30);
+  --mint:#34D399;              /* mint — local / private */
+  --mint-soft:rgba(52,211,153,.10);
+  --danger:#FF7B72;
+  --info:#7DB8FF;
+  --warn:#F2CC60;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ambient background blobs */
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.20}
+.ambient .b1{width:620px;height:620px;background:var(--accent);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--mint);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:5vh 6vw 9vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.slide-num .deep{color:var(--warn)}
+h1.title{font-weight:800;font-size:clamp(2.6rem,6vw,5rem);line-height:1.02;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--mint)}
+h2.subtitle{font-weight:400;font-size:clamp(1.2rem,2vw,1.7rem);color:var(--muted);line-height:1.5;margin-bottom:26px;max-width:60ch}
+h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.12;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--mint)}
+
+p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6}
+.muted{color:var(--muted)}
+.dim{color:var(--dim)}
+.accent{color:var(--accent)}
+.mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* bullet lists */
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+/* checklist */
+.checklist{list-style:none;margin:14px 0}
+.checklist li{position:relative;padding-left:34px;margin-bottom:11px;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.45;color:var(--text)}
+.checklist li::before{content:'';position:absolute;left:0;top:3px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li::after{content:'';position:absolute;left:5px;top:7px;width:8px;height:4px;border-left:1.5px solid var(--mint);border-bottom:1.5px solid var(--mint);transform:rotate(-45deg);opacity:.7}
+.checklist li strong{color:var(--mint)}
+
+/* callout cards */
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(167,139,250,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.accent strong{color:var(--accent)}
+.callout.mint{border-color:rgba(52,211,153,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))}
+.callout.mint strong{color:var(--mint)}
+.callout.danger{border-color:rgba(255,123,114,.28);background:linear-gradient(135deg,rgba(255,123,114,.06),var(--elevated))}
+.callout.danger strong{color:var(--danger)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block}
+.callout.danger .label{color:var(--danger)}
+.callout.mint .label{color:var(--mint)}
+
+/* vs / boxes */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,123,114,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(52,211,153,.30)} .box.good h4{color:var(--mint)}
+.box.warn{border-color:rgba(242,204,96,.30)} .box.warn h4{color:var(--warn)}
+.box p{font-size:clamp(.95rem,1.15vw,1.1rem);color:var(--muted);line-height:1.5;margin:0}
+
+/* columns */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.mode p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+/* stat row */
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:140px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num.mint{color:var(--mint)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* code block */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--text);margin:14px 0;line-height:1.7;white-space:pre}
+.code-block .c{color:var(--dim)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--mint)}
+.code-block .f{color:var(--info)}
+
+/* comparison table */
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1.05vw,1rem)}
+thead th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--accent)}
+tbody th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td th{font-weight:600}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(52,211,153,.32)}
+.tag.bad{color:var(--danger);border-color:rgba(255,123,114,.32)}
+.tag.warn{color:var(--warn);border-color:rgba(242,204,96,.32)}
+
+/* ===== architectural image A: system ===== */
+.arch{display:grid;grid-template-columns:1fr 150px 1fr;gap:0;align-items:center;margin:18px 0}
+.arch .panel{border:1px solid var(--border);border-radius:14px;padding:16px 18px;background:linear-gradient(160deg,var(--surface),var(--elevated))}
+.arch .panel.host{border-color:rgba(52,211,153,.42);box-shadow:0 0 34px -14px rgba(52,211,153,.35)}
+.arch .panel.iframe{border-color:rgba(167,139,250,.42);box-shadow:0 0 34px -14px var(--accent-glow)}
+.arch .panel h4{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.arch .panel.host h4{color:var(--mint)}
+.arch .panel.iframe h4{color:var(--accent)}
+.arch .panel h4 .ico{font-size:18px}
+.arch .panel ul{list-style:none}
+.arch .panel ul li{position:relative;padding-left:18px;margin-bottom:8px;font-size:clamp(.9rem,1.12vw,1.05rem);color:var(--muted);line-height:1.4}
+.arch .panel ul li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.arch .panel.host ul li::before{background:var(--mint)}
+.arch .conn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:26px;padding:0 4px}
+.arch .arrow{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'JetBrains Mono',monospace}
+.arch .arrow .glyph{font-size:28px;line-height:1;color:var(--accent)}
+.arch .arrow.left .glyph{color:var(--mint)}
+.arch .arrow .lbl{font-size:11px;color:var(--text);font-weight:600}
+.arch .arrow .via{font-size:10px;color:var(--dim);letter-spacing:.04em}
+@media(max-width:820px){
+  .arch{grid-template-columns:1fr;gap:8px}
+  .arch .conn{flex-direction:row;gap:40px}
+  .arch .arrow.right .glyph,.arch .arrow.left .glyph{transform:rotate(90deg)}
+}
+
+/* ===== architectural image B: pipeline ===== */
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:28px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.78rem,.95vw,.9rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--accent);font-size:22px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){
+  .pipeline{flex-direction:column;align-items:stretch}
+  .pipeline .parr{transform:rotate(90deg);padding:8px 0}
+}
+
+/* hero */
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(167,139,250,.32);border-radius:30px;background:var(--accent-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pill .dot.mint{background:var(--mint)}
+.pill .dot.info{background:var(--info)}
+.pill .dot.warn{background:var(--warn)}
+.hero-meta{margin-top:auto;padding-top:34px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.hero-meta .hook{font-family:'JetBrains Mono',monospace;font-size:.92rem;color:var(--accent)}
+.hero-meta .hook a{color:var(--accent);text-decoration:underline}
+
+/* end links */
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--accent);color:#0B0913;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--accent-glow);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
+
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+
+/* ===== speaker notes (toggle: S key or #notesToggle) ===== */
+.slide aside[data-notes]{display:none !important}
+body.notes-mode .slide[data-active="true"] aside[data-notes]{
+  display:block !important; position:absolute; bottom:14px; left:14px; right:14px;
+  max-height:42%; overflow-y:auto; background:rgba(11,9,19,.95); border:1px solid var(--accent);
+  border-radius:8px; padding:12px 16px; font-family:'Inter',sans-serif; font-size:13px; line-height:1.55;
+  color:var(--text); backdrop-filter:blur(8px); z-index:10;
+}
+body.notes-mode .slide[data-active="true"] aside[data-notes] strong{color:var(--accent)}
+body.notes-mode .slide[data-active="true"] aside[data-notes] p{margin:0 0 6px}
+body.notes-mode .slide[data-active="true"] aside[data-notes] p:last-child{margin:0}
+.notes-toggle{
+  position:fixed; top:16px; left:20px; z-index:100;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--muted);
+  letter-spacing:.10em; text-transform:uppercase; background:rgba(11,9,19,.78);
+  border:1px solid var(--border); border-radius:5px; padding:6px 10px; cursor:pointer;
+  backdrop-filter:blur(8px); user-select:none; transition:all .2s ease;
+}
+.notes-toggle:hover{color:var(--accent); border-color:var(--accent)}
+body.notes-mode .notes-toggle{color:var(--mint); border-color:var(--mint); background:var(--mint-soft)}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum">21</span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01 / 21</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="notes-toggle" id="notesToggle" title="Toggle speaker notes (S)">Notes: off</div>
+
+<div class="dk-kbd-hint">
+  <span class="dk-kbd">←</span><span class="dk-kbd">→</span> navigate · <span class="dk-kbd">O</span> overview · <span class="dk-kbd">G</span> go to · <span class="dk-kbd">S</span> notes · <span class="dk-kbd">F</span> fullscreen
+</div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 · HERO -->
+<section class="slide hero" data-active="true" data-title="Local Whisper">
+  <div class="badge"><span class="dot"></span> A private AI chatbot that lives in your browser</div>
+  <h1 class="title">Local <em>Whisper</em></h1>
+  <h2 class="subtitle">A site-aware chat widget that runs entirely in your visitor's browser — no backend, no API key, no per-token bill — and it answers from your page's own content.</h2>
+  <div class="pills">
+    <span class="pill"><span class="dot mint"></span> 100% local-first</span>
+    <span class="pill"><span class="dot"></span> Site-aware RAG</span>
+    <span class="pill"><span class="dot info"></span> Pluggable scraper</span>
+    <span class="pill"><span class="dot warn"></span> Works offline</span>
+  </div>
+  <div class="hero-meta">
+    <div class="hook">↗ <a href="https://encryptioner.github.io/private-chat/" target="_blank" rel="noopener">Try it live</a> · open-source: <a href="https://github.com/Encryptioner/private-chat" target="_blank" rel="noopener">Encryptioner/private-chat</a></div>
+  </div>
+  <aside data-notes>
+    <p><strong>Open with the one-line promise:</strong> a chatbot that runs in the browser and knows your page — no backend, no bill, no data leaving the device.</p>
+    <p>The four pills are the spine of the whole talk: local-first, site-aware RAG, pluggable, offline. Don't dwell — move straight to the problem.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 2 · THE PROBLEM -->
+<section class="slide" data-title="The problem">
+  <div class="slide-num">02 · THE PROBLEM</div>
+  <h3 class="section">Site chatbots make you <em>pick a pain</em>.</h3>
+  <div class="vs" style="margin-top:14px">
+    <div class="box bad">
+      <h4>⊗ Generic</h4>
+      <p>Pre-built bots know nothing about <em>your</em> content. Ask "what's your refund policy?" on a docs site and you get "I don't have information on that." Useless.</p>
+    </div>
+    <div class="box bad">
+      <h4>$ Leaky &amp; costly</h4>
+      <p>API-powered bots send every visitor question to a third-party server. You pay per token, babysit an API key, and your visitors' questions leave the page.</p>
+    </div>
+  </div>
+  <div class="callout danger">
+    <span class="label">The result</span>
+    Small sites are stuck — too small to build a backend chatbot, too privacy-conscious to ship questions to a cloud API. So they ship nothing.
+  </div>
+  <aside data-notes>
+    <p>Two failure modes, both real and common. Generic bots are useless; API bots leak data and meter every call.</p>
+    <p>The punchline is the callout: <strong>small sites end up with nothing</strong>. That gap is exactly what Local Whisper fills.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 3 · WHAT IT IS -->
+<section class="slide" data-title="What it is">
+  <div class="slide-num">03 · WHAT IT IS</div>
+  <h3 class="section">One <em>&lt;script&gt;</em> tag. A chatbot that knows your page.</h3>
+  <p class="lead">Local Whisper is a floating chat widget. When a visitor asks a question, it reads your page, finds the relevant section, and answers from it — with a link that jumps straight to the answer. The whole thing runs in <em>their</em> browser.</p>
+  <div class="stat-row">
+    <div class="stat"><div class="num">1</div><div class="label">script tag</div></div>
+    <div class="stat"><div class="num mint">0</div><div class="label">backend</div></div>
+    <div class="stat"><div class="num mint">0</div><div class="label">API key</div></div>
+    <div class="stat"><div class="num">100%</div><div class="label">client-side</div></div>
+  </div>
+  <div class="callout mint">
+    <strong>No config required.</strong> Paste the tag, save, refresh — a chat button appears that can already answer from whatever's on the page.
+  </div>
+  <aside data-notes>
+    <p>The fix in one breath: one script tag, it reads the page, answers from it, links back to the section.</p>
+    <p>Hammer the zeros — <strong>no backend, no API key</strong>. That's the entire differentiator. Everything later explains how that's even possible.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 4 · WHY NOT A CHAT API (Image C) -->
+<section class="slide" data-title="Why not a chat API?">
+  <div class="slide-num">04 · WHY FREE + LOCAL, NOT A CHAT API</div>
+  <h3 class="section">A cloud chat API is a <em>backend you rent</em>.</h3>
+  <p class="lead">"Serverless" LLM APIs feel backend-free — but to keep your API key secret you must run a server, and that server is the backend. Then every question costs money and leaks data.</p>
+  <div class="table-wrap compare">
+    <table>
+      <thead><tr>
+        <th></th><th>Chat API (cloud)</th><th>Local server</th><th class="hl">In-browser · Local Whisper</th>
+      </tr></thead>
+      <tbody>
+        <tr><th>Cost</th><td><span class="tag bad">per-token bill</span></td><td><span class="tag warn">server + compute</span></td><td class="hl"><span class="tag good">free</span></td></tr>
+        <tr><th>Privacy</th><td><span class="tag bad">data leaves device</span></td><td><span class="tag warn">your server sees it</span></td><td class="hl"><span class="tag good">never leaves device</span></td></tr>
+        <tr><th>Infra / upkeep</th><td><span class="tag warn">key-hiding proxy</span></td><td><span class="tag bad">run &amp; patch a box</span></td><td class="hl"><span class="tag good">none — static host</span></td></tr>
+        <tr><th>Knows your content</th><td><span class="tag warn">needs a RAG backend</span></td><td><span class="tag good">if you build it</span></td><td class="hl"><span class="tag good">built-in, client-side</span></td></tr>
+        <tr><th>Works offline</th><td><span class="tag bad">no</span></td><td><span class="tag bad">no</span></td><td class="hl"><span class="tag good">yes, after cache</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside data-notes>
+    <p>Walk the table top-to-bottom. The key insight people miss: a "serverless" LLM API still forces you to run a key-hiding server — <strong>that's a backend</strong>.</p>
+    <p>The in-browser column wins every row. This slide is the economic + privacy case; the next is the "why on the device, not a server" case.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 5 · WHY IN THE BROWSER -->
+<section class="slide" data-title="Why in the browser?">
+  <div class="slide-num">05 · WHY IN THE BROWSER?</div>
+  <h3 class="section">Why not just run a model on a <em>$5 server</em>?</h3>
+  <p class="lead">"Local" can mean a server you run, or the browser itself. For a site owner with a static page, the browser wins on every axis that matters.</p>
+  <div class="two-col">
+    <ul class="bullets">
+      <li><strong>Static hosts can't run backends.</strong> <span class="muted">GitHub Pages, Netlify, a CDN portfolio — no server process exists. A chat server means leaving static hosting behind.</span></li>
+      <li><strong>Infra is real work.</strong> <span class="muted">Provision, scale, keep a box alive, secure and patch it. That's a side-project of its own.</span></li>
+      <li><strong>The visitor's device is free compute.</strong> <span class="muted">Modern phones and laptops run a small LLM fine — why pay for a server when the user already has a CPU?</span></li>
+      <li><strong>Privacy scales for free.</strong> <span class="muted">"Your data never leaves your device" is automatically true when there's no server for it to leave to.</span></li>
+    </ul>
+    <div class="callout accent">
+      <span class="label">The shift</span>
+      Move the work from <strong>your server</strong> (which costs you money and sees user data) to <strong>the visitor's device</strong> (which is free and already trusted with the data). The site owner ships a script tag, not a server.
+    </div>
+  </div>
+  <aside data-notes>
+    <p>Pre-empt the obvious objection: "why not a cheap server?" Four reasons — static hosts can't, infra is real work, the visitor's CPU is free, and privacy is automatic.</p>
+    <p>The mental shift in the callout is the takeaway: <strong>move compute to the device</strong>. The site owner ships a script tag, not a server.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 6 · ARCHITECTURE (Image A) -->
+<section class="slide" data-title="Architecture">
+  <div class="slide-num">06 · ARCHITECTURE</div>
+  <h3 class="section">Two contexts, one <em>postMessage</em> bridge.</h3>
+  <p class="lead">The widget is a sandboxed iframe — it can't read a cross-origin parent page directly. So a tiny script (<span class="mono">embed.js</span>) runs in the host page instead, where it's always same-origin to itself, scrapes the content, and hands it over.</p>
+  <div class="arch">
+    <div class="panel host">
+      <h4><span class="ico">🌐</span> Your page (host)</h4>
+      <ul>
+        <li><span class="mono">embed.js</span> runs here — same-origin to itself</li>
+        <li>Scrapes visible content into sections</li>
+        <li>Scrolls to the section on link click</li>
+      </ul>
+    </div>
+    <div class="conn">
+      <div class="arrow right"><span class="lbl">sections</span><span class="glyph">→</span><span class="via">postMessage</span></div>
+      <div class="arrow left"><span class="via">scroll-to</span><span class="glyph">←</span><span class="lbl">link click</span></div>
+    </div>
+    <div class="panel iframe">
+      <h4><span class="ico">🤖</span> Chat widget (iframe)</h4>
+      <ul>
+        <li>React app + Wllama (WebAssembly)</li>
+        <li>chunk → embed → retrieve → ground</li>
+        <li>Answer + "Related sections" links</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    This split is <strong>why it works on any site</strong>: the scraper lives where the page is readable, the model lives where it can run sandboxed. Neither privilege is violated.
+  </div>
+  <aside data-notes>
+    <p>The cleverest part of the design. An iframe <strong>cannot</strong> read a cross-origin parent — browser security forbids it. So <code>embed.js</code> runs in the host page instead, where it's same-origin to itself and can always scrape.</p>
+    <p>Content crosses to the iframe via <code>postMessage</code> (which works cross-origin). Neither side breaks its security model. That's the whole trick.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 7 · HOW THE CHAT WORKS -->
+<section class="slide" data-title="How the chat works">
+  <div class="slide-num">07 · HOW THE CHAT WORKS</div>
+  <h3 class="section">A real LLM, loaded as <em>WebAssembly</em>.</h3>
+  <div class="two-col">
+    <ul class="bullets">
+      <li><strong>GGUF model → Wllama → WebAssembly.</strong> <span class="muted">The model file is compiled to WASM and runs on the visitor's CPU. No server round-trip per message.</span></li>
+      <li><strong>Tiny by design.</strong> <span class="muted">Default is <span class="mono">Gemma 3 270M</span> (~278MB); presets run 270M → 1B — small enough to download once and keep.</span></li>
+      <li><strong>Cached = offline.</strong> <span class="muted">After the first load the model is in the browser cache; the widget works with no network.</span></li>
+      <li><strong>You can swap it.</strong> <span class="muted">Upload a different <span class="mono">.gguf</span> (up to 2GB) — bigger model, smarter answers, more RAM.</span></li>
+    </ul>
+    <div class="code-block"><span class="c"># the whole inference path, no server:</span>
+<span class="f">model.gguf</span>
+   <span class="k">→</span> Wllama <span class="c">(WASM)</span>
+   <span class="k">→</span> visitor's CPU
+   <span class="k">→</span> answer <span class="s">in the widget</span></div>
+  </div>
+  <aside data-notes>
+    <p>Demystify "AI in the browser": it's a real LLM, compiled to WebAssembly, running on the visitor's CPU. No server round-trip per message.</p>
+    <p>Default is Gemma 3 270M (~278MB); the preset lineup runs 270M → 1B (Gemma, Llama 3.2, Qwen3, SmolLM2). Bigger = smarter but more RAM. <strong>Next slide explains the engine itself.</strong></p>
+  </aside>
+</section>
+
+<!-- SLIDE 8 · WHY WLLAMA -->
+<section class="slide" data-title="Why Wllama">
+  <div class="slide-num">08 · THE ENGINE — WHY WLLAMA</div>
+  <h3 class="section">Why <em>Wllama</em> — and how it actually runs.</h3>
+  <div class="two-col">
+    <ul class="bullets">
+      <li><strong>It's llama.cpp, compiled to WebAssembly.</strong> <span class="muted">Wllama wraps the same ggml / llama.cpp core that runs Llama-class models natively — real inference, not a toy demo.</span></li>
+      <li><strong>No GPU, no server.</strong> <span class="muted">Runs on the visitor's CPU, inside their tab. The browser <em>is</em> the runtime.</span></li>
+      <li><strong>Multi-threaded, off the main thread.</strong> <span class="muted">A Web Worker + SharedArrayBuffer use several cores — inference doesn't freeze the page.</span></li>
+      <li><strong>Streams both ways.</strong> <span class="muted">Model chunks stream in; tokens stream out. The first answer starts before the whole model is cached.</span></li>
+      <li><strong>GGUF-native.</strong> <span class="muted">Loads standard Hugging Face GGUF files — swap models by swapping a file, no recompile.</span></li>
+    </ul>
+    <div class="code-block"><span class="c">// how a model reaches the user</span>
+<span class="f">GGUF</span> model file
+   <span class="k">↓</span>
+<span class="f">llama.cpp</span> / ggml  <span class="c">(C++ core)</span>
+   <span class="k">↓</span>  Emscripten →
+<span class="k">WebAssembly</span> module
+   <span class="k">↓</span>  runs in a Web Worker
+visitor CPU  <span class="c">(multi-threaded)</span>
+   <span class="k">↓</span>
+<span class="s">streamed answer in the widget</span></div>
+  </div>
+  <div class="callout accent">
+    Wllama is the bridge that makes "a real LLM in a browser tab" practical — the same inference code people run on servers, retargeted to WASM.
+  </div>
+  <aside data-notes>
+    <p><strong>Why this engine, not a from-scratch one:</strong> Wllama is <code>llama.cpp</code> (the ggml core) compiled to WebAssembly — i.e. the same battle-tested inference code that runs Llama-class models on servers and laptops, just retargeted to the browser.</p>
+    <p>Two details worth saying aloud: it runs in a <strong>Web Worker with SharedArrayBuffer</strong> so it uses multiple cores without freezing the UI, and it <strong>streams</strong> — model chunks in, tokens out. <em>(That multi-core WASM is exactly what needs the COEP/COOP headers from the boundaries slide.)</em> Next slide is the optional deep dive on how this compares to Ollama and friends.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 9 · DEEP DIVE: LOCAL-LLM LANDSCAPE (NEW) -->
+<section class="slide" data-title="Deep dive: local-LLM landscape">
+  <div class="slide-num"><span class="deep">09 · DEEP DIVE</span> — THE LOCAL-LLM LANDSCAPE</div>
+  <h3 class="section">Wllama vs <em>Ollama</em> vs the rest.</h3>
+  <p class="lead">Several runtimes can run an LLM on your own machine. They split on one question — <strong>does it need installing?</strong> — and that decides whether it can power a chatbot embedded on someone else's static website.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Runtime</th><th>How it runs</th><th>Install on visitor's device?</th><th>Powers an embedded site widget?</th>
+      </tr></thead>
+      <tbody>
+        <tr><th>Wllama <span class="dim">(this project)</span></th><td>llama.cpp → <strong>WebAssembly</strong>, in a Web Worker</td><td><span class="tag good">no — loads with the page</span></td><td class="hl"><span class="tag good">✓ the pick</span></td></tr>
+        <tr><th>WebLLM</th><td>MLC-compiled models → WebGPU / WASM, in-browser</td><td><span class="tag good">no</span></td><td><span class="tag warn">alt in-browser engine</span></td></tr>
+        <tr><th>transformers.js</th><td>ONNX Runtime in-browser (WASM / WebGPU)</td><td><span class="tag good">no</span></td><td><span class="tag warn">embeddings more than chat</span></td></tr>
+        <tr><th>Ollama</th><td>native llama.cpp app + local REST server (<span class="mono">localhost:11434</span>)</td><td><span class="tag bad">yes — app + running process</span></td><td><span class="tag bad">✗ visitor must install it</span></td></tr>
+        <tr><th>LM Studio</th><td>desktop GUI + OpenAI-compatible local server</td><td><span class="tag bad">yes — app + running process</span></td><td><span class="tag bad">✗ visitor must install it</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout accent">
+    <strong>The crux:</strong> Ollama and LM Studio are excellent — for running a model on <em>your</em> machine (bigger models, GPU, very fast). They can't power a widget on a stranger's static site, because every visitor would need them installed and running. Wllama is the one that runs on the visitor's device with zero install — which is the whole point of Local Whisper.
+  </div>
+  <aside data-notes>
+    <p><strong>Optional deep-dive slide</strong> — skip for a short talk. The landscape of "run an LLM locally" splits cleanly on one question: <em>does it need installing?</em></p>
+    <p>In-browser engines (Wllama, WebLLM, transformers.js) need no install → can embed in any site. Native runtimes (Ollama, LM Studio) are faster and run bigger models (real CPU/GPU) but require an app + a running localhost server on each machine — fine for <em>your</em> laptop or a desktop app, impossible for a public website's visitors.</p>
+    <p>Wllama over WebLLM here: GGUF/llama.cpp ecosystem (matches Hugging Face model availability), mature multi-threaded WASM. WebLLM's edge is WebGPU acceleration where browsers support it. Ollama's architecture: <code>llama.cpp</code> wrapped as a native app exposing a REST API on <code>localhost:11434</code> — your code calls it like a local OpenAI.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 10 · THE GAP -->
+<section class="slide" data-title="The gap">
+  <div class="slide-num">10 · THE GAP</div>
+  <h3 class="section">A general model <em>doesn't know your content</em>.</h3>
+  <p class="lead">Ask "what's your refund policy?" and a generic model will happily invent one. It's smart about language, not about <em>your</em> site. So you have to teach it — and there are two ways.</p>
+  <div class="vs">
+    <div class="box warn">
+      <h4>Option A · Train</h4>
+      <p>Bake your content into the model's weights (fine-tuning). The model <em>memorizes</em> your site.</p>
+    </div>
+    <div class="box good">
+      <h4>Option B · Retrieve</h4>
+      <p>Hand the model the right snippet at question time (RAG). The model <em>reads</em> your site on demand.</p>
+    </div>
+  </div>
+  <div class="callout">
+    Next two slides: why Option A doesn't work in a browser, and why Option B is the whole point of this project.
+  </div>
+  <aside data-notes>
+    <p>Set up the RAG motivation. A general model is fluent but ignorant of your content — ask a policy question and it <strong>hallucinates</strong> a plausible-sounding wrong answer.</p>
+    <p>Frame the two ways to fix that: <strong>train</strong> (memorize) vs <strong>retrieve</strong> (read on demand). The next slide disposes of training for the browser case.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 11 · WHY NOT TRAIN -->
+<section class="slide" data-title="Why not train a model?">
+  <div class="slide-num">11 · WHY NOT TRAIN A MODEL?</div>
+  <h3 class="section">Teaching a model your content by <em>training</em> doesn't fit the browser.</h3>
+  <ul class="bullets">
+    <li><strong>Training is heavy.</strong> <span class="muted">Fine-tuning needs GPU clusters and hours-to-days — not a visitor's laptop on a Tuesday.</span></li>
+    <li><strong>It's per-site.</strong> <span class="muted">You'd retrain for every site, and again for every content update. A blog-post edit would mean a retrain.</span></li>
+    <li><strong>Browsers are RAM/CPU bounded.</strong> <span class="muted">Even <em>running</em> a tiny model is near the ceiling; training one is off the table.</span></li>
+    <li><strong>It breaks the promise.</strong> <span class="muted">Real training wants your data centralized — exactly the server + data-leaving-device setup Local Whisper exists to avoid.</span></li>
+    <li><strong>The models are tiny by design.</strong> <span class="muted">A 270M model can't absorb deep site knowledge through weights without forgetting how to talk.</span></li>
+  </ul>
+  <div class="callout danger">
+    <span class="label">The reframe</span>
+    We don't need the model to <strong>remember</strong> your site — we need it to <strong>read</strong> your site on demand. That's a different (and far cheaper) problem.<br><br>
+    <span class="dim">Deep dive:</span> <a href="https://github.com/Encryptioner/private-chat/blob/main/docs/CUSTOM-MODEL-TRAINING.md" target="_blank" rel="noopener">the project's custom-training R&amp;D notes</a> — why RAG + <span class="mono">persona</span> already cover what training would, with zero training.
+  </div>
+  <aside data-notes>
+    <p>Knock out Option A methodically. Training needs GPUs + hours, must repeat per-site and per-update, hits the browser's RAM ceiling, and — critically — wants data centralized, which <strong>breaks the no-backend promise</strong>.</p>
+    <p>Land the reframe: we don't need the model to <em>remember</em> the site, we need it to <em>read</em> the site on demand. And if someone genuinely wants their "brand voice," the answer isn't training — it's the shipped <code>persona</code> config (next slides). The linked R&amp;D doc makes the full case.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 12 · SO RAG -->
+<section class="slide" data-title="So we retrieve, not memorize">
+  <div class="slide-num">12 · SO WE RETRIEVE, NOT MEMORIZE</div>
+  <h3 class="section">RAG: hand the model the <em>right paragraph</em>, then let it talk.</h3>
+  <p class="lead"><strong>Retrieval-Augmented Generation.</strong> Instead of baking knowledge into weights, we keep your page as text, find the relevant chunk for each question, and paste it into the model's context. The model stays general; your content stays fresh.</p>
+  <div class="stat-row">
+    <div class="stat"><div class="num">0</div><div class="label">training</div></div>
+    <div class="stat"><div class="num mint">↻</div><div class="label">re-scrape to update</div></div>
+    <div class="stat"><div class="num">cite</div><div class="label">grounded answers</div></div>
+    <div class="stat"><div class="num mint">🔗</div><div class="label">linkable</div></div>
+  </div>
+  <div class="callout accent">
+    <strong>Why it wins here:</strong> works with a tiny model, updates the instant your page changes, grounds every answer in real text (less invention), and stays 100% in the browser. It's the only option that fits all the constraints at once.
+  </div>
+  <aside data-notes>
+    <p>The heart of the project. RAG = keep the page as text, find the relevant chunk per question, paste it into the model's context. The model stays general and small; the content stays fresh because it's just text on a page.</p>
+    <p>Why it wins <em>here</em>: it's the only option that satisfies every constraint at once — tiny model, instant updates, grounded answers, fully in-browser.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 13 · HOW RAG WORKS (Image B) -->
+<section class="slide" data-title="How RAG works">
+  <div class="slide-num">13 · HOW RAG WORKS</div>
+  <h3 class="section">Five steps, all in the visitor's <em>browser</em>.</h3>
+  <div class="pipeline">
+    <div class="step"><div class="ico">📄</div><h5>Scrape</h5><p>read the page into sections</p></div>
+    <div class="parr">→</div>
+    <div class="step"><div class="ico">✂️</div><h5>Chunk</h5><p>split into passages</p></div>
+    <div class="parr">→</div>
+    <div class="step"><div class="ico">🔢</div><h5>Embed</h5><p>bge-small → vectors</p></div>
+    <div class="parr">→</div>
+    <div class="step"><div class="ico">🔍</div><h5>Retrieve</h5><p>top-k matches</p></div>
+    <div class="parr">→</div>
+    <div class="step"><div class="ico">💬</div><h5>Ground</h5><p>answer + links</p></div>
+  </div>
+  <div class="callout">
+    The embedder (<span class="mono">bge-small</span>, ~35MB) is a <strong>separate model</strong> from the chat model — it loads lazily on the first grounded question, then its vectors are cached in the visitor's IndexedDB. Repeat questions are instant.
+  </div>
+  <aside data-notes>
+    <p>Walk the five steps left-to-right. Scrape → chunk → embed → retrieve top-k → ground the answer and attach "Related sections" links.</p>
+    <p>The detail that surprises people: the embedder (<code>bge-small</code>, ~35MB) is a <strong>second model</strong>, separate from the chat model. It loads lazily on the first grounded question, then vectors cache in IndexedDB — so the second question on the same page is instant.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 14 · THE TECHNIQUES, NAMED -->
+<section class="slide" data-title="The techniques, named">
+  <div class="slide-num">14 · THE TECHNIQUES, NAMED</div>
+  <h3 class="section">Six techniques do the <em>heavy lifting</em>.</h3>
+  <p class="lead">Each is a deliberate choice. Named here so you recognize them anywhere else you meet them — and can tell they're standard building blocks, not magic.</p>
+  <div class="three-col">
+    <div class="mode"><span class="tech">① WebAssembly inference</span><p>The LLM core (llama.cpp) compiled to WASM, runs on the CPU. No install, no GPU, no plugin.</p></div>
+    <div class="mode"><span class="tech">② Sandboxed iframe + postMessage</span><p>The widget is isolated; the host script bridges content cross-origin. The security boundary that makes "any site" work.</p></div>
+    <div class="mode"><span class="tech">③ Vector embeddings + retrieval</span><p>Text → vectors (bge-small); find the nearest chunks by similarity. How "relevant" is measured.</p></div>
+  </div>
+  <div class="three-col">
+    <div class="mode"><span class="tech">④ IndexedDB vector cache</span><p>Embeddings persist across visits; repeat questions skip the work entirely.</p></div>
+    <div class="mode"><span class="tech">⑤ COEP / COOP isolation</span><p>Cross-origin headers that unlock SharedArrayBuffer (multi-threaded WASM). The one fiddly requirement.</p></div>
+    <div class="mode"><span class="tech">⑥ Lazy loading</span><p>The ~35MB embedder loads on the first grounded question, not on page load. Fast first paint.</p></div>
+  </div>
+  <aside data-notes>
+    <p>This is the <strong>"underline the techniques"</strong> slide — name each building block so the audience can google it later and sees there's no magic.</p>
+    <p>Call out #5 especially: COEP/COOP is the one requirement that can be fiddly on some static hosts, because multi-threaded WASM (SharedArrayBuffer) demands cross-origin isolation. It's also why a "server backend" isn't secretly hiding in there.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 15 · PLUGGABLE -->
+<section class="slide" data-title="Pluggable chatbot">
+  <div class="slide-num">15 · PLUGGABLE CHATBOT</div>
+  <h3 class="section">Bring your own <em>scraper</em> — or use the built-in one.</h3>
+  <div class="two-col">
+    <ul class="bullets">
+      <li><strong>Default scraper</strong> reads visible text grouped under each heading — covers most sites, zero config.</li>
+      <li><strong>Override with <span class="mono">getSections</span></strong> for a CMS, a JSON-LD block, an API, or a specific content region.</li>
+      <li><strong>Custom voice or brand?</strong> Set <span class="mono">PRIVATE_CHAT_CONFIG.persona</span> — one config line, no training.</li>
+      <li><strong>Runs in your page's context</strong> — so it can fetch your own APIs and await async data.</li>
+      <li><strong>Degrades gracefully</strong> — throw or return empty, the widget falls back to plain chat. No crash.</li>
+    </ul>
+    <div class="code-block"><span class="c">// your page, before the embed script</span>
+<span class="k">window</span>.PRIVATE_CHAT_CONFIG = {
+  <span class="f">persona</span>: <span class="s">"Friendly, concise, calls me Acme"</span>,
+  <span class="f">getSections</span>: <span class="k">async</span> (doc) =&gt; [
+    { <span class="f">anchor</span>: <span class="s">"pricing"</span>,
+      <span class="f">title</span>: <span class="s">"Pricing"</span>,
+      <span class="f">text</span>: <span class="s">"…the section text…"</span> }
+  ]
+};</div>
+  </div>
+  <aside data-notes>
+    <p>"Pluggable" means: the default scraper works out of the box, but a site owner can swap in their own via <code>getSections</code> — for a CMS, JSON-LD, an API, or a specific content region.</p>
+    <p>And the answer to "I want my brand voice" is <strong>not training</strong> — it's the shipped <code>persona</code> config, one line. Reassure too: the scraper runs in <strong>their</strong> page context, and if it fails the widget <strong>degrades to plain chat, never crashes</strong>.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 16 · WHOLE-SITE -->
+<section class="slide" data-title="Whole-site awareness">
+  <div class="slide-num">16 · BEYOND ONE PAGE</div>
+  <h3 class="section">One widget, the <em>whole site</em>.</h3>
+  <ul class="bullets">
+    <li><strong>Static cross-page index.</strong> <span class="muted">Drop a <span class="mono">site-index.json</span> next to your page (built by the bundled crawler — Node, or Python via Scrapling) and the widget answers across pages, not just the current one.</span></li>
+    <li><strong>SPA-aware.</strong> <span class="muted">On client-side navigation (React / Vue routers) it re-scrapes automatically — no stale content after a route change.</span></li>
+    <li><strong>Links go to the right place.</strong> <span class="muted">A hit on another page links there with an anchor, then scrolls the visitor to the exact section.</span></li>
+  </ul>
+  <div class="callout mint">
+    <strong>Default: just the current page.</strong> Add a <span class="mono">site-index.json</span> only when you want cross-page answers — everything else works with zero configuration.
+  </div>
+  <aside data-notes>
+    <p>One widget can cover the whole site, not just one page. Two mechanisms: a static <code>site-index.json</code> (built by the bundled crawler — a Node script, or Python via Scrapling) for cross-page answers, and automatic re-scrape on SPA route changes.</p>
+    <p>Reassure: the default is still just-the-current-page. Cross-page is opt-in via one JSON file.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 17 · THREE MODES -->
+<section class="slide" data-title="Three running modes">
+  <div class="slide-num">17 · THREE RUNNING MODES</div>
+  <h3 class="section">Same widget, <em>any deployment</em>.</h3>
+  <div class="three-col">
+    <div class="mode">
+      <h4>① Cross-origin embed</h4>
+      <p>Widget on <em>your</em> domain. <span class="mono">embed.js</span> scrapes the host and bridges via <span class="mono">postMessage</span>. <strong>The common case.</strong></p>
+    </div>
+    <div class="mode">
+      <h4>② Same-origin embed</h4>
+      <p>Widget served from the same origin (e.g. the portfolio). Iframe-side scrape is the fallback — same effect, simpler path.</p>
+    </div>
+    <div class="mode">
+      <h4>③ Standalone</h4>
+      <p>The app at its own URL, no embed. Plain general chat, no RAG — your private, offline ChatGPT-in-a-tab.</p>
+    </div>
+  </div>
+  <div class="callout">
+    All three are exercised by the test suite. The RAG path only activates in the two embed modes — standalone is a general assistant.
+  </div>
+  <aside data-notes>
+    <p>Same widget, three deployments. Cross-origin embed is the common case (widget on your domain). Same-origin is a simpler path when the widget shares the origin. Standalone is just the app at its own URL — a private, offline general chat with no RAG.</p>
+    <p>Note: RAG only activates in the two embed modes. Standalone is a general assistant.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 18 · SMALL STATIC SITES (benefit centerpiece) -->
+<section class="slide" data-title="Where it shines">
+  <div class="slide-num">18 · WHERE IT SHINES</div>
+  <h3 class="section">Built for the <em>small static site</em>.</h3>
+  <p class="lead">If your site is a portfolio, a docs page, or a landing page on GitHub Pages or Netlify — you can't run a backend chatbot and you don't want an API bill. Local Whisper is the chatbot that fits <em>that</em> world.</p>
+  <div class="vs">
+    <div class="box good">
+      <h4>✓ One script tag, zero config</h4>
+      <p>Drop it in, save, refresh — a chatbot that already knows your page.</p>
+    </div>
+    <div class="box good">
+      <h4>✓ No backend to run</h4>
+      <p>Static hosting stays static. Nothing to provision, scale, or keep awake.</p>
+    </div>
+    <div class="box good">
+      <h4>✓ No bill</h4>
+      <p>The visitor's CPU does the work — not your wallet. Free at any traffic level.</p>
+    </div>
+    <div class="box good">
+      <h4>✓ Private by default</h4>
+      <p>Questions never leave the device. Ideal for portfolios, docs, small-business sites — anywhere trust matters.</p>
+    </div>
+  </div>
+  <aside data-notes>
+    <p>The payoff slide — where all the "why" answers converge on a concrete user. <strong>A portfolio or docs site on GitHub Pages can finally have a chatbot that knows its content</strong>, free and private.</p>
+    <p>Personify it: "a developer's resume site, on free static hosting, with a chatbot that answers 'what did you work on at Nerddevs?' from the page itself." That's the image to leave them with.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 19 · WIDER POSSIBILITIES -->
+<section class="slide" data-title="Wider possibilities">
+  <div class="slide-num">19 · WIDER POSSIBILITIES</div>
+  <h3 class="section">Where else this <em>unlocks</em> something.</h3>
+  <div class="three-col">
+    <div class="mode"><h4>📘 Internal wikis &amp; docs</h4><p>Searchable by natural-language question, fully offline-capable, on-prem. No data egress.</p></div>
+    <div class="mode"><h4>🎓 Education</h4><p>A tutor that reads the lesson and answers from it — runs on a student's offline laptop.</p></div>
+    <div class="mode"><h4>📡 Kiosks &amp; offline</h4><p>Museums, field tools, confined networks. Once cached, no network needed at all.</p></div>
+  </div>
+  <div class="three-col">
+    <div class="mode"><h4>🏥 Regulated (health / finance)</h4><p>"Data never leaves the device" becomes the feature, not a constraint compliance fights.</p></div>
+    <div class="mode"><h4>🛠️ Local dev tools</h4><p>A chat that knows your README and docs without phoning home — pair it with any local project.</p></div>
+    <div class="mode"><h4>🌐 Personal sites</h4><p>Resumes, blogs, link-in-bio pages — give visitors a way to ask instead of scroll.</p></div>
+  </div>
+  <div class="callout accent">
+    <strong>The pattern:</strong> anywhere "private," "free," "offline," or "static-hosted" is the constraint — in-browser RAG turns it from a blocker into a feature.
+  </div>
+  <aside data-notes>
+    <p>Broaden the lens beyond small static sites. Each card is a place where one of the constraints (private / free / offline / static-hosted) is the blocker — and in-browser RAG flips it into the feature.</p>
+    <p>If the audience is enterprise-leaning, lean on the regulated + internal-docs cards: "data never leaves the device" stops being a compliance fight and becomes the selling point.</p>
+  </aside>
+</section>
+
+<!-- SLIDE 20 · HONEST BOUNDARIES -->
+<section class="slide" data-title="Honest boundaries">
+  <div class="slide-num">20 · HONEST BOUNDARIES</div>
+  <h3 class="section">What it <em>can't</em> do (yet).</h3>
+  <p class="lead">Said out loud so the rest of this deck reads as honest, not salesy.</p>
+  <div class="two-col">
+    <ul class="bullets">
+      <li><strong>Tiny models hallucinate.</strong> <span class="muted">270M params is sharp for its size, but it'll make things up. RAG <em>grounds</em> it; it doesn't guarantee perfection.</span></li>
+      <li><strong>Retrieval is brute-force.</strong> <span class="muted">It scans all chunks — very large sites will feel it in latency and memory.</span></li>
+      <li><strong>Needs COEP / COOP headers.</strong> <span class="muted">Cross-origin isolation is a WebAssembly requirement; some hosts make this fiddly.</span></li>
+    </ul>
+    <ul class="bullets">
+      <li><strong>First-question latency.</strong> <span class="muted">The ~35MB embedder loads on the first grounded question (then it's cached).</span></li>
+      <li><strong>No deep multi-step reasoning.</strong> <span class="muted">It reads and answers. It doesn't plan long agentic chains or run tools.</span></li>
+      <li><strong>Browser memory ceiling.</strong> <span class="muted">A bigger model is smarter — until the tab runs out of RAM. There's a real trade-off curve.</span></li>
+    </ul>
+  </div>
+  <div class="callout">
+    None of these are fatal — they're the honest cost of "100% in the browser, zero backend." The project picks that trade on purpose.
+  </div>
+  <aside data-notes>
+    <p>The honesty beat — say the limits out loud so the rest of the deck reads as credible. Pair each limit with the "why": tiny model → hallucination (RAG grounds, doesn't fix); brute-force retrieval → large-site latency; COEP/COOP → the one hosting friction; first-question latency; no deep reasoning; RAM ceiling.</p>
+    <p>Close with the callout: <strong>none fatal — they're the honest cost of "100% in-browser, zero backend," chosen on purpose.</strong></p>
+  </aside>
+</section>
+
+<!-- SLIDE 21 · RECAP + LINKS -->
+<section class="slide hero" data-title="Recap">
+  <div class="slide-num">21 · RECAP</div>
+  <h3 class="section">Local Whisper, in <em>one line</em>.</h3>
+  <p class="lead">A chat widget that runs a real LLM in your visitor's browser, reads your page, and answers from it — with links. No backend, no API key, no bill, no data leaving the device.</p>
+  <ul class="checklist" style="max-width:64ch">
+    <li><strong>Why not a chat API:</strong> it's a rented backend — key to hide, per-token cost, data leaks.</li>
+    <li><strong>Why in the browser:</strong> static hosts can't run servers; the visitor's CPU is free, private compute.</li>
+    <li><strong>Why Wllama (not Ollama):</strong> llama.cpp compiled to WASM — the only local runtime that runs on a visitor's device with zero install.</li>
+    <li><strong>Why not training:</strong> heavy, per-site, breaks the no-backend promise — <span class="mono">persona</span> + RAG already cover it.</li>
+    <li><strong>Why RAG:</strong> grounded, fresh on re-scrape, linkable — and fits a tiny model, in-browser.</li>
+    <li><strong>Pluggable:</strong> default scraper works; <span class="mono">getSections</span> + <span class="mono">persona</span> give full control.</li>
+  </ul>
+  <div class="end-links">
+    <a class="primary" href="https://encryptioner.github.io/private-chat/" target="_blank" rel="noopener">↗ Try Local Whisper live</a>
+    <a class="ghost" href="https://github.com/Encryptioner/private-chat" target="_blank" rel="noopener">↗ Source · Encryptioner/private-chat</a>
+    <a class="ghost" href="https://github.com/Encryptioner/private-chat/blob/main/docs/SITE-INTEGRATION.md" target="_blank" rel="noopener">↗ Integration guide (SITE-INTEGRATION.md)</a>
+    <a class="ghost" href="https://github.com/Encryptioner/private-chat/blob/main/docs/CUSTOM-MODEL-TRAINING.md" target="_blank" rel="noopener">↗ Deep dive · custom model training notes</a>
+    <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+  </div>
+  <aside data-notes>
+    <p>Land the one-liner, then walk the "why" checklist — that's the memorable spine. Note the Wllama-vs-Ollama line: only Wllama runs on the visitor's device with zero install.</p>
+    <p>End with the call to action: point to the live site and the integration guide, and invite them to drop the one script tag on their own site and see it answer.</p>
+  </aside>
+</section>
+
+</div>
+
+<!-- Goto -->
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-21">
+</div>
+
+<!-- Lightbox -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- Overview -->
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-kbd-hint,.dk-lightbox,.dk-overview,.callout,.code-block,.arch,.pipeline,.table-wrap,table,.vs,.box,.three-col,.mode,.stat-row,.end-links,.notes-toggle,aside',
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  notes: { toggle: '#notesToggle', cls: 'notes-mode' }
+});
+</script>
+</body>
+</html>

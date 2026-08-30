@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 06 — Sessions, Sync & Platform Actions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Sessions, Sync & Platform">
+    <span class="badge"><span class="dot"></span> Deck 06 · branchdiff features</span>
+    <h1 class="title">Kill the <em>tab-switching tax</em>.</h1>
+    <h2 class="subtitle">Persistent sessions, two-way comment sync, the full PR lifecycle from one toolbar, and branches fetched before comparison — twenty tab switches collapsed into one.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">session</span> main..feature</span>
+      <span><span class="mono">port</span> 5391</span>
+      <span><span class="mono">sync</span> two-way</span>
+      <span><span class="mono">forge</span> GitHub · Bitbucket</span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The tab-switching tax">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">Ten minutes of reading. <em>Twenty</em> tab switches.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>PR → editor → PR → Slack → AI → PR.</b> <span class="muted">Every action is a context switch; every switch costs attention you don't get back.</span></li>
+        <li><b>Force-push resets your place.</b> <span class="muted">Author rebases mid-review — your viewed markers and inline notes are gone.</span></li>
+        <li><b>Every forge action is a cloud round-trip.</b> <span class="muted">Approve, merge, request changes — each is a page load on a slow connection.</span></li>
+        <li><b>Stale local branches.</b> <span class="muted">Comparing against a branch you haven't checked out in weeks — the diff is fiction.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> review becomes a chore of window management. You stop reading carefully because the tooling fights you, not because the code is fine.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="Four pillars">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">Four pillars — <em>one toolbar</em>, no tab carousel.</h3>
+    <p class="lead-p">branchdiff collapses the PR-review loop into one local surface: a session that survives force-pushes, sync that pushes and pulls comments, the full PR lifecycle from a dropdown, and branches fetched before comparison so the diff is real.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>before · the loop</h4>
+        <p>Twenty tab switches per PR. Force-push wipes your place. Approve/Merge live on a slow web page. The branch you're comparing against is weeks stale.</p>
+      </div>
+      <div class="box solve">
+        <h4>after · one toolbar</h4>
+        <p>One persistent session. Push and pull comments in one click. Approve, request changes, merge, close — all from the toolbar. Branches fetched and fast-forwarded before the diff renders.</p>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>The flow:</b> open the PR locally once → read, comment, sync, act → done. No forge round-trips until you choose to merge.
+    </div>
+  </section>
+
+  <!-- 4 · PERSISTENT SESSIONS -->
+  <section class="slide" data-title="Persistent sessions">
+    <div class="slide-num">04 · persistent sessions (G6)</div>
+    <h3 class="section">A review session that <em>survives</em> new commits.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Named-pair persistence.</b> <span class="mono">branchdiff main..feature</span> keeps comments and viewed markers across new commits — even after a force-push.</li>
+        <li><b><span class="mono">--new</span> archives &amp; restarts.</b> <span class="muted">Want a clean slate? The old session is archived, not deleted.</span></li>
+        <li><b>PR-number auto-reset.</b> <span class="muted">Notices when the PR number changes — archives the old session, starts fresh.</span></li>
+        <li><b>Per-(repo + machine) state.</b> <span class="muted">Each ref pair gets its own port from 5391; sessions don't bleed.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Why it matters:</b> the author rebases three times mid-review. Your twelve inline comments and the seven files you marked viewed are all still there when you reload.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · MULTI-SESSION & ISOLATION -->
+  <section class="slide" data-title="Multi-session & isolation">
+    <div class="slide-num">05 · multi-session &amp; isolation</div>
+    <h3 class="section">One <em>session per ref pair</em> — no cross-talk.</h3>
+    <div class="two-col">
+      <div>
+        <ul class="checklist">
+          <li>Run several reviews in parallel — each pair lands on its own port.</li>
+          <li><b><span class="mono">--detach</span></b> runs the server in the background; close the terminal, keep reviewing.</li>
+          <li><b>Close from the browser</b> — <span class="mono">/api/kill</span> shuts the server down without a terminal hop.</li>
+          <li><b>AI review isolation:</b> one AI, one session. Resolution order <span class="mono">BRANCHDIFF_SESSION_ID → --session → --port → last-active</span>.</li>
+        </ul>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="num">5391+</div><div class="label">ports</div><div class="desc">one per ref pair, ascending</div></div>
+        <div class="stat"><div class="num">∞</div><div class="label">sessions</div><div class="desc">per repo, per machine</div></div>
+        <div class="stat"><div class="num">4</div><div class="label">resolution</div><div class="desc">env → flag → port → last</div></div>
+      </div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>Hands-on:</b> start a detached session, review from the browser, close it from the same browser when you're done — terminal freed for something else the whole time.
+    </div>
+  </section>
+
+  <!-- 6 · OPEN ANY PR URL LOCALLY -->
+  <section class="slide" data-title="Open any PR locally">
+    <div class="slide-num">06 · open any PR locally (G7)</div>
+    <h3 class="section">Paste a PR URL. <em>Read it locally</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">~/repo</span></div>
+        <div class="code-body">
+<span class="prompt">$</span> branchdiff https://github.com/owner/repo/pull/123
+<span class="c"># → git fetch (never git checkout)</span>
+<span class="c"># → resolves base &amp; head refs</span>
+<span class="c"># → opens localhost:539X in browser</span>
+<span class="c"># → first-open preview-pull badge appears</span>
+        </div>
+      </div>
+      <ul class="bullets">
+        <li><b>GitHub or Bitbucket.</b> <span class="muted">Same command, same UX — forge detection is automatic.</span></li>
+        <li><b><span class="mono">git fetch</span>, never <span class="mono">git checkout</span>.</b> <span class="muted">Your working tree stays exactly where you left it.</span></li>
+        <li><b>First-open preview-pull badge.</b> <span class="muted">Existing PR comments are pulled on demand — never a surprise.</span></li>
+        <li><b>Works from anywhere.</b> <span class="muted">Slack link, email, terminal — paste the URL, start reading.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · TWO-WAY COMMENT SYNC -->
+  <section class="slide" data-title="Two-way comment sync">
+    <div class="slide-num">07 · two-way comment sync</div>
+    <h3 class="section">Push, pull, or <em>sync all</em> — comments land on both sides.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Push to PR.</b> Single-comment threads become inline review comments; duplicates skipped automatically.</li>
+        <li><b>Pull from PR.</b> Bring collaborator comments back into your local view.</li>
+        <li><b>Sync All.</b> <span class="muted">One button — both directions, conflicts resolved by last-write.</span></li>
+        <li><b>Per-thread sync badge.</b> <span class="muted">Green dot = synced with PR; amber dot = local-only, not yet pushed.</span></li>
+        <li><b>Persistent status bar.</b> <span class="muted">At-a-glance sync state across the whole review.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>Multi-reply threads stay local.</b> Forge APIs don't map a back-and-forth onto their flat inline-comment model — those threads sync to your machine only, never accidentally split across the PR.
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · PR LIFECYCLE FROM TOOLBAR -->
+  <section class="slide" data-title="PR lifecycle from toolbar">
+    <div class="slide-num">08 · PR lifecycle from toolbar (G7)</div>
+    <h3 class="section">Every PR action — <em>one dropdown</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Approve</b> — with optional approve-with-comments checkbox.</li>
+        <li><b>Request changes</b> — with push-before-request-changes checkbox so new threads land first.</li>
+        <li><b>Comment</b> — general PR comment without approve/request.</li>
+        <li><b>Merge</b> — strategy picker (merge commit / squash / rebase).</li>
+        <li><b>Close / Reopen.</b></li>
+        <li><b>Mark Draft / Ready for review.</b></li>
+        <li><b>Edit title &amp; body</b> without leaving the page.</li>
+      </ul>
+      <div>
+        <div class="callout accent">
+          <b>Header state dot + reviewer pills</b> live on the toolbar — PR state is one glance away, not a page navigation.
+        </div>
+        <div class="callout" style="margin-top:14px">
+          <b>Create PRs from the UI</b> too. Title, body, base, head — same surface you're already reviewing in.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · 90-SECOND FLOW (asset) -->
+  <section class="slide" data-title="The 90-second flow">
+    <div class="slide-num">09 · the 90-second flow</div>
+    <h3 class="section">The whole loop — <em>ninety seconds</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-13/90-second-flow.png" alt="90-second PR review flow" loading="lazy" onclick="openLightbox(this)" />
+      <div class="fig-caption">open PR → read locally → comment → sync → act · one toolbar, one tab</div>
+    </div>
+  </section>
+
+  <!-- 10 · PR LIFECYCLE GROUPS (asset) -->
+  <section class="slide" data-title="PR lifecycle action groups">
+    <div class="slide-num">10 · lifecycle action groups</div>
+    <h3 class="section">The toolbar, <em>by group</em>.</h3>
+    <div class="two-col">
+      <div class="fig">
+        <img src="../../assets/B-13/pr-lifecycle-groups.png" alt="PR lifecycle action groups" loading="lazy" onclick="openLightbox(this)" />
+        <div class="fig-caption">approve · request · comment · merge · close · reopen · draft · ready · edit</div>
+      </div>
+      <div>
+        <p class="lead-p">Actions are grouped by review intent — read, decide, act — so the next step is always one click from where your cursor already is.</p>
+        <ul class="checklist">
+          <li><b>Decide:</b> Approve / Request changes / Comment.</li>
+          <li><b>Act:</b> Merge (with strategy) / Close / Reopen.</li>
+          <li><b>State:</b> Draft / Ready / Edit title &amp; body.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · CLI -->
+  <section class="slide" data-title="The CLI">
+    <div class="slide-num">11 · the CLI (G11)</div>
+    <h3 class="section">Every action is <em>scriptable</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">~/repo</span></div>
+        <div class="code-body">
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">merge</span> --strategy squash
+<span class="prompt">$</span> branchdiff <span class="f">sync</span> <span class="k">push</span>       <span class="c"># local threads → remote PR</span>
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">approve</span> --comment "LGTM"
+<span class="prompt">$</span> branchdiff <span class="f">pr</span> <span class="k">request-changes</span> --comment "see inline"
+<span class="prompt">$</span> branchdiff <span class="f">session</span> <span class="k">archive</span>
+<span class="prompt">$</span> branchdiff <span class="f">list</span>            <span class="c"># all running sessions</span>
+<span class="prompt">$</span> branchdiff <span class="f">killall</span>
+<span class="prompt">$</span> branchdiff <span class="f">stats</span> --share  <span class="c"># usage stats, markdown summary</span>
+        </div>
+      </div>
+      <ul class="bullets">
+        <li><b><span class="mono">pr</span> · <span class="mono">sync</span> · <span class="mono">session</span></b> — full PR lifecycle, comment sync, session management from the terminal.</li>
+        <li><b><span class="mono">list · kill · killall · open · prune</span></b> — manage running sessions; <span class="mono">current</span> scopes any of these to the active repo.</li>
+        <li><b><span class="mono">stats</span></b> — usage dashboard across every repo, with a shareable markdown summary.</li>
+        <li><b><span class="mono">export · import</span></b> — move a session's history to another machine or a teammate.</li>
+        <li><b><span class="mono">doctor · info · update</span></b> — health check, repo fingerprint, self-update.</li>
+        <li><b>Shell completion</b> (bash + zsh) and offline <span class="mono">guide</span> / <span class="mono">changelog</span>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12 · STATS DASHBOARD -->
+  <section class="slide" data-title="Usage stats & config, visible">
+    <div class="slide-num">12 · stats &amp; config</div>
+    <h3 class="section">See what's running — and <em>which config won</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b><span class="mono">branchdiff stats</span></b> opens a web dashboard across every repo — running instances, auto sessions, cron schedules, and config. Auto-opens by default (<span class="mono">--no-open</span> for a text table).</li>
+        <li><b><span class="mono">--today</span> chip.</b> Scope to the calendar day, alongside <span class="mono">All</span> / <span class="mono">90d</span> / <span class="mono">30d</span> / <span class="mono">7d</span>; <span class="mono">--days</span> / <span class="mono">--since</span> / <span class="mono">--until</span> for any window; <span class="mono">--repo</span> to scope, <span class="mono">--json</span> / <span class="mono">--share</span> for scripts.</li>
+        <li><b>Configs viewer.</b> Browse the resolved hierarchy for any launch dir — <span class="mono">defaults</span> → <span class="mono">auto</span> → per-repo → <span class="mono">exec/tool</span> — with a per-key table showing which tier won. Copy path / content / open in editor.</li>
+        <li><b>Per-section Refresh.</b> A global refresh plus a button on each section — pull fresh auto sessions or cron schedules without reloading the page.</li>
+      </ul>
+      <div class="callout accent">
+        <b>Same view from the CLI.</b> <span class="mono">branchdiff config --json</span> dumps the resolved hierarchy (every child repo); <span class="mono">config --dir &lt;launchDir&gt;</span> resolves against a different tree; <span class="mono">config sample --full</span> writes every key that has a fixed default — and names the ones that don't, so you add them yourself.
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · PLATFORM ACTIVITY -->
+  <section class="slide" data-title="Your activity across both forges">
+    <div class="slide-num">13 · platform activity</div>
+    <h3 class="section">A report of <em>your own</em> review activity — GitHub + Bitbucket.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Platform activity modal.</b> From the Stats toolbar — pulls <em>your</em> cross-platform PR activity across <b>both GitHub and Bitbucket</b> (each independently) over a date range you choose.</li>
+        <li><b>Query-builder, not auto-load.</b> Pick a range, toggle platforms + dimensions, click <b>Fetch</b>. The fast dimensions (authored, approved) are checked by default; commits and comments are opt-in.</li>
+        <li><b>By PR rollup.</b> Authored + reviewed + commented joined per PR — so PRs you reviewed or commented on but didn't author appear too. Per-PR <span class="mono">💬</span> views comments inline (Bitbucket on demand, GitHub from the start).</li>
+        <li><b>Verdict + Ticket columns.</b> Per-platform tables carry a Verdict column (naming <em>who approved instead</em> on changes-requested rows) and a Ticket column that pulls each branch's ticket ID from its name.</li>
+        <li><b>Platform toggle, when it matters.</b> All / GitHub / Bitbucket — shown only when both platforms actually contributed data; switching re-derives every figure for one platform, no re-fetch.</li>
+        <li><b>Copy as markdown.</b> <span class="mono">Copy all</span> (led by the combined summary) or per-platform <span class="mono">Copy</span> — in-button ✓ confirms.</li>
+      </ul>
+      <div class="callout accent">
+        <b>Insights card, atop the results.</b> An at-a-glance summary scoped to your query and the toggle: activity counts, how many of your reviews &amp; comments landed on <em>other people's PRs</em> (the collaboration signal), the verdict breakdown, commits by category with the top ticket IDs, and your busiest day. Each figure renders only for a dimension you checked — unchecked reads as absent, not a misleading zero. <b>Scope = your tracked repos</b> (the ones you've run <span class="mono">branchdiff</span> in), surfaced so adding a repo is obvious.
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · BRANCH SYNC -->
+  <section class="slide" data-title="Branch sync before comparison">
+    <div class="slide-num">14 · branch sync (G16)</div>
+    <h3 class="section">Branches <em>fetched &amp; fast-forwarded</em> before the diff.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Not-here-but-remote:</b> created locally with tracking.</li>
+        <li><b>Behind remote:</b> fast-forwarded automatically.</li>
+        <li><b>Diverged:</b> left alone with a warning — branchdiff never silently rewrites your history.</li>
+        <li><b>Dirty checkout:</b> left alone — your uncommitted work is sacred.</li>
+        <li><b>Remote branches</b> created from the remote ref directly.</li>
+        <li><b><span class="mono">--no-sync</span></b> skips the whole step when you want to inspect stale-on-purpose.</li>
+      </ul>
+      <div>
+        <div class="callout danger">
+          <b>Stale-code review refusal.</b> If the local branch is behind what you're reviewing against, branchdiff refuses to render — <span class="mono">--allow-stale</span> overrides when you really mean it.
+        </div>
+        <div class="callout accent" style="margin-top:14px">
+          <b>Why it matters:</b> the diff you read is the diff that exists on the remote — not a fiction your local checkout invented three weeks ago.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 · BOUNDARIES -->
+  <section class="slide" data-title="Honest boundaries">
+    <div class="slide-num">15 · honest boundaries</div>
+    <h3 class="section">What branchdiff <em>does not</em> do.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>No CI.</b> <span class="muted">Platform checks still gate the merge — branchdiff renders them, it doesn't replace them.</span></li>
+        <li><b>No multi-reply thread push.</b> <span class="muted">Forge APIs don't map back-and-forth threads onto flat inline comments.</span></li>
+        <li><b>No branch-protection bypass.</b> <span class="muted">Merge respects required reviews and status checks exactly as the forge enforces them.</span></li>
+        <li><b>Not a full PR-page replacement.</b> <span class="muted">Description, linked issues, CI block stay on the forge — <span class="mono">Open in browser</span> is one click.</span></li>
+      </ul>
+      <div class="callout">
+        <b>The honest framing:</b> branchdiff is the fastest way to <em>read, comment, and act on</em> a PR. It complements the forge — it doesn't pretend to be it.
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">16 · recap</div>
+    <h3 class="section">Twenty tabs, collapsed to <em>one</em>.</h3>
+    <p class="lead-p">Persistent sessions, two-way sync, the full PR lifecycle from a toolbar, and branches fetched before comparison — the entire review loop fits in one browser tab.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Sessions survive force-pushes; <span class="mono">--new</span> archives &amp; restarts; PR-number auto-reset.</li>
+      <li>Multi-session per repo/machine; AI isolation; <span class="mono">--detach</span>; close from the browser.</li>
+      <li>Open any PR URL locally — GitHub or Bitbucket, <span class="mono">git fetch</span> never <span class="mono">checkout</span>.</li>
+      <li>Push / pull / Sync All with per-thread sync badges and a persistent status bar.</li>
+      <li>PR lifecycle from the toolbar: approve, request, merge (with strategy), close, reopen, draft, ready, edit.</li>
+      <li>Full CLI — <span class="mono">pr</span>, <span class="mono">sync</span>, <span class="mono">session</span>, <span class="mono">list</span>, <span class="mono">killall</span> — plus shell completion.</li>
+      <li><b>Platform activity</b> — your own review activity across GitHub &amp; Bitbucket (authored, approved, commits, comments), copied out as markdown.</li>
+      <li>Branches fetched &amp; fast-forwarded; stale-code review refused unless <span class="mono">--allow-stale</span>.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="07-repo-exploration.html" target="_blank" rel="noopener">Next deck → 07 · Repo Exploration</a>
+      <a class="ghost" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-16">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

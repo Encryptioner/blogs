@@ -1,0 +1,654 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Claude Code Configuration Blueprint: The Complete Guide for Production Teams — Ankur’s Writing</title><meta name="description" content="You've used Claude Code on a project or two. You know the basics. Now you want to:"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/claude-code-configuration-blueprint-the-complete-guide-for-production-teams/"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:title" content="Claude Code Configuration Blueprint: The Complete Guide for Production Teams — Ankur’s Writing"><meta property="og:description" content="You've used Claude Code on a project or two. You know the basics. Now you want to:"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/claude-code-configuration-blueprint-the-complete-guide-for-production-teams/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-11/Claude-Code-Configuration-Blueprint-The%20Complete-Guide-for-Production-Teams.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Claude Code Configuration Blueprint: The Complete Guide for Production Teams — Ankur’s Writing"><meta name="twitter:description" content="You've used Claude Code on a project or two. You know the basics. Now you want to:"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-11/Claude-Code-Configuration-Blueprint-The%20Complete-Guide-for-Production-Teams.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:published_time" content="2026-03-14"><meta property="article:modified_time" content="2026-05-09"><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.Cv5yEDRF.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.CM0IbBLJ.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <nav class="nav" aria-label="Primary"> <a href="/blogs/"> All </a><a href="/blogs/?type=blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation"> Presentations </a><a href="/blogs/search"> Search </a> </nav> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Productivity">Productivity</a>  <span aria-hidden="true">/</span> <span>Claude Code</span>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">📝 Blog</span> <a class="tag" href="/blogs/?topic=Productivity">Productivity</a> <span class="tag">Claude Code</span> </div> <h1>Claude Code Configuration Blueprint: The Complete Guide for Production Teams</h1> <p class="article-meta mono"> <time datetime="2026-05-09">9 May 2026</time> <span>·</span> <span>13 min read</span> <span>·</span> <span>2,607 words</span> </p> </header>  <div class="prose"><h1 id="claude-code-configuration-blueprint-the-complete-guide-for-production-teams">Claude Code Configuration Blueprint: The Complete Guide for Production Teams</h1>
+<blockquote>
+<p>Configure Claude Code once — get security, reusable workflows, specialized agents,
+and cross-session intelligence across every project.</p>
+</blockquote>
+<hr />
+<div align="center">
+  <img loading="lazy" decoding="async" src="/blogs/content/assets/B-11/Claude-Code-Configuration-Blueprint-The%20Complete-Guide-for-Production-Teams.png" />
+</div>
+<h2 id="who-this-is-for">Who This Is For</h2>
+<p>You’ve used Claude Code on a project or two. You know the basics. Now you want to:</p>
+<ul>
+<li>Stop Claude from touching secrets, credentials, or system files</li>
+<li>Share team standards via git without leaking personal preferences</li>
+<li>Create reusable workflows (spec, plan, implement, review, ship)</li>
+<li>Make Claude remember lessons across sessions</li>
+</ul>
+<p>This guide gives you copy-paste configs and explains the <strong>why</strong> behind each decision.</p></div>  <div class="prose">
+<hr />
+<h2 id="the-configuration-layers">The Configuration Layers</h2>
+<p>Claude Code loads configuration from multiple layers, each with a specific scope:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Personal (not in any repo):</span></span>
+<span class="line"><span>  ~/.claude/settings.json        → Security (deny list for all projects)</span></span>
+<span class="line"><span>  ~/.claude/CLAUDE.md            → Personal workflow preferences</span></span>
+<span class="line"><span>  ~/.claude/skills/*/SKILL.md    → Reusable workflows</span></span>
+<span class="line"><span>  ~/.claude/commands/*/SKILL.md  → Convenience shortcuts</span></span>
+<span class="line"><span>  ~/.claude/rules/*.md           → File-specific patterns (glob matching)</span></span>
+<span class="line"><span>  ~/.claude/agents/*.md          → Domain specialists</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Team-shared (committed to git):</span></span>
+<span class="line"><span>  .claude/settings.json          → Project permissions</span></span>
+<span class="line"><span>  CLAUDE.md                      → Coding standards, architecture</span></span>
+<span class="line"><span>  .claude/rules/*.md             → Team-specific patterns</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Personal overrides (gitignored):</span></span>
+<span class="line"><span>  .claude/settings.local.json    → Your project overrides</span></span>
+<span class="line"><span>  CLAUDE.local.md                → Your project preferences</span></span></code></pre>
+<p><strong>Key rule:</strong> Your project CLAUDE.md must be self-contained. Teammates don’t have your global skills, agents, or personal CLAUDE.md — global files are your personal toolkit, project files are the team playbook.</p>
+<hr />
+<h2 id="part-1-security--the-permission-system">Part 1: Security — The Permission System</h2>
+<p>Permissions follow a strict hierarchy: <strong>Deny</strong> (always blocks) → <strong>Ask</strong> (prompts you) → <strong>Allow</strong> (auto-approved). Deny always wins — this is what makes the system trustworthy.</p>
+<h3 id="pattern-syntax">Pattern Syntax</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>Bash(exact command)       → matches only that exact command</span></span>
+<span class="line"><span>Bash(command *)           → matches command with any arguments (space before *)</span></span>
+<span class="line"><span>Read(path/to/file)        → matches exact file</span></span>
+<span class="line"><span>Read(path/**/*.json)      → matches glob pattern</span></span>
+<span class="line"><span>Read(~/.ssh/**)           → ~ expands to home directory on any OS</span></span></code></pre>
+<p><strong>Space matters:</strong> <code>Bash(ls *)</code> matches <code>ls -la</code> but NOT <code>lsof</code>. <code>Bash(ls*)</code> matches both.</p>
+<h3 id="global-settings-claudesettingsjson">Global Settings (<code>~/.claude/settings.json</code>)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Read"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Edit"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Write"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Glob"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Grep"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(git status:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(git diff:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(nvm use:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(node:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(ls:*)"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">    "ask"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Bash(git push:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(git commit:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(pnpm install:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(docker:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(curl:*)"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Bash(rm -rf:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(sudo:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(git push --force:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(.env)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(.env.*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(~/.ssh/**)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(~/.aws/**)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(~/Library/Keychains/**)"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>Cross-OS coverage:</strong> The deny list covers macOS (<code>~/Library/Keychains</code>), Linux (<code>~/.local/share/keyrings</code>), and Windows WSL (<code>/mnt/c/Users/*/AppData</code>). One global config works on any machine.</p>
+<h3 id="project-settings-claudesettingsexamplejson">Project Settings (<code>.claude/settings.example.json</code>)</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "permissions"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "allow"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Read"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Edit"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Write"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Glob"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Grep"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(pnpm build:*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Bash(pnpm test:*)"</span><span style="color:#ABB2BF">],</span></span>
+<span class="line"><span style="color:#E06C75">    "deny"</span><span style="color:#ABB2BF">: [</span><span style="color:#98C379">"Read(.env)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(.env.*)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(node_modules/**)"</span><span style="color:#ABB2BF">, </span><span style="color:#98C379">"Read(dist/**)"</span><span style="color:#ABB2BF">]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>Add to <code>.gitignore</code>: <code>.claude/*</code> and <code>!.claude/*.example*</code></p>
+<hr />
+<h2 id="part-2-claudemd--teaching-claude-your-codebase">Part 2: CLAUDE.md — Teaching Claude Your Codebase</h2>
+<p>A well-written CLAUDE.md turns Claude from a generic assistant into a team member who knows your conventions, pain points, and architecture.</p>
+<h3 id="the-instruction-budget-problem">The Instruction Budget Problem</h3>
+<p>Frontier LLMs reliably follow roughly <strong>150–200 instructions</strong> total. Claude Code’s system prompt consumes ~50 slots before your CLAUDE.md loads. Instruction degradation is <strong>uniform</strong> — every low-value rule you add actively makes your high-value rules less likely to be followed.</p>
+<p><strong>Brevity isn’t nice — it directly affects instruction compliance.</strong></p>
+<h3 id="the-template">The Template</h3>
+<p>Write it for Claude, not humans. Don’t duplicate your README.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E06C75"># CLAUDE.md</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Commands</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm dev</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Start development server</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm build</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Production build</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">pnpm lint-fix</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Lint and fix all packages</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Architecture</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">packages/client</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Vue 3 frontend</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">packages/server</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Express API</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">packages/shared</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Types, DTOs, utilities</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Coding Standards</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> TypeScript strict mode, no </span><span style="color:#E5C07B">`</span><span style="color:#98C379">any</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> types</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Absolute imports only (no </span><span style="color:#E5C07B">`</span><span style="color:#98C379">../../</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF">)</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> API payloads: declare as typed constants</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## PR Review Rules</span></span>
+<span class="line"><span style="color:#E5C07B">1.</span><span style="color:#D19A66"> **Type Safety**</span><span style="color:#ABB2BF"> — Never use </span><span style="color:#E5C07B">`</span><span style="color:#98C379">any</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF">. Typed constants for API payloads</span></span>
+<span class="line"><span style="color:#E5C07B">2.</span><span style="color:#D19A66"> **Dead Code**</span><span style="color:#ABB2BF"> — Remove unused imports, variables, i18n keys</span></span>
+<span class="line"><span style="color:#E5C07B">3.</span><span style="color:#D19A66"> **Error Handling**</span><span style="color:#ABB2BF"> — Wrap all API calls in try/catch</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Critical Gotchas</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Always use projection in DB queries — never fetch entire documents</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Server error messages MUST come from constant files</span></span></code></pre>
+<h3 id="progressive-disclosure">Progressive Disclosure</h3>
+<p>For larger projects, use a <strong>progressive disclosure</strong> pattern — put detailed docs in a separate directory:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E06C75">## Detailed Documentation</span></span>
+<span class="line"><span style="color:#ABB2BF">When working on specific areas, read the relevant doc first:</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">docs/Agent/database_schema.md</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Data model and relationships</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#E5C07B"> `</span><span style="color:#98C379">docs/Agent/payment_flow.md</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> — Payment gateway integration</span></span></code></pre>
+<h3 id="what-works-vs-what-doesnt">What Works vs. What Doesn’t</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Do</th><th>Don’t</th></tr></thead><tbody><tr><td>Include commands Claude needs</td><td>Include formatting rules (use linter + hooks)</td></tr><tr><td>Document non-obvious patterns</td><td>Document obvious language features</td></tr><tr><td>List real PR review pain points</td><td>Duplicate your README</td></tr><tr><td>Keep it under 200 lines</td><td>Include aspirational rules nobody follows</td></tr></tbody></table>
+<hr />
+<h2 id="part-3-rules--enforcing-patterns-with-globs">Part 3: Rules — Enforcing Patterns with Globs</h2>
+<p>For patterns that must apply across specific file types, use <strong>rules</strong> with glob matching. Place them in <code>~/.claude/rules/</code>:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Common coding mistakes — enforced across all projects</span></span>
+<span class="line"><span style="color:#ABB2BF">globs: "</span><span style="color:#C678DD;font-style:italic">*.ts,*</span><span style="color:#ABB2BF">.tsx,</span><span style="color:#C678DD;font-style:italic">*.vue,*</span><span style="color:#ABB2BF">.js,*.jsx"</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Coding Gotchas</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Never use relative imports (</span><span style="color:#E5C07B">`</span><span style="color:#98C379">../../</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF">) — always absolute paths</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> Never introduce </span><span style="color:#E5C07B">`</span><span style="color:#98C379">any</span><span style="color:#E5C07B">`</span><span style="color:#ABB2BF"> types — find or create the proper type</span></span></code></pre>
+<p>When Claude edits files matching the glob, these rules apply automatically.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>CLAUDE.md</th><th>Rules (<code>~/.claude/rules/</code>)</th></tr></thead><tbody><tr><td><strong>Scope</strong></td><td>Per-project</td><td>Global (all projects)</td></tr><tr><td><strong>Content</strong></td><td>Architecture, commands, standards</td><td>File-specific patterns</td></tr><tr><td><strong>Trigger</strong></td><td>Loads when working in directory</td><td>Loads when file matches glob</td></tr><tr><td><strong>Best for</strong></td><td>Teaching your codebase</td><td>Enforcing patterns across projects</td></tr></tbody></table>
+<p>For teams: commit project-specific rules to <code>.claude/rules/</code> in your repo.</p>
+<hr />
+<h2 id="part-4-plugins--agents--instant-capabilities">Part 4: Plugins &amp; Agents — Instant Capabilities</h2>
+<h3 id="plugins">Plugins</h3>
+<p>Plugins are pre-built packages from the community. One install command gives you agents, MCP servers, and skills:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">claude</span><span style="color:#98C379"> plugins:install</span><span style="color:#98C379"> context7</span><span style="color:#98C379"> superpowers</span><span style="color:#98C379"> code-review</span><span style="color:#98C379"> feature-dev</span></span></code></pre>
+<p><strong>Recommended stack:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Plugin</th><th>Purpose</th></tr></thead><tbody><tr><td><code>context7</code></td><td>Live, version-specific documentation lookup</td></tr><tr><td><code>feature-dev</code></td><td>Codebase exploration + architecture design agents</td></tr><tr><td><code>superpowers</code></td><td>TDD, debugging, brainstorming, parallel agents</td></tr><tr><td><code>code-review</code></td><td>Multi-agent PR review with confidence scoring</td></tr><tr><td><code>playwright</code></td><td>Browser automation and E2E testing</td></tr><tr><td><code>commit-commands</code></td><td>Streamlined git commit, push, and PR creation</td></tr></tbody></table>
+<p><strong>MCP Servers</strong> — Many plugins include MCP (Model Context Protocol) servers that bridge Claude Code with external systems (databases, APIs, task trackers). No additional configuration needed.</p>
+<p><strong>Custom Marketplaces</strong> — Add team-specific or community plugins:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "extraKnownMarketplaces"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "my-team"</span><span style="color:#ABB2BF">: { </span><span style="color:#E06C75">"source"</span><span style="color:#ABB2BF">: { </span><span style="color:#E06C75">"source"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"github"</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">"repo"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"my-team/claude-plugins"</span><span style="color:#ABB2BF"> } }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<h3 id="agents">Agents</h3>
+<p>Agents are pre-configured specialists you can call for specific tasks. Unlike plugins (which add tools), agents add expertise.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Category</th><th>Example Agents</th><th>When to Use</th></tr></thead><tbody><tr><td><strong>Engineering</strong></td><td><code>backend-architect</code>, <code>frontend-developer</code>, <code>ai-engineer</code></td><td>Domain-specific architecture</td></tr><tr><td><strong>Testing</strong></td><td><code>test-writer-fixer</code>, code-review agents</td><td>Test strategy, bug fixing</td></tr><tr><td><strong>Operations</strong></td><td><code>analytics-reporter</code>, <code>finance-tracker</code></td><td>Data analysis, reporting</td></tr><tr><td><strong>Development</strong></td><td><code>code-explorer</code>, <code>code-architect</code>, <code>rapid-prototyper</code></td><td>Codebase understanding, MVPs</td></tr></tbody></table>
+<p><strong>Example:</strong> Instead of explaining React Server Components patterns, say <em>“Use the frontend-developer agent to build this with Server Components.”</em> The agent already knows the patterns, has React-specific tools, and follows frontend best practices automatically.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>Plugins</th><th>Agents</th></tr></thead><tbody><tr><td><strong>What they add</strong></td><td>Tools, MCP servers, skills</td><td>Domain expertise and focus</td></tr><tr><td><strong>Best for</strong></td><td>Adding capabilities</td><td>Complex tasks requiring depth</td></tr></tbody></table>
+<hr />
+<h2 id="part-5-skills--commands--building-workflows">Part 5: Skills &amp; Commands — Building Workflows</h2>
+<h3 id="skills-vs-commands">Skills vs. Commands</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th><strong>Commands</strong> (<code>~/.claude/commands/</code>)</th><th><strong>Skills</strong> (<code>~/.claude/skills/</code>)</th></tr></thead><tbody><tr><td><strong>Purpose</strong></td><td>Convenience shortcuts</td><td>Workflow orchestration</td></tr><tr><td><strong>Examples</strong></td><td><code>/commit</code>, <code>/loop</code>, <code>/rewind</code></td><td><code>/spec</code>, <code>/implement</code>, <code>/grill</code></td></tr><tr><td><strong>Scope</strong></td><td>Single operations</td><td>Multi-step processes</td></tr><tr><td><strong>Use Case</strong></td><td>Quick actions</td><td>Structured workflows</td></tr></tbody></table>
+<p>Use a <strong>command</strong> for quick shortcuts. Use a <strong>skill</strong> for multi-step workflows with decision points.</p>
+<h3 id="the-spec-to-ship-workflow">The Spec-to-Ship Workflow</h3>
+<p>The real power of skills comes from chaining them into a complete development workflow:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>/scope (optional) → /spec → /grill (auto) → /plan-work → /grill (auto) → /implement → /verify → /ship</span></span></code></pre>
+<p><strong>The ceremony scales with the risk:</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Task Type</th><th>Workflow</th></tr></thead><tbody><tr><td><strong>New product</strong></td><td><code>/scope</code> → full chain</td></tr><tr><td><strong>Feature</strong></td><td>Full chain</td></tr><tr><td><strong>Minor enhancement</strong></td><td>Light spec → plan → implement → verify → ship</td></tr><tr><td><strong>Bug fix</strong></td><td>Bug spec or skip → plan → implement → verify → ship</td></tr><tr><td><strong>Hotfix</strong></td><td>Inline plan → implement → verify → ship</td></tr></tbody></table>
+<h3 id="key-skills">Key Skills</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Skill</th><th>Purpose</th></tr></thead><tbody><tr><td><code>/scope</code></td><td>Rapid product scoping — forces “ONE thing” question, maps user journey, identifies cost drivers</td></tr><tr><td><code>/spec</code></td><td>Clarified technical spec with Change Log for tracking mid-implementation updates</td></tr><tr><td><code>/grill</code></td><td>Hard-critic review through 7 lenses (security, architecture, testing, etc.) with severity levels</td></tr><tr><td><code>/plan-work</code></td><td>Phase-by-phase implementation plan traced to spec requirements</td></tr><tr><td><code>/implement</code></td><td>Executes plans with mid-implementation discovery handling (minor/moderate/significant tiers)</td></tr><tr><td><code>/verify</code> → <code>/pre-review</code> → <code>/ship</code></td><td>Type check → spec requirement walkthrough → branch management + PR creation</td></tr></tbody></table>
+<h3 id="ticket-directory-structure">Ticket Directory Structure</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>ai/TICKET-146/</span></span>
+<span class="line"><span>├── requirements/</span></span>
+<span class="line"><span>│   ├── original-requirement.md    # Raw requirement (verbatim)</span></span>
+<span class="line"><span>│   ├── spec.md                    # Clarified technical spec</span></span>
+<span class="line"><span>│   └── grill-log.md              # Review findings</span></span>
+<span class="line"><span>├── plans/</span></span>
+<span class="line"><span>│   ├── overview.md               # High-level plan</span></span>
+<span class="line"><span>│   ├── phase-1-data-model.md     # Detailed phase plan</span></span>
+<span class="line"><span>│   └── grill-log.md              # Plan review findings</span></span>
+<span class="line"><span>└── tests/</span></span>
+<span class="line"><span>    └── manual-test-cases.csv</span></span></code></pre>
+<p>This structure makes work <strong>resumable across sessions</strong> — future sessions read spec/plan files to pick up where you left off.</p>
+<h3 id="building-your-own-skills">Building Your Own Skills</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#ABB2BF">---</span></span>
+<span class="line"><span style="color:#ABB2BF">name: my-skill</span></span>
+<span class="line"><span style="color:#ABB2BF">description: Use when the user says "plan this" or presents a multi-file task</span></span>
+<span class="line"><span style="color:#E06C75">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75"># Skill Title</span></span>
+<span class="line"><span style="color:#E06C75">## When to Use</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Trigger conditions]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Process</span></span>
+<span class="line"><span style="color:#E06C75">### Step 1: [</span><span style="color:#61AFEF">Name</span><span style="color:#E06C75">]</span></span>
+<span class="line"><span style="color:#ABB2BF">[Instructions Claude follows]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E06C75">## Rules</span></span>
+<span class="line"><span style="color:#E5C07B">-</span><span style="color:#ABB2BF"> [Hard constraints]</span></span></code></pre>
+<p><strong>Three tips:</strong></p>
+<ol>
+<li>Write instructions TO Claude, not documentation ABOUT a process</li>
+<li>Include trigger phrases in the description</li>
+<li>Keep each skill focused — one workflow, one skill</li>
+</ol>
+<hr />
+<h2 id="part-6-advanced-patterns--hooks-subagents-worktrees">Part 6: Advanced Patterns — Hooks, Subagents, Worktrees</h2>
+<h3 id="hooks--automated-quality-gates">Hooks — Automated Quality Gates</h3>
+<p>Hooks run automatically at lifecycle events. Two types:</p>
+<ul>
+<li><strong><code>prompt</code></strong> — Claude evaluates a condition and acts (block, remind, warn)</li>
+<li><strong><code>command</code></strong> — Runs a shell command directly (always executes)</li>
+</ul>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "hooks"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "PreToolUse"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Bash"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">        "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"prompt"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "prompt"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"If this is a git commit, verify lint and type-check have been run. If not, block with: 'Run lint and type-check before committing.'"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }],</span></span>
+<span class="line"><span style="color:#E06C75">    "PostToolUse"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Write|Edit"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">        "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"prompt"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "prompt"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"If the file is TypeScript and more than 3 TS files have been edited since the last type-check, remind: 'Consider running type-check before continuing.'"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }],</span></span>
+<span class="line"><span style="color:#E06C75">    "Notification"</span><span style="color:#ABB2BF">: [{</span></span>
+<span class="line"><span style="color:#E06C75">      "matcher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">""</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "hooks"</span><span style="color:#ABB2BF">: [{ </span><span style="color:#E06C75">"type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"command"</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">"command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"notify-send 'Claude Code' 'Awaiting your input'"</span><span style="color:#ABB2BF"> }]</span></span>
+<span class="line"><span style="color:#ABB2BF">    }]</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p><strong>Use hooks instead of CLAUDE.md for linting rules</strong> — LLMs are expensive compared to linters. Hooks free up instruction budget for things only CLAUDE.md can teach.</p>
+<h3 id="subagents--keeping-context-clean">Subagents — Keeping Context Clean</h3>
+<p>For complex tasks, spawn subagents to handle research, exploration, or parallel work. Subagents run in separate contexts and return distilled findings — keeping your main conversation focused on implementation.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scenario</th><th>Example</th></tr></thead><tbody><tr><td><strong>Research</strong></td><td>Investigating a library before using it</td></tr><tr><td><strong>Exploration</strong></td><td>Understanding a large codebase section</td></tr><tr><td><strong>Parallel work</strong></td><td>Running independent analyses</td></tr><tr><td><strong>Heavy debugging</strong></td><td>Deep investigation</td></tr><tr><td><strong>Code review</strong></td><td>Multiple reviewers checking different aspects</td></tr></tbody></table>
+<p>Many skills use subagents automatically. <code>/grill</code> spawns review agents for different aspects. <code>/implement</code> may spawn research agents for unfamiliar libraries.</p>
+<h3 id="worktrees--isolated-development">Worktrees — Isolated Development</h3>
+<p>For feature work that needs isolation, use <strong>git worktrees</strong>. Claude can create and manage worktrees, giving you a clean environment for each branch.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scenario</th><th>Benefit</th></tr></thead><tbody><tr><td><strong>Multiple features</strong></td><td>Work on several branches simultaneously</td></tr><tr><td><strong>Parallel testing</strong></td><td>Test approaches in isolated environments</td></tr><tr><td><strong>Code review</strong></td><td>Review PR branches while keeping main stable</td></tr><tr><td><strong>Hotfixes</strong></td><td>Fix production without interrupting feature work</td></tr></tbody></table>
+<hr />
+<h2 id="part-7-automation--auto-invocation--memory">Part 7: Automation — Auto-Invocation &amp; Memory</h2>
+<h3 id="auto-invocation--skills-that-trigger-themselves">Auto-Invocation — Skills That Trigger Themselves</h3>
+<p>Both plugins and skills support <strong>auto-invocation</strong> — Claude reads the skill’s description and triggers it automatically when your request matches. You don’t need to remember slash commands.</p>
+<p>To make auto-invocation reliable:</p>
+<ul>
+<li><strong>Be specific with trigger phrases</strong> — vague descriptions lead to false activations</li>
+<li><strong>Include negative triggers</strong> — “Do NOT use for TDD projects — use /plan-tdd instead”</li>
+<li><strong>Test with natural language</strong> — try different phrasings</li>
+</ul>
+<p>Example: With <code>/grill</code> configured to trigger on “grill this”, “poke holes”, or “stress test this”, simply saying <em>“poke holes in this spec”</em> auto-triggers the workflow.</p>
+<h3 id="auto-memory--cross-session-intelligence">Auto Memory — Cross-Session Intelligence</h3>
+<p>Claude Code maintains a persistent memory directory per project at <code>~/.claude/projects/&lt;project-path&gt;/memory/</code>. The <code>MEMORY.md</code> file (first 200 lines) loads into every conversation automatically — no manual setup needed.</p>
+<p>Claude updates this file as it learns your project: architectural patterns, common mistakes, file paths that matter. The <code>/ship</code> skill captures learnings at the end of each ticket automatically, so memory grows organically across sessions.</p>
+<hr />
+<h2 id="part-8-putting-it-all-together">Part 8: Putting It All Together</h2>
+<h3 id="new-project-setup-5-minutes">New Project Setup (5 Minutes)</h3>
+<ol>
+<li>Create <code>CLAUDE.md</code> — commands, architecture, coding standards, PR review rules, critical gotchas</li>
+<li>Create <code>.claude/settings.example.json</code> — project-specific deny list</li>
+<li>Optionally create <code>.claude/rules/*.md</code> — project-specific patterns with glob matching</li>
+<li>Add to <code>.gitignore</code>: <code>.claude/*</code> and <code>!.claude/*.example*</code></li>
+<li>Ensure <code>~/.claude/settings.json</code> has the global security deny list</li>
+<li>Install plugins: <code>claude plugins:install context7 superpowers code-review feature-dev</code></li>
+</ol>
+<h3 id="how-the-layers-work-in-practice">How the Layers Work in Practice</h3>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="plaintext"><code><span class="line"><span>"Read .env.local"             → Project deny  → BLOCKED</span></span>
+<span class="line"><span>"pnpm add lodash"             → Ask rule      → Prompts you</span></span>
+<span class="line"><span>"git push --force"            → Global deny   → BLOCKED (even with --dangerously-skip-permissions)</span></span>
+<span class="line"><span>"Read src/components/App.vue" → Allow         → AUTO-APPROVED</span></span>
+<span class="line"><span>"This test is failing"        → Auto-invoke   → debugging skill triggers</span></span></code></pre>
+<h3 id="quick-reference">Quick Reference</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>File</th><th>Shared?</th><th>Purpose</th></tr></thead><tbody><tr><td><code>~/.claude/settings.json</code></td><td>No</td><td>Global security (deny list)</td></tr><tr><td><code>~/.claude/CLAUDE.md</code></td><td>No</td><td>Personal workflow preferences</td></tr><tr><td><code>~/.claude/skills/*/SKILL.md</code></td><td>No</td><td>Custom workflows</td></tr><tr><td><code>~/.claude/commands/*/SKILL.md</code></td><td>No</td><td>Convenience shortcuts</td></tr><tr><td><code>~/.claude/rules/*.md</code></td><td>No</td><td>File-specific patterns (glob)</td></tr><tr><td><code>~/.claude/agents/*.md</code></td><td>No</td><td>Domain specialists</td></tr><tr><td>Plugins</td><td>No</td><td>Pre-built agents + MCP + skills</td></tr><tr><td><code>.claude/settings.json</code></td><td>Yes</td><td>Team project permissions</td></tr><tr><td><code>.claude/rules/*.md</code></td><td>Yes</td><td>Team-specific patterns</td></tr><tr><td><code>CLAUDE.md</code></td><td>Yes</td><td>Team coding standards</td></tr><tr><td><code>~/.claude/projects/*/memory/</code></td><td>No</td><td>Cross-session memory</td></tr></tbody></table>
+<hr />
+<h2 id="the-takeaway">The Takeaway</h2>
+<p>Layer your configuration by scope and shareability:</p>
+<ul>
+<li><strong>Global settings</strong> protect your system — secrets, credentials, destructive commands</li>
+<li><strong>Project settings</strong> protect project resources — config files, build artifacts</li>
+<li><strong>CLAUDE.md</strong> encodes team standards (keep it under 200 lines — every low-value instruction degrades high-value ones)</li>
+<li><strong>Rules</strong> enforce file-specific patterns with glob matching — language conventions, gotchas</li>
+<li><strong>Agents</strong> provide domain expertise — backend, frontend, AI, testing, operations</li>
+<li><strong>Plugins</strong> add instant capabilities — code review, testing, documentation, MCP servers</li>
+<li><strong>Skills</strong> encode workflows (multi-step) — <strong>Commands</strong> handle shortcuts (single actions)</li>
+<li><strong>Hooks</strong> automate quality gates — free up CLAUDE.md instruction slots</li>
+<li><strong>Subagents</strong> keep context clean — offload research, exploration, parallel analysis</li>
+<li><strong>Worktrees</strong> enable isolated development — multiple branches without switching</li>
+<li><strong>Memory</strong> captures lessons learned — no reteaching the same thing twice</li>
+<li><strong>Auto-invocation</strong> makes skills trigger themselves — no slash commands needed</li>
+</ul>
+<p>The spec-to-ship workflow isn’t bureaucracy. It’s front-loading the thinking so implementation is mechanical. A grilled spec catches the bug that would have taken a day to debug. A phased plan prevents the “I changed 47 files and nothing type-checks” disaster.</p>
+<p>Configure once. Benefit on every session, every project, every team member.</p>
+<hr />
+<h2 id="references">References</h2>
+<p><strong>Official:</strong></p>
+<ul>
+<li><a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" rel="noopener noreferrer">Claude Code Documentation</a> — Permissions, hooks, settings, skills</li>
+<li><a href="https://github.com/anthropics/claude-code/blob/main/plugins/README.md" target="_blank" rel="noopener noreferrer">Plugins README</a> — Plugin marketplace</li>
+</ul>
+<p><strong>Community:</strong></p>
+<ul>
+<li><a href="https://www.humanlayer.dev/blog/writing-a-good-claude-md" target="_blank" rel="noopener noreferrer">Writing a Good CLAUDE.md — HumanLayer</a> — Instruction budgets research</li>
+<li><a href="https://aiorg.dev/blog/claude-code-hooks" target="_blank" rel="noopener noreferrer">Claude Code Hooks: Complete Guide — aiorg.dev</a> — 20+ hook examples</li>
+<li><a href="https://www.eesel.ai/blog/claude-code-permissions" target="_blank" rel="noopener noreferrer">Claude Code Permissions Guide — eesel.ai</a> — Security setup</li>
+</ul>
+<hr />
+<h2 id="lets-connect">Let’s Connect</h2>
+<p>I’m always excited to hear about what you’re building! If you found this guide helpful, have questions, or just want to share your claude code configuration strategy:</p>
+<ul>
+<li><strong>Website</strong>: <a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">encryptioner.github.io</a></li>
+<li><strong>LinkedIn</strong>: <a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Mir Mursalin Ankur</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">@Encryptioner</a></li>
+<li><strong>X (Twitter)</strong>: <a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">@AnkurMursalin</a></li>
+<li><strong>Technical Writing</strong>: <a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+<li><strong>Support</strong>: <a href="https://www.supportkori.com/mirmursalinankur" target="_blank" rel="noopener noreferrer">SupportKori</a></li>
+</ul></div>   <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Productivity">
+More on Productivity </a> </footer> </article> <section class="shell sec"> <h2>More in Productivity</h2> <div class="grid"> <article class="card" data-type="blog" data-topic="Productivity" data-slug="manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and" data-search="manage the whole pr lifecycle without leaving the terminal - branchdiff's pr, sync, and session commands productivity branchdiff your claude code skill just finished a review pass. it read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">branchdiff</span> </div> <h3><a href="/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and">Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff&#39;s pr, sync, and session Commands</a></h3> <p class="excerpt">Your Claude Code skill just finished a review pass. It read the diff, posted three [must-fix] comments and two [suggestion]s via branchdiff agent comment, and…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>12 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="token-economics-better-results-fewer-tokens" data-search="token economics: better results, fewer tokens productivity claude code i've spent 7+ years shipping production typescript and node systems, and the last couple of those leading a team at nerddevs that now writes more code through…"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span> <span class="tag">Claude Code</span> </div> <h3><a href="/blogs/blog/token-economics-better-results-fewer-tokens">Token Economics: Better Results, Fewer Tokens</a></h3> <p class="excerpt">I&#39;ve spent 7+ years shipping production TypeScript and Node systems, and the last couple of those leading a team at Nerddevs that now writes more code through…</p> <div class="meta"> <time datetime="2026-08-30">30 Aug 2026</time> <span>36 min read</span> </div> </article><article class="card" data-type="blog" data-topic="Productivity" data-slug="run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet" data-search="run your desk from anywhere — free remote control + voice dictation over the internet productivity that's the question part 1 leaves hanging. this post answers it in two parts, then explains why the answer works:"> <div class="tags"> <span class="tag tag--type"> 📝 Blog </span> <span class="tag">Productivity</span>  </div> <h3><a href="/blogs/blog/run-your-desk-from-anywhere-free-remote-control-voice-dictation-over-the-internet">Run Your Desk From Anywhere — Free Remote Control + Voice Dictation Over the Internet</a></h3> <p class="excerpt">That&#39;s the question Part 1 leaves hanging. This post answers it in two parts, then explains why the answer works:</p> <div class="meta"> <time datetime="2026-08-27">27 Aug 2026</time> <span>29 min read</span> </div> </article> </div> </section><button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <span class="mark">🗺️</span> <span>Ankur’s Writing</span> </a> <p>Lead full-stack engineer writing about software architecture, developer productivity, and building with AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All writing</a></li><li><a href="/blogs/?type=blog">Blog posts</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Elsewhere"> <h2>Elsewhere</h2> <ul> <li> <a href="https://encryptioner.github.io" rel="me noopener" target="_blank"> Portfolio </a> </li><li> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> </li><li> <a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> </li><li> <a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> </li><li> <a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> </li><li> <a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> </li><li> <a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 35 posts · 9 decks ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.BDnFxMdK.js"></script> </body> </html> <script type="module">const t=document.querySelector("[data-progress]"),r=document.querySelector("[data-to-top]"),o=document.querySelector(".prose");if(t&&o){const s=()=>{const i=o.offsetTop,c=o.scrollHeight-window.innerHeight+120,a=window.scrollY-i,d=c>0?Math.min(Math.max(a/c,0),1):0;t.style.transform=`scaleX(${d})`,r&&(r.hidden=window.scrollY<window.innerHeight)};let e=!1;const n=()=>{e||(e=!0,requestAnimationFrame(()=>{s(),e=!1}))};t.hidden=!1,addEventListener("scroll",n,{passive:!0}),addEventListener("resize",n,{passive:!0}),s()}r?.addEventListener("click",()=>{scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});</script>
