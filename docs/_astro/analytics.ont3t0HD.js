@@ -1,1 +1,0 @@
-const i=()=>!1;function a(t,e={}){if(!(!i()||typeof window.gtag!="function"))try{window.gtag("event",t,e)}catch{}}function c(t,e=600){let n;return(...o)=>{clearTimeout(n),n=setTimeout(()=>t(...o),e)}}export{c as d,i,a as t};

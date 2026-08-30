@@ -1,0 +1,1 @@
+const i="G-GGP566TBJS".trim(),a=()=>!!i;function c(t,e={}){if(!(!a()||typeof window.gtag!="function"))try{window.gtag("event",t,e)}catch{}}function r(t,e=600){let n;return(...o)=>{clearTimeout(n),n=setTimeout(()=>t(...o),e)}}export{r as d,a as i,c as t};
