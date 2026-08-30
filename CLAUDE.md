@@ -98,7 +98,5 @@ Content from this repository is published to:
 - This is a content-only repository with no build process, tests, or runtime code
 - All content is in Markdown format
 - No package.json or dependencies to manage
-- Before publishing, verify heading hierarchy and alt text per `docs/editor-guide.md`
+- Before publishing, verify heading hierarchy and alt text per `guides/editor-guide.md`
 
-## Knowledge Graph
-This project has knowledge graph tools (graphify, code-review-graph) configured. Read `docs/agent/knowledge-graph.md` before exploring unfamiliar content or answering topic/structure questions.
