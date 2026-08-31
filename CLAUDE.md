@@ -86,7 +86,14 @@ Content from this repository is published to:
 - **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.
 - **Every image needs meaningful alt text** — `![Description of content](path)` not `![](path)`. Screen readers read this aloud.
 - **Front matter**: `title`, `published`, `tags` (max 4, comma-separated), optional `cover_image` (1000×420), `series`, `canonical_url`.
-- Full reference: `docs/editor-guide.md`
+- Full reference: `guides/editor-guide.md`
+
+### Diagrams (blogs and decks)
+- Prefer a mermaid diagram over prose for a non-trivial flow, state machine, or sequence — one per genuinely distinct concept, not one per sentence.
+- Pipeline: write mermaid source as `.mmd` → `scripts/render-mermaid.sh <input.mmd> assets/B-NN/<name>` → embed the resulting `.png` (not `.svg`) in both the blog and its companion deck, same file, same path.
+- **Default theme is light** — blog markdown renders on GitHub/dev.to/Medium, none of them under this repo's control, and a dark diagram is invisible on a page you don't control. Only use `--dark` for an asset that will never appear in a blog post.
+- A hand-designed (non-mermaid) SVG still gets a PNG via `scripts/svg-to-png.sh` instead.
+- Full reference: `guides/diagrams-guide.md`
 
 ## File Naming Conventions
 - Use descriptive, human-readable filenames for blog posts
@@ -95,8 +102,7 @@ Content from this repository is published to:
 - Version indicators (v1, v2) are appended to distinguish iterations
 
 ## Development Notes
-- This is a content-only repository with no build process, tests, or runtime code
+- This is a content-only repository — no build process, tests, or package.json to manage. `scripts/` holds a couple of small, dependency-free helper scripts (diagram rendering) invoked via `npx`, not a build pipeline.
 - All content is in Markdown format
-- No package.json or dependencies to manage
 - Before publishing, verify heading hierarchy and alt text per `guides/editor-guide.md`
 
