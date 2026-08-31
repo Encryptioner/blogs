@@ -184,6 +184,7 @@
         <li><b>Runs the project's own checks.</b> <span class="muted">Whatever build / typecheck / test the repo already has — resolve invokes it, not a toy script.</span></li>
         <li><b>Reports un-placeable findings.</b> <span class="muted">If it can't find the construct, it says so — never silently resolves.</span></li>
         <li><b>Names the branch the fix landed on.</b> <span class="muted">So you can audit "fix shipped on <span class="mono">fix/auth-zero</span>, not <span class="mono">main</span>."</span></li>
+        <li><b>Starts from fresh remote state.</b> <span class="muted">Pulls the latest PR comments before it resolves anything, and refuses to edit a branch that's behind the PR head — it never resolves against a stale view of the thread.</span></li>
       </ul>
       <div class="code-block">
         <div class="code-head"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="file">branchdiff agent resolve</span></div>
@@ -245,6 +246,7 @@
         <li><b>opencode reads <span class="mono">.claude/skills</span>.</b> One install covers both Claude Code and opencode.</li>
         <li><b>Constructive tone is baked in.</b> Leads with the problem, not judgment; acknowledges good code.</li>
         <li><b>Re-runnable.</b> Updates files it wrote; leaves hand-written skills alone unless <span class="mono">--force</span>.</li>
+        <li><b>~9% leaner.</b> Shared content between the review and resolve skills is now stated once instead of repeated — same guidance, a smaller file to load.</li>
       </ul>
     </div>
     <div class="callout accent" style="margin-top:18px">
@@ -329,9 +331,19 @@
     </div>
   </section>
 
+  <!-- XX · THE FULL PIPELINE, WITH THE RELIABILITY PIECES (asset) -->
+  <section class="slide" data-title="The full pipeline, end to end">
+    <div class="slide-num">14 · the full pipeline</div>
+    <h3 class="section">Same 4 steps — <em>with the parts that keep it honest</em>.</h3>
+    <div class="fig" onclick="openLightbox(this)">
+      <img src="../../assets/B-14/self-review-pipeline.png" alt="Self-review pipeline sequence: you open the change map on demand at zero tokens, run branchdiff-review which reads agent diff and the change map saved to BRANCHDIFF_CONTEXT_FILE and posts tagged comments, you triage by fixing, dismissing, or replying, then run branchdiff-resolve which pulls the latest PR comments first before applying fixes and resolving threads" loading="lazy" />
+      <div class="fig-caption">context survives compaction · resolve pulls fresh remote state before it touches anything</div>
+    </div>
+  </section>
+
   <!-- 14 · 8 WORKFLOWS + LOCAL-ONLY -->
   <section class="slide" data-title="Workflows & local-only resolve">
-    <div class="slide-num">14 · workflows &amp; local-only by default</div>
+    <div class="slide-num">15 · workflows &amp; local-only by default</div>
     <h3 class="section">Eight guided review passes. <em>Local by default.</em></h3>
     <div class="two-col">
       <div>
@@ -364,7 +376,7 @@
 
   <!-- 15 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">15 · recap</div>
+    <div class="slide-num">16 · recap</div>
     <h3 class="section">AI review that <em>actually reviews</em>.</h3>
     <p class="lead-p">A controlled <span class="mono">agent</span> surface that any LLM can drive; comments that land on real lines with severity tags; nth-pass awareness so resolved stays resolved; resolve that verifies ancestry, build, and tests before claiming done.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">

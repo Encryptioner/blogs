@@ -151,7 +151,7 @@
     <span>branchdiff</span>
     <span class="sub">· feature decks</span>
   </div>
-  <span class="ver">v2.1.0</span>
+  <span class="ver">v2.2.2</span>
 </div>
 
 <section class="hero">
@@ -164,15 +164,15 @@
     <span class="pill"><span class="dot p"></span> AI review &amp; resolve</span>
     <span class="pill"><span class="dot y"></span> SQLite sessions</span>
   </div>
-  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v2.1.0</span> — multi-repo auto, detached server review, launchd-on-macOS / cron-on-Linux unattended runs, config file support, severity-gated approve, skip-PRs-by-size, a usage-stats dashboard with a Configs viewer, named reviewer-error reasons, click-to-open notifications.</p>
+  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v2.2.2</span> — multi-repo auto, detached server review, launchd-on-macOS / cron-on-Linux unattended runs, config file support, severity-gated approve, skip-PRs-by-size, a usage-stats dashboard with a Configs viewer, named reviewer-error reasons, click-to-open notifications, a zero-token change map for AI orientation, AI token/cost tracking in stats, <span class="mono">--stack</span> ancestor PR context, and an in-browser update badge.</p>
 </section>
 
 <section class="sec">
   <div class="sec-head">
-    <h2>Eight decks · <em style="color:var(--accent);font-style:normal">one journey</em></h2>
+    <h2>Nine decks · <em style="color:var(--accent);font-style:normal">one journey</em></h2>
     <span class="hint">// click any card to open the deck</span>
   </div>
-  <p class="note"><span class="mono">→</span> Read top-to-bottom, the decks are a path — each starts from a pinpoint pain in the native PR workflow and builds toward the next: <b>view a diff</b> → <b>trust it locally</b> → <b>comment &amp; review</b> → <b>AI review &amp; resolve</b> → <b>automatic &amp; unattended</b> → <b>full PR lifecycle</b> → <b>explore the repo</b> → <b>multi-repo at scale</b>.</p>
+  <p class="note"><span class="mono">→</span> Read top-to-bottom, the decks are a path — each starts from a pinpoint pain in the native PR workflow and builds toward the next: <b>view a diff</b> → <b>trust it locally</b> → <b>comment &amp; review</b> → <b>AI review &amp; resolve</b> → <b>automatic &amp; unattended</b> → <b>full PR lifecycle</b> → <b>explore the repo</b> → <b>multi-repo at scale</b> → <b>orient the AI for free</b>.</p>
   <div class="grid" id="deckGrid"></div>
 </section>
 
@@ -231,6 +231,7 @@
     { n:'06', file:'06-sessions-sync-platform.html',   title:'Sessions, Sync &amp; Actions',    hook:'Persistent sessions, two-way comment sync, and the full PR lifecycle from one toolbar.', thumb:'../../assets/B-13/90-second-flow.png' },
     { n:'07', file:'07-repo-exploration.html',         title:'Repo Exploration',                hook:'History, blame, tree, search, branches, and a commit graph — one tab, virtualized, read-only time-travel.', thumb:'images/06-commit-graph.png' },
     { n:'08', file:'08-multi-repo-auto.html',          title:'Multi-Repo Auto Cycles',          hook:'One branchdiff auto run across every repo — one combined PR list, one cycle report, and servers tidied up after.', thumb:'' },
+    { n:'09', file:'09-change-map.html',               title:'Change Map',                      hook:'A machine-computed, zero-token diagram of how a diff wires together — orientation the AI reviewer gets before it starts.', thumb:'' },
   ];
 
   const grid = document.getElementById('deckGrid');

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 09 — Change Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Change Map">
+    <span class="badge"><span class="dot"></span> Deck 09 · branchdiff features</span>
+    <h1 class="title">Orientation, <em>before</em> a single token is spent.</h1>
+    <h2 class="subtitle">Hand an AI a 40-file diff and it has to figure out what's actually connected before it can say anything useful. branchdiff computes that wiring locally and deterministically — zero AI tokens — and hands the reviewer a ready-made map before it starts.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">change map</span> zero AI tokens</span>
+      <span><span class="mono">3 files</span> / <span class="mono">80 lines</span> auto-threshold</span>
+      <span><span class="mono">mermaid</span> + <span class="mono">ascii</span></span>
+      <span>toolbar · PR description · <span class="mono">auto</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The AI hits the wall of hunks too">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">The <em>AI</em> hits the wall of hunks, too.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Orientation is real work.</b> <span class="muted">A 40-file diff dropped on a reviewer — human or model — carries no map of what talks to what. Before it can say anything useful, it has to reconstruct the wiring by reading every file.</span></li>
+        <li><b>Not a new problem — a familiar one, on a new victim.</b> <span class="muted">"Fifty disconnected three-line hunk windows" is deck 01's native problem. Hand the same diff to an AI reviewer and it pays the identical tax, just silently, inside a prompt you can't see.</span></li>
+        <li><b>Tokens spent re-deriving structure aren't spent reviewing.</b> <span class="muted">Every paragraph the model uses to figure out "which files actually relate" is a paragraph it isn't using to catch a real bug.</span></li>
+        <li><b>A tangled diff and a big diff look the same from the outside.</b> <span class="muted">Nothing distinguishes "200 unrelated one-line changes" from "12 files that all depend on each other" until someone — or something — maps it.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The result:</b> the first review pass on a large diff spends its earliest, most expensive reasoning on orientation the tool could have handed it for free.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE SOLVE -->
+  <section class="slide" data-title="The change map solve">
+    <div class="slide-num">03 · the solve</div>
+    <h3 class="section">A map, computed <em>locally</em> — never an AI call.</h3>
+    <p class="lead-p">branchdiff walks the diff's import graph on your machine — plain static analysis, not a model — and builds a change map: which areas moved, how they're wired, and whether the diff is one coherent change or several bundled together. It costs zero AI tokens, every time, because nothing in the computation is AI.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">0</div><div class="label">AI tokens</div><div class="desc">Deterministic static analysis, not a model call</div></div>
+      <div class="stat"><div class="num">3 / 80</div><div class="label">files / lines</div><div class="desc">Auto-triggers past either threshold</div></div>
+      <div class="stat"><div class="num">4</div><div class="label">surfaces</div><div class="desc"><span class="mono">agent diff</span> · <span class="mono">review context</span> · <span class="mono">review run</span> · <span class="mono">auto</span></div></div>
+    </div>
+    <div class="callout accent" style="margin-top:22px">
+      <b>The AI reviewer gets it for free.</b> Every surface that feeds a diff to an AI includes the change map automatically once the diff is big enough to need one — no flag required.
+    </div>
+  </section>
+
+  <!-- 4 · WHAT IT ANSWERS -->
+  <section class="slide" data-title="What it actually answers">
+    <div class="slide-num">04 · what it answers</div>
+    <h3 class="section">Six questions, answered <em>before review starts</em>.</h3>
+    <div class="two-col">
+      <ul class="checklist">
+        <li><b>Which areas moved, and by how much.</b> Churn grouped by directory/module, not a flat file list.</li>
+        <li><b>Which areas are wired together.</b> Import edges between the diff's own files — not the whole repo's graph.</li>
+        <li><b>One coherent change, or several bundled?</b> Disconnected clusters read as separate concerns, not one story.</li>
+        <li><b>Which areas are brand-new.</b> Files with no prior wiring into the rest of the diff.</li>
+        <li><b>How many review passes this session has already had.</b> So the map itself carries nth-pass context.</li>
+        <li><b>A titled diagram per wired section.</b> Rendered already — mermaid or ASCII, whichever the target platform supports.</li>
+      </ul>
+      <div class="callout">
+        <b>Degrades gracefully.</b> If wiring analysis can't run on a diff, the map falls back to the churn table alone — it never blocks a review over an incomplete graph.
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · WIRING DEEP-DIVE -->
+  <section class="slide" data-title="Edges carry symbols, not just counts">
+    <div class="slide-num">05 · the wiring, in detail</div>
+    <h3 class="section">Edges are labeled with the <em>actual symbol</em>, not "3 imports".</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Not just an import count.</b> <span class="muted">When branchdiff can tell, an edge is labeled with the specific new symbol the diff added — the function or class the wiring is actually about.</span></li>
+        <li><b>Doc comments fold in.</b> <span class="muted">A wired-to node's box pulls in that symbol's own doc comment, when the diff added one — the reviewer sees intent, not just a name.</span></li>
+        <li><b>Missing docs are flagged, not hidden.</b> <span class="muted">A matched symbol with no doc comment is called out explicitly — a small, honest nudge, not a silent gap.</span></li>
+      </ul>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-20/change-map-internals.png" alt="Change map computation pipeline: diff crosses size threshold, computed locally and deterministically into area churn, import wiring, coherence check, and new-area detection, rendered as a diagram per wired section and appended to agent diff / review context / auto" loading="lazy" />
+        <div class="fig-caption">zero AI tokens · computed once, read by both the AI and you</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · AI REVIEW COMMENT LEADS WITH IT -->
+  <section class="slide" data-title="The review comment leads with it">
+    <div class="slide-num">06 · leads the review</div>
+    <h3 class="section">The AI's general comment <em>opens</em> with the map.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Intent summary first, diagram right after.</b> <span class="muted">Every review pass on a large diff posts a general comment that starts with a short intent line, then the pre-rendered diagram — before any findings.</span></li>
+        <li><b>Mermaid where it renders, ASCII where it doesn't.</b> <span class="muted">Mermaid on GitHub and in branchdiff's own comment view; ASCII on Bitbucket, which can't render it on its own PR page.</span></li>
+        <li><b>One diagram per wired section.</b> <span class="muted">A PR that spans unrelated areas gets one titled diagram per section, not one tangled graph trying to show everything.</span></li>
+        <li><b><span class="mono">--no-change-map</span></b> skips it outright; <b><span class="mono">--change-map-exclude &lt;glob&gt;</span></b> narrows what feeds the graph.</li>
+      </ul>
+      <div class="callout accent">
+        <b>Orientation before opinion.</b> A reviewer — human or AI — reads "here's what's wired to what" before it reads a single finding. The comment argues its case with the map already on the table.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · VIEW WITHOUT STARTING A REVIEW -->
+  <section class="slide" data-title="View it without starting a review">
+    <div class="slide-num">07 · view on demand</div>
+    <h3 class="section">See the map — <em>without spending a review pass</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Toolbar button opens a modal</b> with the same orientation diagrams the AI would see — computed on demand.</li>
+        <li><b>Costs nothing until you click it.</b> <span class="muted">No AI call, no review pass — it's the same local computation, just surfaced directly.</span></li>
+        <li><b>Mermaid / Ascii toggle</b> switches format from the one fetch already in hand — no re-computation.</li>
+        <li><b><span class="mono">Copy markdown</span></b> copies whichever format is currently showing.</li>
+      </ul>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-15/change-map-on-demand.png" alt="Change map on-demand flow: open a large PR, click the toolbar Change map button, computed on demand with zero AI tokens, showing areas moved plus import wiring and coherence, toggled between Mermaid and Ascii format, then copied as markdown" loading="lazy" />
+        <div class="fig-caption">toolbar → modal → Mermaid/Ascii toggle → Copy markdown</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · INSERT INTO A PR DESCRIPTION -->
+  <section class="slide" data-title="Insert it into a PR description">
+    <div class="slide-num">08 · insert into a PR</div>
+    <h3 class="section">One click, and it's <em>in the PR description</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Insert row, in create-PR and edit-PR dialogs.</b> A <span class="mono">Change map</span> button splices the block into the description as editable markdown.</li>
+        <li><b>Its own heading, cleanly closed.</b> <span class="muted">Lands under <span class="mono">### Change map</span>, closed with a <span class="mono">---</span> rule — never bleeds into hand-written description text.</span></li>
+        <li><b>Re-click updates it in place;</b> a small <span class="mono">×</span> removes it.</li>
+        <li><b>Bitbucket gets images, not raw mermaid.</b> <span class="muted">Its PR page can't render mermaid on its own, so each diagram is rendered to an image and uploaded to the repo's Downloads area at save time — falling back to plain text for the whole map if any single upload fails.</span></li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">PR description</span>
+        </div>
+        <div class="code-body">
+<span class="c">## Summary</span>
+<span class="c">…your own description text…</span>
+
+<span class="c">### Change map</span>
+<span class="c">```mermaid</span>
+<span class="c">graph TD</span>
+<span class="c">  auth[auth/session.ts] --&gt; login[api/routes/login.ts]</span>
+<span class="c">  login --&gt; user[db/models/user.ts]</span>
+<span class="c">```</span>
+<span class="c">---</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · MERMAID VIEWER POLISH -->
+  <section class="slide" data-title="A real diagram viewer in comments">
+    <div class="slide-num">09 · viewer polish</div>
+    <h3 class="section">A mermaid diagram, viewed like <em>a real diagram</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Titled frontmatter, sticky.</b> <span class="muted">A <span class="mono">title:</span> YAML frontmatter block becomes the sticky header of a "view full diagram" popup — you always know which section you're looking at.</span></li>
+        <li><b>Zoom in / out / reset.</b> <span class="muted">A dense wiring graph on a small PR-comment card stops being a squint test.</span></li>
+        <li><b>One-click SVG download.</b> <span class="muted">Pull the diagram out to paste into a design doc, a Slack thread, or a ticket — full fidelity, not a screenshot.</span></li>
+      </ul>
+      <div class="callout accent">
+        <b>Same diagram, everywhere it can render.</b> The popup is the same underlying mermaid the general comment posted — branchdiff's comment view just gives it real viewer controls instead of a static, uncontrollable embed.
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · HOW TO USE IT -->
+  <section class="slide" data-title="How to use it">
+    <div class="slide-num">10 · how to use it</div>
+    <h3 class="section">Real commands — <em>and it's on by default</em>.</h3>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">~/repo</span>
+      </div>
+      <div class="code-body">
+<span class="c"># includes the change map automatically past the size threshold</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> agent diff
+
+<span class="c"># skip it outright</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> agent diff <span class="k">--no-change-map</span>
+
+<span class="c"># narrow what feeds the graph</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> agent diff <span class="k">--change-map-exclude</span> <span class="s">'vendor/**'</span>
+
+<span class="c"># the AI reviewer gets it automatically, every pass</span>
+<span class="prompt">$</span> <span class="f">branchdiff</span> auto <span class="k">--tool</span> claude
+      </div>
+    </div>
+    <ul class="checklist" style="margin-top:18px">
+      <li><b>In the browser:</b> toolbar → <span class="mono">Change map</span> button → <span class="mono">Mermaid</span> / <span class="mono">Ascii</span> toggle → <span class="mono">Copy markdown</span>.</li>
+      <li><b>In a PR dialog:</b> create or edit → Insert row → <span class="mono">Change map</span> button.</li>
+      <li>Same threshold everywhere — <span class="mono">agent diff</span>, <span class="mono">review context</span>, <span class="mono">review run</span>, and <span class="mono">auto</span> all trigger it past 3 files or 80 changed lines.</li>
+    </ul>
+  </section>
+
+  <!-- 11 · HONEST SCOPE BOUNDARY -->
+  <section class="slide" data-title="What it is not">
+    <div class="slide-num">11 · honest boundary</div>
+    <h3 class="section">Structural, <em>not</em> semantic.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>It's an import graph, not a code review.</b> <span class="muted">It tells you what's connected — not whether the wiring is <em>correct</em>. Two files calling each other correctly and two files calling each other wrongly draw the exact same edge.</span></li>
+        <li><b>It doesn't shrink the diff's own complexity.</b> <span class="muted">A genuinely tangled 200-file diff still produces a genuinely complex map. The map doesn't make the diff simpler — it makes the complexity <em>visible</em> instead of hidden inside fifty separate files.</span></li>
+      </ul>
+      <div class="callout">
+        <b>The honest framing:</b> a change map is orientation, not judgment. It's the fastest way to see what a diff touches before you — or the AI — decide whether it touches it well.
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">12 · recap</div>
+    <h3 class="section">Orientation the AI gets <em>for free</em>.</h3>
+    <p class="lead-p">A change map is computed locally and deterministically — zero AI tokens, every time — once a diff crosses 3 files or 80 changed lines. It answers what moved, what's wired to what (with real symbols, not counts), whether the diff is coherent or bundled, and what's brand-new — then hands a ready-made diagram to whichever surface needs it: the AI's review comment, the browser toolbar, or the PR description itself.</p>
+    <ul class="checklist" style="max-width:62ch;margin-top:8px">
+      <li>Zero AI tokens — pure local static analysis, never a model call.</li>
+      <li>Auto-triggers past 3 files / 80 changed lines, in <span class="mono">agent diff</span>, <span class="mono">review context</span>, <span class="mono">review run</span>, and <span class="mono">auto</span>.</li>
+      <li>Edges labeled with actual new symbols; doc comments fold in; missing docs flagged.</li>
+      <li>Review comments lead with an intent summary + diagram — mermaid on GitHub, ASCII on Bitbucket.</li>
+      <li>View on demand from the toolbar; insert straight into a PR description, updatable in place.</li>
+      <li>Structural, not semantic — tells you what's connected, not whether it's correct.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+      <a class="ghost" href="08-multi-repo-auto.html" target="_blank" rel="noopener">← 08 · Multi-Repo Auto Cycles</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-12">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

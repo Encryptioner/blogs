@@ -172,9 +172,49 @@
     </div>
   </section>
 
-  <!-- 11 · WHAT BUILDING IT TAUGHT -->
+  <!-- 11 · THE AI HIT THE SAME WALL -->
+  <section class="slide" data-title="The AI hit the same wall">
+    <div class="slide-num">11 · the itch, again — this time it's the AI</div>
+    <h3 class="section">Same wall of hunks. Different reader this time.</h3>
+    <p class="lead-p">Once <span class="mono">auto</span> was reviewing unattended, the AI was still cold-reading every diff — no orientation, just a wall of hunks. That is the exact problem that started this whole project, except now it was the AI stubbing its toe instead of me.</p>
+    <div class="vs">
+      <div class="box problem">
+        <h4>Before</h4>
+        <p>Every session opens the same way: burn real effort and real tokens just figuring out which of forty changed files matter, and how they connect, before saying anything useful about the change itself.</p>
+      </div>
+      <div class="box solve">
+        <h4>After</h4>
+        <p>A <b>change map</b>, computed locally and deterministically before any AI ever sees the diff — zero AI tokens spent finding out what could just be computed.</p>
+      </div>
+    </div>
+    <div class="callout accent">Appended automatically once a diff crosses <b>3 files / 80 changed lines</b> — and pulled up on demand from a toolbar button, for a human, without starting a review at all.</div>
+  </section>
+
+  <!-- 12 · THE CHANGE MAP -->
+  <section class="slide" data-title="The change map">
+    <div class="slide-num">12 · the change map</div>
+    <h3 class="section">One diagram, per wired section, <em>before</em> a single line of review.</h3>
+    <div class="cols-3-2">
+      <ul class="bullets">
+        <li><b>Which areas moved</b> <span class="muted">— and by how much.</span></li>
+        <li><b>Which areas are wired together by imports</b> <span class="muted">— labeled with the actual new symbols the diff introduces, not just an import count.</span></li>
+        <li><b>One coherent change, or several bundled into a PR</b> <span class="muted">— told apart automatically.</span></li>
+        <li><b>The AI's own review comment</b> <span class="muted">now opens with that same diagram before its line-by-line findings.</span></li>
+      </ul>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-23/journey-epilogue.png" alt="Journey epilogue: a human reading a cold diff with no orientation in v1.0 led branchdiff to fix that for humans, then an AI reading a cold diff with the same problem after auto shipped led to the change map's zero-token orientation, which raised the question of what it was actually costing, answered by stats tracking token and cost per tool and per repo" loading="lazy" />
+        <div class="fig-caption">same shape, two readers: the human's wall of hunks, then the AI's</div>
+      </div>
+    </div>
+    <div class="stat-row" style="margin-top:22px">
+      <div class="stat"><div class="num">0</div><div class="label">AI tokens spent</div><div class="desc">The map is pure computation, not a model call.</div></div>
+      <div class="stat"><div class="num">$ / pass</div><div class="label">Cost, made visible</div><div class="desc"><span class="mono">stats</span> now tracks tokens and cost per pass, split by tool and by repo.</div></div>
+    </div>
+  </section>
+
+  <!-- 13 · WHAT BUILDING IT TAUGHT -->
   <section class="slide" data-title="What building it taught me">
-    <div class="slide-num">11 · what building it taught me</div>
+    <div class="slide-num">13 · what building it taught me</div>
     <h3 class="section">The real payoff is the <em>habits</em>, not the features.</h3>
     <ul class="checklist">
       <li><b>Ship the itch you actually have.</b> Features that scratched a real, recurring annoyance are the ones people thank you for; the clever planned ones mostly didn't survive contact with how I really work.</li>
@@ -189,7 +229,7 @@
 
   <!-- 12 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">12 · recap</div>
+    <div class="slide-num">14 · recap</div>
     <h3 class="section">One stubborn idea, <em>four months of Tuesdays</em>.</h3>
     <p class="lead-p">branchdiff still does exactly what it did on day one — show you the real diff, not the phantom one. Everything else grew up around that single idea, each piece born from a friction I personally felt, over and over, until the friction was gone.</p>
     <ul class="checklist" style="max-width:64ch">
@@ -215,7 +255,7 @@
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-12">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-14">
 </div>
 
 <div class="dk-help" id="helpOverlay">
