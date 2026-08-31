@@ -32,15 +32,30 @@ Two filters keep the candidate list relevant instead of running against everythi
 branchdiff auto --dest main --watch 30
 ```
 
+There's also a shortcut for the common case of just wanting a session started and reviewed right now: `--review` on `branchdiff <branch1> <branch2>` (or a PR URL) runs a full review pass immediately after the session is ready, instead of needing a separate `review run` afterward — and it carries every review-pass flag this post covers, `--push`, `--approve`/`--request-changes`, `--stack`, all of it.
+
+---
+
+## Reviewing one PR of a stack without losing the others' context
+
+Stacked PRs are their own trust problem — PR #2 builds on PR #1's branch, and a reviewer skimming just the diff against PR #2's base has no idea what PR #1 already introduced underneath it. `--stack`, available on `review context`, `review run`, and `auto` itself, fixes that without you doing anything special: when a PR's base branch is itself another open PR's head branch, branchdiff walks the base-branch chain your forge's PR data already carries, finds that immediate ancestor, and injects its description plus a file-level diff summary as a clearly labeled, read-only context block ahead of the diff actually under review.
+
+```bash
+branchdiff auto --dest main --stack --review --push
+```
+
+The AI reads that block as context, not as something to comment on, and reviews PR #2 knowing what PR #1 already changed instead of flagging decisions that were already reviewed one PR down. And because `auto` already fetched the full PR list during its scan phase, `--stack` matches ancestors against that in-memory list instead of making a fresh lookup per PR — reviewing a ten-PR stack costs one scan, not ten.
+
 ---
 
 ## Bring your own model
 
-This is the part a SaaS bot cannot offer you: `--tool claude|opencode|codex|gemini|cursor|llm` picks a known CLI to drive the review, and `--exec "<command>"` runs anything at all that reads a prompt on stdin and prints review JSON. If your team standardizes on Codex this quarter and switches to something else next quarter, that is a flag change, not a vendor renegotiation.
+This is the part a SaaS bot cannot offer you: `--tool claude|opencode|codex|gemini|cursor|llm|antigravity` picks a known CLI to drive the review, and `--exec "<command>"` runs anything at all that reads a prompt on stdin and prints review JSON. If your team standardizes on Codex this quarter and switches to something else next quarter, that is a flag change, not a vendor renegotiation.
 
 ```bash
 branchdiff auto --tool claude
 branchdiff auto --tool gemini --watch 60
+branchdiff auto --tool antigravity
 branchdiff auto --exec "my-internal-review-wrapper --model=finetuned-v3"
 ```
 
@@ -48,16 +63,28 @@ What the AI is told to do is equally yours to shape. The default is a context-pl
 
 | Flag | What it changes |
 | --- | --- |
-| `--tool claude` / `opencode` / `codex` / `gemini` / `cursor` / `llm` | Which known CLI drives the review |
+| `--tool claude` / `opencode` / `codex` / `gemini` / `cursor` / `llm` / `antigravity` | Which known CLI drives the review |
 | `--exec "<command>"` | Any command that reads a prompt on stdin, prints review JSON |
 | `--skill` | Built-in skill, AI posts comments itself, nothing to install |
 | `--skill-name <name>` | A custom skill you installed via `branchdiff skill add` |
 | `--additional-skill <name>` | Layer a second skill's guidance onto the same pass (repeatable) |
 | `--prompt "<text>"` | One-off extra instructions, either mode |
 
+Every tracked pass now reports what it cost: each one prints a `Tokens: N (~$C)` line when it finishes, and `branchdiff stats` rolls those up into running totals, split by tool and by repo — so "what does it cost to review every PR I have open, every day" stops being a guess and becomes a number you can pull up.
+
 If the built-in skill's judgment doesn't match your team's bar — too strict on style, too loose on security, whatever — don't fight it, generate your own with `branchdiff skill add`: `--type review|resolve|all` picks which skill(s) to write, `--target` (comma-separated: Claude Code, opencode, and other compatible runtimes) or `--dir <path>` picks where, `--name <prefix>` sets the filename prefix, and `--force` overwrites a file branchdiff didn't generate itself. Edit the generated file's instructions to taste, then point `--skill-name` at it.
 
 Since `--tool` just shells out to your normal CLI, the usual per-account tricks still apply — prefixing the command with an env var like `CLAUDE_CONFIG_DIR=~/.claude-work` when you run multiple accounts on one machine works exactly as it would running that CLI by hand.
+
+---
+
+## Change map: the AI doesn't cold-read your diff anymore
+
+This is the biggest change to `auto` since this post was first written. Once a diff crosses a size threshold — 3 files or 80 changed lines, whichever comes first — `agent diff`, `review context`, and `review run` (and therefore every review pass `auto` triggers) append a `BRANCHDIFF CHANGE MAP` block ahead of the actual diff. It's computed locally and deterministically, no AI tokens spent producing it: which areas of the codebase moved and by how much, which areas are wired together by imports, whether the PR reads as one coherent change or several unrelated ones stapled together, which areas are brand-new, and how many review passes the session has already been through.
+
+The wiring analysis is the part worth dwelling on. It isn't just "file A imports file B" — where the diff introduced a new symbol, the edge between two areas is labeled with the actual symbol name it added, and the box for the area being wired to folds in that symbol's own doc comment when the diff added one. A matched symbol with no doc comment gets flagged as such, right there in the map — a small nudge toward documenting the thing you just wired half your diff into. Each wired section gets its own titled diagram, mermaid or ASCII depending on which the session's remote renders. If the wiring analysis can't run for some reason, the map degrades gracefully to just the churn table — it can never block a review from happening.
+
+The result: the AI reviewer walks into every non-trivial diff with a map already drawn, instead of reconstructing "does this touch billing" from scratch by reading imports line by line. And that map doesn't stay buried in the AI's context — the general comment a review pass posts opens with a short intent summary followed by the change map's pre-rendered diagram, copied as-is by default: mermaid on GitHub, ASCII on Bitbucket, one diagram per wired section on a PR that spans several unrelated areas. A human skimming the AI's comment sees its model of the change before a single line-by-line finding.
 
 ---
 
@@ -76,6 +103,10 @@ branchdiff auto --dest main --review --push
 ```
 
 Worth a pre-flight check before the first unattended cycle: `branchdiff doctor` verifies git, node, sqlite's native binding, and the notification backend it detected on your OS — a broken binding should surface now, not at 2am on the first cron fire. `--notify` closes the loop without you tailing a log file — a desktop toast on start, on finish, on a comment push, on failure, each one carrying a link straight to the PR or the local session view. If nothing pops up, `branchdiff doctor --notify` fires a test toast against the backend it detected, so you can tell "not configured" apart from "configured but silently failing."
+
+There's a third guard specific to skill mode. `--skill` and `--resolve` need the AI to run `branchdiff agent` commands headless — no human at the keyboard to click through a tool-permission prompt, which would otherwise block the run forever. So branchdiff auto-detects and appends the right unattended-approval flag for whichever tool it identified — via `--tool <name>`, or sniffed from a raw `--exec` command's own first word — if that flag isn't already there: `--dangerously-skip-permissions` for claude and antigravity, `--yolo` for gemini, `--auto` for opencode, `--dangerously-bypass-approvals-and-sandbox` for codex. It logs exactly what it added, so the command that actually ran is never a mystery. An unrecognized `--exec` is left exactly as written — branchdiff warns instead of guessing at a flag that command might not even support.
+
+That flag is also the reason this section exists at all: letting a CLI run commands and edit files without prompting is real power to hand an unattended process. Before relying on this for reviews that matter, set up a deny-list — project-level and global/user-level permission settings for whichever tool you picked — the same way you'd sandbox any other automation that can execute arbitrary commands on your behalf.
 
 ---
 
@@ -98,6 +129,8 @@ branchdiff auto --dest main --review --approve 1 --request-changes 3 --push
 ```
 
 Both flags always write a verdict comment explaining the decision, but *actually* setting GitHub's or Bitbucket's review state additionally requires `--push` — without it, the reasoning stays local commentary and nothing on the remote PR changes. If you pass both `--approve` and `--request-changes` with different levels, `auto` refuses rather than guessing which one you meant. Before deciding, it reconciles threads from any earlier pass against the new diff — resolving its own prior findings, and resolving a human thread once that commenter has signed off on it; every other human thread it only replies to, never resolves, since closing someone else's open discussion for them is still not the AI's call to make.
+
+Worth knowing before you lean on `--push` for real: if the comments post locally but the actual push to the PR fails — a rate limit, a network blip — `auto` retries only that publish step next cycle, not a full re-review. It doesn't redo work it already finished; it just tries again to hand off what it already decided.
 
 ---
 
@@ -153,6 +186,8 @@ Started detached auto session 3f2a9c21-...-b8e0 (pid 42117).
 
 `branchdiff auto list` shows every live detached session — id, repo(s), pid, mode, watch interval, log path (`--json` for scripts). `branchdiff auto attach <id>` read-only tails the log (Ctrl-C stops watching, never the session itself). `branchdiff auto stop <id>` sends it the same signal a foreground Ctrl-C would.
 
+The live echo you're tailing got more useful too: during a tracked `claude`/`opencode` pass it now shows thinking and tool calls as they happen, not just the final reply — `[thinking] ...` and `[tool] <name>: <headline arg>` lines interleaved with the reply text, closer to what an interactive session actually shows. Worth knowing if you're pairing `--notify` with `attach` to watch a run live rather than just get pinged at the end.
+
 `--detach` still needs a human to type the command once, from a terminal that's up. For "review PRs between 10am and 8pm on weekdays, on a box that's just always on" — nobody attached, nothing typed each morning — `branchdiff auto cron add` writes real schedule entries instead — crontab on Linux, a launchd LaunchAgent on macOS (why that matters in a moment) — tagged so branchdiff only ever touches its own lines. `--start`/`--end` take the two cron expressions, and `--review` is required on the add itself, same rule as `--detach`: a schedule with no human ever around to answer the interactive prompt has to opt into unattended mode up front.
 
 ```bash
@@ -197,6 +232,8 @@ branchdiff auto --dest main --review --push --worktree --parallel 3
 ## Where to stay skeptical
 
 **A deterministic gate is only as good as your tags.** `--approve`/`--request-changes` trust `[must-fix]` and the rest of the tag taxonomy to be applied correctly by whatever `--tool` you chose. A model that consistently under-tags real bugs as `[nit]` will happily approve things it shouldn't — watch the first few weeks of output before raising the level or turning on `--push` unattended.
+
+**The change map is structural, not semantic.** Import wiring, symbol names, doc-comment presence — all of that is a parse, not an understanding. It can tell you area A is now wired to area B via a specific new function; it cannot tell you whether that wiring is *correct*. Treat the diagram as orientation for the review, not as a verdict on the change.
 
 **`--detach` and `cron` mean it runs while you're not looking.** That is the whole point, but it also means a bad prompt or a misconfigured `--exec` command runs unattended too. When a review does fail, branchdiff tells you why by name — rate-limit, overload, billing, missing API key, timeout — rather than an opaque error, and `--debug` writes the full stack trace to per-run logs under `~/.branchdiff/logs/`. Start with `--notify` on and check `branchdiff auto attach <id>` regularly until you trust the setup.
 

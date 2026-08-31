@@ -146,6 +146,18 @@ The part I am proudest of is not any single feature. It is that the same command
 
 ---
 
+## Then the AI needed orientation too
+
+Once `auto` was running unattended, I started noticing something that took me a minute to name. I would watch a review session start, and the first thing the AI did — every time — was spend real effort, and real tokens, figuring out which of the forty changed files actually mattered and how they connected to each other before it could say anything useful about the change itself. That is the exact same problem branchdiff was built to solve on day one — a wall of hunks with no context — except this time the thing squinting at the wall was not a human. It was the model.
+
+So I did the same thing I did the first time around: stopped asking it to figure that out and started handing it the answer. branchdiff now computes a change map locally and deterministically before any AI ever sees the diff — no AI tokens spent finding out what could just be computed. It works out which areas of the diff moved and by how much, which areas are wired together by imports (and where it can tell, it labels the wiring with the actual symbols the diff introduced, not just an import count), whether what you're looking at is one coherent change or several unrelated ones bundled into a single PR, and which areas are brand new. Then it renders a diagram per wired section — mermaid where mermaid will render, ASCII where it won't. It gets appended automatically once a diff crosses a size threshold — 3 files or 80 changed lines — and there's a toolbar button that pulls the same map up on demand, for a human, without starting a review at all. Same orientation, now available to whichever one of us needs it.
+
+The second itch was smaller but stung in a familiar way. Once AI reviews were running all day, unattended, across every open PR in every repo, I realized I had no idea what any of it actually cost. So `stats` learned to track tokens and cost per pass, accumulated per session, split by tool, split by repo — the same instinct that built `stats` in the first place, back when the itch was "I have no idea how much this tool has done for me." If a tool works for you silently, you eventually stop trusting the silence, and letting something run while you sleep is fine right up until you have no idea what it's spending to do it.
+
+Both fixes are the same shape, really. The reviewer needed to be told who it was instead of guessing off a shared pointer. The AI needed to be told what was connected instead of guessing off a wall of hunks. Stop asking something to infer context you could just hand it.
+
+---
+
 ## What building it taught me
 
 I want to be honest about this part, because it is the real payoff of a side project and it is the part nobody puts on the README.

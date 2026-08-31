@@ -158,6 +158,7 @@
         <li><b>Sync All.</b> <span class="muted">One button — both directions, conflicts resolved by last-write.</span></li>
         <li><b>Per-thread sync badge.</b> <span class="muted">Green dot = synced with PR; amber dot = local-only, not yet pushed.</span></li>
         <li><b>Persistent status bar.</b> <span class="muted">At-a-glance sync state across the whole review.</span></li>
+        <li><b>"Include resolved threads not yet reflected on the PR."</b> <span class="muted">A sync checkbox that catches a thread you resolved locally but never pushed — so a stale "still open" thread doesn't linger on the remote.</span></li>
       </ul>
       <div class="callout danger">
         <b>Multi-reply threads stay local.</b> Forge APIs don't map a back-and-forth onto their flat inline-comment model — those threads sync to your machine only, never accidentally split across the PR.
@@ -185,6 +186,9 @@
         </div>
         <div class="callout" style="margin-top:14px">
           <b>Create PRs from the UI</b> too. Title, body, base, head — same surface you're already reviewing in.
+        </div>
+        <div class="callout accent" style="margin-top:14px">
+          <b>Insert row, in both dialogs.</b> Create-PR and edit-PR both carry an Insert row — <span class="mono">Change map</span> (deck 09) and <span class="mono">Commit history</span> buttons splice ready-made markdown straight into the description.
         </div>
       </div>
     </div>
@@ -244,6 +248,7 @@
         <li><b><span class="mono">stats</span></b> — usage dashboard across every repo, with a shareable markdown summary.</li>
         <li><b><span class="mono">export · import</span></b> — move a session's history to another machine or a teammate.</li>
         <li><b><span class="mono">doctor · info · update</span></b> — health check, repo fingerprint, self-update.</li>
+        <li><b>Update badge in the browser, too.</b> An amber dot on the toolbar's <span class="mono">⋮</span> button flags a new release — <span class="mono">Check for updates</span>, then <span class="mono">Update now</span> streams the install output right in the modal, no terminal needed.</li>
         <li><b>Shell completion</b> (bash + zsh) and offline <span class="mono">guide</span> / <span class="mono">changelog</span>.</li>
       </ul>
     </div>
@@ -259,9 +264,10 @@
         <li><b><span class="mono">--today</span> chip.</b> Scope to the calendar day, alongside <span class="mono">All</span> / <span class="mono">90d</span> / <span class="mono">30d</span> / <span class="mono">7d</span>; <span class="mono">--days</span> / <span class="mono">--since</span> / <span class="mono">--until</span> for any window; <span class="mono">--repo</span> to scope, <span class="mono">--json</span> / <span class="mono">--share</span> for scripts.</li>
         <li><b>Configs viewer.</b> Browse the resolved hierarchy for any launch dir — <span class="mono">defaults</span> → <span class="mono">auto</span> → per-repo → <span class="mono">exec/tool</span> — with a per-key table showing which tier won. Copy path / content / open in editor.</li>
         <li><b>Per-section Refresh.</b> A global refresh plus a button on each section — pull fresh auto sessions or cron schedules without reloading the page.</li>
+        <li><b>Sessions table.</b> A new dashboard section listing every review session — repo, PR, tool, tokens, cost — so the token/cost tracking from <span class="mono">auto</span> (deck 05) rolls up into one place.</li>
       </ul>
       <div class="callout accent">
-        <b>Same view from the CLI.</b> <span class="mono">branchdiff config --json</span> dumps the resolved hierarchy (every child repo); <span class="mono">config --dir &lt;launchDir&gt;</span> resolves against a different tree; <span class="mono">config sample --full</span> writes every key that has a fixed default — and names the ones that don't, so you add them yourself.
+        <b>Same view from the CLI.</b> <span class="mono">branchdiff config --json</span> dumps the resolved hierarchy (every child repo); <span class="mono">config --dir &lt;launchDir&gt;</span> resolves against a different tree; <span class="mono">config sample --full</span> writes every key that has a fixed default — and names the ones that don't, so you add them yourself. <span class="mono">stats --json --sections</span> scopes the JSON export to just the dashboard sections you ask for.
       </div>
     </div>
   </section>

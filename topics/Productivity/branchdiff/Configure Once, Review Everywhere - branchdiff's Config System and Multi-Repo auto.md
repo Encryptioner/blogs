@@ -27,7 +27,7 @@ Each file has the same two top-level keys. `defaults` mirrors the root command's
 }
 ```
 
-`auto` mirrors every flag `auto` itself accepts — including `tool`, shown below, which (see the exec/tool section further down) only actually takes effect from this global file, never from a repo's own `.branchdiff.json`:
+`auto` mirrors every flag `auto` itself accepts — including `tool`, shown below, which (see the exec/tool section further down) only actually takes effect from this global file, never from a repo's own `.branchdiff.json` (valid values now include `antigravity` — Google's Antigravity CLI — alongside claude, gemini, opencode, codex, cursor, and llm):
 
 ```json
 {
@@ -154,6 +154,14 @@ And the exit code tells a script what happened without parsing that report: `0` 
 
 ---
 
+## Two reliability fixes worth knowing about
+
+`auto --push` used to mean a failed push retried the whole pass — full AI review again, just to repost a comment that had already landed locally. Now a pass whose comments post but whose push to the PR fails (rate limit, network blip) only retries the publish step on the next cycle; the AI review doesn't re-run, and the verdict comment from the failed attempt is reused instead of duplicated.
+
+`prune-worktrees` picked up two changes worth knowing before you cron it. It now stops the session server running on a `.worktrees/pr-*` checkout before removing that worktree — one you're keeping for uncommitted changes keeps its session alive, same as before. And it gained its own scheduling, `prune-worktrees cron add/list/remove/removeall`, the same shape as `auto cron`, with its schedules showing up alongside `auto`'s in the Stats dashboard.
+
+---
+
 ## Checking the policy actually worked: `branchdiff stats`
 
 A per-cycle report is fine for "did this run go okay," but it doesn't answer "is the policy I set actually doing anything, across every repo, over the last month." `branchdiff stats` does — it aggregates across every repo branchdiff has touched by default, or scope it to the current one with `--repo`. `--days <n>` (default 30, `0` for all time) or `--since`/`--until` set the window. There's also `--today` for the current calendar day — a `Today` chip sits next to `All` / `90d` / `30d` / `7d` on the dashboard, and `--today` mirrors it on the CLI (it can't be combined with `--days`/`--since`/`--until`).
@@ -167,7 +175,13 @@ branchdiff stats --share   # a markdown summary worth pasting into a PR or stand
 
 The text summary breaks down how many reviews you've run and how many are still open, comment/thread status, the GitHub vs. Bitbucket split, and — the part that matters here — the verdict breakdown your `--approve`/`--request-changes` policy actually produced: approved, changes requested, commented. That's the direct payoff of this whole config system: you set `"approve": 2` globally and `"approve": 3` for `payments-api` weeks ago; `branchdiff stats` is where you go to see whether that split held up in practice, not just trust that it did.
 
-The dashboard itself has two things worth knowing about. A **Configs** section browses the resolved config hierarchy for any launch directory — `defaults` → `auto` → per-repo → `exec/tool` — with a per-key table showing which tier actually won, the same answer `branchdiff config --dir` prints but clickable, with copy-path / copy-content / open-in-editor on each file. And every section of the dashboard — running instances, auto sessions, cron schedules, configs — carries its own **Refresh** button, alongside a global one, so you can re-pull a single section on demand instead of reloading the page. That matters for `auto`: leave the dashboard open, hit Refresh on Auto sessions after a cron fire, and watch the latest runs land without re-navigating.
+There's a newer number in that same report worth watching: token usage and cost. Every tracked pass — claude, codex, antigravity, and opencode today — captures the tokens and cost its AI CLI reports and prints a `Tokens: N (~$C)` line after each pass; `review run --usage-tool <tool>` opts a standalone run into the same capture instead of leaving it untracked. `branchdiff stats` rolls it all up: text output, `--json`, `--share`, and the dashboard all show running totals, a per-tool split, a per-repo split, and a token-usage time series whose hover shows cost alongside tokens — on the all-repos dashboard, a Total/By-repo toggle switches that same panel to a per-repo breakdown. The dashboard prints compact figures (`2.06M`, not `2,056,792`); CLI text and `--share` keep the full numbers. A pass run with an untracked tool, or one whose usage line didn't parse, counts separately as **untracked** rather than silently vanishing from the total.
+
+Want only a slice of that aggregate — a script that needs totals but not the charts or session list? `branchdiff stats --json --sections <list>` takes a comma-separated subset of `totals,charts,prs,sessions`, matching the dashboard's own panels. Anything you didn't ask for comes back zeroed or empty rather than missing, so the JSON shape stays identical either way; an unknown section name is rejected with the valid list.
+
+The dashboard also gained a **Sessions** table: every review session with a real comparison behind it — PR-linked, a plain branch-pair, or a local snapshot — listing branches, files/lines reviewed, and review dates, with a click-through to full per-session detail (repo, reviewed commit, active/archived status, PR link, tool, pass count, tokens, cost). File-browser sessions with nothing to compare don't appear. Recent PRs now carries a jump link straight to its matching session row.
+
+The dashboard itself has two more things worth knowing about. A **Configs** section browses the resolved config hierarchy for any launch directory — `defaults` → `auto` → per-repo → `exec/tool` — with a per-key table showing which tier actually won, the same answer `branchdiff config --dir` prints but clickable, with copy-path / copy-content / open-in-editor on each file. And every section of the dashboard — running instances, auto sessions, cron schedules, configs — carries its own **Refresh** button, alongside a global one, so you can re-pull a single section on demand instead of reloading the page. That matters for `auto`: leave the dashboard open, hit Refresh on Auto sessions after a cron fire, and watch the latest runs land without re-navigating.
 
 ---
 
@@ -198,6 +212,8 @@ Scope is your tracked repos — the ones you have run `branchdiff` in, surfaced 
 **`branchdiff config` shows resolved values, not intent.** If a key's built-in default happens to match what you meant to set, you can't tell from the output alone whether your file actually took effect or whether you're looking at the default by coincidence. When in doubt, change the value to something distinctive and re-run `config` to confirm it moved.
 
 **`stats` reflects what got recorded, not what you intended.** A review whose `--push` failed partway (network blip, permissions) still counts as a review locally even though the remote verdict never landed — the verdict breakdown can look stricter or looser than what's actually visible on your PRs. Cross-check against the platform occasionally, especially right after changing an `approve` level.
+
+**Token and cost figures are only as trustworthy as what the AI CLI reported.** branchdiff records the usage line each tool prints after a pass rather than independently metering against your provider's billing — a tool that misreports, or a parse miss counted as untracked, skews the total with nothing in `stats` flagging the gap.
 
 ---
 

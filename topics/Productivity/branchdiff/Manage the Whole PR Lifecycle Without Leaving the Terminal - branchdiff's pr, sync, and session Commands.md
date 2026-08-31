@@ -103,6 +103,22 @@ $ branchdiff session history
 
 ---
 
+## Cleaning up after `--worktree` reviews
+
+Running `branchdiff <b1> <b2> --worktree` for a batch of PRs leaves a `.worktrees/pr-*` checkout and a session server behind for each one. `branchdiff prune-worktrees` already removed the stale checkouts; it now also stops the session server running on each one before removing it — scoped correctly, so a worktree named `pr-482` in one repo never stops a session belonging to an unrelated repo's own `pr-482` worktree. A worktree kept back because it still has uncommitted changes keeps its session running too — pruning only touches what it's actually about to delete.
+
+```bash
+$ branchdiff prune-worktrees
+Stopped session for .worktrees/pr-482 (port 5391)
+Removed .worktrees/pr-482
+Kept .worktrees/pr-510 (uncommitted changes)
+Pruned 1 worktree, kept 1
+```
+
+It also picked up its own cron scheduling, same shape as `auto cron`: `prune-worktrees cron add/list/remove/removeall` schedules recurring prunes in their own namespace, shown alongside `auto`'s schedules in the Stats dashboard (a script polling that dashboard can ask for just the relevant slice with `branchdiff stats --json --sections sessions` instead of paying for the full aggregate). For a script or agent driving `--worktree` reviews at scale, this is the other half `--worktree` was missing — cleanup now tidies the session state, not just the checkout on disk.
+
+---
+
 ## `branchdiff export` / `import` — taking a session off the machine
 
 Archiving keeps history queryable on *this* machine. Handing a review off to a teammate, moving a review-in-progress to a new machine, or backing up a repo's comment trail before it's decommissioned all need the history to actually leave — that's what `export`/`import` are for.
@@ -187,6 +203,8 @@ Worth noting this is a different command from `review guide`, which covers only 
 
 Here's the scenario this whole release is aimed at: a shell script wired to a Claude Code skill (or any AI CLI) that reviews a PR, decides it's good, and closes the loop entirely from the terminal.
 
+One shortcut worth flagging before the walkthrough: `branchdiff <b1> <b2> --review --tool claude` (a PR URL works too) starts the session and runs one AI review pass in the same command — whether the session is freshly started or already running for that ref — carrying every review-pass flag (`--push`, `--approve`/`--request-changes`, `--stack`) plus token/cost tracking for tracked `--tool` presets. That collapses what the walkthrough below still does as two explicit steps (open the session, then run the review) into one call. The example spells out each step anyway, since that's what maps cleanly onto `pr`/`sync`/`session` piece by piece — but a production script driving this pipeline at scale would likely start from `--review` instead of step 1 alone.
+
 ```bash
 # 1. Open the PR as a session and run the review skill
 branchdiff https://github.com/acme/api/pull/482 --no-open
@@ -225,6 +243,8 @@ Nothing here happens by default. `branchdiff agent`, `pr`, and `sync` are comman
 **Sync is not automatic conflict resolution.** `sync pull` brings in what changed remotely, but if a human reviewer commented on a line your local session already resolved differently, that's a real disagreement for a person to look at — not something `sync` reconciles for you.
 
 **Multi-instance targeting depends on you being specific.** In a busy multi-repo, multi-agent setup, always pass `--port` or `--pid` in scripts rather than relying on the "only one instance" default — a second stray session on the same repo is enough to make a script exit on the ambiguity prompt instead of running unattended.
+
+**A failed `sync push` doesn't force a full re-review.** If `auto --push` posts comments locally but the push to the remote PR fails — rate limit, network blip — the next cycle retries only the publish step; it reuses the verdict comment from the failed attempt instead of duplicating it, and does not re-run the AI review. Worth knowing if your script chains `sync push` into `pr approve` the way the end-to-end example above does: a transient push failure is a reason to retry the sync, not to redo the review pass.
 
 **These commands still require a running branchdiff instance.** `pr`, `sync`, and `session` all talk HTTP to a live server — they are not a standalone git/PR client. If the instance has exited, start one (`branchdiff <pr-url> --no-open`) before scripting against it.
 

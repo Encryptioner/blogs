@@ -52,6 +52,7 @@ blogs/presentations/P-5-branchdiff-features/
 ├── 06-sessions-sync-platform.html ← Deck 6
 ├── 07-repo-exploration.html      ← Deck 7
 ├── 08-multi-repo-auto.html       ← Deck 8
+├── 09-change-map.html            ← Deck 9
 └── images/
     ├── 01-diff-unified.png       ← fresh capture
     ├── 02-diff-split.png
@@ -111,6 +112,7 @@ G1–G16 grouping. Nothing is dropped.
 | 6 | Sessions, Sync & Platform Actions | G6 sessions · G7 PR integration · G11 CLI · G16 branch sync · `stats` dashboard |
 | 7 | Repo Exploration | G13 history/blame/tree/search/branches/show/graph/commit-detail |
 | 8 | Multi-Repo Auto Cycles | multi-repo `auto` · `--repo-paths`/depth-1 discovery · `--repo-concurrency` · `--keep-servers` · discovery consent · cycle report · session-death resilience |
+| 9 | Change Map | zero-token change map · wiring/import graph · symbol-labeled edges · doc-comment fold-in · review-comment lead-in · toolbar view · PR-description insert |
 | — | (hub) Get Started | G15 cross-platform install · self-update |
 
 ---
@@ -325,22 +327,47 @@ on every feature slide — never describe an action without showing how to do it
 - **Assets:** none — code blocks only (terminal output: combined lists, cycle
   reports, server tallies).
 
+### Deck 9 — Change Map
+- **Problem:** an AI (or a human) handed a 40-file diff with zero orientation
+  has to spend real effort figuring out what's actually connected before it can
+  say anything useful — the same "wall of hunks, no context" problem this whole
+  tool exists to solve, now hitting the AI reviewer too.
+- **Solve:** branchdiff computes a change map locally and deterministically —
+  zero AI tokens, ever — once a diff reaches 3 files or 80 changed lines, across
+  `agent diff`, `review context`, `review run`, and `auto`.
+- **Features:** churn by area, symbol-labeled wiring edges (not just an import
+  count), doc-comment fold-in on wired-to nodes, explicit no-doc-comment flag,
+  coherent-vs-bundled signal, brand-new-area detection, pass-count awareness,
+  a titled diagram per wired section (mermaid or ASCII per platform), graceful
+  degrade to the churn table alone, the AI review comment leading with an intent
+  summary + diagram, `--no-change-map` / `--change-map-exclude`, an on-demand
+  toolbar modal with a Mermaid/Ascii toggle and Copy markdown, a PR-description
+  Insert-row button (`### Change map` heading, `---`-closed, updatable in place,
+  removable), Bitbucket image-upload fallback for diagrams, and mermaid viewer
+  polish (`title:` frontmatter as a sticky popup header, zoom controls, SVG
+  download).
+- **Assets:** none — code blocks only (no live-rendered diagram; the wiring
+  concept is mocked as ASCII art inside a `.code-block`, keeping the deck
+  dependency-free).
+
 ---
 
 ## 9. The hub (`index.html`)
 
 A standalone gallery page (same visual style) that:
-- Lists all 8 decks as cards (number, title, one-line problem, thumbnail) → each
-  links via `deckUrl(file)` (§4). A deck with no screenshot (deck 8) renders a
-  branded `no-thumb` placeholder instead of an empty box.
+- Lists all 9 decks as cards (number, title, one-line problem, thumbnail) → each
+  links via `deckUrl(file)` (§4). A deck with no screenshot (decks 8 and 9)
+  renders a branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- **Version coverage signal:** a `v2.1.0` badge in the topbar (the `.ver` class)
-  plus a hero line — "Decks cover branchdiff through v2.1.0 — multi-repo auto,
+- **Version coverage signal:** a `v2.2.2` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v2.2.2 — multi-repo auto,
   detached server review, launchd-on-macOS / cron-on-Linux unattended runs,
   config file support, severity-gated approve, skip-PRs-by-size, a usage-stats
   dashboard with a Configs viewer, named reviewer-error reasons,
-  click-to-open notifications." Footer links to the user
+  click-to-open notifications, a zero-token change map for AI orientation, AI
+  token/cost tracking in stats, `--stack` ancestor PR context, and an
+  in-browser update badge." Footer links to the user
   guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =
   drop the file in the dir + add one `{n, file, title, hook, thumb}` entry. No

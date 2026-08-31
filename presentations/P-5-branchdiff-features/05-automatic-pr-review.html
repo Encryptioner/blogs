@@ -203,7 +203,7 @@
     <div class="three-col">
       <div class="stat">
         <div class="num">--tool</div>
-        <div class="label">claude · opencode · codex · gemini · cursor · llm</div>
+        <div class="label">claude · opencode · codex · gemini · cursor · antigravity · llm</div>
         <div class="desc">Pick a built-in agent by name.</div>
       </div>
       <div class="stat">
@@ -220,6 +220,8 @@
     <ul class="bullets" style="margin-top:22px">
       <li><b><span class="mono">--skill-name</span></b> point at a different named skill, <b><span class="mono">--additional-skill</span></b> (repeatable) layer more on top, <b><span class="mono">--prompt</span></b> override the prompt entirely.</li>
       <li><b>The AI runs as a child process via <span class="mono">sh -c</span></b>, inheriting your shell environment — so agents resolve your auth, config dirs, and API keys exactly as they would from your terminal.</li>
+      <li><b>Your tool's unattended-approval flag is auto-detected and appended</b> — no more remembering each tool's own "skip permission prompts" flag. Your deny-list still applies: appending the flag doesn't widen what the tool is allowed to touch.</li>
+      <li><b>Token &amp; cost tracking, every pass.</b> <span class="mono">Tokens: N (~$C)</span> prints after each review; <span class="mono">branchdiff stats</span> shows the per-tool and per-repo splits, so you know what <span class="mono">auto</span> actually costs.</li>
     </ul>
   </section>
 
@@ -294,6 +296,7 @@
         <li><b><span class="mono">--no-skip</span></b> re-opens already-reviewed PRs — the escape hatch for a review that posted nothing.</li>
         <li><b>Account / env isolation:</b> the AI inherits your shell env, so point at a specific account via env-prefix (<span class="mono">CLAUDE_CONFIG_DIR=...</span>), <span class="mono">--tool</span>+<span class="mono">--exec</span>, or <span class="mono">--exec</span> alone.</li>
         <li><b>One <span class="mono">auto</span> per repo.</b> A second is refused; <span class="mono">--force-session</span> to allow. Different repos are unaffected.</li>
+        <li><b><span class="mono">--stack</span> pulls ancestor PR context.</b> For a stacked PR, the parent PR's diff and discussion inform the review of the child — without you re-explaining the stack yourself.</li>
       </ul>
       <div class="code-block">
         <div class="code-head">
@@ -356,6 +359,7 @@
         <li><b><span class="mono">auto stop &lt;id&gt;</span></b> stops it.</li>
         <li><b><span class="mono">auto cron add --start &lt;cron&gt; --end &lt;cron&gt; --review --watch &lt;n&gt; ...</span></b> writes real crontab entries — "review PRs 10am–8pm on weekdays" on a box that's just always on. Pass <span class="mono">--watch</span> yourself, cron doesn't add it for you. Unix-only, no daemon beyond cron itself.</li>
         <li><b><span class="mono">auto cron list</span></b> / <span class="mono">cron remove --id &lt;id&gt;</span> show and delete schedules.</li>
+        <li><b><span class="mono">auto --push</span> retries only the failed step.</b> If the publish step fails after a review already ran, the next run re-attempts just that publish — not a full re-review — so a flaky network call doesn't cost you the AI pass again.</li>
       </ul>
       <div class="code-block">
         <div class="code-head">

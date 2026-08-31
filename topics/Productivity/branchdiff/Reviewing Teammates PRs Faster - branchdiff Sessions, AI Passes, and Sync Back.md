@@ -22,7 +22,7 @@ Because this compares two named refs, the session is **persistent**. Comments su
 
 Multiple PRs at once is the default. Each ref pair opens on its own port — second session on `5392`, third on `5393` — so reviewing your colleague's PR while iterating on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running. Same ref pair revisited? branchdiff reuses the existing session so you do not fragment the review across ports.
 
-If the PR already has comments from other reviewers, click `#123` → **Pull from PR**. Existing inline review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review in the same place, at the same time. That is the moment branchdiff stops feeling like a "diff viewer" and starts feeling like the actual review surface.
+If the PR already has comments from other reviewers, click `#123` → **Pull from PR**. Existing inline review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review in the same place, at the same time. That is the moment branchdiff stops feeling like a "diff viewer" and starts feeling like the actual review surface. Any image in a rendered comment or the PR description — a screenshot someone dropped in a thread — is click-to-fullscreen with zoom, the same viewer the change map uses.
 
 ---
 
@@ -40,7 +40,7 @@ Staleness uses an **FNV-1a hash of the file's diff signature** — content-based
 
 The state persists across sessions and machines via a stable **repo fingerprint** — branchdiff scans your remotes (upstream, then origin, then any other) to converge on a canonical ID across forks. `branchdiff info` prints the fingerprint and state-table size so you can audit what is being tracked.
 
-There is also a **commit detail page**. Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button returns you to the branch comparison without losing your position.
+There is also a **commit detail page**. Click any commit in the history sidebar to open `/commit/:hash` with the full SHA, parent links, file list with `+N / -N` counts, and the same diff view. The back button returns you to the branch comparison without losing your position. The commits panel — and the standalone `branchdiff history` browser — also got a **First parent / Merges** toggle pair: First parent walks just the branch's own line, skipping whatever a merge pulled in from elsewhere; Merges, with a live count, isolates the merge commits instead. A copy button next to the list copies every currently-loaded commit as `shortHash  message` lines. Useful on a branch that periodically syncs from a shared integration branch, where the unfiltered list otherwise floods with commits that are not really that branch's own work.
 
 ---
 
@@ -90,6 +90,16 @@ Full-file view + minimap together transform a "scrolling through hunks" review i
 
 ---
 
+## Step 4.5 — orient yourself with the change map
+
+Before you scroll through forty files — or before you even kick off an AI pass in Step 5 — there is a faster question worth answering: what shape is this change? The toolbar's **Change map** button opens the same orientation diagrams the AI reviewer's general comment uses, in a modal, computed on demand. Nothing runs and no AI tokens get spent until you click it.
+
+It shows which areas of the diff moved and by how much, which areas are wired together by imports (edges labeled with the actual new symbols the diff added — and if the diff gave one of those symbols a doc comment, the wired-to node's box folds that comment in), whether the PR is one coherent change or several unrelated ones stapled together, which areas are brand-new, and a titled diagram per wired section — rendered as mermaid or ASCII depending on the platform. A Mermaid/Ascii toggle switches format from that same fetch, and **Copy markdown** copies whichever format is showing.
+
+The popup that shows it — the same "view full diagram" view the AI review comment uses — now has a sticky title header, zoom in/out/reset controls, and a one-click download that saves the diagram as a standalone `.svg` file. Five seconds orienting yourself before immersing in a 40-file diff beats reading the first ten files blind.
+
+---
+
 ## Step 5 — let an AI take the first pass
 
 Reading a 40-file PR by hand is necessary work. Running an AI pass *on top of* that read is additive: the AI is bad at understanding intent but good at the mechanical sweep that human readers skim past under cognitive load.
@@ -107,6 +117,8 @@ For somebody else's PR I usually run two passes:
 
 - **Security audit** when the diff touches auth, input handling, or anything web-facing. Looks only for security issues — injection, secret leaks, weak crypto, broken authorisation, deserialisation traps, path traversal, SSRF, dependency risk — skips style entirely. A 200-line auth diff produces five precise comments instead of fifty.
 - **Test coverage gaps** for new logic. Walks every new function and branch, checks the test directory for coverage, flags uncovered paths with a stub `it(...)` suggestion. Priority is error branches → new public API → edge cases → happy path.
+
+The AI's own review comment leads with the same orientation now, too: on a large diff, the general comment it posts opens with a short intent summary followed by that pre-rendered change-map diagram — mermaid on GitHub and in branchdiff's own comment view, ASCII on Bitbucket — before the line-by-line comments start. You see the AI's mental model of the change before you see its opinions about individual lines.
 
 For larger or riskier PRs I add **breaking-change review** or **dependency review**.
 

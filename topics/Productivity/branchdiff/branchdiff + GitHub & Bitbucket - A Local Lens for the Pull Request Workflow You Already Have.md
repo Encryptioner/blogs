@@ -23,7 +23,7 @@ branchdiff is the **working surface** for the part of review that is fundamental
 The split in practice:
 
 | Concern                              | GitHub / Bitbucket | branchdiff          |
-| ------------------------------------ | :----------------: | :-----------------: |
+| ------------------------------------ | :----------------: | :------------------: |
 | Merge gating, branch protection      | ✓                  |                     |
 | CI / status checks                   | ✓                  |                     |
 | Approvals & required reviewers       | ✓                  |                     |
@@ -82,9 +82,21 @@ A status toast tells you what happened: `Pushed 3, skipped 1 duplicate, skipped 
 
 **Pull PR comments into branchdiff.** Same dialog, **Pull from PR**. Existing review comments come down as local threads anchored to the same lines, with author and timestamp preserved. This is what makes branchdiff practical for re-review — open the PR locally on day three, pull the comments, see every thread inline, mark them resolved as the author addresses them, push the resolutions back. Each file row carries a green ✓ pill for its resolved threads, and a **Resolved** sidebar filter jumps to the first one — so on a re-review you can tell at a glance which concerns the author has closed and which still need a look.
 
+Both sync dialogs also carry an **"Include resolved threads not yet resolved on the PR"** checkbox, on by default. It covers the case where a thread was resolved locally while you were offline, or where a later pull re-stamped a thread as synced before its resolution actually reached the PR — that thread can now be pushed as-is, with its new replies landing and the thread marked resolved on the platform, no need to reopen it first. Uncheck the box if you only want to push threads that are genuinely still unresolved.
+
 Sync requires your local HEAD to match the PR head and your working tree to be clean. branchdiff surfaces both constraints in the dialog with a one-line explanation (`git pull --rebase`, `git stash`).
 
 This is the only cloud round-trip in the whole tool. No telemetry, no remote diff service. Wipe `~/.branchdiff/` and there is nothing in any backend with your data.
+
+---
+
+## Writing the description without leaving branchdiff
+
+The create-PR and edit-PR dialogs now put a Write/Preview toggle on the description field — Preview renders the markdown exactly as branchdiff's own comment view does — plus an Insert row with two buttons, **Commit history** and **Change map**. Each splices its block into the description as ordinary editable markdown, opened by its own `### Change map` or `### Commit history` heading and closed with a `---` rule, so it stays a clearly bounded section even next to your own prose, or both blocks at once. Re-clicking a button updates its block in place instead of duplicating it, a small × next to it removes it outright, and a Clear button empties the whole field in one click.
+
+The Change map block is the same mermaid-plus-prose markdown on GitHub and Bitbucket, but Bitbucket can't render mermaid on its own PR page — so on Bitbucket only, and only at the moment you save the PR, every diagram in the map is rendered to an image and uploaded to the repo's Downloads area, with the description left carrying real image references instead. If any single upload fails, the whole map falls back to plain text rather than mixing rendered images with raw markdown. The Commit history block lists the branch's own commits, walked first-parent with merge commits dropped, newest-first, capped at 100 rows with `(N of total commits)` appended to the heading when it's capped.
+
+Click any image inside a rendered description or comment — including one branchdiff just uploaded — and it opens fullscreen with zoom in, zoom out, and reset-to-fit.
 
 ---
 

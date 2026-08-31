@@ -38,6 +38,8 @@ A browser tab opens at `http://localhost:5391`. Because you are comparing two na
 
 The diff renders with split or unified view, syntax highlighting for 150+ languages, a sidebar of changed files, and keyboard shortcuts (`j`/`k` for next/previous file, `n`/`p` for next/previous hunk).
 
+Before you run anything AI-assisted, it's worth glancing at the change map. Once a diff crosses 3 files or 80 changed lines, `branchdiff agent diff` and the review skill compute one automatically — a local, deterministic block showing which areas of the branch moved, which are wired together by imports, whether the diff reads as one coherent change or several unrelated ones, with a rendered diagram per wired section. No AI tokens spent on it. There's also a toolbar button to pull it up on demand, without starting a review at all — a good very-first move on your own branch, before you even run `/branchdiff-review`, just to see the shape of what you changed.
+
 ### Step 2 — run an AI review pass
 
 If you use Claude Code, install the skills once:
@@ -70,10 +72,13 @@ branchdiff review context | claude -p "review for security and breaking changes"
 branchdiff review run --exec "claude" --mode review
 ```
 
-Two improvements make this pass noticeably better:
+Three improvements make this pass noticeably better:
 
 - **Constructive tone.** The skill leads with the problem, not a judgment — "This returns `undefined` when `amount === 0`" rather than "This is wrong." Collaborative language. When AI comments read as observations rather than accusations, engineers actually fix the bug.
 - **Nth-time review awareness.** Before commenting, the skill reads resolved and dismissed threads. Resolved threads are not re-raised; dismissed ones are only re-flagged if there is new evidence. You can run `/branchdiff-review` after every meaningful commit without re-litigating the same feedback.
+- **Context survives compaction.** Each pass writes its full piped prompt — the diff, the change map, the instructions — to a private temp file exported as `BRANCHDIFF_CONTEXT_FILE`, named in lines at the very top and bottom of the prompt itself. If the AI's own context gets compacted mid-pass (a real risk on a long, careful self-review like this one), it re-reads that one file to recover everything verbatim instead of reconstructing it from a truncated transcript or re-running commands — either of which is slow enough to time the pass out.
+
+The `/branchdiff-review` and `/branchdiff-resolve` skills also got leaner — roughly 9% fewer tokens combined, with everything the two share (the session selector, the command reference, session setup, the notification rule) stated once instead of duplicated. An automated pass now carries less prompt overhead before it even reads your diff. The AI's general comment has changed shape too: it now opens with the change-map diagram — a short intent summary plus the pre-rendered diagram — before its line-by-line findings.
 
 ### Step 3 — read, triage, decide
 
@@ -81,7 +86,7 @@ Open the browser. Each AI comment is anchored to a line in the diff, tag visible
 
 **Fix it** — make the change in your editor, then resolve the thread (`branchdiff agent resolve <id> --summary "added null guard"` or click *Resolve* in the UI). The summary is optional but worth writing — future review passes and future reviewers can see what was done and why.
 
-**Auto-fix it** — if you are using Claude Code, `/branchdiff-resolve` reads open comments, applies mechanical fixes (rename, extract function, null check, missing test stub), and resolves threads with a summary. **Read the diff before committing** — the AI occasionally takes a suggestion more literally than you intended.
+**Auto-fix it** — if you are using Claude Code, `/branchdiff-resolve` reads open comments, applies mechanical fixes (rename, extract function, null check, missing test stub), and resolves threads with a summary. **Read the diff before committing** — the AI occasionally takes a suggestion more literally than you intended. Once you've opened the PR and comments are arriving there, `/branchdiff-resolve` pulls the PR's latest comments first and refuses to edit a branch that's behind the PR head — the same freshness guard the review pass applies — so a fix never lands on code a reviewer has already moved past. Pass `--sync` when you want the resolved thread closed on the PR itself, not just locally.
 
 **Dismiss it** — the comment was wrong, out of scope, or already handled upstream. `branchdiff agent dismiss <id> --reason "..."` records why. That reason is what nth-time awareness uses so the same point is not re-raised next pass.
 
@@ -154,6 +159,8 @@ And the dismissal trail matters beyond this session. When you dismiss the `[nit]
 **Do not auto-resolve everything.** `/branchdiff-resolve` is convenient, but read the patches before committing. The AI will occasionally "fix" something by deleting code instead of correcting it.
 
 **The AI does not replace understanding your own change.** If you do not understand a chunk of code well enough to review it, no AI pass magically fills that gap.
+
+**The change map is structural, not semantic.** It shows which areas moved and which are wired together by imports — that tells you what's connected, not whether the wiring is *correct*. Treat it as orientation, not a correctness check.
 
 ---
 
