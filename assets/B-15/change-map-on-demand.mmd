@@ -1,0 +1,9 @@
+flowchart LR
+    A[Open a 40-file PR] --> B{Toolbar: Change map}
+    B -->|click| C["Computed on demand<br/>zero AI tokens"]
+    C --> D["Areas moved + import wiring<br/>coherent vs. bundled"]
+    D --> E{Format}
+    E -->|Mermaid| F[Diagram per wired section]
+    E -->|Ascii| G[Text diagram]
+    F --> H[Copy markdown]
+    G --> H

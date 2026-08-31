@@ -156,6 +156,8 @@ The second itch was smaller but stung in a familiar way. Once AI reviews were ru
 
 Both fixes are the same shape, really. The reviewer needed to be told who it was instead of guessing off a shared pointer. The AI needed to be told what was connected instead of guessing off a wall of hunks. Stop asking something to infer context you could just hand it.
 
+![Journey epilogue: a human reading a cold diff with no orientation in v1.0 led branchdiff to fix that for humans, then an AI reading a cold diff with the same problem after auto shipped led to the change map's zero-token orientation, which raised the question of what it was actually costing, answered by stats tracking token and cost per tool and per repo](../../../assets/B-23/journey-epilogue.png)
+
 ---
 
 ## What building it taught me

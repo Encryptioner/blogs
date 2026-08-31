@@ -106,29 +106,9 @@
         <li><b>Doc comments fold in.</b> <span class="muted">A wired-to node's box pulls in that symbol's own doc comment, when the diff added one — the reviewer sees intent, not just a name.</span></li>
         <li><b>Missing docs are flagged, not hidden.</b> <span class="muted">A matched symbol with no doc comment is called out explicitly — a small, honest nudge, not a silent gap.</span></li>
       </ul>
-      <div class="code-block">
-        <div class="code-head">
-          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
-          <span class="file">change map · auth area</span>
-        </div>
-        <div class="code-body">
-<span class="c">┌─────────────────────┐</span>
-<span class="c">│ auth/session.ts      │</span>
-<span class="c">└──────────┬───────────┘</span>
-<span class="c">           │ wires validateSession()</span>
-<span class="c">           ▼</span>
-<span class="c">┌─────────────────────┐</span>
-<span class="c">│ api/routes/login.ts  │</span>
-<span class="c">│ "Handles POST /login,│</span>
-<span class="c">│  issues session"     │</span>
-<span class="c">└──────────┬───────────┘</span>
-<span class="c">           │ wires findByEmail()</span>
-<span class="c">           ▼</span>
-<span class="c">┌─────────────────────┐</span>
-<span class="c">│ db/models/user.ts    │</span>
-<span class="c">│ ⚠ no doc comment      │</span>
-<span class="c">└─────────────────────┘</span>
-        </div>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-20/change-map-internals.png" alt="Change map computation pipeline: diff crosses size threshold, computed locally and deterministically into area churn, import wiring, coherence check, and new-area detection, rendered as a diagram per wired section and appended to agent diff / review context / auto" loading="lazy" />
+        <div class="fig-caption">zero AI tokens · computed once, read by both the AI and you</div>
       </div>
     </div>
   </section>
@@ -161,18 +141,9 @@
         <li><b>Mermaid / Ascii toggle</b> switches format from the one fetch already in hand — no re-computation.</li>
         <li><b><span class="mono">Copy markdown</span></b> copies whichever format is currently showing.</li>
       </ul>
-      <div class="code-block">
-        <div class="code-head">
-          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
-          <span class="file">toolbar</span>
-        </div>
-        <div class="code-body">
-<span class="c"># in the browser</span>
-<span class="prompt">→</span> toolbar <span class="k">"Change map"</span> button
-<span class="prompt">→</span> modal opens, diagrams computed on demand
-<span class="prompt">→</span> <span class="k">Mermaid</span> / <span class="k">Ascii</span> toggle — same fetch
-<span class="prompt">→</span> <span class="k">Copy markdown</span> — whichever format is showing
-        </div>
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-15/change-map-on-demand.png" alt="Change map on-demand flow: open a large PR, click the toolbar Change map button, computed on demand with zero AI tokens, showing areas moved plus import wiring and coherence, toggled between Mermaid and Ascii format, then copied as markdown" loading="lazy" />
+        <div class="fig-caption">toolbar → modal → Mermaid/Ascii toggle → Copy markdown</div>
       </div>
     </div>
   </section>

@@ -46,6 +46,8 @@ branchdiff auto --dest main --stack --review --push
 
 The AI reads that block as context, not as something to comment on, and reviews PR #2 knowing what PR #1 already changed instead of flagging decisions that were already reviewed one PR down. And because `auto` already fetched the full PR list during its scan phase, `--stack` matches ancestors against that in-memory list instead of making a fresh lookup per PR — reviewing a ten-PR stack costs one scan, not ten.
 
+![Stack ancestor context flow: a PR whose base branch is another open PR's head branch is detected via the base-branch chain, and that ancestor's description plus file-level diff summary is injected as read-only context ahead of the diff under review, so the reviewer isn't blind to what the ancestor already changed](../../../assets/B-20/stack-ancestor-context.png)
+
 ---
 
 ## Bring your own model
@@ -85,6 +87,8 @@ This is the biggest change to `auto` since this post was first written. Once a d
 The wiring analysis is the part worth dwelling on. It isn't just "file A imports file B" — where the diff introduced a new symbol, the edge between two areas is labeled with the actual symbol name it added, and the box for the area being wired to folds in that symbol's own doc comment when the diff added one. A matched symbol with no doc comment gets flagged as such, right there in the map — a small nudge toward documenting the thing you just wired half your diff into. Each wired section gets its own titled diagram, mermaid or ASCII depending on which the session's remote renders. If the wiring analysis can't run for some reason, the map degrades gracefully to just the churn table — it can never block a review from happening.
 
 The result: the AI reviewer walks into every non-trivial diff with a map already drawn, instead of reconstructing "does this touch billing" from scratch by reading imports line by line. And that map doesn't stay buried in the AI's context — the general comment a review pass posts opens with a short intent summary followed by the change map's pre-rendered diagram, copied as-is by default: mermaid on GitHub, ASCII on Bitbucket, one diagram per wired section on a PR that spans several unrelated areas. A human skimming the AI's comment sees its model of the change before a single line-by-line finding.
+
+![Change map computation pipeline: a diff crossing the size threshold is computed locally and deterministically into area churn, import wiring, coherence check, and new-area detection, rendered as a diagram per wired section and appended to agent diff, review context, and auto, with the AI's general comment opening with the diagram](../../../assets/B-20/change-map-internals.png)
 
 ---
 

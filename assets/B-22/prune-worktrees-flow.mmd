@@ -1,0 +1,7 @@
+flowchart LR
+    A[PR merged or closed] --> B[prune-worktrees]
+    B --> C{Worktree has<br/>uncommitted changes?}
+    C -->|no| D["Stop session server<br/>on that worktree"]
+    D --> E["Remove .worktrees/pr-*"]
+    C -->|yes| F["Keep worktree<br/>+ its session running"]
+    G[prune-worktrees cron add] --> B

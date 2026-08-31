@@ -158,6 +158,8 @@ And the exit code tells a script what happened without parsing that report: `0` 
 
 `auto --push` used to mean a failed push retried the whole pass — full AI review again, just to repost a comment that had already landed locally. Now a pass whose comments post but whose push to the PR fails (rate limit, network blip) only retries the publish step on the next cycle; the AI review doesn't re-run, and the verdict comment from the failed attempt is reused instead of duplicated.
 
+![Auto push retry flow: a review pass posts comments locally, then a failed push to the PR is retried on the next cycle as a publish-only step, with no re-review and the existing verdict comment reused](../../../assets/B-21/auto-push-retry.png)
+
 `prune-worktrees` picked up two changes worth knowing before you cron it. It now stops the session server running on a `.worktrees/pr-*` checkout before removing that worktree — one you're keeping for uncommitted changes keeps its session alive, same as before. And it gained its own scheduling, `prune-worktrees cron add/list/remove/removeall`, the same shape as `auto cron`, with its schedules showing up alongside `auto`'s in the Stats dashboard.
 
 ---
@@ -176,6 +178,8 @@ branchdiff stats --share   # a markdown summary worth pasting into a PR or stand
 The text summary breaks down how many reviews you've run and how many are still open, comment/thread status, the GitHub vs. Bitbucket split, and — the part that matters here — the verdict breakdown your `--approve`/`--request-changes` policy actually produced: approved, changes requested, commented. That's the direct payoff of this whole config system: you set `"approve": 2` globally and `"approve": 3` for `payments-api` weeks ago; `branchdiff stats` is where you go to see whether that split held up in practice, not just trust that it did.
 
 There's a newer number in that same report worth watching: token usage and cost. Every tracked pass — claude, codex, antigravity, and opencode today — captures the tokens and cost its AI CLI reports and prints a `Tokens: N (~$C)` line after each pass; `review run --usage-tool <tool>` opts a standalone run into the same capture instead of leaving it untracked. `branchdiff stats` rolls it all up: text output, `--json`, `--share`, and the dashboard all show running totals, a per-tool split, a per-repo split, and a token-usage time series whose hover shows cost alongside tokens — on the all-repos dashboard, a Total/By-repo toggle switches that same panel to a per-repo breakdown. The dashboard prints compact figures (`2.06M`, not `2,056,792`); CLI text and `--share` keep the full numbers. A pass run with an untracked tool, or one whose usage line didn't parse, counts separately as **untracked** rather than silently vanishing from the total.
+
+![Token and cost tracking flow: an auto, review run, or skill pass reports tokens and cost from the AI CLI, captured per pass and printed as a Tokens line, accumulated per session, and rolled up in branchdiff stats as a per-tool split, per-repo split, and time series with cost on hover](../../../assets/B-21/token-cost-tracking.png)
 
 Want only a slice of that aggregate — a script that needs totals but not the charts or session list? `branchdiff stats --json --sections <list>` takes a comma-separated subset of `totals,charts,prs,sessions`, matching the dashboard's own panels. Anything you didn't ask for comes back zeroed or empty rather than missing, so the JSON shape stays identical either way; an unknown section name is rejected with the valid list.
 

@@ -1,0 +1,19 @@
+{
+  "theme": "dark",
+  "themeVariables": {
+    "background": "#0D1117",
+    "primaryColor": "#161B22",
+    "primaryTextColor": "#E6EDF3",
+    "primaryBorderColor": "#00E3A8",
+    "lineColor": "#00E3A8",
+    "secondaryColor": "#1C2230",
+    "tertiaryColor": "#0A0E14",
+    "fontFamily": "Inter, sans-serif",
+    "textColor": "#E6EDF3",
+    "actorBkg": "#161B22",
+    "actorBorder": "#00E3A8",
+    "actorTextColor": "#E6EDF3",
+    "signalColor": "#8B949E",
+    "signalTextColor": "#E6EDF3"
+  }
+}

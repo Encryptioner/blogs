@@ -1,0 +1,9 @@
+flowchart LR
+    A["auto / review run / skill pass"] --> B["AI CLI reports<br/>tokens + cost"]
+    B --> C[Captured per pass]
+    C --> D["Tokens: N (~$C) printed"]
+    C --> E[Accumulated per session]
+    E --> F[branchdiff stats]
+    F --> G[Per-tool split]
+    F --> H[Per-repo split]
+    F --> I["Time series,<br/>cost on hover"]

@@ -98,6 +98,8 @@ It shows which areas of the diff moved and by how much, which areas are wired to
 
 The popup that shows it — the same "view full diagram" view the AI review comment uses — now has a sticky title header, zoom in/out/reset controls, and a one-click download that saves the diagram as a standalone `.svg` file. Five seconds orienting yourself before immersing in a 40-file diff beats reading the first ten files blind.
 
+![Change map on-demand flow: click the toolbar button, computed with zero AI tokens, showing areas moved and import wiring, toggled between Mermaid and Ascii, then copied as markdown](../../../assets/B-15/change-map-on-demand.png)
+
 ---
 
 ## Step 5 — let an AI take the first pass

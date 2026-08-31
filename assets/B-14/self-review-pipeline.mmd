@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant You
+    participant branchdiff
+    participant AI
+    You->>branchdiff: Open change map (toolbar)
+    branchdiff-->>You: Orientation diagram, zero tokens
+    You->>AI: /branchdiff-review
+    AI->>branchdiff: agent diff (+ change map,<br/>saved to BRANCHDIFF_CONTEXT_FILE)
+    AI-->>branchdiff: agent comment [tag] ...
+    You->>You: triage: fix / dismiss / reply
+    You->>AI: /branchdiff-resolve
+    AI->>branchdiff: pull latest PR comments first
+    AI-->>You: fixes applied, threads resolved

@@ -150,6 +150,35 @@ G1–G16 grouping. Nothing is dropped.
 | `B-15/sidebar-filters-grid.png` | 9 sidebar filters | 1, 3 |
 | `B-15/ai-passes-decision.png` | AI passes decision tree | 4, 5 |
 | `B-15/review-cadence.png` | Review cadence in 6 steps | 5 |
+| `B-15/change-map-on-demand.png` | Change map viewed on demand, no review started | 9 |
+| `B-13/pr-description-insert.png` | Change map / commit history spliced into a PR description | 6 |
+| `B-21/token-cost-tracking.png` | Token & cost capture → `stats` per-tool/per-repo rollup | 5 |
+| `B-20/change-map-internals.png` | Change map computation pipeline (churn, wiring, coherence) | 9 |
+| `B-14/self-review-pipeline.png` | Self-review sequence: change map → review → triage → resolve | 4 |
+| `B-22/prune-worktrees-flow.png` | `prune-worktrees` stopping a session before removing its checkout | 6 |
+| `B-21/auto-push-retry.png` | `auto --push` retrying only the failed publish step | 5 |
+| `B-20/stack-ancestor-context.png` | `--stack` injecting the parent PR's context ahead of the child's diff | 5 |
+
+**Mermaid-sourced diagrams** (the nine rows above from `B-15/change-map-on-demand.png`
+down) are generated, not hand-drawn — `<name>.mmd` (the mermaid source),
+`<name>.svg`, and `<name>.png` all live together in the same `assets/B-NN/`
+folder, and the `.png` is what both the companion blog post and this deck
+actually embed. Regenerate or add one with:
+
+```bash
+./scripts/render-mermaid.sh path/to/diagram.mmd assets/B-NN/diagram-name
+```
+
+Default theme is **light** (white background, dark text) — deliberately, to
+match branchdiff's own reasoning in `render-mermaid-png.ts` for why its
+Bitbucket change-map export forces light-theme-always: a dark-rendered
+diagram is light text on transparency, invisible on a page you don't control
+the background of (GitHub, dev.to, Medium — none of them this repo's call).
+The existing hand-designed diagrams in this table follow the same rule
+already, which is what made it visible: every one of them is light-card, and
+every one is shared as-is between the blog post and this dark-chrome deck. A
+diagram that will only ever appear inside a fixed dark deck can pass `--dark`
+instead — see the script's header comment.
 
 CLI commands (decks 2, 4, 5, 6, 8) are shown as **styled code blocks** (real
 commands + output as text), not terminal screenshots — cleaner and matches the
@@ -250,7 +279,8 @@ on every feature slide — never describe an action without showing how to do it
   --ref`), resolve-with-verification, 8 pre-built workflows, local-only resolve
   (`--sync` to mirror), remote-pull-first.
 - **Assets:** `B-14/self-review-before-after`, `B-14/self-review-4-steps`,
-  `B-14/session-stats`, `B-15/ai-passes-decision`; code blocks (`agent comment`,
+  `B-14/session-stats`, `B-15/ai-passes-decision`, `B-14/self-review-pipeline.png`
+  (mermaid-sourced, see §6); code blocks (`agent comment`,
   `review run --exec`, `/branchdiff-review`).
 
 ### Deck 5 — Automatic PR Review (`branchdiff auto`)
@@ -276,7 +306,9 @@ on every feature slide — never describe an action without showing how to do it
   `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`,
   and named reviewer-error reasons (rate-limit / overload / billing /
   missing-key / timeout) with `--debug` stack traces logged to `~/.branchdiff/logs/`.
-- **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`; code blocks.
+- **Assets:** `B-15/review-cadence`, `B-15/ai-passes-decision`,
+  `B-21/token-cost-tracking.png`, `B-21/auto-push-retry.png`,
+  `B-20/stack-ancestor-context.png` (mermaid-sourced, see §6); code blocks.
 
 ### Deck 6 — Sessions, Sync & Platform Actions
 - **Problem:** the tab-switching tax (PR → editor → PR → Slack → AI → PR);
@@ -295,7 +327,9 @@ on every feature slide — never describe an action without showing how to do it
   default, `config --json`/`--dir`/`sample --full`, `export`/`import` portable session bundles (`--conflict
   merge|skip|overwrite`), shell completion, branch fetch/ff, stale-code
   refusal.
-- **Assets:** `B-13/90-second-flow`, `B-13/pr-lifecycle-groups`; code blocks.
+- **Assets:** `B-13/90-second-flow`, `B-13/pr-lifecycle-groups`,
+  `B-13/pr-description-insert.png`, `B-22/prune-worktrees-flow.png`
+  (mermaid-sourced, see §6); code blocks.
 
 ### Deck 7 — Repo Exploration (History, Blame, Tree, Search)
 - **Problem:** `git log` is text; forge commit lists are paginated/slow; blame is
@@ -346,9 +380,9 @@ on every feature slide — never describe an action without showing how to do it
   removable), Bitbucket image-upload fallback for diagrams, and mermaid viewer
   polish (`title:` frontmatter as a sticky popup header, zoom controls, SVG
   download).
-- **Assets:** none — code blocks only (no live-rendered diagram; the wiring
-  concept is mocked as ASCII art inside a `.code-block`, keeping the deck
-  dependency-free).
+- **Assets:** `B-20/change-map-internals.png` (the wiring/computation pipeline,
+  slide 5) and `B-15/change-map-on-demand.png` (the toolbar view-on-demand
+  flow, slide 7) — both mermaid-sourced, see §6.
 
 ---
 

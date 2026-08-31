@@ -1,0 +1,12 @@
+flowchart TD
+    A[Create / Edit PR dialog] --> B[Insert row]
+    B --> C[Change map button]
+    B --> D[Commit history button]
+    C --> E["### Change map block<br/>spliced into description"]
+    D --> F["### Commit history block<br/>first-parent, capped at 100"]
+    E --> G{Platform}
+    G -->|GitHub| H[Mermaid renders inline]
+    G -->|Bitbucket| I["Each diagram rendered to image,<br/>uploaded to Downloads"]
+    I --> J[Description carries image refs]
+    H --> K[Re-click updates block in place]
+    J --> K

@@ -1,0 +1,13 @@
+flowchart TD
+    A["Diff reaches 3 files<br/>or 80 changed lines"] --> B["Computed locally,<br/>deterministic, zero tokens"]
+    B --> C["Area churn:<br/>what moved, how much"]
+    B --> D["Import wiring:<br/>edges labeled by real symbols"]
+    B --> E["Coherence check:<br/>one change vs. several"]
+    B --> F[New-area detection]
+    D --> G["Doc comment folded into<br/>wired node, if one exists"]
+    C --> H[Diagram per wired section]
+    D --> H
+    E --> H
+    F --> H
+    H --> I["Appended to agent diff /<br/>review context / auto"]
+    I --> J["AI's general comment<br/>opens with the diagram"]

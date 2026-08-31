@@ -117,6 +117,8 @@ Pruned 1 worktree, kept 1
 
 It also picked up its own cron scheduling, same shape as `auto cron`: `prune-worktrees cron add/list/remove/removeall` schedules recurring prunes in their own namespace, shown alongside `auto`'s schedules in the Stats dashboard (a script polling that dashboard can ask for just the relevant slice with `branchdiff stats --json --sections sessions` instead of paying for the full aggregate). For a script or agent driving `--worktree` reviews at scale, this is the other half `--worktree` was missing — cleanup now tidies the session state, not just the checkout on disk.
 
+![prune-worktrees flow: a PR is merged or closed, prune-worktrees checks whether the worktree has uncommitted changes, stopping the session server and removing the worktree if not, keeping both if it does, with cron add scheduling recurring prunes](../../../assets/B-22/prune-worktrees-flow.png)
+
 ---
 
 ## `branchdiff export` / `import` — taking a session off the machine

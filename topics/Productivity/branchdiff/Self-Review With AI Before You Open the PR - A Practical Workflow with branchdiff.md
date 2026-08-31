@@ -94,6 +94,10 @@ Open the browser. Each AI comment is anchored to a line in the diff, tag visible
 
 The dismissal reason is the single most important habit to build. It keeps the AI honest across passes, and it leaves a paper trail you can point to when a reviewer asks "why is this line like that?"
 
+The whole loop, start to finish:
+
+![Self-review pipeline sequence: you open the change map on demand at zero tokens, run branchdiff-review which reads agent diff and the change map saved to BRANCHDIFF_CONTEXT_FILE and posts tagged comments, you triage by fixing, dismissing, or replying, then run branchdiff-resolve which pulls the latest PR comments first before applying fixes and resolving threads](../../../assets/B-14/self-review-pipeline.png)
+
 ### Step 3.5 — use the review tools that make long diffs tractable
 
 The features that make a teammate's 40-file PR manageable pay equal dividends on your own branch:

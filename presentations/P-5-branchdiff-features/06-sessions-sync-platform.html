@@ -123,9 +123,27 @@
     </div>
   </section>
 
+  <!-- XX · CLEANING UP: PRUNE-WORKTREES (asset) -->
+  <section class="slide" data-title="Cleaning up: prune-worktrees">
+    <div class="slide-num">06 · cleaning up</div>
+    <h3 class="section">Removing a worktree <em>stops its session too</em>.</h3>
+    <div class="two-col">
+      <div class="fig" onclick="openLightbox(this)">
+        <img src="../../assets/B-22/prune-worktrees-flow.png" alt="prune-worktrees flow: a PR is merged or closed, prune-worktrees checks whether the worktree has uncommitted changes, stopping the session server and removing the worktree if not, keeping both if it does, with cron add scheduling recurring prunes" loading="lazy" />
+        <div class="fig-caption">scoped by worktree · a kept worktree keeps its session running</div>
+      </div>
+      <ul class="bullets">
+        <li><b><span class="mono">--worktree</span> reviews leave two things behind</b> per PR — a <span class="mono">.worktrees/pr-*</span> checkout and a session server. Cleanup used to only remove the first.</li>
+        <li><b><span class="mono">prune-worktrees</span> now stops the session too</b>, scoped correctly — a <span class="mono">pr-482</span> in one repo never touches an unrelated repo's own <span class="mono">pr-482</span>.</li>
+        <li><b>A worktree kept for uncommitted changes</b> keeps its session running — pruning only touches what it's actually deleting.</li>
+        <li><b><span class="mono">prune-worktrees cron add/list/remove/removeall</span></b> — its own schedule namespace, same shape as <span class="mono">auto cron</span>, visible alongside it in the Stats dashboard.</li>
+      </ul>
+    </div>
+  </section>
+
   <!-- 6 · OPEN ANY PR URL LOCALLY -->
   <section class="slide" data-title="Open any PR locally">
-    <div class="slide-num">06 · open any PR locally (G7)</div>
+    <div class="slide-num">07 · open any PR locally (G7)</div>
     <h3 class="section">Paste a PR URL. <em>Read it locally</em>.</h3>
     <div class="two-col">
       <div class="code-block">
@@ -149,7 +167,7 @@
 
   <!-- 7 · TWO-WAY COMMENT SYNC -->
   <section class="slide" data-title="Two-way comment sync">
-    <div class="slide-num">07 · two-way comment sync</div>
+    <div class="slide-num">08 · two-way comment sync</div>
     <h3 class="section">Push, pull, or <em>sync all</em> — comments land on both sides.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -168,7 +186,7 @@
 
   <!-- 8 · PR LIFECYCLE FROM TOOLBAR -->
   <section class="slide" data-title="PR lifecycle from toolbar">
-    <div class="slide-num">08 · PR lifecycle from toolbar (G7)</div>
+    <div class="slide-num">09 · PR lifecycle from toolbar (G7)</div>
     <h3 class="section">Every PR action — <em>one dropdown</em>.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -194,9 +212,19 @@
     </div>
   </section>
 
+  <!-- XX · WRITING THE DESCRIPTION WITHOUT LEAVING BRANCHDIFF (asset) -->
+  <section class="slide" data-title="Writing the description without leaving branchdiff">
+    <div class="slide-num">10 · description, without leaving</div>
+    <h3 class="section">Change map or commit history — <em>one click into the box</em>.</h3>
+    <div class="fig" onclick="openLightbox(this)">
+      <img src="../../assets/B-13/pr-description-insert.png" alt="PR description insert flow: the create or edit PR dialog's Insert row offers Change map and Commit history buttons that splice their own headinged block into the description, rendering inline on GitHub or as uploaded images on Bitbucket, with a re-click updating the block in place" loading="lazy" />
+      <div class="fig-caption"><span class="mono">### Change map</span> / <span class="mono">### Commit history</span> · closed with a <span class="mono">---</span> rule · re-click updates in place</div>
+    </div>
+  </section>
+
   <!-- 9 · 90-SECOND FLOW (asset) -->
   <section class="slide" data-title="The 90-second flow">
-    <div class="slide-num">09 · the 90-second flow</div>
+    <div class="slide-num">11 · the 90-second flow</div>
     <h3 class="section">The whole loop — <em>ninety seconds</em>.</h3>
     <div class="fig">
       <img src="../../assets/B-13/90-second-flow.png" alt="90-second PR review flow" loading="lazy" onclick="openLightbox(this)" />
@@ -206,7 +234,7 @@
 
   <!-- 10 · PR LIFECYCLE GROUPS (asset) -->
   <section class="slide" data-title="PR lifecycle action groups">
-    <div class="slide-num">10 · lifecycle action groups</div>
+    <div class="slide-num">12 · lifecycle action groups</div>
     <h3 class="section">The toolbar, <em>by group</em>.</h3>
     <div class="two-col">
       <div class="fig">
@@ -226,7 +254,7 @@
 
   <!-- 11 · CLI -->
   <section class="slide" data-title="The CLI">
-    <div class="slide-num">11 · the CLI (G11)</div>
+    <div class="slide-num">13 · the CLI (G11)</div>
     <h3 class="section">Every action is <em>scriptable</em>.</h3>
     <div class="two-col">
       <div class="code-block">
@@ -256,7 +284,7 @@
 
   <!-- 12 · STATS DASHBOARD -->
   <section class="slide" data-title="Usage stats & config, visible">
-    <div class="slide-num">12 · stats &amp; config</div>
+    <div class="slide-num">14 · stats &amp; config</div>
     <h3 class="section">See what's running — and <em>which config won</em>.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -274,7 +302,7 @@
 
   <!-- 13 · PLATFORM ACTIVITY -->
   <section class="slide" data-title="Your activity across both forges">
-    <div class="slide-num">13 · platform activity</div>
+    <div class="slide-num">15 · platform activity</div>
     <h3 class="section">A report of <em>your own</em> review activity — GitHub + Bitbucket.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -293,7 +321,7 @@
 
   <!-- 14 · BRANCH SYNC -->
   <section class="slide" data-title="Branch sync before comparison">
-    <div class="slide-num">14 · branch sync (G16)</div>
+    <div class="slide-num">16 · branch sync (G16)</div>
     <h3 class="section">Branches <em>fetched &amp; fast-forwarded</em> before the diff.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -317,7 +345,7 @@
 
   <!-- 15 · BOUNDARIES -->
   <section class="slide" data-title="Honest boundaries">
-    <div class="slide-num">15 · honest boundaries</div>
+    <div class="slide-num">17 · honest boundaries</div>
     <h3 class="section">What branchdiff <em>does not</em> do.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -334,7 +362,7 @@
 
   <!-- 16 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">16 · recap</div>
+    <div class="slide-num">18 · recap</div>
     <h3 class="section">Twenty tabs, collapsed to <em>one</em>.</h3>
     <p class="lead-p">Persistent sessions, two-way sync, the full PR lifecycle from a toolbar, and branches fetched before comparison — the entire review loop fits in one browser tab.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">

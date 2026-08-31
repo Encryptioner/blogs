@@ -1,0 +1,7 @@
+flowchart LR
+    A[Review pass runs] --> B[Comments post locally]
+    B --> C{Push to PR}
+    C -->|succeeds| D[Verdict comment + approval land]
+    C -->|fails: rate limit,<br/>network blip| E[Next cycle:<br/>retry publish only]
+    E --> F[No re-review]
+    E --> G[Reuse existing<br/>verdict comment]

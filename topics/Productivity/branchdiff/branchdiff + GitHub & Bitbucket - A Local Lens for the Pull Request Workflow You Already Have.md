@@ -98,6 +98,8 @@ The Change map block is the same mermaid-plus-prose markdown on GitHub and Bitbu
 
 Click any image inside a rendered description or comment — including one branchdiff just uploaded — and it opens fullscreen with zoom in, zoom out, and reset-to-fit.
 
+![PR description insert flow: the create or edit PR dialog's Insert row offers Change map and Commit history buttons that splice a headinged block into the description, rendering inline on GitHub or as uploaded images on Bitbucket, with a re-click updating the block in place](../../../assets/B-13/pr-description-insert.png)
+
 ---
 
 ## A concrete 90-second flow

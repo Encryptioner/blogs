@@ -1,0 +1,6 @@
+flowchart LR
+    A["Human reads a cold diff,<br/>no orientation (v1.0)"] --> B["branchdiff fixes it<br/>for humans"]
+    B --> C["AI reads a cold diff,<br/>same problem (post-auto)"]
+    C --> D["Change map:<br/>zero-token orientation"]
+    D --> E["'What is this<br/>actually costing me?'"]
+    E --> F["stats: token + cost tracking,<br/>per tool, per repo"]

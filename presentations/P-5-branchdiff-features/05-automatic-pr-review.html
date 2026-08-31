@@ -167,9 +167,19 @@
     </div>
   </section>
 
+  <!-- XX · PUSH RETRY (asset) -->
+  <section class="slide" data-title="A failed push doesn't cost a re-review">
+    <div class="slide-num">08 · when the push itself fails</div>
+    <h3 class="section">Retry the <em>publish step</em> — not the whole pass.</h3>
+    <div class="fig" onclick="openLightbox(this)">
+      <img src="../../assets/B-21/auto-push-retry.png" alt="Auto push retry flow: a review pass posts comments locally, then a failed push to the PR is retried on the next cycle as a publish-only step, with no re-review and the existing verdict comment reused" loading="lazy" />
+      <div class="fig-caption">rate limit or network blip → next cycle retries publish only, verdict comment reused</div>
+    </div>
+  </section>
+
   <!-- 8 · SEVERITY-GATED VERDICT -->
   <section class="slide" data-title="Severity levels">
-    <div class="slide-num">08 · severity levels</div>
+    <div class="slide-num">09 · severity levels</div>
     <h3 class="section">Dial the gate — <em>five severity levels</em>, one flag.</h3>
     <div class="stat-row">
       <div class="stat"><div class="num">1</div><div class="label">must-fix</div><div class="desc">default — today's gate</div></div>
@@ -188,7 +198,7 @@
 
   <!-- 9 · AI PASSES DECISION TREE -->
   <section class="slide" data-title="Nth-pass reconciliation">
-    <div class="slide-num">09 · nth-pass</div>
+    <div class="slide-num">10 · nth-pass</div>
     <h3 class="section">Nth-pass <em>reconciliation</em> — the AI never re-litigates.</h3>
     <div class="fig">
       <img src="../../assets/B-15/ai-passes-decision.png" alt="AI passes decision tree" loading="lazy" onclick="openLightbox(this)" />
@@ -198,7 +208,7 @@
 
   <!-- 10 · MULTI-TOOL & SKILL MODE -->
   <section class="slide" data-title="Multi-tool & skill mode">
-    <div class="slide-num">10 · your agent</div>
+    <div class="slide-num">11 · your agent</div>
     <h3 class="section">Bring <em>your own agent</em> — any of six, or anything via stdin.</h3>
     <div class="three-col">
       <div class="stat">
@@ -225,9 +235,19 @@
     </ul>
   </section>
 
+  <!-- XX · TOKEN & COST TRACKING (asset) -->
+  <section class="slide" data-title="What auto actually costs">
+    <div class="slide-num">12 · what it actually costs</div>
+    <h3 class="section">Every pass, <em>metered</em> — not a guess.</h3>
+    <div class="fig" onclick="openLightbox(this)">
+      <img src="../../assets/B-21/token-cost-tracking.png" alt="Token and cost tracking flow: an auto, review run, or skill pass reports tokens and cost from the AI CLI, captured per pass and printed as a Tokens line, accumulated per session, and rolled up in branchdiff stats as a per-tool split, per-repo split, and time series with cost on hover" loading="lazy" />
+      <div class="fig-caption">claude · codex · antigravity · opencode today — an untracked tool or unparsed line counts separately</div>
+    </div>
+  </section>
+
   <!-- 11 · PARALLEL & WORKTREE -->
   <section class="slide" data-title="Parallel & worktree isolation">
-    <div class="slide-num">11 · parallel &amp; worktrees</div>
+    <div class="slide-num">13 · parallel &amp; worktrees</div>
     <h3 class="section"><em>Parallel</em> reviews, isolated in worktrees.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -258,7 +278,7 @@
 
   <!-- 12 · AUTO-RESOLVE -->
   <section class="slide" data-title="Auto-resolve pass">
-    <div class="slide-num">12 · auto-resolve</div>
+    <div class="slide-num">14 · auto-resolve</div>
     <h3 class="section">After review, an optional <em>resolve</em> pass.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -288,7 +308,7 @@
 
   <!-- 13 · AD-HOC & ISOLATION -->
   <section class="slide" data-title="Ad-hoc & isolation">
-    <div class="slide-num">13 · escape hatches</div>
+    <div class="slide-num">15 · escape hatches</div>
     <h3 class="section">Ad-hoc reviews, account isolation, one auto per repo.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -314,9 +334,19 @@
     </div>
   </section>
 
+  <!-- XX · STACK ANCESTOR CONTEXT (asset) -->
+  <section class="slide" data-title="Reviewing one PR of a stack">
+    <div class="slide-num">16 · stacked PRs, in context</div>
+    <h3 class="section">The child PR knows what the <em>parent</em> already changed.</h3>
+    <div class="fig" onclick="openLightbox(this)">
+      <img src="../../assets/B-20/stack-ancestor-context.png" alt="Stack ancestor context flow: a PR whose base branch is another open PR's head branch is detected via the base-branch chain, and that ancestor's description plus file-level diff summary is injected as read-only context ahead of the diff under review, so the reviewer isn't blind to what the ancestor already changed" loading="lazy" />
+      <div class="fig-caption">detected automatically · matched against the scan's PR list, no extra lookup per PR</div>
+    </div>
+  </section>
+
   <!-- 14 · SKIP BY SIZE -->
   <section class="slide" data-title="Skip PRs by size">
-    <div class="slide-num">14 · skip by size</div>
+    <div class="slide-num">17 · skip by size</div>
     <h3 class="section">Not every PR <em>deserves</em> a pass — skip by size.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -350,7 +380,7 @@
 
   <!-- 15 · RUNNING IT UNATTENDED -->
   <section class="slide" data-title="Running it unattended, for real">
-    <div class="slide-num">15 · always-on, for real</div>
+    <div class="slide-num">18 · always-on, for real</div>
     <h3 class="section">Backgrounded and scheduled — the part that's actually a bot.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -386,7 +416,7 @@
 
   <!-- 16 · SCHEDULING BACKEND -->
   <section class="slide" data-title="Scheduling that actually fires">
-    <div class="slide-num">16 · scheduling that fires</div>
+    <div class="slide-num">19 · scheduling that fires</div>
     <h3 class="section">Scheduling that <em>actually fires</em> — launchd on macOS, cron on Linux.</h3>
     <div class="vs">
       <div class="box problem">
@@ -405,7 +435,7 @@
 
   <!-- 17 · CONFIG FILE SUPPORT -->
   <section class="slide" data-title="Config file support">
-    <div class="slide-num">17 · configure once</div>
+    <div class="slide-num">20 · configure once</div>
     <h3 class="section">Stop retyping flags — <em>configure once</em>.</h3>
     <div class="two-col">
       <ul class="bullets">
@@ -446,7 +476,7 @@
 
   <!-- 18 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">18 · recap</div>
+    <div class="slide-num">21 · recap</div>
     <h3 class="section">Automatic by default — <em>autonomous when you opt in</em>.</h3>
     <p class="lead-p"><span class="mono">branchdiff auto</span> watches your open PRs, runs your AI reviewer only on ones with new commits, and gates every escalation — push, verdict, resolve — behind a flag you set. Set those flags, add <span class="mono">--detach</span>, and point it at several repos (deck 08) — the same control reviews unattended on a server.</p>
     <ul class="checklist" style="max-width:62ch;margin-top:8px">

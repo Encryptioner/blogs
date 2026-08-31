@@ -1,0 +1,19 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "background": "#ffffff",
+    "primaryColor": "#E6FBF4",
+    "primaryTextColor": "#0D1117",
+    "primaryBorderColor": "#00A87E",
+    "lineColor": "#00A87E",
+    "secondaryColor": "#F0F3F6",
+    "tertiaryColor": "#F6F8FA",
+    "fontFamily": "Inter, sans-serif",
+    "textColor": "#0D1117",
+    "actorBkg": "#E6FBF4",
+    "actorBorder": "#00A87E",
+    "actorTextColor": "#0D1117",
+    "signalColor": "#57606A",
+    "signalTextColor": "#0D1117"
+  }
+}

@@ -1,0 +1,5 @@
+flowchart TD
+    A["PR #2's base branch =<br/>PR #1's head branch"] --> B["--stack detects the ancestor<br/>from the base-branch chain"]
+    B --> C["PR #1's description +<br/>file-level diff summary"]
+    C --> D["Injected as read-only context,<br/>ahead of PR #2's diff"]
+    D --> E[Reviewer isn't blind<br/>to what #1 already changed]
