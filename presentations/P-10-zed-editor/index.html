@@ -414,12 +414,8 @@ curl -f https://zed.dev/install.sh | sh</div>
 
   <span class="s">"languages"</span>: {
     <span class="s">"TypeScript"</span>: {
-      <span class="s">"formatter"</span>: [
-        { <span class="s">"code_action"</span>: <span class="s">"source.fixAll.eslint"</span> },
-        { <span class="s">"external"</span>: { <span class="s">"command"</span>: <span class="s">"npx"</span>,
-            <span class="s">"arguments"</span>: [<span class="s">"--no-install"</span>, <span class="s">"prettier"</span>,
-              <span class="s">"--stdin-filepath"</span>, <span class="s">"{buffer_path}"</span>] } }
-      ]
+      <span class="s">"formatter"</span>: [],
+      <span class="s">"code_actions_on_format"</span>: { <span class="s">"source.fixAll.eslint"</span>: true }
     }
   },
   <span class="s">"lsp"</span>: { <span class="s">"eslint"</span>: { <span class="s">"settings"</span>: {
@@ -433,8 +429,8 @@ curl -f https://zed.dev/install.sh | sh</div>
     <div class="slide-num">15 · anatomy of that config</div>
     <h3 class="section">Why it's shaped <em>exactly like that</em>.</h3>
     <ul class="bullets">
-      <li><strong><code class="mono">formatter: [code_action, external]</code></strong> — run ESLint's autofix first, then Prettier. Matches the old VSCode habit of <code class="mono">codeActionsOnSave: fixAll</code> plus <code class="mono">formatOnSave: false</code>, just expressed as one ordered chain instead of two settings.</li>
-      <li><strong><code class="mono">--no-install</code></strong> on the <code class="mono">npx</code> call — uses the project's own installed Prettier, and fails fast instead of silently downloading one over the network on every save.</li>
+      <li><strong><code class="mono">formatter: []</code> + <code class="mono">code_actions_on_format: {"source.fixAll.eslint": true}</code></strong> — ESLint's autofix is the <em>only</em> formatting action. Matches VSCode's <code class="mono">codeActionsOnSave: fixAll</code> plus <code class="mono">formatOnSave: false</code> exactly, because it's respecting the same one source of truth: whatever <em>this</em> project's own ESLint config says.</li>
+      <li><strong>No chained Prettier step</strong> — deliberately. An earlier version of this config ran <code class="mono">npx prettier</code> after the ESLint fix "for projects that use it." A project with no <code class="mono">.prettierrc</code> at all still had <code class="mono">prettier</code> resolvable via npx (a transitive dependency), so it silently reformatted with Prettier's generic defaults on every save — fighting the project's real Airbnb/ESLint style. <code class="mono">fixAll.eslint</code> alone already covers projects that use Prettier <em>through</em> <code class="mono">eslint-plugin-prettier</code> too. Don't chain a formatter your config can't confirm the project actually wants.</li>
       <li><strong><code class="mono">workingDirectories: [{mode:"auto"}]</code></strong> — ESLint resolves the right package's config per file by itself. In a <code class="mono">packages/*</code> monorepo that means zero hardcoded package paths to keep in sync as packages come and go.</li>
       <li><strong><code class="mono">project_panel.dock</code>, <code class="mono">tabs.file_icons</code>/<code class="mono">git_status</code>, <code class="mono">minimap.show</code></strong> — the visual-parity knobs from slide 09. None of these touch behavior; they exist purely so the tree and tab bar don't feel like a step down from what you're used to.</li>
     </ul>
