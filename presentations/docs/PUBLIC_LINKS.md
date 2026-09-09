@@ -83,3 +83,9 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
 
 - HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-9-desk-in-your-pocket/index.html
 - Blog (B-26): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md
+
+## P-10 — Zed Editor
+
+- Main deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-10-zed-editor/index.html
+- Deep Dive — Internal Architecture: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-10-zed-editor/deep-dive.html
+- Blog: _none_ (deck-only topic, no companion post)

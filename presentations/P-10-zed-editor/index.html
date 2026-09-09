@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zed — 10 · The Editor That Treats Speed as a Feature</title>
+<meta name="description" content="Zed is a Rust-native, GPU-rendered editor from the people who built Tree-sitter — collaborative by default, AI-native from day one, and free. What it gets you, how to move over from VSCode or WebStorm, and a real config to start from.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+
+<style>
+:root{
+  --bg:#0A0F0E;
+  --surface:#101B18;
+  --elevated:#16241F;
+  --border:#22352E;
+  --border-light:#2F4A40;
+  --text:#EAF3EF;
+  --muted:#93AFA6;
+  --dim:#5E766D;
+  --accent:#2DD4BF;            /* Zed teal — the editor itself */
+  --accent-2:#7DEDDD;
+  --accent-soft:rgba(45,212,191,.12);
+  --accent-glow:rgba(45,212,191,.30);
+  --violet:#B292FA;            /* AI / agent concept */
+  --violet-soft:rgba(178,146,250,.10);
+  --mint:#9AE66E;               /* good / native / verified */
+  --mint-soft:rgba(154,230,110,.10);
+  --danger:#FF8080;
+  --info:#6FB4FF;
+  --warn:#F2C55C;
+
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
+.ambient .b1{width:620px;height:620px;background:var(--accent);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--violet);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:4.5vh 6vw 8vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.compact .fig{margin:10px auto}
+.compact ul.bullets li{margin-bottom:9px}
+.compact .callout{padding:12px 18px;margin:10px 0}
+.compact .mode{padding:12px 14px}
+.compact .foot{padding-top:10px}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+h1.title{font-weight:800;font-size:clamp(2.6rem,6vw,5rem);line-height:1.04;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-weight:400;font-size:clamp(1.15rem,1.9vw,1.6rem);color:var(--muted);line-height:1.55;margin-bottom:26px;max-width:66ch}
+h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.14;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--accent)}
+p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .violet{color:var(--violet)} .mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+ol.steps{list-style:none;counter-reset:step;margin:14px 0}
+ol.steps li{counter-increment:step;position:relative;padding-left:44px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ol.steps li::before{content:counter(step);position:absolute;left:0;top:2px;width:28px;height:28px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
+ol.steps li strong{color:var(--accent-2);font-weight:600}
+
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(45,212,191,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.accent strong{color:var(--accent)}
+.callout.mint{border-color:rgba(154,230,110,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))}
+.callout.mint strong{color:var(--mint)}
+.callout.danger{border-color:rgba(255,128,128,.28);background:linear-gradient(135deg,rgba(255,128,128,.06),var(--elevated))}
+.callout.danger strong{color:var(--danger)}
+.callout.warn{border-color:rgba(242,197,92,.28);background:linear-gradient(135deg,rgba(242,197,92,.06),var(--elevated))}
+.callout.warn strong{color:var(--warn)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block}
+.callout.danger .label{color:var(--danger)} .callout.mint .label{color:var(--mint)} .callout.warn .label{color:var(--warn)}
+
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,128,128,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(154,230,110,.30)} .box.good h4{color:var(--mint)}
+.box.warn{border-color:rgba(242,197,92,.30)} .box.warn h4{color:var(--warn)}
+.box p{font-size:clamp(.95rem,1.15vw,1.1rem);color:var(--muted);line-height:1.5;margin:0}
+.box p+p{margin-top:8px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.mode.violet h4{color:var(--violet)}
+.mode p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:140px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num.mint{color:var(--mint)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.86rem,1.15vw,1rem);color:var(--text);margin:14px 0;line-height:1.65;white-space:pre;overflow-x:auto}
+.code-block .c{color:var(--dim)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--mint)}
+.code-block .f{color:var(--info)}
+
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1.05vw,1rem)}
+thead th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--accent)}
+tbody th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(154,230,110,.32)}
+.tag.bad{color:var(--danger);border-color:rgba(255,128,128,.32)}
+.tag.warn{color:var(--warn);border-color:rgba(242,197,92,.32)}
+
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:28px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.78rem,.95vw,.9rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--accent);font-size:22px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){.pipeline{flex-direction:column;align-items:stretch}.pipeline .parr{transform:rotate(90deg);padding:8px 0}}
+
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(45,212,191,.32);border-radius:30px;background:var(--accent-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pill .dot.mint{background:var(--mint)} .pill .dot.violet{background:var(--violet)} .pill .dot.warn{background:var(--warn)}
+
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--accent);color:#06110F;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--accent-glow);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
+
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+
+/* shortcut-cheatsheet toolbar + downloadable card */
+.cheat-actions{display:flex;gap:10px;margin:12px 0 4px}
+.cheat-actions button{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;transition:border-color .2s,color .2s}
+.cheat-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.cheat-card{padding:4px;border-radius:14px}
+
+@media (max-width:820px),(max-height:520px){
+  html,body{font-size:14px}
+  .slide{padding:3vh 5vw 7vh 5vw}
+  h3.section{font-size:clamp(1.3rem,5.6vw,1.7rem);margin-bottom:4px}
+  p.lead{font-size:1rem;line-height:1.45}
+  ul.bullets li,ol.steps li{font-size:.95rem;margin-bottom:8px;line-height:1.42}
+  ol.steps li{padding-left:36px} ol.steps li::before{width:24px;height:24px;font-size:11px}
+  .callout{padding:11px 14px;margin:9px 0;font-size:.92rem;line-height:1.42}
+  .box,.mode{padding:11px 13px} .box h4{font-size:11.5px;margin-bottom:6px} .box p,.mode p{font-size:.88rem;line-height:1.4}
+  .stat .num{font-size:1.5rem} .stat-row{gap:16px;margin:10px 0}
+  .code-block{font-size:.78rem;padding:10px 12px;line-height:1.5}
+  .vs,.three-col{gap:10px;margin:9px 0}
+  .pipeline .step{padding:10px 6px} .pipeline .step p{font-size:.8rem}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 01 · HERO -->
+  <section class="slide hero" data-title="Zed — the editor that treats speed as a feature">
+    <span class="badge"><span class="dot"></span> Deck 10 · code editor / dev tooling</span>
+    <h1 class="title">Zed. The editor that treats <em>speed</em> as a feature.</h1>
+    <h2 class="subtitle">A Rust-native, GPU-rendered editor from the people who built Tree-sitter — collaborative by default, AI-native from day one, and free. What it actually gets you, how to move over from VSCode or WebStorm without losing your keybindings, and a real config to start from — for macOS and Ubuntu.</h2>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span> Rust, no Electron</span>
+      <span class="pill"><span class="dot mint"></span> GPU-rendered UI</span>
+      <span class="pill"><span class="dot violet"></span> AI-native</span>
+      <span class="pill"><span class="dot warn"></span> Multiplayer built in</span>
+      <span class="pill"><span class="dot"></span> Free, source-available</span>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="slide" data-title="The tax every browser-based editor pays">
+    <div class="slide-num">02 · why look now</div>
+    <h3 class="section">Every keystroke in VSCode or WebStorm <em>goes through a browser or a JVM</em>.</h3>
+    <p class="lead">Not a knock on either — both are excellent, mature tools. But the render path has extra stops most people never think about, because they've never felt the alternative.</p>
+    <div class="vs">
+      <div class="box bad">
+        <h4>⚙ The usual path</h4>
+        <p><b>VSCode:</b> keystroke → Chromium renderer → DOM/layout → (for extensions) an IPC hop to the Node.js extension host and back.</p>
+        <p><b>WebStorm:</b> keystroke → Swing/AWT UI on the JVM → PSI model update → garbage collector somewhere in the loop.</p>
+      </div>
+      <div class="box good">
+        <h4>⚡ Zed's path</h4>
+        <p>Keystroke → native Rust → GPUI's GPU compositor. No browser, no JVM, no interpreter sitting between your finger and the pixel.</p>
+      </div>
+    </div>
+    <div class="callout mint"><span class="label">Zed's own stated goal</span> Sub-millisecond input latency, as a design constraint from the first line of code — not a metric chased after the fact. <span class="muted">(Their claim, not an independent benchmark — feel is what actually convinces you.)</span></div>
+  </section>
+
+  <!-- 03 -->
+  <section class="slide" data-title="Built by the people who made Tree-sitter">
+    <div class="slide-num">03 · origin</div>
+    <h3 class="section">Built by the people who <em>made Tree-sitter</em>.</h3>
+    <ul class="bullets">
+      <li>Zed Industries was founded by <strong>Nathan Sobo</strong> and <strong>Max Brunsfeld</strong> — both came off building <strong>Atom</strong> at GitHub, and Brunsfeld also created <strong>Tree-sitter</strong>, the incremental parser now used by half the editor ecosystem, Zed included.</li>
+      <li>Atom taught them exactly where Electron's ceiling was. Zed is the rewrite of those lessons in Rust, from scratch, with none of the constraints an HTML/CSS UI imposes.</li>
+      <li>The editor's source is <strong>published on GitHub</strong> — you can read the rope, the CRDT layer, and GPUI itself, not just file issues against a black box.</li>
+    </ul>
+  </section>
+
+  <!-- 04 -->
+  <section class="slide" data-title="Speed is the architecture, not a patch">
+    <div class="slide-num">04 · why better · speed</div>
+    <h3 class="section">Speed isn't a patch here — <em>it's the architecture</em>.</h3>
+    <div class="mode">
+      <span class="tech">GPUI</span>
+      <p>Zed's own GPU-accelerated UI framework. The text buffer, the tab bar, the settings panel, the project tree — all of it renders through one framework, straight to the GPU. There's no separate layout/paint/composite pipeline built for general web pages doing double duty as your editor's UI.</p>
+    </div>
+    <ul class="bullets" style="margin-top:14px">
+      <li>Single native binary. <strong>No Node.js runtime</strong> sitting under the hood the way Electron apps need one.</li>
+      <li>Startup is a process launch, not a browser boot plus an extension-host boot behind it.</li>
+      <li>Large files and long lines stay smooth — the Rope-backed buffer (more in the deep dive) doesn't re-lay-out the DOM on every keystroke, because there is no DOM.</li>
+    </ul>
+  </section>
+
+  <!-- 05 -->
+  <section class="slide" data-title="AI wired into the buffer">
+    <div class="slide-num">05 · why better · AI</div>
+    <h3 class="section">AI wired into the buffer, <em>not bolted on top</em>.</h3>
+    <div class="three-col">
+      <div class="mode violet"><span class="tech">Edit prediction</span><p>A model trained specifically to predict your <em>next edit</em> across the whole file — not just the next token at the cursor — built into the core, on by default.</p></div>
+      <div class="mode violet"><span class="tech">Agent panel</span><p>A first-class chat/agent surface in the sidebar with pluggable providers — Anthropic, OpenAI, or a local model via Ollama — your choice, your key.</p></div>
+      <div class="mode violet"><span class="tech">Parallel agents</span><p>2026's addition: run several agent threads at once against different parts of a task, instead of one linear conversation queue.</p></div>
+    </div>
+    <p class="lead" style="margin-top:16px">The difference that actually matters: because AI features share the same Rope/CRDT buffer model as everything else, streamed edits apply as incremental patches — not a full-file rewrite dropped on top of whatever you were mid-typing.</p>
+  </section>
+
+  <!-- 06 -->
+  <section class="slide" data-title="Multiplayer was never an afterthought">
+    <div class="slide-num">06 · why better · collaboration</div>
+    <h3 class="section">Multiplayer was <em>never an afterthought</em>.</h3>
+    <p class="lead">Zed's buffers are built on CRDTs — Conflict-free Replicated Data Types — from day one, not retrofitted for a "Live Share" feature later.</p>
+    <div class="vs">
+      <div class="box good">
+        <h4>◆ Zed</h4>
+        <p>Multiplayer is core editor behavior: open a project, invite someone, see their cursor and selection live. Concurrent edits merge deterministically — no lock, no "waiting for the other person to save."</p>
+      </div>
+      <div class="box bad">
+        <h4>◆ VSCode Live Share</h4>
+        <p>A separate extension with its own sign-in and its own transport, layered on top of an editor that wasn't built assuming two people would type in the same buffer at once.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="slide" data-title="One process, not three glued together">
+    <div class="slide-num">07 · why better · footprint</div>
+    <h3 class="section">One native process, <em>not three glued together</em>.</h3>
+    <ul class="bullets">
+      <li>No Chromium renderer process, no separate Node.js extension-host process, no JVM heap sized for a whole project index — one multi-threaded Rust binary.</li>
+      <li>Battery and fan noise on a laptop track this directly: fewer processes doing overlapping work means less to schedule and less to keep warm.</li>
+      <li>The full mechanism — why this holds up under load, and where each competitor's model actually goes — is the <a href="#deep-dive">deep dive</a>, not this slide.</li>
+    </ul>
+  </section>
+
+  <!-- 08 -->
+  <section class="slide" data-title="What you'd be giving up">
+    <div class="slide-num">08 · honest trade-offs</div>
+    <h3 class="section">What you'd actually <em>be giving up</em>.</h3>
+    <p class="lead">A tool worth switching to is worth describing honestly. Here's where Zed still loses to what you're using today.</p>
+    <div class="three-col">
+      <div class="box bad"><h4>⊘ Extensions</h4><p>The marketplace is a fraction of VSCode's. Core languages are covered well; niche tooling sometimes isn't there yet.</p></div>
+      <div class="box bad"><h4>⊘ Bundled tools</h4><p>No built-in DB client, HTTP client, or JVM-grade refactor/find-usages the way WebStorm ships out of the box — Zed leans on each language's LSP instead.</p></div>
+      <div class="box bad"><h4>⊘ Windows</h4><p>macOS and Linux got first-class support years earlier; Windows support is real but younger, and it shows in polish for edge cases.</p></div>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section class="slide" data-title="Migrating from VSCode">
+    <div class="slide-num">09 · migrating from VSCode</div>
+    <h3 class="section">Coming from VSCode: <em>most of the muscle memory transfers</em>.</h3>
+    <div class="code-block"><span class="c">// settings.json</span>
+<span class="s">"base_keymap"</span>: <span class="s">"VSCode"</span></div>
+    <ul class="bullets">
+      <li>One setting gets you VSCode's keybindings on day one — <span class="tag">native, no keymap.json to hand-write</span>.</li>
+      <li><code class="mono">settings.json</code> is still just JSON with per-language override blocks — the mental model doesn't change, only some key names do.</li>
+      <li>No <code class="mono">.code-workspace</code> file: Zed remembers whatever folders were open in a window and restores that layout automatically. Add a second project root anytime via <strong>File → Add Folder to Project</strong> — same idea as VSCode's multi-root workspaces, no file to maintain.</li>
+    </ul>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" data-title="Migrating from WebStorm">
+    <div class="slide-num">10 · migrating from WebStorm / IntelliJ</div>
+    <h3 class="section">Coming from WebStorm: <em>one real gap, everything else transfers</em>.</h3>
+    <div class="code-block"><span class="c">// settings.json</span>
+<span class="s">"base_keymap"</span>: <span class="s">"JetBrains"</span></div>
+    <ul class="bullets">
+      <li>The keymap is a first-class option — no relearning `⌘.`-era muscle memory from scratch.</li>
+      <li><strong>The real adjustment:</strong> WebStorm's instant, whole-project "Find Usages" and refactors come from an in-memory semantic index (PSI) built at project open. Zed relies on the language's own LSP instead — for TypeScript/JS that's the same <code class="mono">tsserver</code> WebStorm ultimately talks to anyway, so quality is close; for less-tooled languages, it can be thinner.</li>
+      <li>No bundled database client or HTTP client — if those are daily tools, keep WebStorm open in a second window for now.</li>
+    </ul>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide" data-title="Setup on macOS">
+    <div class="slide-num">11 · setup · macOS</div>
+    <h3 class="section">Setup on <em>macOS</em>.</h3>
+    <div class="code-block"><span class="c"># Homebrew (recommended)</span>
+brew install --cask zed
+
+<span class="c"># or: download the .dmg directly from zed.dev/download</span></div>
+    <ol class="steps">
+      <li>The Homebrew cask links the <strong><code class="mono">zed</code></strong> CLI into your PATH automatically — no separate "install shell command" step.</li>
+      <li>Open a project from the terminal: <code class="mono">zed .</code></li>
+      <li>First run: <code class="mono">Cmd+Shift+X</code> to install language extensions you actually use (see slide 16).</li>
+    </ol>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide" data-title="Setup on Ubuntu">
+    <div class="slide-num">12 · setup · Ubuntu</div>
+    <h3 class="section">Setup on <em>Ubuntu</em>.</h3>
+    <div class="code-block"><span class="c"># Official installer — adds zed to PATH</span>
+curl -f https://zed.dev/install.sh | sh</div>
+    <ul class="bullets">
+      <li>One command, no PPA to add. The installer also offers preview builds if you want to track pre-release features.</li>
+      <li>Open a project the same way: <code class="mono">zed .</code></li>
+      <li>Same first-run step as macOS — install the language extensions your projects actually need.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide" data-title="The first ten minutes">
+    <div class="slide-num">13 · the first ten minutes</div>
+    <h3 class="section">The first ten minutes, <em>in order</em>.</h3>
+    <ol class="steps">
+      <li>Set <code class="mono">base_keymap</code> to whatever you already type without thinking — <span class="mono">VSCode</span> or <span class="mono">JetBrains</span>.</li>
+      <li>Open your real project: <code class="mono">zed .</code> — not a scratch folder. First impressions on toy code lie.</li>
+      <li>Install the two or three language extensions you'll actually use today (slide 16) — don't install a marketplace's worth speculatively.</li>
+      <li>Wire up formatting/linting to match what your team already enforces (slide 14) — this is the setting most people skip and then blame the editor for.</li>
+      <li>Connect an AI provider in the agent panel if you use one, then leave it alone for a week before judging.</li>
+    </ol>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide" data-title="A real config to start from">
+    <div class="slide-num">14 · example config</div>
+    <h3 class="section">A real config, <em>from a multi-package TypeScript + Vue project</em>.</h3>
+    <p class="lead">Genericized from an actual monorepo (server + client + shared packages) — the shape, not the specifics.</p>
+    <div class="code-block">{
+  <span class="s">"base_keymap"</span>: <span class="s">"VSCode"</span>,
+
+  <span class="c">// make the project panel + tabs feel like VSCode's Explorer</span>
+  <span class="s">"project_panel"</span>: { <span class="s">"dock"</span>: <span class="s">"left"</span> },
+  <span class="s">"tabs"</span>: { <span class="s">"file_icons"</span>: true, <span class="s">"git_status"</span>: true },
+  <span class="s">"preview_tabs"</span>: { <span class="s">"enabled"</span>: false },
+  <span class="s">"minimap"</span>: { <span class="s">"show"</span>: <span class="s">"always"</span> },
+
+  <span class="s">"tab_size"</span>: 2,
+  <span class="s">"format_on_save"</span>: <span class="s">"on"</span>,
+  <span class="s">"ensure_final_newline_on_save"</span>: true,
+
+  <span class="s">"languages"</span>: {
+    <span class="s">"TypeScript"</span>: {
+      <span class="s">"formatter"</span>: [
+        { <span class="s">"code_action"</span>: <span class="s">"source.fixAll.eslint"</span> },
+        { <span class="s">"external"</span>: { <span class="s">"command"</span>: <span class="s">"npx"</span>,
+            <span class="s">"arguments"</span>: [<span class="s">"--no-install"</span>, <span class="s">"prettier"</span>,
+              <span class="s">"--stdin-filepath"</span>, <span class="s">"{buffer_path}"</span>] } }
+      ]
+    }
+  },
+  <span class="s">"lsp"</span>: { <span class="s">"eslint"</span>: { <span class="s">"settings"</span>: {
+    <span class="s">"workingDirectories"</span>: [{ <span class="s">"mode"</span>: <span class="s">"auto"</span> }]
+  } } }
+}</div>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide" data-title="Why that config is shaped that way">
+    <div class="slide-num">15 · anatomy of that config</div>
+    <h3 class="section">Why it's shaped <em>exactly like that</em>.</h3>
+    <ul class="bullets">
+      <li><strong><code class="mono">formatter: [code_action, external]</code></strong> — run ESLint's autofix first, then Prettier. Matches the old VSCode habit of <code class="mono">codeActionsOnSave: fixAll</code> plus <code class="mono">formatOnSave: false</code>, just expressed as one ordered chain instead of two settings.</li>
+      <li><strong><code class="mono">--no-install</code></strong> on the <code class="mono">npx</code> call — uses the project's own installed Prettier, and fails fast instead of silently downloading one over the network on every save.</li>
+      <li><strong><code class="mono">workingDirectories: [{mode:"auto"}]</code></strong> — ESLint resolves the right package's config per file by itself. In a <code class="mono">packages/*</code> monorepo that means zero hardcoded package paths to keep in sync as packages come and go.</li>
+      <li><strong><code class="mono">project_panel.dock</code>, <code class="mono">tabs.file_icons</code>/<code class="mono">git_status</code>, <code class="mono">minimap.show</code></strong> — the visual-parity knobs from slide 09. None of these touch behavior; they exist purely so the tree and tab bar don't feel like a step down from what you're used to.</li>
+    </ul>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide" data-title="Extensions worth grabbing">
+    <div class="slide-num">16 · extensions worth grabbing</div>
+    <h3 class="section">Extensions worth grabbing — <em>and the ones you don't need</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Stack</th><th>Extension</th><th class="hl">Needed?</th></tr></thead>
+      <tbody>
+        <tr><td>Vue 3 SFCs</td><td class="mono">Vue.js</td><td><span class="tag good">install</span></td></tr>
+        <tr><td>Astro</td><td class="mono">Astro</td><td><span class="tag good">install</span></td></tr>
+        <tr><td>Tailwind CSS</td><td class="mono">— none —</td><td><span class="tag good">built in, no extension</span></td></tr>
+        <tr><td>Icon theme, Material-style</td><td class="mono">optional</td><td><span class="tag warn">cosmetic only</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="lead" style="margin-top:14px">Zed's own habit is minimal-by-default — most core language support (TS, Python, Go, Rust, Markdown) ships without an extension at all. Install what a project actually needs, not a marketplace's worth up front.</p>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide" data-title="Workspace and multiple projects">
+    <div class="slide-num">17 · workspace &amp; multiple projects</div>
+    <h3 class="section">Workspace = <em>whatever folders are open in that window</em>.</h3>
+    <ul class="bullets">
+      <li>No named workspace file — Zed remembers a window's exact folder combination and restores its layout (splits, tabs, panels) automatically when you reopen it.</li>
+      <li><strong>Two related repos, one window:</strong> <code class="mono">zed ~/repo-a ~/repo-b</code>, or inside Zed, <strong>File → Add Folder to Project</strong>. Both show as separate roots in the same project panel — search and AI context span both.</li>
+      <li><strong>Switching projects:</strong> <code class="mono">Ctrl+R</code> — Open Recent, same key on macOS and Linux. Plain click reuses the window; <code class="mono">Cmd/Ctrl+Enter</code> or <code class="mono">Cmd/Ctrl+Click</code> opens a new one instead.</li>
+    </ul>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide" data-title="Keymaps and working directories at a glance">
+    <div class="slide-num">18 · keymaps &amp; working directories</div>
+    <h3 class="section">Two settings people keep asking about, <em>side by side</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th><code class="mono">base_keymap</code></th><th>Muscle memory from</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">VSCode</td><td>VSCode / Cursor</td></tr>
+        <tr><td class="mono">JetBrains</td><td>WebStorm / IntelliJ</td></tr>
+        <tr><td class="mono">SublimeText</td><td>Sublime Text</td></tr>
+        <tr><td class="mono">None</td><td>Zed's own defaults</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout accent"><span class="label">Terminal cwd</span><code class="mono">terminal.working_directory: "current_project_directory"</code> (default) — the integrated terminal opens rooted at whichever project folder your active file belongs to. A separate setting from ESLint's <code class="mono">workingDirectories</code> on slide 14 — same word, two different jobs.</div>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide" data-title="Shortcuts you'll use every day">
+    <div class="slide-num">19 · shortcuts cheat sheet</div>
+    <h3 class="section">Shortcuts you'll use <em>every single day</em>.</h3>
+    <p class="lead">Straight from Zed's own default keymaps on GitHub — <span class="mono">default-macos.json</span> / <span class="mono">default-linux.json</span> — not guessed. Select the table to copy it as-is, or use the buttons.</p>
+    <div class="cheat-actions">
+      <button type="button" onclick="copyCheatsheet('cheatNav', this)">📋 Copy as text</button>
+      <button type="button" onclick="downloadCheatsheet('cheatNavCard', 'zed-shortcuts-navigation')">🖼 Download as image</button>
+    </div>
+    <div class="cheat-card" id="cheatNavCard">
+    <div class="table-wrap"><table id="cheatNav">
+      <thead><tr><th>Action</th><th class="hl">macOS</th><th>Linux / Windows</th></tr></thead>
+      <tbody>
+        <tr><td>Command palette</td><td class="mono">⌘⇧P</td><td class="mono">Ctrl+Shift+P</td></tr>
+        <tr><td>Quick open file</td><td class="mono">⌘P</td><td class="mono">Ctrl+P</td></tr>
+        <tr><td>Show / hide project panel</td><td class="mono">⌘⇧E</td><td class="mono">Ctrl+Shift+E</td></tr>
+        <tr><td>Show / hide terminal</td><td class="mono">⌃`</td><td class="mono">Ctrl+`</td></tr>
+        <tr><td>Show / hide git panel</td><td class="mono">⌃⇧G</td><td class="mono">Ctrl+Shift+G</td></tr>
+        <tr><td>Switch project (Open Recent)</td><td class="mono">⌃R</td><td class="mono">Ctrl+R</td></tr>
+        <tr><td>Show / hide AI agent panel</td><td class="mono">⌘?</td><td class="mono">Ctrl+?</td></tr>
+        <tr><td>Split pane right</td><td class="mono">⌘\</td><td class="mono">Ctrl+\</td></tr>
+        <tr><td>Close tab</td><td class="mono">⌘W</td><td class="mono">Ctrl+W</td></tr>
+        <tr><td>Save</td><td class="mono">⌘S</td><td class="mono">Ctrl+S</td></tr>
+        <tr><td>Go to line</td><td class="mono">⌃G</td><td class="mono">Ctrl+G</td></tr>
+        <tr><td>Go to definition</td><td class="mono">F12</td><td class="mono">F12</td></tr>
+        <tr><td>Format document</td><td class="mono">⌘⇧I</td><td class="mono">Ctrl+Shift+I</td></tr>
+        <tr><td>Rename symbol</td><td class="mono">F2</td><td class="mono">F2</td></tr>
+        <tr><td>Toggle line comment</td><td class="mono">⌘/</td><td class="mono">Ctrl+/</td></tr>
+      </tbody>
+    </table></div>
+    </div>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide" data-title="Cursor handling — multi-cursor editing">
+    <div class="slide-num">20 · cursor handling</div>
+    <h3 class="section">Cursor handling — <em>multi-cursor, the fast way</em>.</h3>
+    <p class="lead">The same gesture VSCode and Sublime trained your fingers on. Copy or save this one too.</p>
+    <div class="cheat-actions">
+      <button type="button" onclick="copyCheatsheet('cheatCursor', this)">📋 Copy as text</button>
+      <button type="button" onclick="downloadCheatsheet('cheatCursorCard', 'zed-shortcuts-multicursor')">🖼 Download as image</button>
+    </div>
+    <div class="cheat-card" id="cheatCursorCard">
+    <div class="table-wrap"><table id="cheatCursor">
+      <thead><tr><th>Action</th><th class="hl">macOS</th><th>Linux / Windows</th></tr></thead>
+      <tbody>
+        <tr><td>Add cursor above</td><td class="mono">⌘⌥↑</td><td class="mono">Shift+Alt+↑</td></tr>
+        <tr><td>Add cursor below</td><td class="mono">⌘⌥↓</td><td class="mono">Shift+Alt+↓</td></tr>
+        <tr><td>Add cursor at click point</td><td class="mono">⌥+Click</td><td class="mono">Alt+Click</td></tr>
+        <tr><td>Select next occurrence</td><td class="mono">⌘D</td><td class="mono">Ctrl+D</td></tr>
+        <tr><td>Select all occurrences</td><td class="mono">⌘⇧L</td><td class="mono">Ctrl+Shift+L</td></tr>
+        <tr><td>Undo last cursor / selection</td><td class="mono">⌘U</td><td class="mono">Ctrl+U</td></tr>
+      </tbody>
+    </table></div>
+    </div>
+    <div class="callout accent" style="margin-top:14px"><strong>The one that surprises VSCode users:</strong> add-cursor-above/below is <code class="mono">⌘⌥↑/↓</code> on macOS — VSCode's own default is <code class="mono">⌥⌘↑/↓</code> too, so this one already matches even before you touch <code class="mono">base_keymap</code>.</div>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide" data-title="Where you'll still want the old tool nearby">
+    <div class="slide-num">21 · where the old tool still wins</div>
+    <h3 class="section">Where you'll still want <em>the old tool nearby</em> — for now.</h3>
+    <ul class="checklist">
+      <li><strong>Heavy JVM/Java refactoring</strong> spanning a huge project — WebStorm's PSI index is still deeper here.</li>
+      <li><strong>A must-have niche extension</strong> with no Zed equivalent yet.</li>
+      <li><strong>Built-in DB/HTTP tooling</strong> you rely on daily rather than occasionally.</li>
+    </ul>
+    <p class="lead" style="margin-top:10px">None of that is a reason to skip Zed for everything else — it's a reason to keep the old tool one Cmd-Tab away for those specific jobs, and let Zed take the daily driving.</p>
+  </section>
+
+  <!-- 22 -->
+  <section class="slide" data-title="Continue to the deep dive">
+    <div class="slide-num">22 · next</div>
+    <h3 class="section">That's the surface. <em>Want the mechanism?</em></h3>
+    <p class="lead">GPUI, the Rope, Tree-sitter, and the CRDT layer that makes multiplayer work — and how each compares to what VSCode and WebStorm actually do under their own hoods.</p>
+    <div class="end-links">
+      <a class="primary" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-10-zed-editor/deep-dive.html" target="_blank" rel="noopener">Deep dive → How Zed actually works internally</a>
+      <a class="ghost" href="https://zed.dev" target="_blank" rel="noopener">zed.dev ↗</a>
+      <a class="ghost" href="https://github.com/zed-industries/zed" target="_blank" rel="noopener">github.com/zed-industries/zed ↗</a>
+    </div>
+    <div class="foot">Deck 10 · Zed Editor</div>
+  </section>
+
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-22">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+// Cheat-sheet toolbar: copy the table as plain text, or save it as a PNG.
+// Reads straight from the DOM rows — one source of truth, no hand-duplicated string to drift.
+function copyCheatsheet(tableId, btn) {
+  var rows = document.getElementById(tableId).querySelectorAll('tr');
+  var lines = [];
+  rows.forEach(function (r) {
+    var cells = r.querySelectorAll('th,td');
+    lines.push(Array.prototype.map.call(cells, function (c) { return c.textContent.trim(); }).join('  |  '));
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(function () {
+    var orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(function () { btn.textContent = orig; }, 1500);
+  });
+}
+function downloadCheatsheet(cardId, baseName) {
+  var el = document.getElementById(cardId);
+  var bg = getComputedStyle(document.body).getPropertyValue('--surface').trim() || '#101B18';
+  // html2canvas's manual glyph-by-glyph text renderer double-struck this deck's
+  // web fonts (overlapping letters); html-to-image serializes the element to SVG
+  // and lets the browser's own text engine draw it — the one already rendering
+  // it correctly on screen — so there's nothing left to get wrong.
+  htmlToImage.toPng(el, { backgroundColor: bg, pixelRatio: 2 }).then(function (dataUrl) {
+    var link = document.createElement('a');
+    link.download = baseName + '.png';
+    link.href = dataUrl;
+    link.click();
+  });
+}
+
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-overview,.dk-help,.dk-goto,.callout,table,.code-block,.vs,.box,.three-col,.mode,.stat-row,.pipeline,.table-wrap,.end-links,.foot,.cheat-actions,.cheat-card',
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+</body>
+</html>

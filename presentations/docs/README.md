@@ -36,6 +36,7 @@ blob link or raw-content proxy link, per format) is documented in
 | Many Accounts… | `deck.js` | fixed 1280×720 + `fitStage` | `.deck-slide` | goto, notes, blackout, help, lightbox |
 | Branchdiff 01–07 | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | overview, lightbox |
 | DDD Intro / Deep Dive / Real Build | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | overview, lightbox, goto |
+| Zed Editor (main + Deep Dive) | `deck.js` | fluid (`vw`/`clamp`) | `.slide` | overview, goto, help, blackout |
 
 ## `Deck.mount(config)` — the API
 
