@@ -416,6 +416,13 @@ curl -f https://zed.dev/install.sh | sh</div>
     <span class="s">"TypeScript"</span>: {
       <span class="s">"formatter"</span>: [],
       <span class="s">"code_actions_on_format"</span>: { <span class="s">"source.fixAll.eslint"</span>: true }
+    },
+    <span class="c">// A .vue file is the "Vue.js" language — the TypeScript block above never
+    applies to it. Without its own entry it falls to the default formatter
+    (Volar → Prettier defaults), which fights eslint-plugin-vue on every save.</span>
+    <span class="s">"Vue.js"</span>: {
+      <span class="s">"formatter"</span>: [],
+      <span class="s">"code_actions_on_format"</span>: { <span class="s">"source.fixAll.eslint"</span>: true }
     }
   },
   <span class="s">"lsp"</span>: { <span class="s">"eslint"</span>: { <span class="s">"settings"</span>: {
@@ -432,6 +439,7 @@ curl -f https://zed.dev/install.sh | sh</div>
       <li><strong><code class="mono">formatter: []</code> + <code class="mono">code_actions_on_format: {"source.fixAll.eslint": true}</code></strong> — ESLint's autofix is the <em>only</em> formatting action. Matches VSCode's <code class="mono">codeActionsOnSave: fixAll</code> plus <code class="mono">formatOnSave: false</code> exactly, because it's respecting the same one source of truth: whatever <em>this</em> project's own ESLint config says.</li>
       <li><strong>No chained Prettier step</strong> — deliberately. An earlier version of this config ran <code class="mono">npx prettier</code> after the ESLint fix "for projects that use it." A project with no <code class="mono">.prettierrc</code> at all still had <code class="mono">prettier</code> resolvable via npx (a transitive dependency), so it silently reformatted with Prettier's generic defaults on every save — fighting the project's real Airbnb/ESLint style. <code class="mono">fixAll.eslint</code> alone already covers projects that use Prettier <em>through</em> <code class="mono">eslint-plugin-prettier</code> too. Don't chain a formatter your config can't confirm the project actually wants.</li>
       <li><strong><code class="mono">workingDirectories: [{mode:"auto"}]</code></strong> — ESLint resolves the right package's config per file by itself. In a <code class="mono">packages/*</code> monorepo that means zero hardcoded package paths to keep in sync as packages come and go.</li>
+      <li><strong>The <code class="mono">"Vue.js"</code> entry is not optional in a Vue project</strong> — <code class="mono">languages</code> blocks match Zed's language name, and a <code class="mono">.vue</code> SFC is <em>Vue.js</em>, not TypeScript. Leave it out and the TypeScript block silently never applies: the SFC falls back to the default formatter, where Volar formats through Prettier's generic defaults — double quotes, collapsed attribute lines — and undoes <code class="mono">eslint-plugin-vue</code>'s style on every single save. Same trap for any other embedded-language file; name the language the file <em>is</em>, not the language inside it.</li>
       <li><strong><code class="mono">project_panel.dock</code>, <code class="mono">tabs.file_icons</code>/<code class="mono">git_status</code>, <code class="mono">minimap.show</code></strong> — the visual-parity knobs from slide 09. None of these touch behavior; they exist purely so the tree and tab bar don't feel like a step down from what you're used to.</li>
     </ul>
   </section>
@@ -550,8 +558,26 @@ curl -f https://zed.dev/install.sh | sh</div>
   </section>
 
   <!-- 22 -->
+  <section class="slide" data-title="Troubleshooting — slow loads and save fights">
+    <div class="slide-num">22 · troubleshooting</div>
+    <h3 class="section">When Zed feels <em>broken</em>, it's usually reporting something real.</h3>
+    <p class="lead">Two failures that look like editor bugs but aren't. Both start the same way: open <code class="mono">~/.local/share/zed/logs/Zed.log</code> and read what Zed already knows.</p>
+    <ul class="checklist">
+      <li><strong>Symptom — quick-open lists the files, selecting one stalls.</strong> The project sits on a FUSE-mounted filesystem (the default Linux NTFS path, <code class="mono">ntfs-3g</code>, plus sshfs and friends). FUSE can't emit inotify events, so Zed's file watcher falls back to <em>polling</em>: a full directory walk every cycle — and <code class="mono">node_modules</code> alone can be a hundred thousand entries. The log says it outright: <code class="mono">fs_watcher watcher error for Poll</code>.</li>
+      <li><strong>Fix the mount, not the editor.</strong> Point the fstab entry at the kernel-space <code class="mono">ntfs3</code> driver: inotify works through it, so the poll fallback never starts, and I/O stops round-tripping through userspace.</li>
+    </ul>
+    <div class="code-block"><span class="c"># /etc/fstab — ntfs3 (kernel driver) instead of auto → ntfs-3g (FUSE)</span>
+UUID=&lt;disk-uuid&gt;  /mnt/data  ntfs3  defaults,nofail,uid=1000,gid=1000,windows_names  0 0</div>
+    <ul class="checklist">
+      <li><strong>Then shrink the walk anyway.</strong> <code class="mono">file_scan_exclusions</code> with <code class="mono">**/node_modules</code>, <code class="mono">**/dist</code>, build output. The list <em>replaces</em> the defaults (VCS dirs, <code class="mono">.DS_Store</code>…), so repeat those before appending — exclusions cost nothing on a healthy filesystem either.</li>
+      <li><strong>Symptom — every save reformats the file against the project's own lint style.</strong> A settings problem wearing a formatter costume. <code class="mono">languages</code> blocks match Zed's <em>language name</em>: a <code class="mono">.vue</code> single-file component is <code class="mono">"Vue.js"</code>, not TypeScript — and a block that never matches fails <em>silently</em>, no error anywhere. The file falls through to the default formatter (Volar → Prettier's generic defaults), which undoes the project's ESLint style on every save. Slide 14's config names the language the file <em>is</em>; slide 15 has the full story.</li>
+    </ul>
+    <div class="callout accent" style="margin-top:14px"><strong>The method:</strong> Zed logs its degradation before you feel it — watcher fallback, LSP restarts, formatter choice. Check there first, then recall the two cascade facts behind most surprises: <em>project settings override user settings</em>, and <em>arrays replace — they don't merge</em>.</div>
+  </section>
+
+  <!-- 23 -->
   <section class="slide" data-title="Continue to the deep dive">
-    <div class="slide-num">22 · next</div>
+    <div class="slide-num">23 · next</div>
     <h3 class="section">That's the surface. <em>Want the mechanism?</em></h3>
     <p class="lead">GPUI, the Rope, Tree-sitter, and the CRDT layer that makes multiplayer work — and how each compares to what VSCode and WebStorm actually do under their own hoods.</p>
     <div class="end-links">
@@ -565,7 +591,7 @@ curl -f https://zed.dev/install.sh | sh</div>
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-22">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-23">
 </div>
 
 <div class="dk-help" id="helpOverlay">
