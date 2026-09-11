@@ -480,7 +480,7 @@ Open `~/.claude/rules/model-routing.md` — or whatever your tool calls it — a
 
 **Related posts from this repo:**
 - [Claude Code Configuration Blueprint - The Complete Guide for Production Teams](./Claude%20Code%20Configuration%20Blueprint%20-%20The%20Complete%20Guide%20for%20Production%20Teams.md)
-- [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph](./Graphify%20+%20code-review-graph:%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
+- [Graphify + code-review-graph: Build a Self-Updating Knowledge Graph](./Graphify%20+%20code-review-graph%20-%20Build%20a%20Self-Updating%20Knowledge%20Graph%20for%20Claude%20Code%20and%20other%20AI%20Coding%20Agent.md)
 - [Self-Review With AI Before You Open the PR — branchdiff](../branchdiff/Self-Review%20With%20AI%20Before%20You%20Open%20the%20PR%20-%20A%20Practical%20Workflow%20with%20branchdiff.md)
 
 **My toolkit (tool sources — what I run / what I cut):**
