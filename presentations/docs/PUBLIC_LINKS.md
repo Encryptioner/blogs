@@ -29,7 +29,7 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
 ## P-3 — Token Economics
 
 - HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-3-token-economics/index.html
-- Blog (B-16): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Claude%20Code/Token%20Economics:%20Better%20Results%2C%20Fewer%20Tokens.md
+- Blog (B-16): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Claude%20Code/Token%20Economics%20-%20Better%20Results%2C%20Fewer%20Tokens.md
 
 ## P-4 — Many Accounts, Many Providers, One Harness
 
