@@ -1,14 +1,20 @@
+---
+title: "Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)"
+published: 2026-09-13
+tags: vscode, ide-extensions, typescript, developer-tools
+---
+
 # Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others)
 
 > The most useful software you'll ever write might be the kind only you needed.
 
 Every developer has one. That small thing your editor *almost* does — the command you retype ten times a day, the info you keep switching to a browser to check, the tool you love that lives in a terminal while your actual work lives three windows away. You've tolerated it for months. Maybe years.
 
-Here's the thought this post is built on: **you can fix that yourself, in a weekend, without being an expert.** An IDE extension is not a mystical artifact maintained by people smarter than you. It's a small program plus a form that tells the editor where to plug it in. If you can write a script, you can write an extension.
+**You can fix that yourself — in a weekend, without being an expert.** An IDE extension is not a mystical artifact maintained by people smarter than you. It's a small program plus a form that tells the editor where to plug it in. If you can write a script, you can write an extension.
 
 I recently went through this end to end. I maintain a CLI tool called [branchdiff](https://github.com/encryptioner/branchdiff-releases) — it runs a local web UI for reviewing pull requests. The UI was fine, but using it meant a terminal, a command, a browser tab, a context switch. So I built a VS Code extension that starts the server, shows the numbers in the sidebar, and embeds the whole UI in an editor tab. Along the way I hit everything the tutorials don't warn you about: a status bar icon that silently refuses to render, links that open *nothing* with no error, a marketplace account that needs an Azure subscription before it needs an extension.
 
-This guide is the general version of that journey. It works for your use case, whatever it is — and it doesn't stop at VS Code. There's a full field guide to Zed, JetBrains, and friends near the end, because the most important decision you'll make is *which editor to target first*, and the answer surprised me.
+This guide is the general version of that journey — it works for whatever your use case is, and it doesn't stop at VS Code. There's a full field guide to the rest of the editor world ([Zed](https://zed.dev), [JetBrains](https://www.jetbrains.com/), [Neovim](https://neovim.io)) near the end, because the most important decision you'll make is *which editor to target first*.
 
 If you're not a developer, read the next section anyway — it explains what extensions actually are, in plain language, and honestly, that's the part most developers would benefit from too.
 
@@ -33,23 +39,27 @@ That diagram is the whole mental model for VS Code. Two files do almost everythi
 
 One detail worth knowing because it makes extensions *safe to experiment with*: your code runs in a separate process the editor babysits, called the extension host. If your extension crashes, the editor doesn't. You cannot brick your setup by writing a bad extension. Worst case, you disable it. This is why the barrier to trying is much lower than it looks.
 
----
+### The shapes extensions come in
 
-## The Many Shapes an Extension Can Take
+One more thing before the code: extensions come in a handful of well-known shapes, and knowing them makes your own idea easier to place. Almost everything on a marketplace is one of these:
 
-"Extension" sounds like one specific thing — a program, for programmers. It's really a whole family, and some of its most popular members barely involve code at all. A quick tour of the common types, because your idea might be a much smaller shape than you feared:
+| Shape | What it does | You've met it as |
+|---|---|---|
+| **Command or tool** | Adds a button that does a thing | The shape this post builds |
+| **Syntax highlighter** | Teaches the editor to colorize a language it doesn't know yet | Grammar extensions for niche languages |
+| **Theme** | Restyles the whole editor — colors, file icons | [One Dark Pro](https://marketplace.visualstudio.com/items?itemName=zhuangtongfa.Material-theme) and ten thousand cousins |
+| **Snippet pack** | Three letters expand into thirty lines of boilerplate | `rafce` → a full React component |
+| **Formatter** | Rewrites your code to one agreed style on save | [Prettier](https://prettier.io), [Black](https://github.com/psf/black) |
+| **Linter** | Draws the squiggles and warnings while you type | [ESLint](https://eslint.org) |
+| **Language server** | Real language intelligence — autocomplete, go-to-definition, hover docs | [rust-analyzer](https://github.com/rust-lang/rust-analyzer), [Pyright](https://github.com/microsoft/pyright) |
+| **Debugger** | Breakpoints and stepping for a runtime, inside the editor | Debug adapters |
+| **Bridge** | A doorway to a tool that lives outside the editor | [Docker](https://www.docker.com), [Remote SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remoteextensionpack), [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) |
 
-- **Theme** — new colors and file icons for the whole editor. Pure JSON, zero code. Themes are one of the most crowded corners of the Marketplace, and most were built by people who would never call themselves extension developers.
-- **Snippets** — text templates that expand: type a short trigger, get a whole boilerplate block. Also mostly JSON.
-- **Syntax highlighter** — teaches the editor the colors of a new language. Usually a TextMate grammar file (`.tmLanguage`), no TypeScript required. This is how a brand-new language becomes readable in your editor overnight.
-- **Formatter** — hooks into format-on-save and tidies the whole file. Prettier reaches VS Code this way.
-- **Linter** — the red squiggles and the quick fixes. ESLint, you guessed it.
-- **Language server** — the heavyweight: autocomplete, go-to-definition, rename-everywhere. Built on the Language Server Protocol, which has a lovely property — one server works in VS Code, Neovim, Zed, JetBrains, basically everywhere at once.
-- **Debugger** — plugs the editor into a new runtime's debugging via the Debug Adapter Protocol.
-- **Keymap** — makes one editor feel like another. Vim keybindings for everything.
-- **The bridge** — wraps a tool you already love: a command, a number in the status bar, an embedded UI. The branchdiff shape, and the one this guide builds with you.
+The good news in that table: **themes and snippet packs are just JSON**. No code, no API, no extension host — a color palette or a pile of templates in a manifest. Plenty of people earn "published extension author" without writing a line of TypeScript, and that's a perfectly honest way in.
 
-The quiet punchline of that list: it's a ladder. A theme or a snippet pack is an afternoon with no code. A highlighter or formatter is a weekend. The full command-and-UI bridge is the rest of this guide. Most people who end up shipping extensions started on a bottom rung without noticing they'd climbed anything.
+At the serious end, highlighters and language servers teach an editor an entire language. A highlighter is a grammar — VS Code uses TextMate grammars, while newer editors like Zed use [tree-sitter](https://tree-sitter.github.io/tree-sitter/), which understands the actual structure of your code instead of pattern-matching it. A language server speaks the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/): write it once, and *every* LSP-capable editor on earth can hire it, not just VS Code.
+
+This post builds the first shape and the last one — the command and the bridge — because that's where "fix my own annoyance" ideas live. But if your itch is colors or boilerplate, congratulations: your weekend just got shorter.
 
 ---
 
@@ -67,7 +77,7 @@ Most failed extensions die here, not in the code. Two minutes of honesty saves a
 
 - **Settings or keybindings already do it.** Embarrassing numbers of "extensions" are re-implementations of built-in configuration. Search the editor's settings first.
 - **An existing extension already does it.** Search the marketplace twice — once for what it's called, once for what it *does*.
-- **It's a whole app.** If your extension needs its own navigation, accounts, and a database, ask whether it should be a web app with an extension as a thin doorway instead. Which brings me to the most valuable principle in this entire post.
+- **It's a whole app.** If your extension needs its own navigation, accounts, and a database, ask whether it should be a web app with an extension as a thin doorway instead.
 
 ### The thin-client principle
 
@@ -81,7 +91,7 @@ Why this matters for you: if your tool has any real interface, **an extension sh
 
 ## The VS Code Path
 
-VS Code first, for three reasons: the API is genuinely pleasant, TypeScript does half the work for you, and — this is the part nobody tells you — **one VS Code extension covers way more editors than VS Code.** Cursor, Windsurf, VSCodium, and friends are all built on VS Code's open-source core, and they install extensions from the same second store. Build once, reach nearly everyone. (Details in the shipping section.)
+VS Code first, for three reasons: the API is genuinely pleasant, TypeScript does half the work for you, and **one VS Code extension covers way more editors than VS Code.** [Cursor](https://cursor.com), [Windsurf](https://windsurf.com), [VSCodium](https://vscodium.com), and friends are all built on VS Code's open-source core, and they install extensions from the same second store. Build once, reach nearly everyone. (Details in the shipping section.)
 
 ### The fifteen-minute skeleton
 
@@ -95,7 +105,7 @@ That's the official scaffolder. It asks a handful of questions — name, identif
 
 To see it alive: open the folder in VS Code and press **F5**. A *second* VS Code window appears — the Extension Development Host — with your extension loaded in it. Press `Ctrl+Shift+P` (that menu is the Command Palette), type your command's name, run it. A notification pops up. Congratulations, that's the whole loop.
 
-You'll live in this loop: edit, F5, test in the host window, `Developer: Reload Window` to pick up changes. It's fast and it's the same for every extension you'll ever write. No emulator downloads, no signing certs, no device registration. Compare that to literally any other platform you've developed for.
+You'll live in this loop: edit, F5, test in the host window, `Developer: Reload Window` to pick up changes. It's fast and it's the same for every extension you'll ever write. No emulator downloads, no signing certs, no device registration. Compare that to any other platform you've developed for.
 
 ### The manifest: where half the work happens
 
@@ -181,7 +191,7 @@ The VS Code API is huge, but almost every useful extension is built from five su
 | **Sidebar panel** | `createTreeView()` — a tree in the activity bar | Structured info: multiple items, live counts, expandable rows |
 | **Webview** | `createWebviewPanel()` — a real browser tab *inside* the editor | Anything visual: dashboards, forms, embedding an existing web UI |
 
-A status bar item is three lines and a weekend-killer:
+A status bar item is three lines:
 
 ```typescript
 const bar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -193,7 +203,9 @@ bar.show();
 
 That `$(rocket)` is a **codicon** — a built-in icon from VS Code's icon font. Remember that phrase; it stars in the gotchas section.
 
-If your extension wraps an existing local web tool, the webview is the finish line: point an iframe in a webview panel at `http://localhost:PORT` and your entire UI now lives in an editor tab. Chromium treats localhost as trustworthy, so the http iframe doesn't trip security rules. One refinement worth stealing: reuse a single "main" panel and repoint its `src` on navigation instead of spawning a tab per click — it behaves like a browser tab, not a pile of them. That one trick — *embed, don't rebuild* — is the thin-client principle in code.
+If your extension wraps an existing local web tool, the webview is the finish line: point an iframe in a webview panel at `http://localhost:PORT` and your entire UI now lives in an editor tab. Chromium treats localhost as trustworthy, so the http iframe doesn't trip security rules.
+
+One refinement worth stealing: reuse a single "main" panel and repoint its `src` on navigation instead of spawning a tab per click — it behaves like a browser tab, not a pile of them. *Embed, don't rebuild* — that's the thin-client principle in code.
 
 ### Lessons that cost me an afternoon each
 
@@ -201,11 +213,13 @@ These are the things the docs mention in one buried line and reality teaches lou
 
 **Status bar icons are codicons only.** `StatusBarItem` cannot render a custom SVG — the API simply has no `iconPath` on it. You use the built-in codicon font (`$(rocket)`, `$(git-compare)`, `$(sync)`) or you use text. Custom icons go in the sidebar and editor tabs, which *do* accept SVGs — but the rules differ per surface: the activity bar alpha-masks your SVG and repaints it in the theme color (draw with `currentColor` and punched holes), while editor-tab icons want a `{light, dark}` pair because the tab background flips with the theme. I verified this the hard way, against the latest type definitions, after wondering why nothing rendered.
 
-**Manifest changes sometimes need a full restart, not a reload.** Some `contributes` entries — icons, view containers, menus — are only read when the extension host starts. `Developer: Reload Window` picks up your *code*; if a new icon or view stubbornly refuses to appear, fully quit the host window and relaunch. This one had me convinced my icon path was wrong for an embarrassingly long time.
+**Manifest changes sometimes need a full restart, not a reload.** Some `contributes` entries — icons, view containers, menus — are only read when the extension host starts. `Developer: Reload Window` picks up your *code*; if a new icon or view stubbornly refuses to appear, fully quit the host window and relaunch. This one had me convinced my icon path was wrong for far too long.
 
 **Webviews are sandboxed, and they fail silently.** A webview is a locked-down browser. `window.open()` and `target="_blank"` links do *nothing* — no error, no console spam, just silence. If your embedded UI needs to open things, your webview code must `postMessage` the URL to the extension, which decides: same-server link → open a new webview tab; external link → `vscode.env.openExternal()`. Also set `retainContextWhenHidden: true` when you create the panel, or the webview's state resets every time the user switches tabs. There's a memory cost; for a dashboard it's worth it.
 
-Two more traps live inside that same iframe. Keystrokes land in it, where the editor's keybindings can't see them — your embedded app has to forward the workbench escapes (`Ctrl+Shift+P`, `Ctrl+P`, the sidebar toggles) to the extension over `postMessage`, and the extension replays a short whitelist of commands, nothing more. And the editor's theme only reaches the iframe after a message round trip, so a fresh load briefly falls back to the *OS* theme — pass it in the iframe's URL (`?theme=dark`) and apply it with an inline script before your stylesheets load, or dark-theme editors on light-OS machines flash the wrong theme on first paint.
+Two more traps live inside that same iframe. Keystrokes land in it, where the editor's keybindings can't see them — your embedded app has to forward the workbench escapes (`Ctrl+Shift+P`, `Ctrl+P`, the sidebar toggles) to the extension over `postMessage`, and the extension replays a short whitelist of commands, nothing more.
+
+And the editor's theme only reaches the iframe after a message round trip, so a fresh load briefly falls back to the *OS* theme — pass it in the iframe's URL (`?theme=dark`) and apply it with an inline script before your stylesheets load, or dark-theme editors on light-OS machines flash the wrong theme on first paint.
 
 **Windows spawns need a shell.** If your extension launches a local tool and it works on your Mac but dies for Windows users: npm-installed CLIs are `.cmd` shim files on Windows, and those can't be spawned directly. Pass `shell: true` in your spawn options. This is the classic "works on my machine" bug of extension development, and Windows users will find it for you.
 
@@ -222,7 +236,9 @@ npm install --save-dev @vscode/test-electron
 # package.json: "test": "node out/test/runTest.js" (the scaffold has this)
 ```
 
-Because it's "a real editor, headless," it also runs in CI on all three operating systems. If you ship to strangers, do this: a test that asserts your commands are registered and your endpoints answer catches the entire class of "the extension loaded but nothing works" bug reports. One quirk to know before it bites: the test host rejects a module that merely runs itself — it must export a `run()` function. Then keep a small manual checklist for what automation can't see — icons rendering, panels looking right, keyboard shortcuts firing. Two lists, both short.
+Because it's "a real editor, headless," it also runs in CI on all three operating systems. If you ship to strangers, do this: a test that asserts your commands are registered and your endpoints answer catches the entire class of "the extension loaded but nothing works" bug reports.
+
+One quirk to know before it bites: the test host rejects a module that merely runs itself — it must export a `run()` function. Then keep a small manual checklist for what automation can't see — icons rendering, panels looking right, keyboard shortcuts firing. Two lists, both short.
 
 ---
 
@@ -247,7 +263,7 @@ Do not skip past this. **A `.vsix` file is a completely legitimate end state.** 
 
 ### The Marketplace — and the Azure detour nobody warns you about
 
-The main app store is the Visual Studio Marketplace. Publishing is one command (`vsce publish`) behind two accounts, and the account part is where the adventure lives:
+The main app store is the Visual Studio Marketplace. Publishing is one command (`vsce publish`) behind two accounts, and the accounts are the hard part:
 
 1. **Create a publisher** on the Marketplace — an ID that permanently identifies you and your extensions.
 2. **Create a Personal Access Token on Azure DevOps.** Yes, Azure. The Marketplace's auth lives there, not on the Marketplace site. The token must be scoped to *All accessible organizations* with the *Marketplace → Manage* scope — pick anything else and you get a bare 403 that doesn't tell you why.
@@ -264,13 +280,15 @@ Marketplace rules that bite people, from the official docs and from experience:
 
 ### Open VSX: one extra step, five more editors
 
-Here's the leverage play. Microsoft's Marketplace terms only allow *Microsoft builds* of VS Code to use it. Cursor, Windsurf, VSCodium, Gitpod, Theia — all built on VS Code's open-source core, all banned from the main store. They share a second store instead: **[Open VSX](https://open-vsx.org)**.
+Microsoft's Marketplace terms only allow *Microsoft builds* of VS Code to use it. [Cursor](https://cursor.com), [Windsurf](https://windsurf.com), [VSCodium](https://vscodium.com), [Gitpod](https://www.gitpod.io), [Theia](https://theia-ide.org) — all built on VS Code's open-source core, all banned from the main store. They share a second store instead: **[Open VSX](https://open-vsx.org)**.
 
-The beautiful part: it takes the *same `.vsix`* you already built. One package, two stores, every major editor covered:
+And it takes the *same `.vsix`* you already built. One package, two stores, every major editor covered:
 
 ![Diagram showing one vsix file flowing to three destinations: the VS Code Marketplace serving VS Code users, Open VSX serving Cursor, Windsurf, VSCodium, Gitpod, Theia and Antigravity users, and direct Install-from-VSX reaching any editor without a store, with Open VSX also noted as usable by VS Code itself](../../assets/B-28/vsix-distribution.png)
 
-Open VSX setup is its own small saga, so you don't hit it blind: you sign in with GitHub, then discover that's not enough — you need an **Eclipse Foundation account** (separate registration), sign the publisher agreement, and *link your GitHub account inside your Eclipse profile*. Skip that last link and login fails with a bare redirect that looks like an OAuth bug. The actual reason lives in a background request (`eclipse-missing-github-id`) that the page never shows you. Once in: create a namespace matching your publisher ID exactly, generate a token, `npx ovsx publish`. 
+Open VSX setup is its own small saga, so you don't hit it blind: you sign in with GitHub, then discover that's not enough — you need an **Eclipse Foundation account** (separate registration), sign the publisher agreement, and *link your GitHub account inside your Eclipse profile*. Skip that last link and login fails with a bare redirect that looks like an OAuth bug. The actual reason lives in a background request (`eclipse-missing-github-id`) that the page never shows you.
+
+Once in: create a namespace matching your publisher ID exactly, generate a token, `npx ovsx publish`.
 
 That's the entire distribution strategy for a solo developer: build one `.vsix`, publish it twice, and every editor from stock VS Code to Cursor can install your work.
 
@@ -282,7 +300,7 @@ VS Code has the gentlest on-ramp, but it's not the only editor people love. Here
 
 ### Zed: small, sharp, sandboxed
 
-Zed takes the opposite bet from VS Code on extension power. Extensions are written in **Rust**, compiled to **WebAssembly**, and run in a sandbox. The manifest is an `extension.toml` file; you test locally by installing your folder as a "dev extension," and publishing means opening a pull request against Zed's central extensions repository — with a license file at the root of your repo (open source is required) and CI checking your submission.
+[Zed](https://zed.dev) takes the opposite bet from VS Code on extension power. Extensions are written in **Rust**, compiled to **WebAssembly**, and run in a sandbox. The manifest is an `extension.toml` file; you test locally by installing your folder as a "dev extension," and publishing means opening a pull request against Zed's central extensions repository — with a license file at the root of your repo (open source is required) and CI checking your submission.
 
 What Zed extensions can be: **language support** (tree-sitter grammars, language servers you can download on demand), **themes and icon themes**, **snippets**, **debug adapters**, and **MCP context servers** — the integration path for connecting Zed's assistant to your own tools.
 
@@ -301,17 +319,17 @@ Nothing new to build. They're VS Code-family editors pulling from Open VSX — y
 
 ### JetBrains: a different planet, respectfully
 
-IntelliJ, PyCharm, WebStorm and the family run on the JVM, and so do their plugins — **Kotlin or Java**, built with Gradle via the IntelliJ Platform Gradle Plugin (2.x is the current line; the old DevKit workflow is deprecated), usually starting from JetBrains' official plugin template. Publishing goes to the JetBrains Marketplace.
+[IntelliJ](https://www.jetbrains.com/idea/), [PyCharm](https://www.jetbrains.com/pycharm/), [WebStorm](https://www.jetbrains.com/webstorm/) and the family run on the JVM, and so do their plugins — **Kotlin or Java**, built with Gradle via the IntelliJ Platform Gradle Plugin (2.x is the current line; the old DevKit workflow is deprecated), usually starting from JetBrains' official plugin template. Publishing goes to the JetBrains Marketplace.
 
 The trade is the inverse of Zed's: you get *full* power — plugins there are first-class citizens that can rebuild any part of the IDE's UI — in exchange for a much heavier platform. You're learning a desktop-application framework, with the debugger, the IDE setup, and the build times to match. If your day job lives in a JetBrains IDE and your idea needs real UI inside the editor, it's worth the climb. For everyone else, it's the last stop on the tour, not the first.
 
 ### Neovim: no ceremony, by design
 
-Neovim's answer to "what's the extension system?" is "your config *is* the extension system." Plugins are Lua modules; there's no manifest, no store, no review — plugins are git repositories, installed by a plugin manager like lazy.nvim, loaded by users who opt in. Total freedom, zero hand-holding: you can do anything, including break everything, and packaging/distribution is entirely your problem. If you live in Neovim, a plugin for your own workflow can be an evening; just know you're building for the smallest (but most devoted) audience of this list.
+Neovim's answer to "what's the extension system?" is "your config *is* the extension system." Plugins are Lua modules; there's no manifest, no store, no review — plugins are git repositories, installed by a plugin manager like [lazy.nvim](https://github.com/folke/lazy.nvim), loaded by users who opt in. Total freedom, zero hand-holding: you can do anything, including break everything, and packaging/distribution is entirely your problem. If you live in Neovim, a plugin for your own workflow can be an evening; just know you're building for the smallest (but most devoted) audience of this list.
 
 ### The comparison, at a glance
 
-| | VS Code family | Zed | JetBrains | Neovim |
+| | VS Code family | [Zed](https://zed.dev) | [JetBrains](https://www.jetbrains.com/) | [Neovim](https://neovim.io) |
 |---|---|---|---|---|
 | **Language** | TypeScript/JavaScript | Rust → WASM | Kotlin/Java | Lua |
 | **Custom UI** | Webviews, panels, status bar | None yet (open RFC) | Full IDE-grade UI | Full TUI |
@@ -325,12 +343,12 @@ Neovim's answer to "what's the extension system?" is "your config *is* the exten
 
 The decision is less about favorite editor and more about reach-per-effort:
 
-- **Default answer: VS Code, then Open VSX.** One TypeScript codebase, two publish commands, and you've covered stock VS Code *plus* Cursor, Windsurf, and VSCodium — the largest developer audience on earth for extension work. Nothing else comes close on leverage.
+- **Default answer: VS Code, then Open VSX.** One TypeScript codebase, two publish commands, and you've covered stock VS Code *plus* Cursor, Windsurf, and VSCodium — the largest developer audience on earth for extension work. Nothing else comes close.
 - **If your team lives in JetBrains IDEs** and the idea needs to live inside the editor, go Kotlin and budget the learning curve — it's the only sanctioned way in.
 - **If your tool's real home is a web UI**, build the thinnest VS Code bridge (embed + deep links), and for Zed don't build at all — tasks plus clickable URLs cover it today.
 - **If it's just for you**, the calculus collapses: build for whatever you actually use, ship it as a `.vsix` or a config file, skip the stores entirely. Software that serves one user well is not a failure.
 
-And whatever you pick — start embarrassingly small. One command that does one thing you actually do daily. Ship that, use it for a week, and let the extension tell you what it wants to become next. The branchdiff extension started as "start the server without typing a command." The sidebar counts, the embedded tab, the quick picks — those were all *pull*, added because daily use kept asking for them. I've never seen an extension ruined by starting too small. The big-bang ones, I've seen plenty.
+And whatever you pick — start absurdly small. One command that does one thing you actually do daily. Ship that, use it for a week, and let the extension tell you what it wants to become next. The branchdiff extension started as "start the server without typing a command." The sidebar counts, the embedded tab, the quick picks — those were all *pull*, added because daily use kept asking for them. I've never seen an extension ruined by starting too small. The big-bang ones, I've seen plenty.
 
 ---
 
@@ -352,7 +370,7 @@ The most useful software you'll ever write might be the kind only you needed. Th
 ## Sources and Further Reading
 
 - [Your First Visual Studio Extension](https://code.visualstudio.com/api/get-started/your-first-extension) — official scaffolding-to-F5 walkthrough
-- [Extension Capabilities Overview](https://code.visualstudio.com/api/extension-capabilities/overview) — the official map of what extensions can be: themes, snippets, formatters, linters, language support
+- [Extension Capabilities Overview](https://code.visualstudio.com/api/extension-capabilities/overview) — the official map of extension kinds: themes, formatters, linters, debuggers, snippets, and the rest
 - [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) — vsce, publishers, tokens, and the PAT-to-Entra transition
 - [Open VSX](https://open-vsx.org) — the marketplace for VS Code-family editors
 - [Zed Extension Capabilities](https://zed.dev/docs/extensions/capabilities) and the [Zed Publishing Guide](https://zed.dev/docs/extensions/publishing/publishing-guide.html) — what sandboxed extensions may do and how submissions work

@@ -6,6 +6,9 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 #### Coding Challenges
 - [I Built My Own Shell for Fun. You Can Too](./topics/Coding%20Challenges/I%20Built%20My%20Own%20Shell%20for%20Fun.%20You%20Can%20Too.md)
 
+#### Development
+- [Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)](./topics/Development/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md)
+
 #### Node.js
 - [pnpm - A better package manager for Node.js](./topics/Node.js/pnpm%20-%20A%20better%20package%20manager%20for%20Node.js.md)
 - [Publishing Your First NPM Package: A Real-World Guide That Actually Helps](./topics/Node.js/Publishing%20Your%20First%20NPM%20Package:%20A%20Real-World%20Guide%20That%20Actually%20Helps.md)
@@ -22,7 +25,6 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 - [Run Your Desk From Anywhere - Free Remote Control + Voice Dictation Over the Internet](./topics/Productivity/Run%20Your%20Desk%20From%20Anywhere%20-%20Free%20Remote%20Control%20%2B%20Voice%20Dictation%20Over%20the%20Internet.md)
 - [Your Desk in Your Pocket - Free Remote Control for Mac & Ubuntu, Same Room or Anywhere on Earth](./topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md)
 - [When Your Desktop Needs You - Free Notifications From Mac & Ubuntu to Your Phone (and Why You'll Never Hear Its Speakers)](./topics/Productivity/When%20Your%20Desktop%20Needs%20You%20-%20Free%20Notifications%20From%20Mac%20%26%20Ubuntu%20to%20Your%20Phone%20(and%20Why%20You'll%20Never%20Hear%20Its%20Speakers).md)
-- [Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)](./topics/Productivity/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md)
 
 ##### branchdiff
 - [branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have](./topics/Productivity/branchdiff/branchdiff%20%2B%20GitHub%20%26%20Bitbucket%20-%20A%20Local%20Lens%20for%20the%20Pull%20Request%20Workflow%20You%20Already%20Have.md)
