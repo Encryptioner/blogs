@@ -338,3 +338,19 @@ The most useful software you'll ever write might be the kind only you needed. Th
 - [Visual Extension API RFC (Zed discussion #53403)](https://github.com/zed-industries/zed/discussions/53403) — the still-open proposal for custom UI in Zed
 - [IntelliJ Platform Plugin SDK](https://plugins.jetbrains.com/docs/intellij/developing-plugins.html) and the [IntelliJ Platform Gradle Plugin 2.x](https://github.com/JetBrains/intellij-platform-gradle-plugin) — the JetBrains path
 - [branchdiff's extension R&D notes](https://github.com/encryptioner/branchdiff-releases) — the full engineering log behind the case study in this post
+
+---
+
+## End:
+
+That's all!
+
+I hope you've found the article useful. You should try building your own extension if you haven't already — start with the one command you actually need. Feel free to share your thoughts and what you built in the comments below.
+
+Check more on
+- [Website](https://encryptioner.github.io)
+- [Blogs](https://encryptioner.github.io/blogs/)
+- [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
+- [Github](https://github.com/Encryptioner)
+- [X (Twitter)](https://twitter.com/AnkurMursalin)
+- [Nerddevs](https://nerddevs.com/author/ankur/)

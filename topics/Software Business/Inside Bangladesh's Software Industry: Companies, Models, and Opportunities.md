@@ -700,6 +700,7 @@ I hope you've found the article useful. I'll write more about the software engin
 
 Check more on
 - [Website](https://encryptioner.github.io)
+- [Blogs](https://encryptioner.github.io/blogs/)
 - [Linkedin](https://www.linkedin.com/in/mir-mursalin-ankur)
 - [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
