@@ -40,8 +40,8 @@
     <h1 class="title">How branchdiff <em>grew up</em>.</h1>
     <h2 class="subtitle">From one command that fixed a lie <span class="mono" style="color:var(--info)">git diff</span> was telling, to a self-hosted bot that reviews pull requests across a whole directory of repos while you sleep. This is the build story — why each piece exists, not a feature tour.</h2>
     <div class="hero-meta">
-      <span><span class="mono">Apr → Aug</span> 2026</span>
-      <span><span class="mono">21</span> releases</span>
+      <span><span class="mono">Apr → Sep</span> 2026</span>
+      <span><span class="mono">25</span> releases</span>
       <span><span class="mono">1 command → 1 bot</span></span>
       <span>GitHub + Bitbucket</span>
     </div>
@@ -165,7 +165,7 @@
   <!-- 10 · WHERE IT LANDED -->
   <section class="slide" data-title="Where it landed">
     <div class="slide-num">10 · where it landed</div>
-    <h3 class="section">Four months, <em>twenty-one releases</em>.</h3>
+    <h3 class="section">The v1 → v2 leap: <em>twenty-one releases</em> in four months.</h3>
     <div class="fig">
       <img src="../../assets/B-23/v1-to-v2-timeline.png" alt="Four months, twenty-one releases: one diff command to a self-hosted review bot" loading="lazy" />
       <div class="fig-caption">the leap — from reviewing one PR to reviewing a directory of repos unattended</div>
@@ -201,7 +201,7 @@
         <li><b>One coherent change, or several bundled into a PR</b> <span class="muted">— told apart automatically.</span></li>
         <li><b>The AI's own review comment</b> <span class="muted">now opens with that same diagram before its line-by-line findings.</span></li>
       </ul>
-      <div class="fig" onclick="openLightbox(this)">
+      <div class="fig">
         <img src="../../assets/B-23/journey-epilogue.png" alt="Journey epilogue: a human reading a cold diff with no orientation in v1.0 led branchdiff to fix that for humans, then an AI reading a cold diff with the same problem after auto shipped led to the change map's zero-token orientation, which raised the question of what it was actually costing, answered by stats tracking token and cost per tool and per repo" loading="lazy" />
         <div class="fig-caption">same shape, two readers: the human's wall of hunks, then the AI's</div>
       </div>
@@ -212,9 +212,27 @@
     </div>
   </section>
 
-  <!-- 13 · WHAT BUILDING IT TAUGHT -->
+  <!-- 13 · THE FRONT DOORS -->
+  <section class="slide" data-title="The front doors">
+    <div class="slide-num">13 · the front doors</div>
+    <h3 class="section">Then it moved to <em>where you already were</em>.</h3>
+    <p class="lead-p">The last itch was not a feature — it was a doorway. Every workflow in this story starts with a command and a URL, and the people who stuck around were the ones already living in a terminal. So both groups got their own front door.</p>
+    <div class="vs">
+      <div class="box solve">
+        <h4><span class="mono">branchdiff view</span></h4>
+        <p>A full-screen terminal picker — running sessions, a new comparison, Stats, History, Changelog, cron. Arrows or digits, no flags to remember. The terminal was already the front door; it just got a lobby.</p>
+      </div>
+      <div class="box solve">
+        <h4>The VS Code extension</h4>
+        <p>The whole web UI in an editor tab. It adopts a running local server or starts one on its own; an activity-bar panel shows live counts. On Open VSX, or a <span class="mono">.vsix</span> from the releases page.</p>
+      </div>
+    </div>
+    <div class="callout accent"><b>"Meet people where they are"</b> turned out to be a loop, not a lesson — package managers, then platforms, then surfaces. Same server, same local data; which window you sit in stopped mattering.</div>
+  </section>
+
+  <!-- 14 · WHAT BUILDING IT TAUGHT -->
   <section class="slide" data-title="What building it taught me">
-    <div class="slide-num">13 · what building it taught me</div>
+    <div class="slide-num">14 · what building it taught me</div>
     <h3 class="section">The real payoff is the <em>habits</em>, not the features.</h3>
     <ul class="checklist">
       <li><b>Ship the itch you actually have.</b> Features that scratched a real, recurring annoyance are the ones people thank you for; the clever planned ones mostly didn't survive contact with how I really work.</li>
@@ -227,16 +245,17 @@
     </ul>
   </section>
 
-  <!-- 12 · RECAP -->
+  <!-- 15 · RECAP -->
   <section class="slide hero-slide" data-title="Recap">
-    <div class="slide-num">14 · recap</div>
-    <h3 class="section">One stubborn idea, <em>four months of Tuesdays</em>.</h3>
+    <div class="slide-num">15 · recap</div>
+    <h3 class="section">One stubborn idea, <em>five months of Tuesdays</em>.</h3>
     <p class="lead-p">branchdiff still does exactly what it did on day one — show you the real diff, not the phantom one. Everything else grew up around that single idea, each piece born from a friction I personally felt, over and over, until the friction was gone.</p>
     <ul class="checklist" style="max-width:64ch">
       <li><b>Origin:</b> <span class="mono">git diff</span> compares commit history; branchdiff compares content — no phantom diffs.</li>
       <li><b>Growth:</b> every feature was a personal itch — comments, sync, six install methods, the PR lifecycle.</li>
       <li><b>Version 2:</b> <span class="mono">auto</span> — one directory, every open PR, reviewed unattended, severity-gated.</li>
       <li><b>The bugs:</b> a wrong-PR race, a frozen event loop, a silent macOS cron — each rewired how I build.</li>
+      <li><b>The front doors:</b> <span class="mono">view</span> for the terminal, the VS Code extension for the editor — same server, same local data.</li>
     </ul>
     <div class="end-links">
       <a class="primary" href="https://github.com/Encryptioner/branchdiff" target="_blank" rel="noopener">↗ branchdiff on GitHub</a>

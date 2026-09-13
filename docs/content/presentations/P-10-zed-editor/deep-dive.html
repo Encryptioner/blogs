@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zed Deep Dive — Internal Architecture vs VSCode &amp; WebStorm</title>
+<meta name="description" content="How Zed actually works under the hood — GPUI, the Rope, the CRDT layer with Lamport timestamps, Tree-sitter and WASM extensions — compared to VSCode's Electron process model and WebStorm's JVM/PSI indexing.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>🔬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+
+<style>
+:root{
+  --bg:#0A0F0E; --surface:#101B18; --elevated:#16241F; --border:#22352E; --border-light:#2F4A40;
+  --text:#EAF3EF; --muted:#93AFA6; --dim:#5E766D;
+  --accent:#2DD4BF; --accent-2:#7DEDDD; --accent-soft:rgba(45,212,191,.12); --accent-glow:rgba(45,212,191,.30);
+  --violet:#B292FA; --violet-soft:rgba(178,146,250,.10);
+  --mint:#9AE66E; --mint-soft:rgba(154,230,110,.10);
+  --danger:#FF8080; --info:#6FB4FF; --warn:#F2C55C;
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
+.ambient .b1{width:620px;height:620px;background:var(--violet);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--accent);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:4.5vh 6vw 8vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.compact ul.bullets li{margin-bottom:9px} .compact .callout{padding:12px 18px;margin:10px 0} .compact .mode{padding:12px 14px}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px} .slide::-webkit-scrollbar-track{background:transparent} .slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--violet);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--violet)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+h1.title{font-weight:800;font-size:clamp(2.4rem,5.6vw,4.6rem);line-height:1.05;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--violet)}
+h2.subtitle{font-weight:400;font-size:clamp(1.1rem,1.8vw,1.5rem);color:var(--muted);line-height:1.55;margin-bottom:26px;max-width:66ch}
+h3.section{font-weight:700;font-size:clamp(1.6rem,3.2vw,2.5rem);line-height:1.14;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--violet)}
+p{font-size:clamp(1.02rem,1.35vw,1.22rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.1rem,1.6vw,1.35rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .violet{color:var(--violet)} .mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:12px;font-size:clamp(.98rem,1.28vw,1.18rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--violet);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(.98rem,1.25vw,1.15rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(45,212,191,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))} .callout.accent strong{color:var(--accent)}
+.callout.violet{border-color:rgba(178,146,250,.32);background:linear-gradient(135deg,var(--violet-soft),var(--elevated))} .callout.violet strong{color:var(--violet)}
+.callout.mint{border-color:rgba(154,230,110,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))} .callout.mint strong{color:var(--mint)}
+.callout.warn{border-color:rgba(242,197,92,.28);background:linear-gradient(135deg,rgba(242,197,92,.06),var(--elevated))} .callout.warn strong{color:var(--warn)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--violet);margin-bottom:6px;display:block}
+.callout.mint .label{color:var(--mint)} .callout.warn .label{color:var(--warn)}
+
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,128,128,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(45,212,191,.30)} .box.good h4{color:var(--accent)}
+.box.info{border-color:rgba(111,180,255,.30)} .box.info h4{color:var(--info)}
+.box p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.5;margin:0}
+.box p+p{margin-top:8px}
+
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet);margin-bottom:8px}
+.mode p{font-size:clamp(.9rem,1.08vw,1.02rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.84rem,1.1vw,.98rem);color:var(--text);margin:14px 0;line-height:1.65;white-space:pre;overflow-x:auto}
+.code-block .c{color:var(--dim)} .code-block .k{color:var(--violet)} .code-block .s{color:var(--mint)} .code-block .f{color:var(--info)}
+
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.78rem,1vw,.94rem)}
+thead th{background:var(--elevated);text-align:left;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--violet)}
+tbody th{background:var(--elevated);text-align:left;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;padding:3px 8px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(154,230,110,.32)} .tag.bad{color:var(--danger);border-color:rgba(255,128,128,.32)} .tag.info{color:var(--info);border-color:rgba(111,180,255,.32)}
+
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:26px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.75rem,.92vw,.86rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--violet);font-size:20px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){.pipeline{flex-direction:column;align-items:stretch}.pipeline .parr{transform:rotate(90deg);padding:8px 0}}
+
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--violet);padding:6px 14px;border:1px solid rgba(178,146,250,.32);border-radius:30px;background:var(--violet-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--violet)} .pill .dot.accent{background:var(--accent)} .pill .dot.mint{background:var(--mint)}
+
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--violet);color:#0F0A17;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--violet-soft);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--violet);border-color:var(--violet)}
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--dim);border-top:1px solid var(--border)}
+
+@media (max-width:820px),(max-height:520px){
+  html,body{font-size:14px} .slide{padding:3vh 5vw 7vh 5vw}
+  h3.section{font-size:clamp(1.25rem,5.4vw,1.65rem);margin-bottom:4px}
+  p.lead{font-size:1rem;line-height:1.45}
+  ul.bullets li{font-size:.93rem;margin-bottom:8px;line-height:1.42}
+  .callout{padding:11px 14px;margin:9px 0;font-size:.9rem;line-height:1.42}
+  .box,.mode{padding:11px 13px} .box h4{font-size:11px;margin-bottom:6px} .box p,.mode p{font-size:.86rem;line-height:1.4}
+  .code-block{font-size:.76rem;padding:10px 12px;line-height:1.5}
+  .vs,.three-col{gap:10px;margin:9px 0}
+  .pipeline .step{padding:9px 6px} .pipeline .step p{font-size:.78rem}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 01 · HERO -->
+  <section class="slide hero" data-title="How Zed actually works internally">
+    <span class="badge"><span class="dot"></span> Deck 10 · deep dive</span>
+    <h1 class="title">Under the hood: <em>how Zed actually works</em>.</h1>
+    <h2 class="subtitle">GPUI, the Rope, the CRDT layer that makes multiplayer work, Tree-sitter, and WASM-sandboxed extensions — mapped against what VSCode's Electron process model and WebStorm's JVM/PSI indexing actually do under their own hoods.</h2>
+    <div class="pills">
+      <span class="pill"><span class="dot accent"></span> GPUI</span>
+      <span class="pill"><span class="dot mint"></span> Rope + CRDT</span>
+      <span class="pill"><span class="dot"></span> Tree-sitter</span>
+      <span class="pill"><span class="dot accent"></span> WASM extensions</span>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="slide" data-title="The one decision everything else follows from">
+    <div class="slide-num">02 · the core decision</div>
+    <h3 class="section">One decision <em>everything else follows from</em>.</h3>
+    <p class="lead">VSCode is a web page that happens to edit code. WebStorm is a JVM application with a text-editing plugin at its center. Zed made a different call at the start: no DOM, no JVM — native Rust talks to the GPU directly.</p>
+    <div class="callout accent"><strong>Consequence:</strong> every layer above this — the buffer, collaboration, AI, extensions — gets built on primitives designed for an editor specifically, not adapted from a general-purpose document renderer or a general-purpose managed runtime.</div>
+  </section>
+
+  <!-- 03 -->
+  <section class="slide" data-title="GPUI — the rendering framework">
+    <div class="slide-num">03 · GPUI</div>
+    <h3 class="section">GPUI — <em>Zed's own UI framework</em>.</h3>
+    <ul class="bullets">
+      <li>Every part of the editor's UI — buffer, tab bar, project panel, settings — renders through <strong>one framework, GPUI</strong>, straight to the GPU (Metal on macOS, Vulkan/OpenGL on Linux).</li>
+      <li>It's a from-scratch Rust GUI toolkit, not an embedding of an existing browser or native-widget library. Zed's team took that on specifically to control text rendering and input latency end to end, rather than inheriting a general-purpose layout engine's trade-offs.</li>
+      <li>GPUI is part of what Zed open-sourced — it's a real, usable Rust GUI framework other projects can build on, not an internal-only detail.</li>
+    </ul>
+  </section>
+
+  <!-- 04 -->
+  <section class="slide" data-title="The Rope — how the text is actually stored">
+    <div class="slide-num">04 · the Rope</div>
+    <h3 class="section">The Rope — <em>how the text is actually stored</em>.</h3>
+    <p class="lead">A Rope is a balanced tree of text chunks instead of one giant string or a flat array of lines. Editors have used ropes and piece-tables for this reason for decades — VSCode's own Monaco editor uses a comparable piece-tree internally.</p>
+    <div class="three-col">
+      <div class="mode"><span class="tech">Insert / delete</span><p>O(log n) — only the path from the edited chunk to the root needs updating, not the whole document.</p></div>
+      <div class="mode"><span class="tech">Large files</span><p>Opening a huge file doesn't mean loading and re-indexing one massive string on every keystroke.</p></div>
+      <div class="mode"><span class="tech">Zed's twist</span><p>Its Rope is the foundation the CRDT layer builds directly on — see next slide — so multiplayer isn't a separate system bolted alongside it.</p></div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="slide" data-title="The CRDT layer — how multiplayer actually merges edits">
+    <div class="slide-num">05 · the CRDT layer</div>
+    <h3 class="section">The CRDT layer — <em>how concurrent edits actually merge</em>.</h3>
+    <p class="lead">Zed's own engineering blog documents this directly: buffers are an operation-based CRDT (Conflict-free Replicated Data Type) — the same family of data structure Figma uses for multiplayer design.</p>
+    <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+      <div class="box good"><h4>◆ Lamport timestamps</h4><p>Every edit gets a logical clock value, so replicas agree on a consistent ordering of concurrent operations without needing a synchronized wall clock or a central lock.</p></div>
+      <div class="box good"><h4>◆ Anchors</h4><p>Cursor and selection positions are stored as anchors that survive concurrent edits elsewhere in the document — your selection doesn't silently drift when a collaborator types above you.</p></div>
+    </div>
+    <div class="callout mint" style="margin-top:14px"><span class="label">Source</span>Documented on Zed's own blog ("How CRDTs make multiplayer text editing part of Zed's DNA") — this isn't a retrofit, it's been the buffer's design since early on.</div>
+  </section>
+
+  <!-- 06 -->
+  <section class="slide" data-title="Tree-sitter — parsing done by its own inventor">
+    <div class="slide-num">06 · Tree-sitter</div>
+    <h3 class="section">Tree-sitter — <em>integrated by its own inventor</em>.</h3>
+    <ul class="bullets">
+      <li>Tree-sitter builds an incremental syntax tree — after an edit, it reparses only the changed region, not the whole file. That's what makes structural highlighting and selection stay instant as files grow.</li>
+      <li>Plenty of editors bolt Tree-sitter on afterward (Neovim, and VSCode partially, for some highlighting). Zed's co-founder <strong>Max Brunsfeld created Tree-sitter</strong> — the integration was designed alongside the editor, not adapted to fit one built for a different parsing model.</li>
+      <li>It powers more than color: structural selection ("select the enclosing function"), code folding, and the syntax context AI features read from.</li>
+    </ul>
+  </section>
+
+  <!-- 07 -->
+  <section class="slide" data-title="LSP — table stakes, done in async Rust">
+    <div class="slide-num">07 · language servers</div>
+    <h3 class="section">Language intelligence: <em>the same protocol, a leaner client</em>.</h3>
+    <p class="lead">Zed doesn't reinvent language intelligence — it's an LSP (Language Server Protocol) client, the same protocol VSCode and, for JS/TS, WebStorm ultimately talk to underneath their own tooling.</p>
+    <div class="callout accent"><strong>Where the win actually is:</strong> not "better" language servers — the <em>same</em> ones — but a host process that dispatches to them over an async runtime instead of routing every completion through a browser's JS event loop or a JVM's plugin dispatch layer.</div>
+  </section>
+
+  <!-- 08 -->
+  <section class="slide" data-title="Extensions — compiled to WebAssembly, sandboxed">
+    <div class="slide-num">08 · extension model</div>
+    <h3 class="section">Extensions — <em>compiled to WebAssembly, sandboxed</em>.</h3>
+    <div class="vs">
+      <div class="box good"><h4>◆ Zed</h4><p>Extensions compile to <strong>WASM</strong> and run in a sandbox with a narrow, explicit capability surface — an extension can't reach arbitrary filesystem paths or spawn arbitrary processes unless the API grants it.</p></div>
+      <div class="box bad"><h4>◆ VSCode</h4><p>Extensions are full <strong>Node.js processes</strong> — powerful (any npm package, any OS call), but a slow or misbehaving one runs with broad access and can be a real performance or security surface. The move to a separate extension-host process years ago was specifically to keep one bad extension from freezing the UI.</p></div>
+    </div>
+    <p class="lead" style="margin-top:14px">The trade-off is real in both directions: WASM's sandbox is why Zed's extension marketplace is smaller — some things Node's ecosystem makes trivial are genuinely harder to express safely in a sandboxed WASM API.</p>
+  </section>
+
+  <!-- 09 -->
+  <section class="slide" data-title="AI features on the same buffer model">
+    <div class="slide-num">09 · AI architecture</div>
+    <h3 class="section">AI features sit on the <em>same buffer model</em> as everything else.</h3>
+    <ul class="bullets">
+      <li>Edit predictions and agent-driven changes apply as <strong>incremental operations on the Rope/CRDT buffer</strong> — the same primitive a human keystroke or a collaborator's edit uses — not a full-file string replace.</li>
+      <li>That's why streamed AI edits can land while you keep typing elsewhere in the file without the two streams clobbering each other: it's the exact conflict model built for multiplayer, reused for "you and the model editing concurrently."</li>
+      <li>Parallel agents (2026) extend this the same way multiplayer does — multiple concurrent operation streams, one buffer, one merge model.</li>
+    </ul>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" data-title="Process model, side by side">
+    <div class="slide-num">10 · process model</div>
+    <h3 class="section">Process model, <em>side by side</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th class="hl">Zed</th><th>VSCode</th><th>WebStorm / IntelliJ</th></tr></thead>
+      <tbody>
+        <tr><td class="hl">One native multi-threaded Rust process</td><td>Chromium renderer process <span class="muted">+</span> Node.js extension-host process <span class="muted">+</span> child LSP processes</td><td>One JVM process hosting the whole IDE, plugins included, <span class="muted">+</span> child LSP/build processes</td></tr>
+        <tr><td class="hl">Rust's ownership model — no GC, no data races by construction</td><td>V8 garbage collector (JS) <span class="muted">+</span> Node's own GC in the extension host</td><td>JVM garbage collector, sized to hold the project's semantic index in memory</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide" data-title="VSCode's Electron model, in more detail">
+    <div class="slide-num">11 · VSCode internals</div>
+    <h3 class="section">VSCode's model, <em>in more detail</em>.</h3>
+    <ul class="bullets">
+      <li><strong>Main process</strong> (Electron/Node) owns app lifecycle and windows; a <strong>renderer process</strong> (Chromium) draws the actual UI as a web page — real DOM, real CSS layout, a real browser paint/composite pipeline doing the work of displaying text.</li>
+      <li>The <strong>extension host</strong> runs as its own Node.js process specifically so a slow extension can't block the UI thread — this separation was added after early VSCode versions ran extensions in-process and paid for it in jank.</li>
+      <li>The genuine strength this buys: any npm package is a viable extension dependency, which is a huge reason VSCode's marketplace dwarfs everyone else's.</li>
+    </ul>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide" data-title="WebStorm's JVM and PSI model, in more detail">
+    <div class="slide-num">12 · WebStorm internals</div>
+    <h3 class="section">WebStorm's model, <em>in more detail</em>.</h3>
+    <ul class="bullets">
+      <li>Built on the <strong>IntelliJ Platform</strong> (JVM). On opening a project, it builds <strong>PSI</strong> (Program Structure Interface) — a full semantic tree of the codebase, not just syntax — which is why indexing takes a visible moment on a large project.</li>
+      <li>That upfront index is exactly what powers WebStorm's deepest party trick: instant, whole-project "Find Usages," safe rename, and structural refactors that don't rely on a language server answering fast enough on demand.</li>
+      <li>The cost is memory and startup: a JVM heap sized to hold that index, and a GC that has to manage it. Recent IntelliJ Platform versions have pushed real rendering improvements, but the core model — JVM process, semantic index in memory — hasn't changed.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide" data-title="Rendering pipeline, compared">
+    <div class="slide-num">13 · rendering pipeline</div>
+    <h3 class="section">Rendering pipeline, <em>compared</em>.</h3>
+    <div class="pipeline">
+      <div class="step"><div class="ico">⚡</div><h5>Zed</h5><p>Rust → GPUI → GPU compositor. One purpose-built path.</p></div>
+      <div class="parr">vs</div>
+      <div class="step"><div class="ico">🌐</div><h5>VSCode</h5><p>JS/TS → DOM → CSS layout → Chromium paint → compositor. A full browser engine, repurposed.</p></div>
+      <div class="parr">vs</div>
+      <div class="step"><div class="ico">☕</div><h5>WebStorm</h5><p>Java → Swing/AWT (with newer partial GPU-assisted text rendering) → platform window.</p></div>
+    </div>
+    <p class="lead" style="margin-top:10px">Every one of these can render text correctly. The difference shows up in how many general-purpose layers sit between a keystroke and the pixel changing.</p>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide" data-title="Where Rust's ownership model pays off concretely">
+    <div class="slide-num">14 · ownership model, concretely</div>
+    <h3 class="section">Where Rust's ownership model <em>pays off concretely</em>.</h3>
+    <ul class="bullets">
+      <li><strong>No garbage-collector pause</strong> stalling a keystroke mid-frame — memory is freed deterministically as values go out of scope, not on a GC's own schedule.</li>
+      <li><strong>Data races caught at compile time</strong> — this matters most exactly where it's hardest to get right by hand: a multiplayer buffer being mutated by your keystrokes, a collaborator's edits, and a streaming AI response, all at once.</li>
+      <li>This is a genuine language-level advantage, not marketing — it's also why a Rust rewrite is a multi-year bet, and why most editors don't attempt it.</li>
+    </ul>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide" data-title="Threading model — keeping the UI thread free">
+    <div class="slide-num">15 · threading model</div>
+    <h3 class="section">Keeping the UI thread <em>free</em>.</h3>
+    <p class="lead">GPUI runs on an async executor: LSP requests, file I/O, git status, and AI calls all get pushed to background tasks, with only the result posted back to update the UI. The rendering thread's job stays narrow — draw the current state — instead of also waiting on a language server or a network call.</p>
+    <div class="callout accent"><strong>Contrast:</strong> in a single-process JVM IDE or a browser renderer, a slow synchronous call in the wrong place can visibly stall typing — this is the class of bug both Electron and IntelliJ ecosystems have spent years hardening against with their own async patterns.</div>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide" data-title="The full comparison, in one table">
+    <div class="slide-num">16 · full comparison</div>
+    <h3 class="section">The full comparison, <em>in one table</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Layer</th><th class="hl">Zed</th><th>VSCode</th><th>WebStorm</th></tr></thead>
+      <tbody>
+        <tr><th>Language</th><td class="hl">Rust</td><td>TypeScript / JS (Node), C++</td><td>Java / Kotlin (JVM)</td></tr>
+        <tr><th>UI framework</th><td class="hl">GPUI (own, GPU-native)</td><td>Chromium (DOM/CSS)</td><td>Swing/AWT + IntelliJ Platform</td></tr>
+        <tr><th>Text structure</th><td class="hl">Rope + CRDT</td><td>Piece-tree (Monaco)</td><td>Custom document model + PSI</td></tr>
+        <tr><th>Parsing</th><td class="hl">Tree-sitter (native)</td><td>Tree-sitter (partial) / TextMate grammars</td><td>PSI (semantic, project-indexed)</td></tr>
+        <tr><th>Extensions</th><td class="hl">WASM, sandboxed</td><td>Node.js process, broad access</td><td>JVM plugins, broad access</td></tr>
+        <tr><th>Collaboration</th><td class="hl">Built-in (CRDT)</td><td>Live Share (extension)</td><td>Code With Me (plugin)</td></tr>
+        <tr><th>Startup cost</th><td class="hl">Process launch</td><td>Browser boot + ext-host boot</td><td>JVM boot + project indexing</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide" data-title="Why this matters day to day">
+    <div class="slide-num">17 · why this matters</div>
+    <h3 class="section">Why any of this <em>matters day to day</em>.</h3>
+    <ul class="checklist">
+      <li>Latency you can't measure but immediately feel every time you type is the Rope + GPUI stack, not a coincidence.</li>
+      <li>A pairing session that never says "please wait, syncing" is the CRDT layer, not luck.</li>
+      <li>A laptop that runs cooler with the editor open all day is fewer processes doing overlapping work, not a fluke.</li>
+      <li>An AI suggestion streaming in without stomping what you're typing next to it is the same conflict-merge model multiplayer uses.</li>
+    </ul>
+    <p class="lead" style="margin-top:10px">None of this requires knowing any of the above to benefit from it — but knowing it is why the trade-offs on the honest-caveats slide are worth accepting for what you get back.</p>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide" data-title="Closing">
+    <div class="slide-num">18 · closing</div>
+    <h3 class="section">That's the mechanism. <em>Go feel it.</em></h3>
+    <p class="lead">Benchmarks and architecture diagrams only go so far — the honest test is opening your own real project and typing in it for a week.</p>
+    <div class="end-links">
+      <a class="primary" href="index.html" target="_blank" rel="noopener">← Back to the main deck</a>
+      <a class="ghost" href="https://zed.dev/blog/crdts" target="_blank" rel="noopener">Zed's blog: How CRDTs make multiplayer part of Zed's DNA ↗</a>
+      <a class="ghost" href="https://github.com/zed-industries/zed" target="_blank" rel="noopener">github.com/zed-industries/zed ↗</a>
+    </div>
+    <div class="foot">Deck 10 · Zed Editor — Deep Dive</div>
+  </section>
+
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-18">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-overview,.dk-help,.dk-goto,.callout,table,.code-block,.vs,.box,.three-col,.mode,.pipeline,.table-wrap,.end-links,.foot',
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-10-zed-editor/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

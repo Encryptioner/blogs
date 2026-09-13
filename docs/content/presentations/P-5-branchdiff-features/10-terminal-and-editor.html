@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>branchdiff · 10 — Terminal &amp; Editor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⎇</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/branchdiff.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+</head>
+<body>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide hero-slide active" data-title="Terminal &amp; Editor">
+    <span class="badge"><span class="dot"></span> Deck 10 · branchdiff features</span>
+    <h1 class="title">Two new <em>front doors</em>.</h1>
+    <h2 class="subtitle">A full-screen terminal picker for the people who live in the shell, and a VS Code extension that puts the whole UI in an editor tab — both driving the same local server you already trust.</h2>
+    <div class="hero-meta">
+      <span><span class="mono">branchdiff view</span></span>
+      <span><span class="mono">Open VSX</span> extension</span>
+      <span>same server · same data</span>
+      <span><span class="mono">localhost:5391</span></span>
+    </div>
+  </section>
+
+  <!-- 2 · THE PROBLEM -->
+  <section class="slide" data-title="The doorway problem">
+    <div class="slide-num">02 · the problem</div>
+    <h3 class="section">The tool was local — but the <em>doorways</em> weren't where you were.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Terminal people juggled flags.</b> <span class="muted">Everything reachable — <span class="mono">list</span>, <span class="mono">stats</span>, <span class="mono">history</span>, <span class="mono">auto cron</span> — but each lives behind its own subcommand you had to remember.</span></li>
+        <li><b>Editor people context-switched.</b> <span class="muted">The review surface is a browser tab. Reviewing meant leaving the editor, not the repository.</span></li>
+        <li><b>Adoption friction, again.</b> <span class="muted">"I don't have Node" was solved with six package managers. "I don't want a second window" is the same itch, one layer up.</span></li>
+      </ul>
+      <div class="callout danger">
+        <b>The pattern:</b> every earlier itch was about the <em>review</em>. This one was about the <em>doorway</em> — and it had the same fix: meet people where they already are.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · BRANCHDIFF VIEW -->
+  <section class="slide" data-title="branchdiff view">
+    <div class="slide-num">03 · <span class="mono">branchdiff view</span></div>
+    <h3 class="section">One full-screen picker for <em>everything</em>.</h3>
+    <div class="two-col">
+      <div class="code-block">
+        <div class="code-head">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="file">~/work — branchdiff view</span>
+        </div>
+        <div class="code-body">❯ Stats
+  Browse running instances
+  Kill all
+  New comparison
+  Config
+  Branches · History · Search
+  Auto sessions · Cron
+  Guideline · Changelog
+
+<span class="c"># j/k or ↑/↓ to move · digits to jump</span>
+<span class="c"># r refresh · q quit · Esc back</span></div>
+      </div>
+      <ul class="bullets">
+        <li><b>Every surface, one menu.</b> <span class="muted">Stats, running instances, a new comparison, config, repo exploration, auto sessions, cron — no subcommand recall required.</span></li>
+        <li><b>Repo rows vs all-repo rows.</b> <span class="muted">Run inside a repo, you get that repo's entries; run from a parent directory, you get everything.</span></li>
+        <li><b>Kill from the picker.</b> <span class="muted">Browse running instances and stop any of them — no <span class="mono">--port</span> archaeology.</span></li>
+        <li><b>Honest outside a TTY.</b> <span class="muted">Piped or scripted, it prints the same plain listing <span class="mono">branchdiff list</span> would.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 · ONE COMMAND, EVERY DECK -->
+  <section class="slide" data-title="One command, every surface">
+    <div class="slide-num">04 · what view maps to</div>
+    <h3 class="section">Every menu entry is a deck you've <em>already seen</em>.</h3>
+    <ul class="bullets">
+      <li><b>Browse running instances → Kill all</b> <span class="muted">— sessions and multi-instance targeting, deck 06.</span></li>
+      <li><b>Branches · History · Search</b> <span class="muted">— the repo exploration suite, deck 07.</span></li>
+      <li><b>Auto sessions · Cron</b> <span class="muted">— unattended review and its schedules, decks 05 and 08.</span></li>
+      <li><b>Stats</b> <span class="muted">— the usage dashboard, with its linkable sections and sticky jump bar, deck 06.</span></li>
+      <li><b>Config · Guideline · Changelog</b> <span class="muted">— everything else you'd otherwise open a browser for.</span></li>
+    </ul>
+    <div class="callout accent" style="margin-top:22px">
+      <b>Nothing new to learn.</b> The picker doesn't add capability — it removes the step where you had to remember which command owned the thing you wanted.
+    </div>
+  </section>
+
+  <!-- 5 · THE EXTENSION -->
+  <section class="slide" data-title="The VS Code extension">
+    <div class="slide-num">05 · the extension</div>
+    <h3 class="section">The whole UI, <em>inside the editor</em>.</h3>
+    <div class="two-col">
+      <ul class="bullets">
+        <li><b>Full web UI in an editor tab.</b> <span class="muted">Not a summary panel — the same diff, comments, and lifecycle surface the browser gets, rendered in a tab that lives with your code.</span></li>
+        <li><b>Activity-bar panel.</b> <span class="muted">Live counts for running instances, auto sessions, and cron schedules, always visible in the sidebar.</span></li>
+        <li><b>Status-bar quick pick.</b> <span class="muted">One click from anywhere in the editor to open, copy a link, or jump to a session.</span></li>
+        <li><b>Copy link / Open in browser.</b> <span class="muted">Share the exact URL, or hand the tab to your browser when you want it there.</span></li>
+      </ul>
+      <div class="callout">
+        <b>Why it matters:</b> the review stops being a different place. Your diff, your comments, and your PR actions sit in the same window as the code they're about.
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · ZERO-TOUCH SERVER -->
+  <section class="slide" data-title="Zero-touch server">
+    <div class="slide-num">06 · zero-touch server</div>
+    <h3 class="section">It adopts your server — or <em>starts one</em>. Zero config.</h3>
+    <div class="two-col">
+      <ul class="checklist">
+        <li>Reads the small <b>registry file</b> the CLI maintains for its running instances.</li>
+        <li>A healthy match means <b>adopt</b> — the extension attaches to the server you already have.</li>
+        <li>No match means <b>spawn</b> — it starts one, exactly as the CLI would.</li>
+        <li><b>No new trust surface:</b> same server, same SQLite under <span class="mono">~/.branchdiff/</span>, same everything.</li>
+      </ul>
+      <div class="callout accent">
+        <b>The rule from deck 02 holds:</b> local-first isn't a feature you trade away for convenience. The editor tab is a window onto the same localhost server — nothing new leaves the machine.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · INSTALL -->
+  <section class="slide" data-title="Install">
+    <div class="slide-num">07 · getting it</div>
+    <h3 class="section">One <span class="mono">.vsix</span>, <em>every VS Code-family editor</em>.</h3>
+    <div class="code-block">
+      <div class="code-head">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="file">extensions panel</span>
+      </div>
+      <div class="code-body"><span class="c"># inside VS Code, Cursor, or any Open VSX-fed editor:</span>
+<span class="c">#   search "branchdiff" → Install</span>
+
+<span class="c"># or from the terminal, same package for every editor:</span>
+<span class="prompt">$</span> code --install-extension branchdiff.vsix
+<span class="c">#   .vsix straight from the GitHub releases page</span>
+
+<span class="prompt">$</span> branchdiff <span class="f">view</span>   <span class="c"># the terminal front door needs no extension at all</span></div>
+    </div>
+    <div class="callout" style="margin-top:22px">
+      Published on <b>Open VSX</b> — the registry the VS Code family draws from — with the identical <span class="mono">.vsix</span> on the releases page for manual installs. One package, every editor shape.
+    </div>
+  </section>
+
+  <!-- 8 · RECAP -->
+  <section class="slide hero-slide" data-title="Recap">
+    <div class="slide-num">08 · recap</div>
+    <h3 class="section">Same tool. Pick your <em>window</em>.</h3>
+    <p class="lead-p">The terminal got a lobby and the editor got the whole house — both are thin front ends over the one local server everything else in this series already runs on.</p>
+    <ul class="checklist" style="max-width:60ch;margin-top:8px">
+      <li><span class="mono">branchdiff view</span> — every surface in one full-screen picker; arrows or digits, no flags.</li>
+      <li>VS Code extension — full UI in a tab, activity-bar counts, status-bar quick pick, on Open VSX.</li>
+      <li>Zero-touch server: adopt if running, spawn if not — no new trust surface.</li>
+      <li>Non-TTY honesty: <span class="mono">view</span> piped prints the plain <span class="mono">list</span> output.</li>
+    </ul>
+    <div class="end-links">
+      <a class="primary" href="index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+      <a class="ghost" href="09-change-map.html" target="_blank" rel="noopener">← 09 · Change Map</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- lightbox + overview -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-8">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'class',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.fig,.callout,table,.code-block,.stat,.vs,.keys,.end-links',
+  lightbox: { toggle: 'class' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+
+</script>
+
+<script data-deck-link-shim>
+/* Injected by blogs-and-presentations sync — keeps deck links on this site. */
+(function () {
+  var RAW = /(?:^|#)(?:https?:\/\/)?raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(?:refs\/heads\/)?[^/]+\/(.+)$/;
+  var ROOT = "presentations/P-5-branchdiff-features/";
+  var INDEX = "presentations/index.html";
+  var FEED = "/blogs/?type=presentation";
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    var match = RAW.exec(link.getAttribute('href') || '');
+    if (!match) return;
+
+    var target;
+    try { target = decodeURIComponent(match[1]); } catch (e) { return; }
+
+    if (target === INDEX) {
+      event.preventDefault();
+      // A site page, not deck content — leave the iframe.
+      (window.top || window).location.href = FEED;
+      return;
+    }
+    if (target.indexOf(ROOT) !== 0) return;
+    event.preventDefault();
+    window.location.href = target.slice(ROOT.length);
+  }, true);
+})();
+</script>
+</body>
+</html>

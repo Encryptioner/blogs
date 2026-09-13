@@ -1,0 +1,400 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others) — Ankur’s Writing</title><meta name="description" content="--- title: &#34;Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)&#34; published: 2026-09-13 tags: vscode, ide-extensions,…"><meta name="robots" content="index, follow, max-image-preview:large"><link rel="canonical" href="https://encryptioner.github.io/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others/"><link rel="alternate" type="application/rss+xml" title="Ankur’s Writing" href="https://encryptioner.github.io/blogs/rss.xml"><meta property="og:type" content="article"><meta property="og:site_name" content="Ankur’s Writing"><meta property="og:locale" content="en_US"><meta property="og:title" content="Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others) — Ankur’s Writing"><meta property="og:description" content="--- title: &#34;Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)&#34; published: 2026-09-13 tags: vscode, ide-extensions,…"><meta property="og:url" content="https://encryptioner.github.io/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others/"><meta property="og:image" content="https://encryptioner.github.io/blogs/content/assets/B-28/extension-anatomy.png"><meta property="og:image:alt" content="Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others) — Ankur’s Writing"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others) — Ankur’s Writing"><meta name="twitter:description" content="--- title: &#34;Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)&#34; published: 2026-09-13 tags: vscode, ide-extensions,…"><meta name="twitter:image" content="https://encryptioner.github.io/blogs/content/assets/B-28/extension-anatomy.png"><meta name="twitter:creator" content="@AnkurMursalin"><meta name="twitter:site" content="@AnkurMursalin"><meta name="author" content="Mir Mursalin Ankur"><meta property="article:author" content="https://encryptioner.github.io"><meta property="article:published_time" content="2026-09-13"><meta property="article:modified_time" content="2026-09-13"><meta property="article:section" content="Development"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://encryptioner.github.io/blogs#author","name":"Mir Mursalin Ankur","alternateName":"Ankur","jobTitle":"Lead Software Engineer","url":"https://encryptioner.github.io","sameAs":["https://github.com/Encryptioner","https://www.linkedin.com/in/mir-mursalin-ankur","https://dev.to/mir_mursalin_ankur","https://mir-mursalin-ankur.medium.com/","https://twitter.com/AnkurMursalin","https://nerddevs.com/author/ankur/"]},{"@type":"WebSite","@id":"https://encryptioner.github.io/blogs#website","url":"https://encryptioner.github.io/blogs","name":"Ankur’s Writing","description":"I lead full-stack teams at NerdDevs. These are the notes I keep while building — on system design, developer tooling, and getting real work out of AI agents.","inLanguage":"en","publisher":{"@id":"https://encryptioner.github.io/blogs#author"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://encryptioner.github.io/blogs/search?q={search_term_string}"},"query-input":"required name=search_term_string"}},{"@type":"BlogPosting","@id":"https://encryptioner.github.io/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others/#article","headline":"Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others) — Ankur’s Writing","description":"--- title: \"Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)\" published: 2026-09-13 tags: vscode, ide-extensions,…","url":"https://encryptioner.github.io/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others/","image":"https://encryptioner.github.io/blogs/content/assets/B-28/extension-anatomy.png","datePublished":"2026-09-13","dateModified":"2026-09-13","author":{"@id":"https://encryptioner.github.io/blogs#author"},"publisher":{"@id":"https://encryptioner.github.io/blogs#author"},"isPartOf":{"@id":"https://encryptioner.github.io/blogs#website"},"mainEntityOfPage":"https://encryptioner.github.io/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others/","inLanguage":"en","articleSection":"Development","wordCount":5052}]}</script><script data-theme-init>
+      try {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch (error) {
+        /* storage blocked — fall through to the OS preference */
+      }
+    </script><link rel="icon" href="/blogs/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/blogs/_astro/_slug_.CZ8MoiZY.css">
+<link rel="stylesheet" href="/blogs/_astro/_slug_.C1-a0j5c.css"></head> <body data-slug="build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others"> <a class="skip-link" href="#main">Skip to content</a> <header class="topbar"> <div class="shell topbar-inner"> <a class="brand" href="/blogs/"> <svg class="logo" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false"> <rect width="32" height="32" rx="9" fill="var(--accent)"></rect> <path d="M9.4 23.6 16 8.4l6.6 15.2" fill="none" stroke="var(--on-accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12.5 18.7h7" fill="none" stroke="var(--on-accent)" stroke-width="2.9" stroke-linecap="round"></path> </svg> <span>Ankur’s Writing</span> </a> <div class="topbar-end"> <nav class="nav" aria-label="Primary"> <a href="/blogs/" data-nav-key="all"> All </a><a href="/blogs/?type=blog" data-nav-key="blog" aria-current="page"> Blogs </a><a href="/blogs/?type=presentation" data-nav-key="presentation"> Presentations </a><a href="/blogs/search" data-nav-key="search"> Search </a> </nav> <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"> <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path> </svg> <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="12" cy="12" r="4"></circle> <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path> </svg> <span class="visually-hidden">Toggle theme</span> </button> </div> </div> </header> <main id="main">  <div class="progress" data-progress hidden aria-hidden="true"></div> <article class="shell article"> <nav class="crumbs mono" aria-label="Breadcrumb"> <a href="/blogs/">Home</a> <span aria-hidden="true">/</span> <a href="/blogs/?topic=Development">Development</a>  </nav> <header class="article-head"> <div class="tags"> <span class="tag tag--type">Blog</span> <a class="tag" href="/blogs/?topic=Development">Development</a>  </div> <h1>Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others)</h1> <p class="article-meta mono"> <time datetime="2026-09-13">13 Sept 2026</time> <span>·</span> <span>25 min read</span> <span>·</span> <span>5,052 words</span> </p> </header> <div class="prose"><hr />
+<h2 id="title-build-your-own-ide-extension---a-real-world-guide-from-idea-to-publish-vs-code-and-otherspublished-2026-09-13tags-vscode-ide-extensions-typescript-developer-tools">title: “Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)”
+published: 2026-09-13
+tags: vscode, ide-extensions, typescript, developer-tools</h2>
+<blockquote>
+<p>The most useful software you’ll ever write might be the kind only you needed.</p>
+</blockquote>
+<p>Every developer has one. That small thing your editor <em>almost</em> does — the command you retype ten times a day, the info you keep switching to a browser to check, the tool you love that lives in a terminal while your actual work lives three windows away. You’ve tolerated it for months. Maybe years.</p>
+<p><strong>You can fix that yourself — in a weekend, without being an expert.</strong> An IDE extension is not a mystical artifact maintained by people smarter than you. It’s a small program plus a form that tells the editor where to plug it in. If you can write a script, you can write an extension.</p>
+<p>I recently went through this end to end. I maintain a CLI tool called <a href="https://github.com/encryptioner/branchdiff-releases" target="_blank" rel="noopener noreferrer">branchdiff</a> — it runs a local web UI for reviewing pull requests. The UI was fine, but using it meant a terminal, a command, a browser tab, a context switch. So I built a VS Code extension that starts the server, shows the numbers in the sidebar, and embeds the whole UI in an editor tab. Along the way I hit everything the tutorials don’t warn you about: a status bar icon that silently refuses to render, links that open <em>nothing</em> with no error, a marketplace account that needs an Azure subscription before it needs an extension.</p>
+<p>This guide is the general version of that journey — it works for whatever your use case is, and it doesn’t stop at VS Code. There’s a full field guide to the rest of the editor world (<a href="https://zed.dev" target="_blank" rel="noopener noreferrer">Zed</a>, <a href="https://www.jetbrains.com/" target="_blank" rel="noopener noreferrer">JetBrains</a>, <a href="https://neovim.io" target="_blank" rel="noopener noreferrer">Neovim</a>) near the end, because the most important decision you’ll make is <em>which editor to target first</em>.</p>
+<p>If you’re not a developer, read the next section anyway — it explains what extensions actually are, in plain language, and honestly, that’s the part most developers would benefit from too.</p>
+<hr />
+<h2 id="what-an-extension-actually-is">What an Extension Actually Is</h2>
+<p>Strip away the branding and every IDE extension system on earth answers the same three questions:</p>
+<ol>
+<li><strong>Where does it plug in?</strong> — a <em>manifest</em>, a small config file where you declare: I add a command, a keyboard shortcut, a sidebar panel, a setting.</li>
+<li><strong>When does it wake up?</strong> — editors don’t run your code constantly. They load it when something you declared happens: the user runs your command, opens a certain file type, or the editor finishes starting up.</li>
+<li><strong>What can it touch?</strong> — an API the editor hands your code, and a sandbox deciding how far your code can reach.</li>
+</ol>
+<p>For the non-developers: think browser extensions, but for the program people <em>write code</em> in. The editor is like a phone, extensions are apps, and the marketplace is the app store. Same shape, different device. And just like phone apps, most extensions are tiny — one command, one panel, one quality-of-life fix.</p>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-28/extension-anatomy.png" alt="Diagram showing how a VS Code extension plugs into the editor: the package.json manifest declares contributions and activation events, src/extension.ts holds activate and deactivate functions, both feed into the extension host process, which surfaces them as Command Palette entries, status bar items, sidebar panels, and webview tabs" /></p>
+<p>That diagram is the whole mental model for VS Code. Two files do almost everything:</p>
+<ul>
+<li><strong><code>package.json</code></strong> — the manifest. It’s a form your extension fills out: “here’s my command, here’s its keyboard shortcut, here’s a setting users can tweak.”</li>
+<li><strong><code>src/extension.ts</code></strong> — your code. One function runs when the editor activates you (<code>activate</code>), one runs on shutdown (<code>deactivate</code>). Everything else is you calling editor APIs.</li>
+</ul>
+<p>One detail worth knowing because it makes extensions <em>safe to experiment with</em>: your code runs in a separate process the editor babysits, called the extension host. If your extension crashes, the editor doesn’t. You cannot brick your setup by writing a bad extension. Worst case, you disable it. This is why the barrier to trying is much lower than it looks.</p>
+<h3 id="the-shapes-extensions-come-in">The shapes extensions come in</h3>
+<p>One more thing before the code: extensions come in a handful of well-known shapes, and knowing them makes your own idea easier to place. Almost everything on a marketplace is one of these:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Shape</th><th>What it does</th><th>You’ve met it as</th></tr></thead><tbody><tr><td><strong>Command or tool</strong></td><td>Adds a button that does a thing</td><td>The shape this post builds</td></tr><tr><td><strong>Syntax highlighter</strong></td><td>Teaches the editor to colorize a language it doesn’t know yet</td><td>Grammar extensions for niche languages</td></tr><tr><td><strong>Theme</strong></td><td>Restyles the whole editor — colors, file icons</td><td><a href="https://marketplace.visualstudio.com/items?itemName=zhuangtongfa.Material-theme" target="_blank" rel="noopener noreferrer">One Dark Pro</a> and ten thousand cousins</td></tr><tr><td><strong>Snippet pack</strong></td><td>Three letters expand into thirty lines of boilerplate</td><td><code>rafce</code> → a full React component</td></tr><tr><td><strong>Formatter</strong></td><td>Rewrites your code to one agreed style on save</td><td><a href="https://prettier.io" target="_blank" rel="noopener noreferrer">Prettier</a>, <a href="https://github.com/psf/black" target="_blank" rel="noopener noreferrer">Black</a></td></tr><tr><td><strong>Linter</strong></td><td>Draws the squiggles and warnings while you type</td><td><a href="https://eslint.org" target="_blank" rel="noopener noreferrer">ESLint</a></td></tr><tr><td><strong>Language server</strong></td><td>Real language intelligence — autocomplete, go-to-definition, hover docs</td><td><a href="https://github.com/rust-lang/rust-analyzer" target="_blank" rel="noopener noreferrer">rust-analyzer</a>, <a href="https://github.com/microsoft/pyright" target="_blank" rel="noopener noreferrer">Pyright</a></td></tr><tr><td><strong>Debugger</strong></td><td>Breakpoints and stepping for a runtime, inside the editor</td><td>Debug adapters</td></tr><tr><td><strong>Bridge</strong></td><td>A doorway to a tool that lives outside the editor</td><td><a href="https://www.docker.com" target="_blank" rel="noopener noreferrer">Docker</a>, <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remoteextensionpack" target="_blank" rel="noopener noreferrer">Remote SSH</a>, <a href="https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens" target="_blank" rel="noopener noreferrer">GitLens</a></td></tr></tbody></table>
+<p>The good news in that table: <strong>themes and snippet packs are just JSON</strong>. No code, no API, no extension host — a color palette or a pile of templates in a manifest. Plenty of people earn “published extension author” without writing a line of TypeScript, and that’s a perfectly honest way in.</p>
+<p>At the serious end, highlighters and language servers teach an editor an entire language. A highlighter is a grammar — VS Code uses TextMate grammars, while newer editors like Zed use <a href="https://tree-sitter.github.io/tree-sitter/" target="_blank" rel="noopener noreferrer">tree-sitter</a>, which understands the actual structure of your code instead of pattern-matching it. A language server speaks the <a href="https://microsoft.github.io/language-server-protocol/" target="_blank" rel="noopener noreferrer">Language Server Protocol</a>: write it once, and <em>every</em> LSP-capable editor on earth can hire it, not just VS Code.</p>
+<p>This post builds the first shape and the last one — the command and the bridge — because that’s where “fix my own annoyance” ideas live. But if your itch is colors or boilerplate, congratulations: your weekend just got shorter.</p>
+<hr />
+<h2 id="before-you-write-code-audit-your-idea">Before You Write Code: Audit Your Idea</h2>
+<p>Most failed extensions die here, not in the code. Two minutes of honesty saves a weekend.</p>
+<p><strong>Your idea is probably good if it’s one of these:</strong></p>
+<ul>
+<li><strong>A repeated action</strong> — you do the same 3–4 steps daily (copy file path, transform it, paste it somewhere, open a tool). A command plus a keyboard shortcut turns that into one keypress.</li>
+<li><strong>Glanceable information</strong> — build status, server health, ticket numbers, whatever you’d otherwise open a browser tab to check. A status bar item or sidebar row makes it ambient.</li>
+<li><strong>A bridge</strong> — a tool you love (a CLI, a local server, an internal dashboard) that lives outside the editor. The extension doesn’t replace the tool; it hands you a doorway to it.</li>
+</ul>
+<p><strong>Your idea is probably bad if:</strong></p>
+<ul>
+<li><strong>Settings or keybindings already do it.</strong> Embarrassing numbers of “extensions” are re-implementations of built-in configuration. Search the editor’s settings first.</li>
+<li><strong>An existing extension already does it.</strong> Search the marketplace twice — once for what it’s called, once for what it <em>does</em>.</li>
+<li><strong>It’s a whole app.</strong> If your extension needs its own navigation, accounts, and a database, ask whether it should be a web app with an extension as a thin doorway instead.</li>
+</ul>
+<h3 id="the-thin-client-principle">The thin-client principle</h3>
+<p>When I planned the branchdiff extension, the obvious-looking path was to rebuild the review UI natively inside VS Code — native diffs, native comment threads, the works. The APIs exist. I said no, and it’s the decision I’d repeat every time.</p>
+<p>The extension doesn’t re-implement anything. It <strong>embeds</strong> the existing web UI inside an editor tab, and every sidebar row deep-links to the exact section of it. One UI, two viewports. If the editor can host a web view, the same app appears inside it; everywhere else, one click opens the right page in a browser.</p>
+<p>Why this matters for you: if your tool has any real interface, <strong>an extension should be a bridge to it, not a second copy of it.</strong> Otherwise you’re maintaining two frontends forever — and if you ever target a second editor, four. The extension’s actual jobs are the cheap ones: start the thing, show the numbers, open the right place. That’s a weekend. A native re-implementation is a quarter.</p>
+<hr />
+<h2 id="the-vs-code-path">The VS Code Path</h2>
+<p>VS Code first, for three reasons: the API is genuinely pleasant, TypeScript does half the work for you, and <strong>one VS Code extension covers way more editors than VS Code.</strong> <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">Cursor</a>, <a href="https://windsurf.com" target="_blank" rel="noopener noreferrer">Windsurf</a>, <a href="https://vscodium.com" target="_blank" rel="noopener noreferrer">VSCodium</a>, and friends are all built on VS Code’s open-source core, and they install extensions from the same second store. Build once, reach nearly everyone. (Details in the shipping section.)</p>
+<h3 id="the-fifteen-minute-skeleton">The fifteen-minute skeleton</h3>
+<p>You need Node.js installed. Then, in an empty folder:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npx</span><span style="color:#D19A66"> --package</span><span style="color:#98C379"> yo</span><span style="color:#D19A66"> --package</span><span style="color:#98C379"> generator-code</span><span style="color:#D19A66"> --</span><span style="color:#98C379"> yo</span><span style="color:#98C379"> code</span></span></code></pre>
+<p>That’s the official scaffolder. It asks a handful of questions — name, identifier, TypeScript (say yes) — and hands you a working extension with a sample command.</p>
+<p>To see it alive: open the folder in VS Code and press <strong>F5</strong>. A <em>second</em> VS Code window appears — the Extension Development Host — with your extension loaded in it. Press <code>Ctrl+Shift+P</code> (that menu is the Command Palette), type your command’s name, run it. A notification pops up. Congratulations, that’s the whole loop.</p>
+<p>You’ll live in this loop: edit, F5, test in the host window, <code>Developer: Reload Window</code> to pick up changes. It’s fast and it’s the same for every extension you’ll ever write. No emulator downloads, no signing certs, no device registration. Compare that to any other platform you’ve developed for.</p>
+<h3 id="the-manifest-where-half-the-work-happens">The manifest: where half the work happens</h3>
+<p>Here’s the part that surprises people: a lot of “extension development” is filling in <code>package.json</code>. You don’t code a command palette entry or a keyboard shortcut — you <em>declare</em> them, and the editor builds them for you:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="json"><code><span class="line"><span style="color:#ABB2BF">{</span></span>
+<span class="line"><span style="color:#E06C75">  "name"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"deploy-buddy"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "publisher"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"yourname"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "engines"</span><span style="color:#ABB2BF">: { </span><span style="color:#E06C75">"vscode"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"^1.85.0"</span><span style="color:#ABB2BF"> },</span></span>
+<span class="line"><span style="color:#E06C75">  "activationEvents"</span><span style="color:#ABB2BF">: [],</span></span>
+<span class="line"><span style="color:#E06C75">  "main"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"./out/extension.js"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">  "contributes"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">    "commands"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      { </span><span style="color:#E06C75">"command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"deploybuddy.deploy"</span><span style="color:#ABB2BF">, </span><span style="color:#E06C75">"title"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Deploy current branch"</span><span style="color:#ABB2BF"> }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "keybindings"</span><span style="color:#ABB2BF">: [</span></span>
+<span class="line"><span style="color:#ABB2BF">      {</span></span>
+<span class="line"><span style="color:#E06C75">        "command"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"deploybuddy.deploy"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "key"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"ctrl+alt+d"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">        "when"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"editorTextFocus"</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    ],</span></span>
+<span class="line"><span style="color:#E06C75">    "configuration"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">      "title"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Deploy Buddy"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">      "properties"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">        "deploybuddy.environmentUrl"</span><span style="color:#ABB2BF">: {</span></span>
+<span class="line"><span style="color:#E06C75">          "type"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"string"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "default"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"https://staging.example.com"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#E06C75">          "description"</span><span style="color:#ABB2BF">: </span><span style="color:#98C379">"Where deployments go"</span></span>
+<span class="line"><span style="color:#ABB2BF">        }</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  }</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span></code></pre>
+<p>That JSON gives you: a Command Palette entry, a keyboard shortcut that only fires when you’re focused in the editor, and a settings screen — the settings UI is generated from that <code>configuration</code> block, free.</p>
+<p>Two manifest notes that save real pain:</p>
+<ul>
+<li><strong><code>engines.vscode</code> must match the editor you test in.</strong> A mismatch is the number-one reason a fresh extension’s command simply doesn’t appear. If your command is missing, check this before anything else.</li>
+<li><strong>Modern VS Code infers most activation events</strong> from what you contribute — declare a command and the editor knows to load you when it runs. You rarely hand-write <code>activationEvents</code> anymore; an empty array is normal for command-driven extensions.</li>
+</ul>
+<h3 id="your-first-command">Your first command</h3>
+<p>The code side, complete:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#C678DD">import</span><span style="color:#D19A66"> *</span><span style="color:#C678DD"> as</span><span style="color:#E06C75"> vscode</span><span style="color:#C678DD"> from</span><span style="color:#98C379"> "vscode"</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#C678DD"> function</span><span style="color:#61AFEF"> activate</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75;font-style:italic">context</span><span style="color:#ABB2BF">: </span><span style="color:#E5C07B">vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">ExtensionContext</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#C678DD">  const</span><span style="color:#E5C07B"> disposable</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">commands</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">registerCommand</span><span style="color:#ABB2BF">(</span></span>
+<span class="line"><span style="color:#98C379">    "deploybuddy.deploy"</span><span style="color:#ABB2BF">,</span></span>
+<span class="line"><span style="color:#C678DD">    async</span><span style="color:#ABB2BF"> () </span><span style="color:#C678DD">=&gt;</span><span style="color:#ABB2BF"> {</span></span>
+<span class="line"><span style="color:#C678DD">      const</span><span style="color:#E5C07B"> editor</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">window</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">activeTextEditor</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#C678DD">      if</span><span style="color:#ABB2BF"> (</span><span style="color:#56B6C2">!</span><span style="color:#E06C75">editor</span><span style="color:#ABB2BF">) {</span></span>
+<span class="line"><span style="color:#E5C07B">        vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">window</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">showErrorMessage</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">"Open a file first"</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#C678DD">        return</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#ABB2BF">      }</span></span>
+<span class="line"><span style="color:#C678DD">      const</span><span style="color:#E5C07B"> branch</span><span style="color:#56B6C2"> =</span><span style="color:#C678DD"> await</span><span style="color:#E5C07B"> vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">commands</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">executeCommand</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">"git.currentBranch"</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#E5C07B">      vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">window</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">showInformationMessage</span><span style="color:#ABB2BF">(</span><span style="color:#98C379">`Deploying </span><span style="color:#C678DD">${</span><span style="color:#E06C75">branch</span><span style="color:#C678DD">}</span><span style="color:#98C379">…`</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic">      // your actual work here</span></span>
+<span class="line"><span style="color:#ABB2BF">    }</span></span>
+<span class="line"><span style="color:#ABB2BF">  );</span></span>
+<span class="line"><span style="color:#E5C07B">  context</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">subscriptions</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">push</span><span style="color:#ABB2BF">(</span><span style="color:#E06C75">disposable</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#ABB2BF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C678DD">export</span><span style="color:#C678DD"> function</span><span style="color:#61AFEF"> deactivate</span><span style="color:#ABB2BF">() {}</span></span></code></pre>
+<p>Read it and notice what it <em>isn’t</em>: there’s no framework, no build orchestration you must understand, no lifecycle diagram to memorize. The editor calls <code>activate</code>, you register things, done. <code>subscriptions.push</code> is just “clean this up when I’m unloaded” — copy the pattern and move on.</p>
+<h3 id="the-five-surfaces-youll-actually-use">The five surfaces you’ll actually use</h3>
+<p>The VS Code API is huge, but almost every useful extension is built from five surfaces. Know these and you can read anyone’s extension:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Surface</th><th>What it is</th><th>Use it for</th></tr></thead><tbody><tr><td><strong>Command Palette</strong></td><td><code>Ctrl+Shift+P</code> entries</td><td>Anything the user does occasionally</td></tr><tr><td><strong>Quick Pick</strong></td><td><code>showQuickPick()</code> — the fuzzy-search dropdown</td><td>Picking one thing from a list: environments, branches, tickets</td></tr><tr><td><strong>Status bar</strong></td><td><code>createStatusBarItem()</code> — text in the bottom bar</td><td>One number or word, always visible: build status, server health</td></tr><tr><td><strong>Sidebar panel</strong></td><td><code>createTreeView()</code> — a tree in the activity bar</td><td>Structured info: multiple items, live counts, expandable rows</td></tr><tr><td><strong>Webview</strong></td><td><code>createWebviewPanel()</code> — a real browser tab <em>inside</em> the editor</td><td>Anything visual: dashboards, forms, embedding an existing web UI</td></tr></tbody></table>
+<p>A status bar item is three lines:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="typescript"><code><span class="line"><span style="color:#C678DD">const</span><span style="color:#E5C07B"> bar</span><span style="color:#56B6C2"> =</span><span style="color:#E5C07B"> vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">window</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">createStatusBarItem</span><span style="color:#ABB2BF">(</span><span style="color:#E5C07B">vscode</span><span style="color:#ABB2BF">.</span><span style="color:#E5C07B">StatusBarAlignment</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">Left</span><span style="color:#ABB2BF">, </span><span style="color:#D19A66">100</span><span style="color:#ABB2BF">);</span></span>
+<span class="line"><span style="color:#E5C07B">bar</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">text</span><span style="color:#56B6C2"> =</span><span style="color:#98C379"> "$(rocket) staging"</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#E5C07B">bar</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">tooltip</span><span style="color:#56B6C2"> =</span><span style="color:#98C379"> "Current deploy target — click to switch"</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#E5C07B">bar</span><span style="color:#ABB2BF">.</span><span style="color:#E06C75">command</span><span style="color:#56B6C2"> =</span><span style="color:#98C379"> "deploybuddy.deploy"</span><span style="color:#ABB2BF">;</span></span>
+<span class="line"><span style="color:#E5C07B">bar</span><span style="color:#ABB2BF">.</span><span style="color:#61AFEF">show</span><span style="color:#ABB2BF">();</span></span></code></pre>
+<p>That <code>$(rocket)</code> is a <strong>codicon</strong> — a built-in icon from VS Code’s icon font. Remember that phrase; it stars in the gotchas section.</p>
+<p>If your extension wraps an existing local web tool, the webview is the finish line: point an iframe in a webview panel at <code>http://localhost:PORT</code> and your entire UI now lives in an editor tab. Chromium treats localhost as trustworthy, so the http iframe doesn’t trip security rules.</p>
+<p>One refinement worth stealing: reuse a single “main” panel and repoint its <code>src</code> on navigation instead of spawning a tab per click — it behaves like a browser tab, not a pile of them. <em>Embed, don’t rebuild</em> — that’s the thin-client principle in code.</p>
+<h3 id="lessons-that-cost-me-an-afternoon-each">Lessons that cost me an afternoon each</h3>
+<p>These are the things the docs mention in one buried line and reality teaches loudly. Consider this section the fee I already paid on your behalf.</p>
+<p><strong>Status bar icons are codicons only.</strong> <code>StatusBarItem</code> cannot render a custom SVG — the API simply has no <code>iconPath</code> on it. You use the built-in codicon font (<code>$(rocket)</code>, <code>$(git-compare)</code>, <code>$(sync)</code>) or you use text. Custom icons go in the sidebar and editor tabs, which <em>do</em> accept SVGs — but the rules differ per surface: the activity bar alpha-masks your SVG and repaints it in the theme color (draw with <code>currentColor</code> and punched holes), while editor-tab icons want a <code>{light, dark}</code> pair because the tab background flips with the theme. I verified this the hard way, against the latest type definitions, after wondering why nothing rendered.</p>
+<p><strong>Manifest changes sometimes need a full restart, not a reload.</strong> Some <code>contributes</code> entries — icons, view containers, menus — are only read when the extension host starts. <code>Developer: Reload Window</code> picks up your <em>code</em>; if a new icon or view stubbornly refuses to appear, fully quit the host window and relaunch. This one had me convinced my icon path was wrong for far too long.</p>
+<p><strong>Webviews are sandboxed, and they fail silently.</strong> A webview is a locked-down browser. <code>window.open()</code> and <code>target="_blank"</code> links do <em>nothing</em> — no error, no console spam, just silence. If your embedded UI needs to open things, your webview code must <code>postMessage</code> the URL to the extension, which decides: same-server link → open a new webview tab; external link → <code>vscode.env.openExternal()</code>. Also set <code>retainContextWhenHidden: true</code> when you create the panel, or the webview’s state resets every time the user switches tabs. There’s a memory cost; for a dashboard it’s worth it.</p>
+<p>Two more traps live inside that same iframe. Keystrokes land in it, where the editor’s keybindings can’t see them — your embedded app has to forward the workbench escapes (<code>Ctrl+Shift+P</code>, <code>Ctrl+P</code>, the sidebar toggles) to the extension over <code>postMessage</code>, and the extension replays a short whitelist of commands, nothing more.</p>
+<p>And the editor’s theme only reaches the iframe after a message round trip, so a fresh load briefly falls back to the <em>OS</em> theme — pass it in the iframe’s URL (<code>?theme=dark</code>) and apply it with an inline script before your stylesheets load, or dark-theme editors on light-OS machines flash the wrong theme on first paint.</p>
+<p><strong>Windows spawns need a shell.</strong> If your extension launches a local tool and it works on your Mac but dies for Windows users: npm-installed CLIs are <code>.cmd</code> shim files on Windows, and those can’t be spawned directly. Pass <code>shell: true</code> in your spawn options. This is the classic “works on my machine” bug of extension development, and Windows users will find it for you.</p>
+<p><strong>Adopt, don’t duplicate, long-running processes.</strong> If your extension starts a server, check whether one is already running for this workspace first, and attach to it. Otherwise every window reload spawns another copy, ports fight, and users end up with zombie processes. My extension reads a small registry file the CLI maintains; a healthy match means adopt, otherwise spawn. Ten lines of code, entire class of bugs gone.</p>
+<p><strong>One source of truth for repeated lists.</strong> I had the same menu in two places — a sidebar panel and a quick pick — hand-maintained separately. They drifted: the quick pick was missing rows and had a copy-pasted wrong icon on one entry. The fix was boring and permanent: both surfaces now render from one array in one file. Any list that appears twice in your UI will drift; make it appear once in code.</p>
+<h3 id="testing-like-it-matters">Testing like it matters</h3>
+<p>The F5 loop is for your eyes. For real coverage, VS Code ships a test runner that downloads an actual VS Code binary and runs your tests inside the real extension host — not a mock, the actual editor, headless:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> install</span><span style="color:#D19A66"> --save-dev</span><span style="color:#98C379"> @vscode/test-electron</span></span>
+<span class="line"><span style="color:#7F848E;font-style:italic"># package.json: "test": "node out/test/runTest.js" (the scaffold has this)</span></span></code></pre>
+<p>Because it’s “a real editor, headless,” it also runs in CI on all three operating systems. If you ship to strangers, do this: a test that asserts your commands are registered and your endpoints answer catches the entire class of “the extension loaded but nothing works” bug reports.</p>
+<p>One quirk to know before it bites: the test host rejects a module that merely runs itself — it must export a <code>run()</code> function. Then keep a small manual checklist for what automation can’t see — icons rendering, panels looking right, keyboard shortcuts firing. Two lists, both short.</p>
+<hr />
+<h2 id="shipping-it">Shipping It</h2>
+<h3 id="start-with-just-a-file-the-vsix">Start with just a file: the <code>.vsix</code></h3>
+<p>Everything in VS Code extension land packages into one file format: <code>.vsix</code>. It’s a zip with your code and manifest inside, installable directly.</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">npm</span><span style="color:#98C379"> install</span><span style="color:#D19A66"> -g</span><span style="color:#98C379"> @vscode/vsce</span></span>
+<span class="line"><span style="color:#61AFEF">vsce</span><span style="color:#98C379"> package</span></span></code></pre>
+<p>Now there’s a <code>your-extension-1.0.0.vsix</code> file. Anyone — including future you — installs it via the Extensions panel’s <code>⋯</code> menu → <strong>Install from VSIX…</strong>, or:</p>
+<pre class="astro-code one-dark-pro" style="background-color:#282c34;color:#abb2bf;overflow-x:auto;white-space:pre-wrap;word-wrap:break-word" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#61AFEF">code</span><span style="color:#D19A66"> --install-extension</span><span style="color:#98C379"> your-extension-1.0.0.vsix</span></span></code></pre>
+<p>Do not skip past this. <strong>A <code>.vsix</code> file is a completely legitimate end state.</strong> Your team’s shared tooling, an internal extension that will never be public, a personal scratch extension for your own workflow — package it, drop it in a shared drive or a GitHub release, done. Two things to know at this stage: a <code>.vscodeignore</code> file keeps junk out of the package (only ship your <code>dist/</code> bundle, manifest, README, license), and manually installed <code>.vsix</code> files never auto-update — installing the next version’s file over it just works.</p>
+<h3 id="the-marketplace--and-the-azure-detour-nobody-warns-you-about">The Marketplace — and the Azure detour nobody warns you about</h3>
+<p>The main app store is the Visual Studio Marketplace. Publishing is one command (<code>vsce publish</code>) behind two accounts, and the accounts are the hard part:</p>
+<ol>
+<li><strong>Create a publisher</strong> on the Marketplace — an ID that permanently identifies you and your extensions.</li>
+<li><strong>Create a Personal Access Token on Azure DevOps.</strong> Yes, Azure. The Marketplace’s auth lives there, not on the Marketplace site. The token must be scoped to <em>All accessible organizations</em> with the <em>Marketplace → Manage</em> scope — pick anything else and you get a bare 403 that doesn’t tell you why.</li>
+<li>And the genuinely absurd part: <strong>creating an Azure DevOps organization can require linking an Azure subscription</strong>, and even a free-tier Azure account wants a card for identity verification. To publish a free extension. Plan for this detour; it’s the single most common place extension publishing stalls out.</li>
+</ol>
+<p>One more thing to calendar: <strong>Microsoft is retiring global PATs on December 1, 2026</strong>, and the going-forward path is Entra ID-based auth (workload identity federation in CI, <code>vsce publish --azure-credential</code>). If you’re setting up publishing fresh, set it up the new way from day one and skip the token-renewal treadmill entirely.</p>
+<p>Marketplace rules that bite people, from the official docs and from experience:</p>
+<ul>
+<li><strong>Versions must strictly increase.</strong> Published a broken version? You can’t overwrite it — you fix it by shipping the <em>next</em> version.</li>
+<li><strong>The listing is a snapshot.</strong> Your README, icon, and description on the store update only when you publish. There is no “refresh listing” button.</li>
+<li><strong>No SVGs in listings</strong> — icon, badges, and README images must be PNG/other raster with https URLs.</li>
+<li><strong>Removal is forever.</strong> Unpublishing removes the extension from every user, and extension names stay reserved after removal. Prefer leaving an old version up.</li>
+</ul>
+<h3 id="open-vsx-one-extra-step-five-more-editors">Open VSX: one extra step, five more editors</h3>
+<p>Microsoft’s Marketplace terms only allow <em>Microsoft builds</em> of VS Code to use it. <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">Cursor</a>, <a href="https://windsurf.com" target="_blank" rel="noopener noreferrer">Windsurf</a>, <a href="https://vscodium.com" target="_blank" rel="noopener noreferrer">VSCodium</a>, <a href="https://www.gitpod.io" target="_blank" rel="noopener noreferrer">Gitpod</a>, <a href="https://theia-ide.org" target="_blank" rel="noopener noreferrer">Theia</a> — all built on VS Code’s open-source core, all banned from the main store. They share a second store instead: <strong><a href="https://open-vsx.org" target="_blank" rel="noopener noreferrer">Open VSX</a></strong>.</p>
+<p>And it takes the <em>same <code>.vsix</code></em> you already built. One package, two stores, every major editor covered:</p>
+<p><img loading="lazy" decoding="async" src="/blogs/content/assets/B-28/vsix-distribution.png" alt="Diagram showing one vsix file flowing to three destinations: the VS Code Marketplace serving VS Code users, Open VSX serving Cursor, Windsurf, VSCodium, Gitpod, Theia and Antigravity users, and direct Install-from-VSX reaching any editor without a store, with Open VSX also noted as usable by VS Code itself" /></p>
+<p>Open VSX setup is its own small saga, so you don’t hit it blind: you sign in with GitHub, then discover that’s not enough — you need an <strong>Eclipse Foundation account</strong> (separate registration), sign the publisher agreement, and <em>link your GitHub account inside your Eclipse profile</em>. Skip that last link and login fails with a bare redirect that looks like an OAuth bug. The actual reason lives in a background request (<code>eclipse-missing-github-id</code>) that the page never shows you.</p>
+<p>Once in: create a namespace matching your publisher ID exactly, generate a token, <code>npx ovsx publish</code>.</p>
+<p>That’s the entire distribution strategy for a solo developer: build one <code>.vsix</code>, publish it twice, and every editor from stock VS Code to Cursor can install your work.</p>
+<hr />
+<h2 id="beyond-vs-code-a-field-guide">Beyond VS Code: A Field Guide</h2>
+<p>VS Code has the gentlest on-ramp, but it’s not the only editor people love. Here’s the honest state of each — what you can build, what you can’t, and what it costs.</p>
+<h3 id="zed-small-sharp-sandboxed">Zed: small, sharp, sandboxed</h3>
+<p><a href="https://zed.dev" target="_blank" rel="noopener noreferrer">Zed</a> takes the opposite bet from VS Code on extension power. Extensions are written in <strong>Rust</strong>, compiled to <strong>WebAssembly</strong>, and run in a sandbox. The manifest is an <code>extension.toml</code> file; you test locally by installing your folder as a “dev extension,” and publishing means opening a pull request against Zed’s central extensions repository — with a license file at the root of your repo (open source is required) and CI checking your submission.</p>
+<p>What Zed extensions can be: <strong>language support</strong> (tree-sitter grammars, language servers you can download on demand), <strong>themes and icon themes</strong>, <strong>snippets</strong>, <strong>debug adapters</strong>, and <strong>MCP context servers</strong> — the integration path for connecting Zed’s assistant to your own tools.</p>
+<p>What they still can’t be: <strong>anything with its own UI.</strong> No sidebars, no panels, no status bar items of your own, and no general “draw a window” API. Extensions <em>can</em> reach outside the sandbox a little, through narrowly-scoped capability grants — running specific commands (<code>process:exec</code>), downloading files from specific hosts, installing named npm packages — but with nowhere to render a result, that power changes little. The Visual Extension API is an open proposal; until it lands, Zed extensions are ingredients, not apps.</p>
+<p>So what do you do if you love Zed and want your tool closer? Two honest answers:</p>
+<ul>
+<li><strong><code>tasks.json</code>.</strong> Zed’s task runner can execute your CLI with a keystroke, and its terminal renders printed <code>http://localhost:…</code> URLs as clickable links. A config file, not code — and suddenly your tool is one keypress away, opening in the browser at exactly the right page.</li>
+<li><strong>An MCP context server.</strong> If the integration should be <em>smart</em> — tools and prompts the assistant can call — that’s the sanctioned path, and it’s genuinely useful even without any custom UI.</li>
+</ul>
+<p>This is exactly the route I mapped for branchdiff-in-Zed: no extension at all, just task definitions and clickable URLs. Sometimes the right extension is a config file.</p>
+<h3 id="cursor-windsurf-vscodium-already-done">Cursor, Windsurf, VSCodium: already done</h3>
+<p>Nothing new to build. They’re VS Code-family editors pulling from Open VSX — your published extension reaches them the moment it’s on that second store. One <code>.vsix</code> installs into any of them directly too (<code>cursor --install-extension …</code> works exactly like <code>code --install-extension …</code>). If your extension talks to local servers or CLIs, do test in each — forks have their own quirks — but it’s QA work, not development work.</p>
+<h3 id="jetbrains-a-different-planet-respectfully">JetBrains: a different planet, respectfully</h3>
+<p><a href="https://www.jetbrains.com/idea/" target="_blank" rel="noopener noreferrer">IntelliJ</a>, <a href="https://www.jetbrains.com/pycharm/" target="_blank" rel="noopener noreferrer">PyCharm</a>, <a href="https://www.jetbrains.com/webstorm/" target="_blank" rel="noopener noreferrer">WebStorm</a> and the family run on the JVM, and so do their plugins — <strong>Kotlin or Java</strong>, built with Gradle via the IntelliJ Platform Gradle Plugin (2.x is the current line; the old DevKit workflow is deprecated), usually starting from JetBrains’ official plugin template. Publishing goes to the JetBrains Marketplace.</p>
+<p>The trade is the inverse of Zed’s: you get <em>full</em> power — plugins there are first-class citizens that can rebuild any part of the IDE’s UI — in exchange for a much heavier platform. You’re learning a desktop-application framework, with the debugger, the IDE setup, and the build times to match. If your day job lives in a JetBrains IDE and your idea needs real UI inside the editor, it’s worth the climb. For everyone else, it’s the last stop on the tour, not the first.</p>
+<h3 id="neovim-no-ceremony-by-design">Neovim: no ceremony, by design</h3>
+<p>Neovim’s answer to “what’s the extension system?” is “your config <em>is</em> the extension system.” Plugins are Lua modules; there’s no manifest, no store, no review — plugins are git repositories, installed by a plugin manager like <a href="https://github.com/folke/lazy.nvim" target="_blank" rel="noopener noreferrer">lazy.nvim</a>, loaded by users who opt in. Total freedom, zero hand-holding: you can do anything, including break everything, and packaging/distribution is entirely your problem. If you live in Neovim, a plugin for your own workflow can be an evening; just know you’re building for the smallest (but most devoted) audience of this list.</p>
+<h3 id="the-comparison-at-a-glance">The comparison, at a glance</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>VS Code family</th><th><a href="https://zed.dev" target="_blank" rel="noopener noreferrer">Zed</a></th><th><a href="https://www.jetbrains.com/" target="_blank" rel="noopener noreferrer">JetBrains</a></th><th><a href="https://neovim.io" target="_blank" rel="noopener noreferrer">Neovim</a></th></tr></thead><tbody><tr><td><strong>Language</strong></td><td>TypeScript/JavaScript</td><td>Rust → WASM</td><td>Kotlin/Java</td><td>Lua</td></tr><tr><td><strong>Custom UI</strong></td><td>Webviews, panels, status bar</td><td>None yet (open RFC)</td><td>Full IDE-grade UI</td><td>Full TUI</td></tr><tr><td><strong>Distribution</strong></td><td>Marketplace + Open VSX</td><td>PR to central repo</td><td>JetBrains Marketplace</td><td>Git repos</td></tr><tr><td><strong>Effort to first result</strong></td><td>An evening</td><td>An evening (non-UI)</td><td>A weekend or two</td><td>An evening</td></tr><tr><td><strong>Reach</strong></td><td>Every VS Code-based editor</td><td>Zed users</td><td>All JetBrains IDEs</td><td>Neovim users</td></tr></tbody></table>
+<hr />
+<h2 id="so-which-one-first">So Which One First?</h2>
+<p>The decision is less about favorite editor and more about reach-per-effort:</p>
+<ul>
+<li><strong>Default answer: VS Code, then Open VSX.</strong> One TypeScript codebase, two publish commands, and you’ve covered stock VS Code <em>plus</em> Cursor, Windsurf, and VSCodium — the largest developer audience on earth for extension work. Nothing else comes close.</li>
+<li><strong>If your team lives in JetBrains IDEs</strong> and the idea needs to live inside the editor, go Kotlin and budget the learning curve — it’s the only sanctioned way in.</li>
+<li><strong>If your tool’s real home is a web UI</strong>, build the thinnest VS Code bridge (embed + deep links), and for Zed don’t build at all — tasks plus clickable URLs cover it today.</li>
+<li><strong>If it’s just for you</strong>, the calculus collapses: build for whatever you actually use, ship it as a <code>.vsix</code> or a config file, skip the stores entirely. Software that serves one user well is not a failure.</li>
+</ul>
+<p>And whatever you pick — start absurdly small. One command that does one thing you actually do daily. Ship that, use it for a week, and let the extension tell you what it wants to become next. The branchdiff extension started as “start the server without typing a command.” The sidebar counts, the embedded tab, the quick picks — those were all <em>pull</em>, added because daily use kept asking for them. I’ve never seen an extension ruined by starting too small. The big-bang ones, I’ve seen plenty.</p>
+<hr />
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>The gap between “my editor should do that” and “my editor does that” is shorter than it’s ever looked. A manifest and one function gets you running; five surfaces cover almost every idea; a <code>.vsix</code> file is a real distribution channel even if you never touch a store; and two stores get you nearly every editor people use in 2026.</p>
+<p>The concrete path from here:</p>
+<ol>
+<li><strong>Today:</strong> run <code>npx --package yo --package generator-code -- yo code</code>, press F5, change the sample command’s message to something that makes you smile. You’re now an extension developer.</li>
+<li><strong>This week:</strong> pick the one repetitive thing you actually do daily, and make a command for it. Add a keybinding in the manifest.</li>
+<li><strong>When it’s useful:</strong> <code>vsce package</code> and install the <code>.vsix</code> properly — you’ll feel the difference the first time it’s just <em>there</em> after a restart.</li>
+<li><strong>If the world needs it:</strong> publish — Marketplace for VS Code, Open VSX for everything VS Code-shaped, and remember the Azure detour is a rite of passage, not a sign you’re doing it wrong.</li>
+</ol>
+<p>The most useful software you’ll ever write might be the kind only you needed. There’s exactly one way to find out.</p>
+<hr />
+<h2 id="sources-and-further-reading">Sources and Further Reading</h2>
+<ul>
+<li><a href="https://code.visualstudio.com/api/get-started/your-first-extension" target="_blank" rel="noopener noreferrer">Your First Visual Studio Extension</a> — official scaffolding-to-F5 walkthrough</li>
+<li><a href="https://code.visualstudio.com/api/extension-capabilities/overview" target="_blank" rel="noopener noreferrer">Extension Capabilities Overview</a> — the official map of extension kinds: themes, formatters, linters, debuggers, snippets, and the rest</li>
+<li><a href="https://code.visualstudio.com/api/working-with-extensions/publishing-extension" target="_blank" rel="noopener noreferrer">Publishing Extensions</a> — vsce, publishers, tokens, and the PAT-to-Entra transition</li>
+<li><a href="https://open-vsx.org" target="_blank" rel="noopener noreferrer">Open VSX</a> — the marketplace for VS Code-family editors</li>
+<li><a href="https://zed.dev/docs/extensions/capabilities" target="_blank" rel="noopener noreferrer">Zed Extension Capabilities</a> and the <a href="https://zed.dev/docs/extensions/publishing/publishing-guide.html" target="_blank" rel="noopener noreferrer">Zed Publishing Guide</a> — what sandboxed extensions may do and how submissions work</li>
+<li><a href="https://github.com/zed-industries/zed/discussions/53403" target="_blank" rel="noopener noreferrer">Visual Extension API RFC (Zed discussion #53403)</a> — the still-open proposal for custom UI in Zed</li>
+<li><a href="https://plugins.jetbrains.com/docs/intellij/developing-plugins.html" target="_blank" rel="noopener noreferrer">IntelliJ Platform Plugin SDK</a> and the <a href="https://github.com/JetBrains/intellij-platform-gradle-plugin" target="_blank" rel="noopener noreferrer">IntelliJ Platform Gradle Plugin 2.x</a> — the JetBrains path</li>
+<li><a href="https://github.com/encryptioner/branchdiff-releases" target="_blank" rel="noopener noreferrer">branchdiff’s extension R&amp;D notes</a> — the full engineering log behind the case study in this post</li>
+</ul>
+<hr />
+<h2 id="end">End:</h2>
+<p>That’s all!</p>
+<p>I hope you’ve found the article useful. You should try building your own extension if you haven’t already — start with the one command you actually need. Feel free to share your thoughts and what you built in the comments below.</p>
+<p>Check more on</p>
+<ul>
+<li><a href="https://encryptioner.github.io" target="_blank" rel="noopener noreferrer">Website</a></li>
+<li><a href="https://encryptioner.github.io/blogs/" target="_blank" rel="noopener noreferrer">Blogs</a></li>
+<li><a href="https://www.linkedin.com/in/mir-mursalin-ankur" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
+<li><a href="https://github.com/Encryptioner" target="_blank" rel="noopener noreferrer">Github</a></li>
+<li><a href="https://twitter.com/AnkurMursalin" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
+<li><a href="https://nerddevs.com/author/ankur/" target="_blank" rel="noopener noreferrer">Nerddevs</a></li>
+</ul></div>  <footer class="article-foot"> <a class="pill" href="/blogs/">← All writing</a> <a class="pill" href="/blogs/?topic=Development">
+More on Development </a> </footer> </article> <button type="button" class="to-top" data-to-top hidden aria-label="Back to top">↑</button>  </main> <footer class="site"> <div class="shell foot-grid"> <section class="foot-about"> <a class="brand" href="/blogs/"> <svg class="logo" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"> <rect width="32" height="32" rx="9" fill="var(--accent)"></rect> <path d="M9.4 23.6 16 8.4l6.6 15.2" fill="none" stroke="var(--on-accent)" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12.5 18.7h7" fill="none" stroke="var(--on-accent)" stroke-width="2.9" stroke-linecap="round"></path> </svg> <span>Ankur’s Writing</span> </a> <p>I lead full-stack teams at NerdDevs. These are the notes I keep while building — on system design, developer tooling, and getting real work out of AI agents.</p> <a class="foot-cta" href="https://encryptioner.github.io" rel="me noopener">
+Visit my portfolio
+<span aria-hidden="true">↗</span> </a> <nav class="foot-social" aria-label="Elsewhere"> <span class="label">Elsewhere</span> <a href="https://github.com/Encryptioner" rel="me noopener" target="_blank"> GitHub </a> <span class="sep" aria-hidden="true">·</span><a href="https://www.linkedin.com/in/mir-mursalin-ankur" rel="me noopener" target="_blank"> LinkedIn </a> <span class="sep" aria-hidden="true">·</span><a href="https://dev.to/mir_mursalin_ankur" rel="me noopener" target="_blank"> DEV </a> <span class="sep" aria-hidden="true">·</span><a href="https://mir-mursalin-ankur.medium.com/" rel="me noopener" target="_blank"> Medium </a> <span class="sep" aria-hidden="true">·</span><a href="https://twitter.com/AnkurMursalin" rel="me noopener" target="_blank"> X / Twitter </a> <span class="sep" aria-hidden="true">·</span><a href="https://nerddevs.com/author/ankur/" rel="me noopener" target="_blank"> NerdDevs </a>  </nav> </section> <nav class="foot-col" aria-label="Browse"> <h2>Browse</h2> <ul> <li><a href="/blogs/">All</a></li><li><a href="/blogs/?type=blog">Blogs</a></li><li><a href="/blogs/?type=presentation">Presentations</a></li><li><a href="/blogs/search">Search</a></li> </ul> </nav> <nav class="foot-col" aria-label="Topics"> <h2>Topics</h2> <ul> <li> <a href="/blogs/?topic=Career">Career</a> </li><li> <a href="/blogs/?topic=Coding%20Challenges">Coding Challenges</a> </li><li> <a href="/blogs/?topic=Development">Development</a> </li><li> <a href="/blogs/?topic=Node.js">Node.js</a> </li><li> <a href="/blogs/?topic=Presentations">Presentations</a> </li><li> <a href="/blogs/?topic=Productivity">Productivity</a> </li><li> <a href="/blogs/?topic=Software%20Architecture">Software Architecture</a> </li><li> <a href="/blogs/?topic=Software%20Business">Software Business</a> </li> </ul> </nav> </div> <div class="shell foot-bottom"> <span>© 2026 Mir Mursalin Ankur — Lead Software Engineer</span> <span> 36 posts · 8 presentations ·
+<a href="https://github.com/Encryptioner/blogs" rel="noopener" target="_blank">source on GitHub</a> </span> </div> </footer> <script type="module" src="/blogs/_astro/Base.astro_astro_type_script_index_0_lang.0IdGIxrt.js"></script> </body> </html> <script type="module" src="/blogs/_astro/_slug_.astro_astro_type_script_index_0_lang.Dv_Y_oWe.js"></script>

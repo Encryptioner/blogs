@@ -386,8 +386,9 @@
       <ul class="bullets">
         <li><b><span class="mono">--detach</span></b> forks <span class="mono">auto</span> into the background — terminal returns immediately, survives closing it. Requires <span class="mono">--review</span>: a backgrounded process can't answer an interactive prompt.</li>
         <li><b><span class="mono">auto list</span></b> shows every live session; <span class="mono">auto attach &lt;id&gt;</span> tails its log.</li>
+        <li><b><span class="mono">--log</span></b> also writes a timestamped run log per invocation — <span class="mono">~/.branchdiff/auto-logs/&lt;date&gt;/&lt;runId&gt;/</span> — head-and-tail capped (default 10MB, or any size you pass: <span class="mono">--log 5MB</span>). <span class="mono">auto log list / view --id &lt;runId&gt; / delete</span> browse them after the fact.</li>
         <li><b><span class="mono">auto stop &lt;id&gt;</span></b> stops it.</li>
-        <li><b><span class="mono">auto cron add --start &lt;cron&gt; --end &lt;cron&gt; --review --watch &lt;n&gt; ...</span></b> writes real crontab entries — "review PRs 10am–8pm on weekdays" on a box that's just always on. Pass <span class="mono">--watch</span> yourself, cron doesn't add it for you. Unix-only, no daemon beyond cron itself.</li>
+        <li><b><span class="mono">auto cron add --start &lt;cron&gt; --end &lt;cron&gt; --review --watch &lt;n&gt; ...</span></b> writes real crontab entries — "review PRs 10am–8pm on weekdays" on a box that's just always on. Pass <span class="mono">--watch</span> yourself, cron doesn't add it for you. Unix-only, no daemon beyond cron itself. <span class="mono">--log</span> works on schedules too — <span class="mono">cron add</span> says whether the schedule it wrote records anything.</li>
         <li><b><span class="mono">auto cron list</span></b> / <span class="mono">cron remove --id &lt;id&gt;</span> show and delete schedules.</li>
         <li><b><span class="mono">auto --push</span> retries only the failed step.</b> If the publish step fails after a review already ran, the next run re-attempts just that publish — not a full re-review — so a flaky network call doesn't cost you the AI pass again.</li>
       </ul>
@@ -410,7 +411,7 @@
       </div>
     </div>
     <div class="callout danger" style="margin-top:14px">
-      <b>Runs while you're not looking — that's the point, and the risk.</b> A bad prompt or a misconfigured <span class="mono">--exec</span> runs unattended too. A failed review reports a <em>named</em> reason — rate-limit, overload, billing, missing API key, timeout — not an opaque error; <span class="mono">--debug</span> prints the full stack trace and keeps per-run logs in <span class="mono">~/.branchdiff/logs/</span>. Start with <span class="mono">--notify</span> on and check <span class="mono">auto attach</span> until you trust it.
+      <b>Runs while you're not looking — that's the point, and the risk.</b> A bad prompt or a misconfigured <span class="mono">--exec</span> runs unattended too. A failed review reports a <em>named</em> reason — rate-limit, overload, billing, missing API key, timeout — not an opaque error; <span class="mono">--debug</span> prints the full stack trace and keeps per-run logs in <span class="mono">~/.branchdiff/logs/</span>. The destructive commands around it — <span class="mono">auto log delete</span>, <span class="mono">cron removeall</span>, <span class="mono">clear</span>, <span class="mono">prune</span>, <span class="mono">state reset</span> — all prompt <span class="mono">(y/N)</span>; <span class="mono">--force</span> skips the prompt, and with no terminal to answer they refuse and exit 1 rather than delete anything unattended. Start with <span class="mono">--notify</span> on and check <span class="mono">auto attach</span> until you trust it.
     </div>
   </section>
 
@@ -439,7 +440,7 @@
     <h3 class="section">Stop retyping flags — <em>configure once</em>.</h3>
     <div class="two-col">
       <ul class="bullets">
-        <li><b><span class="mono">~/.branchdiff/config.json</span></b> (global) and/or <b><span class="mono">.branchdiff.json</span></b> (repo root or launch dir) supply flag defaults — a <span class="mono">defaults</span> key mirrors the root command, an <span class="mono">auto</span> key mirrors every <span class="mono">auto</span> flag.</li>
+        <li><b><span class="mono">~/.branchdiff/config.json</span></b> (global) and/or <b><span class="mono">.branchdiff.json</span></b> (repo root or launch dir) supply flag defaults — a <span class="mono">defaults</span> key mirrors the root command, an <span class="mono">auto</span> key mirrors every <span class="mono">auto</span> flag, and a <span class="mono">ui</span> key holds browser preferences branchdiff maintains itself (the remembered file-list sort order — global config only).</li>
         <li><b>Precedence:</b> a flag you actually type always wins; the repo/launch-dir file wins over global. Across multiple repos, each repo's own <span class="mono">.branchdiff.json</span> wins over the launch directory's, which wins over global.</li>
         <li><b><span class="mono">auto.exec</span> / <span class="mono">auto.tool</span> are the one exception</b> — honored only from the global config or a CLI flag, never a <span class="mono">.branchdiff.json</span>. That file can arrive via <span class="mono">git clone</span>; <span class="mono">exec</span> runs a real shell command.</li>
         <li><b><span class="mono">branchdiff config</span></b> prints the fully-merged effective config and which file each value came from — an unset key still shows its real built-in default.</li>

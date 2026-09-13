@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%8E%87%3C/text%3E%3C/svg%3E" />
 <title>branchdiff — Feature Decks</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⎇</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -151,7 +152,7 @@
     <span>branchdiff</span>
     <span class="sub">· feature decks</span>
   </div>
-  <span class="ver">v2.2.2</span>
+  <span class="ver">v2.3.2</span>
 </div>
 
 <section class="hero">
@@ -164,15 +165,15 @@
     <span class="pill"><span class="dot p"></span> AI review &amp; resolve</span>
     <span class="pill"><span class="dot y"></span> SQLite sessions</span>
   </div>
-  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v2.2.2</span> — multi-repo auto, detached server review, launchd-on-macOS / cron-on-Linux unattended runs, config file support, severity-gated approve, skip-PRs-by-size, a usage-stats dashboard with a Configs viewer, named reviewer-error reasons, click-to-open notifications, a zero-token change map for AI orientation, AI token/cost tracking in stats, <span class="mono">--stack</span> ancestor PR context, and an in-browser update badge.</p>
+  <p class="note"><span class="mono">→</span> Decks cover branchdiff through <span class="mono">v2.3.2</span> — multi-repo auto, detached server review, launchd-on-macOS / cron-on-Linux unattended runs, config file support, severity-gated approve, skip-PRs-by-size, a usage-stats dashboard with a Configs viewer, named reviewer-error reasons, click-to-open notifications, a zero-token change map for AI orientation, AI token/cost tracking in stats, <span class="mono">--stack</span> ancestor PR context, an in-browser update badge, <span class="mono">(y/N)</span>-gated destructive commands with timestamped run logs, new diff-page shortcuts and a sortable file list, linkable Stats sections, and two new front doors: the <span class="mono">view</span> terminal picker and a VS Code extension on Open VSX.</p>
 </section>
 
 <section class="sec">
   <div class="sec-head">
-    <h2>Nine decks · <em style="color:var(--accent);font-style:normal">one journey</em></h2>
+    <h2>Ten decks · <em style="color:var(--accent);font-style:normal">one journey</em></h2>
     <span class="hint">// click any card to open the deck</span>
   </div>
-  <p class="note"><span class="mono">→</span> Read top-to-bottom, the decks are a path — each starts from a pinpoint pain in the native PR workflow and builds toward the next: <b>view a diff</b> → <b>trust it locally</b> → <b>comment &amp; review</b> → <b>AI review &amp; resolve</b> → <b>automatic &amp; unattended</b> → <b>full PR lifecycle</b> → <b>explore the repo</b> → <b>multi-repo at scale</b> → <b>orient the AI for free</b>.</p>
+  <p class="note"><span class="mono">→</span> Read top-to-bottom, the decks are a path — each starts from a pinpoint pain in the native PR workflow and builds toward the next: <b>view a diff</b> → <b>trust it locally</b> → <b>comment &amp; review</b> → <b>AI review &amp; resolve</b> → <b>automatic &amp; unattended</b> → <b>full PR lifecycle</b> → <b>explore the repo</b> → <b>multi-repo at scale</b> → <b>orient the AI for free</b> → <b>pick your window</b>.</p>
   <div class="grid" id="deckGrid"></div>
 </section>
 
@@ -232,6 +233,7 @@
     { n:'07', file:'07-repo-exploration.html',         title:'Repo Exploration',                hook:'History, blame, tree, search, branches, and a commit graph — one tab, virtualized, read-only time-travel.', thumb:'images/06-commit-graph.png' },
     { n:'08', file:'08-multi-repo-auto.html',          title:'Multi-Repo Auto Cycles',          hook:'One branchdiff auto run across every repo — one combined PR list, one cycle report, and servers tidied up after.', thumb:'' },
     { n:'09', file:'09-change-map.html',               title:'Change Map',                      hook:'A machine-computed, zero-token diagram of how a diff wires together — orientation the AI reviewer gets before it starts.', thumb:'' },
+    { n:'10', file:'10-terminal-and-editor.html',      title:'Terminal &amp; Editor',           hook:'The branchdiff view full-screen picker and the VS Code extension — two new front doors to the same local server, so the tool lives wherever you already do.', thumb:'' },
   ];
 
   const grid = document.getElementById('deckGrid');
