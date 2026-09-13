@@ -23,7 +23,7 @@ native PR workflow and showing how branchdiff removes it.
 | Decision | Choice | Why |
 |---|---|---|
 | Structure | Multiple **standalone** HTML decks (one per theme) + an `index.html` navigation hub | User wants modular, linkable decks — not one mega-deck |
-| Scope | **8 themed decks** curating every feature group | Public-friendly; not exhausting; every feature group maps to one deck |
+| Scope | **10 themed decks** curating every feature group | Public-friendly; not exhausting; every feature group maps to one deck |
 | Screenshots | **Fresh captures** (11 UI shots) + existing conceptual diagrams (11) | Real, current UI; diagrams for flows that can't be screenshotted |
 | Visual identity | **GitHub-dark + neon mint** (matches a git tool's identity) | User pick |
 | CSS approach | **Self-contained custom CSS** (Style A architecture) recoloured to Style B palette | Robust through the raw-GitHub proxy — no Tailwind CDN dependency to fail; easy to template across decks |
@@ -53,6 +53,7 @@ blogs/presentations/P-5-branchdiff-features/
 ├── 07-repo-exploration.html      ← Deck 7
 ├── 08-multi-repo-auto.html       ← Deck 8
 ├── 09-change-map.html            ← Deck 9
+├── 10-terminal-and-editor.html   ← Deck 10
 └── images/
     ├── 01-diff-unified.png       ← fresh capture
     ├── 02-diff-split.png
@@ -239,8 +240,10 @@ on every feature slide — never describe an action without showing how to do it
 - **Solve:** one local page, whole file in place, identical on both forges.
 - **Features:** split/unified/full views, syntax highlight (Shiki), markdown
   preview, 10 stacking sidebar filters, file-row status badges, right-click bulk
-  ops, collapse-all (keeps open threads), virtualized lists, vim keys (`j/k n/p
-  u/s/f x r /`), auto-advance, behind-by indicator, swap.
+  ops, collapse-all (keeps open threads), sortable file list (path / change type /
+  lines changed, remembered per machine in the `ui` config), virtualized lists,
+  vim keys (`j/k n/p u/s/f x ⇧X m w ⇧C/⇧F r /`), auto-advance, behind-by
+  indicator, swap.
 - **Assets:** `01-diff-unified`, `02-diff-split`, `03-diff-full`, `B-15/sidebar-filters-grid`.
 
 ### Deck 2 — 100% Local-First, Private, Offline
@@ -298,10 +301,16 @@ on every feature slide — never describe an action without showing how to do it
   pre-run "Using:" / "Defaults in effect:" summary, `--max-files`/`--min-files`/`--max-lines`/`--min-lines` size-skip (whole-PR-vs-base, composes, unknown size reviewed), `--no-skip`, account/env
   isolation, one-`auto`-per-repo, `--worktree` / `--worktree-remove` (dirty guard),
   **`--detach` (backgrounded, requires `--review`), `auto list`/`auto attach <id>`/
-  `auto stop <id>`, `auto cron add --start/--end` (requires `--review`,
+  `auto stop <id>`, `--log [maxSize]` timestamped run logs under
+  `~/.branchdiff/auto-logs/<date>/<runId>/` with `auto log list / view --id /
+  delete` (head+tail capped, `--log 5MB` value form, works on cron schedules too),
+  `auto cron add --start/--end` (requires `--review`,
   launchd LaunchAgent on macOS / crontab on Linux — OS-detected so it actually
   fires on a Mac, Unix-only) / `auto cron list` / `auto cron remove --id` / `auto stop
-  --cron-id`**, config file support (`~/.branchdiff/config.json` global + `.branchdiff.json`
+  --cron-id` / `cron removeall`**, destructive-command gates (`(y/N)` prompt,
+  `--force` skips, non-TTY refuses with exit 1 — covers `clear`, `prune`,
+  `state reset`, `auto log delete`, both `cron removeall`s), config file support
+  (`~/.branchdiff/config.json` global + `.branchdiff.json`
   per-repo, `defaults`/`auto` keys, CLI > repo > global precedence, `auto.exec`/
   `auto.tool` global-or-CLI-only, `branchdiff config` / `config sample [--force]`,
   and named reviewer-error reasons (rate-limit / overload / billing /
@@ -323,7 +332,8 @@ on every feature slide — never describe an action without showing how to do it
   draft/ready/edit), create PR, push-before-request-changes, approve-with-comments,
   `pr`/`sync`/`session`/`list`/`kill`/`info`/`doctor`/`update` CLI,
   `branchdiff stats` usage dashboard (`--repo` scope, `--json`/`--share`,
-  `--days`/`--since`/`--until`/`--today` window, Configs viewer + per-section Refresh) aggregating across every repo by
+  `--days`/`--since`/`--until`/`--today` window, Configs viewer + per-section
+  Refresh, linkable `#stats-section-…` sections + sticky filter/jump bar) aggregating across every repo by
   default, `config --json`/`--dir`/`sample --full`, `export`/`import` portable session bundles (`--conflict
   merge|skip|overwrite`), shell completion, branch fetch/ff, stale-code
   refusal.
@@ -384,24 +394,47 @@ on every feature slide — never describe an action without showing how to do it
   slide 5) and `B-15/change-map-on-demand.png` (the toolbar view-on-demand
   flow, slide 7) — both mermaid-sourced, see §6.
 
+### Deck 10 — Terminal & Editor
+- **Problem:** the doorway. Everything branchdiff does lives behind a URL or a
+  subcommand — remembering either is friction, and editor-native engineers
+  never build the habit. Every earlier itch was about the review; this one was
+  about the entrance.
+- **Solve:** two new front doors to the same local server — `branchdiff view`,
+  a full-screen Ink TUI picker for the terminal, and a VS Code extension for
+  the editor. Same server, same local data, no new trust surface.
+- **Features:** `view` menu (Stats, Browse running instances, Kill all, New
+  comparison, Config, Branches · History · Search, Auto sessions · Cron,
+  Guideline, Changelog) with `j/k` + digit-jump, `r` refresh, `q`/`Esc` back;
+  repo vs. all-repos rows; kill instances from the picker; non-TTY prints plain
+  `list` output. Extension: full web UI in an editor tab, activity-bar panel
+  with live counts, status-bar quick pick, Copy link / Open in browser,
+  zero-touch server adopt-or-start via the CLI registry file. `ui` config
+  section (global only — remembered diff file-list sort). Install: Open VSX or
+  the identical `.vsix` from the releases page.
+- **Assets:** none — code blocks only (terminal mockups for the `view` picker
+  and the install commands).
+
 ---
 
 ## 9. The hub (`index.html`)
 
 A standalone gallery page (same visual style) that:
-- Lists all 9 decks as cards (number, title, one-line problem, thumbnail) → each
-  links via `deckUrl(file)` (§4). A deck with no screenshot (decks 8 and 9)
+- Lists all 10 decks as cards (number, title, one-line problem, thumbnail) → each
+  links via `deckUrl(file)` (§4). A deck with no screenshot (decks 8, 9 and 10)
   renders a branded `no-thumb` placeholder instead of an empty box.
 - Has a **Get Started** section: install methods (npm/pnpm/yarn/pip/brew/scoop/apt/
   binary/npx) as copyable code chips + `branchdiff update` self-update note.
-- **Version coverage signal:** a `v2.2.2` badge in the topbar (the `.ver` class)
-  plus a hero line — "Decks cover branchdiff through v2.2.2 — multi-repo auto,
+- **Version coverage signal:** a `v2.3.2` badge in the topbar (the `.ver` class)
+  plus a hero line — "Decks cover branchdiff through v2.3.2 — multi-repo auto,
   detached server review, launchd-on-macOS / cron-on-Linux unattended runs,
   config file support, severity-gated approve, skip-PRs-by-size, a usage-stats
   dashboard with a Configs viewer, named reviewer-error reasons,
   click-to-open notifications, a zero-token change map for AI orientation, AI
-  token/cost tracking in stats, `--stack` ancestor PR context, and an
-  in-browser update badge." Footer links to the user
+  token/cost tracking in stats, `--stack` ancestor PR context, an
+  in-browser update badge, `(y/N)`-gated destructive commands with timestamped
+  run logs, new diff-page shortcuts and a sortable file list, linkable Stats
+  sections, and two new front doors: the `view` terminal picker and a VS Code
+  extension on Open VSX." Footer links to the user
   guide / changelog / GitHub. Bump both when a new version's features land.
 - **Data-driven:** decks come from a single `DECKS = [...]` array. Adding a deck =
   drop the file in the dir + add one `{n, file, title, hook, thumb}` entry. No

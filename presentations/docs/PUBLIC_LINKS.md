@@ -58,6 +58,8 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
   - Blog (B-21): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Configure%20Once%2C%20Review%20Everywhere%20-%20branchdiff's%20Config%20System%20and%20Multi-Repo%20auto.md
 - Deck 9 — Change Map: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/09-change-map.html
   - Blog (B-20): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/branchdiff/Build%20Your%20Own%20CodeRabbit%20With%20branchdiff%20auto%20-%20Unattended%20AI%20PR%20Review%2C%20On%20Your%20Terms.md
+- Deck 10 — Terminal & Editor: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-5-branchdiff-features/10-terminal-and-editor.html
+  - Blog (B-28, extension half): https://github.com/Encryptioner/blogs/blob/master/topics/Productivity/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Install%20(VS%20Code%2C%20Zed%2C%20and%20Friends).md
 
 ## P-6 — Domain-Driven Design
 

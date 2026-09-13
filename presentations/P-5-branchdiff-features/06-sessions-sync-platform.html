@@ -276,7 +276,7 @@
         <li><b><span class="mono">stats</span></b> — usage dashboard across every repo, with a shareable markdown summary.</li>
         <li><b><span class="mono">export · import</span></b> — move a session's history to another machine or a teammate.</li>
         <li><b><span class="mono">doctor · info · update</span></b> — health check, repo fingerprint, self-update.</li>
-        <li><b>Update badge in the browser, too.</b> An amber dot on the toolbar's <span class="mono">⋮</span> button flags a new release — <span class="mono">Check for updates</span>, then <span class="mono">Update now</span> streams the install output right in the modal, no terminal needed.</li>
+        <li><b>Update badge in the browser, too.</b> An amber dot on the toolbar's <span class="mono">⋮</span> button flags a new release — and the same dot shows on shared-instance pages, so a link someone else opened tells them too. <span class="mono">Check for updates</span>, then <span class="mono">Update now</span> streams the install output right in the modal and finishes with the release's changelog highlights, no terminal needed.</li>
         <li><b>Shell completion</b> (bash + zsh) and offline <span class="mono">guide</span> / <span class="mono">changelog</span>.</li>
       </ul>
     </div>
@@ -292,6 +292,7 @@
         <li><b><span class="mono">--today</span> chip.</b> Scope to the calendar day, alongside <span class="mono">All</span> / <span class="mono">90d</span> / <span class="mono">30d</span> / <span class="mono">7d</span>; <span class="mono">--days</span> / <span class="mono">--since</span> / <span class="mono">--until</span> for any window; <span class="mono">--repo</span> to scope, <span class="mono">--json</span> / <span class="mono">--share</span> for scripts.</li>
         <li><b>Configs viewer.</b> Browse the resolved hierarchy for any launch dir — <span class="mono">defaults</span> → <span class="mono">auto</span> → per-repo → <span class="mono">exec/tool</span> — with a per-key table showing which tier won. Copy path / content / open in editor.</li>
         <li><b>Per-section Refresh.</b> A global refresh plus a button on each section — pull fresh auto sessions or cron schedules without reloading the page.</li>
+        <li><b>Every section is a link.</b> <span class="mono">#stats-section-…</span> hashes deep-link straight to a section, and a sticky filter/jump bar stays pinned while you scroll — share one section, not the whole page.</li>
         <li><b>Sessions table.</b> A new dashboard section listing every review session — repo, PR, tool, tokens, cost — so the token/cost tracking from <span class="mono">auto</span> (deck 05) rolls up into one place.</li>
       </ul>
       <div class="callout accent">
