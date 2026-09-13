@@ -175,17 +175,19 @@ bar.show();
 
 That `$(rocket)` is a **codicon** — a built-in icon from VS Code's icon font. Remember that phrase; it stars in the gotchas section.
 
-If your extension wraps an existing local web tool, the webview is the finish line: point an iframe in a webview panel at `http://localhost:PORT` and your entire UI now lives in an editor tab. Chromium treats localhost as trustworthy, so the http iframe doesn't trip security rules. That one trick — *embed, don't rebuild* — is the thin-client principle in code.
+If your extension wraps an existing local web tool, the webview is the finish line: point an iframe in a webview panel at `http://localhost:PORT` and your entire UI now lives in an editor tab. Chromium treats localhost as trustworthy, so the http iframe doesn't trip security rules. One refinement worth stealing: reuse a single "main" panel and repoint its `src` on navigation instead of spawning a tab per click — it behaves like a browser tab, not a pile of them. That one trick — *embed, don't rebuild* — is the thin-client principle in code.
 
 ### Lessons that cost me an afternoon each
 
 These are the things the docs mention in one buried line and reality teaches loudly. Consider this section the fee I already paid on your behalf.
 
-**Status bar icons are codicons only.** `StatusBarItem` cannot render a custom SVG — the API simply has no `iconPath` on it. You use the built-in codicon font (`$(rocket)`, `$(git-compare)`, `$(sync)`) or you use text. Custom icons go in the sidebar and editor tabs, which *do* accept SVGs. I verified this the hard way, against the latest type definitions, after wondering why nothing rendered.
+**Status bar icons are codicons only.** `StatusBarItem` cannot render a custom SVG — the API simply has no `iconPath` on it. You use the built-in codicon font (`$(rocket)`, `$(git-compare)`, `$(sync)`) or you use text. Custom icons go in the sidebar and editor tabs, which *do* accept SVGs — but the rules differ per surface: the activity bar alpha-masks your SVG and repaints it in the theme color (draw with `currentColor` and punched holes), while editor-tab icons want a `{light, dark}` pair because the tab background flips with the theme. I verified this the hard way, against the latest type definitions, after wondering why nothing rendered.
 
 **Manifest changes sometimes need a full restart, not a reload.** Some `contributes` entries — icons, view containers, menus — are only read when the extension host starts. `Developer: Reload Window` picks up your *code*; if a new icon or view stubbornly refuses to appear, fully quit the host window and relaunch. This one had me convinced my icon path was wrong for an embarrassingly long time.
 
 **Webviews are sandboxed, and they fail silently.** A webview is a locked-down browser. `window.open()` and `target="_blank"` links do *nothing* — no error, no console spam, just silence. If your embedded UI needs to open things, your webview code must `postMessage` the URL to the extension, which decides: same-server link → open a new webview tab; external link → `vscode.env.openExternal()`. Also set `retainContextWhenHidden: true` when you create the panel, or the webview's state resets every time the user switches tabs. There's a memory cost; for a dashboard it's worth it.
+
+Two more traps live inside that same iframe. Keystrokes land in it, where the editor's keybindings can't see them — your embedded app has to forward the workbench escapes (`Ctrl+Shift+P`, `Ctrl+P`, the sidebar toggles) to the extension over `postMessage`, and the extension replays a short whitelist of commands, nothing more. And the editor's theme only reaches the iframe after a message round trip, so a fresh load briefly falls back to the *OS* theme — pass it in the iframe's URL (`?theme=dark`) and apply it with an inline script before your stylesheets load, or dark-theme editors on light-OS machines flash the wrong theme on first paint.
 
 **Windows spawns need a shell.** If your extension launches a local tool and it works on your Mac but dies for Windows users: npm-installed CLIs are `.cmd` shim files on Windows, and those can't be spawned directly. Pass `shell: true` in your spawn options. This is the classic "works on my machine" bug of extension development, and Windows users will find it for you.
 
@@ -202,7 +204,7 @@ npm install --save-dev @vscode/test-electron
 # package.json: "test": "node out/test/runTest.js" (the scaffold has this)
 ```
 
-Because it's "a real editor, headless," it also runs in CI on all three operating systems. If you ship to strangers, do this: a test that asserts your commands are registered and your endpoints answer catches the entire class of "the extension loaded but nothing works" bug reports. Then keep a small manual checklist for what automation can't see — icons rendering, panels looking right, keyboard shortcuts firing. Two lists, both short.
+Because it's "a real editor, headless," it also runs in CI on all three operating systems. If you ship to strangers, do this: a test that asserts your commands are registered and your endpoints answer catches the entire class of "the extension loaded but nothing works" bug reports. One quirk to know before it bites: the test host rejects a module that merely runs itself — it must export a `run()` function. Then keep a small manual checklist for what automation can't see — icons rendering, panels looking right, keyboard shortcuts firing. Two lists, both short.
 
 ---
 
@@ -264,7 +266,7 @@ VS Code has the gentlest on-ramp, but it's not the only editor people love. Here
 
 Zed takes the opposite bet from VS Code on extension power. Extensions are written in **Rust**, compiled to **WebAssembly**, and run in a sandbox. The manifest is an `extension.toml` file; you test locally by installing your folder as a "dev extension," and publishing means opening a pull request against Zed's central extensions repository — with a license file at the root of your repo (open source is required) and CI checking your submission.
 
-What Zed extensions can be: **language support** (tree-sitter grammars, language servers you can now download on demand), **themes and icon themes**, **snippets**, **slash commands** for the assistant, **debug adapters**, and **MCP context servers** — the integration path for connecting Zed's assistant to your own tools.
+What Zed extensions can be: **language support** (tree-sitter grammars, language servers you can now download on demand), **themes and icon themes**, **snippets**, **debug adapters**, and **MCP context servers** — the integration path for connecting Zed's assistant to your own tools. (Slash commands used to be on this list too; Zed removed the text-threads surface they lived in, and they're unreachable from any UI now.)
 
 What they still can't be: **anything with its own UI.** No sidebars, no panels, no status bar items of your own. Extensions can now request narrowly-scoped capabilities — running specific commands, downloading files from specific hosts, installing named npm packages — but there's no general "draw a window" API. A Visual Extension API exists as an open proposal, and until it lands, Zed extensions are ingredients, not apps.
 
