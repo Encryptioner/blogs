@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T08:18:07.771Z",
+  "generatedAt": "2026-09-13T08:23:11.821Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
@@ -89,8 +89,8 @@
       "title": "Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others)",
       "topic": "Development",
       "subtopic": null,
-      "description": "--- title: \"Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)\" published: 2026-09-13 tags: vscode, ide-extensions,…",
-      "words": 5052,
+      "description": "Every developer has one. That small thing your editor almost does — the command you retype ten times a day, the info you keep switching to a browser to check,…",
+      "words": 5025,
       "readingTime": 25,
       "date": "2026-09-13",
       "firstDate": "2026-09-13",
