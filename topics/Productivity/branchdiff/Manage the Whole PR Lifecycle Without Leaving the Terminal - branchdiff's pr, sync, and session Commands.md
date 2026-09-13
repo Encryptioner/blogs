@@ -38,7 +38,7 @@ $ branchdiff pr merge --strategy squash
 Merged PR #482 (github:acme/api)
 ```
 
-(`merge --strategy squash` did what it says — the confirmation line just names the repo, not the strategy.)
+(`merge --strategy squash` did what it says — the confirmation line just names the repo, not the strategy. That `URL:` line is a clickable OSC 8 hyperlink wherever the terminal supports them, so the PR is one click away without copying the raw URL.)
 
 `pr info` also takes `--json` — the form a script or an AI agent actually parses to decide whether approving or merging is safe (is it a draft? are there unresolved reviewers?).
 
@@ -73,7 +73,7 @@ Pulled from PR (github:acme/api)
   New threads: 2  New replies: 0  Skipped: 5
 ```
 
-This is the CLI equivalent of the browser's Sync All button — scriptable, so both directions are one command. A pass can push its freshly-posted comments to the actual PR, or pull in what a human reviewer added on GitHub since your last local pass. `sync push-thread` pushes just one thread without syncing everything else pending.
+This is the CLI equivalent of the browser's Sync All button — scriptable, so both directions are one command. A pass can push its freshly-posted comments to the actual PR, or pull in what a human reviewer added on GitHub since your last local pass. Pulled comments are matched by their platform comment id, so re-pulling after a force-push re-anchors the threads to the same review comments instead of duplicating them. `sync push-thread` pushes just one thread without syncing everything else pending.
 
 ---
 
@@ -115,7 +115,7 @@ Kept .worktrees/pr-510 (uncommitted changes)
 Pruned 1 worktree, kept 1
 ```
 
-It also picked up its own cron scheduling, same shape as `auto cron`: `prune-worktrees cron add/list/remove/removeall` schedules recurring prunes in their own namespace, shown alongside `auto`'s schedules in the Stats dashboard (a script polling that dashboard can ask for just the relevant slice with `branchdiff stats --json --sections sessions` instead of paying for the full aggregate). For a script or agent driving `--worktree` reviews at scale, this is the other half `--worktree` was missing — cleanup now tidies the session state, not just the checkout on disk.
+It also picked up its own cron scheduling, same shape as `auto cron`: `prune-worktrees cron add/list/remove/removeall` schedules recurring prunes in their own namespace (and `removeall` asks a `y/N` confirmation before wiping them — `--force` skips it), shown alongside `auto`'s schedules in the Stats dashboard (a script polling that dashboard can ask for just the relevant slice with `branchdiff stats --json --sections sessions` instead of paying for the full aggregate). For a script or agent driving `--worktree` reviews at scale, this is the other half `--worktree` was missing — cleanup now tidies the session state, not just the checkout on disk.
 
 ![prune-worktrees flow: a PR is merged or closed, prune-worktrees checks whether the worktree has uncommitted changes, stopping the session server and removing the worktree if not, keeping both if it does, with cron add scheduling recurring prunes](../../../assets/B-22/prune-worktrees-flow.png)
 
@@ -151,7 +151,7 @@ $ branchdiff agent clear-threads --yes
 Deleted 6 threads
 ```
 
-`clear-threads` is all-or-nothing for the session — there's no filter to clear only dismissed or only resolved threads, it wipes every thread in the active session. `--yes` skips the confirmation prompt; running from a non-interactive shell (a script, a CI job) skips it automatically either way, same rule as everything else unattended in this piece.
+`clear-threads` is all-or-nothing for the session — there's no filter to clear only dismissed or only resolved threads, it wipes every thread in the active session. `--yes` skips the confirmation prompt; running from a non-interactive shell (a script, a CI job) skips it automatically either way. The commands that delete data outside a session — `clear`, `prune`, `state reset`, `auto log delete`, both `cron removeall`s — hold themselves to the stricter rule: they prompt `(y/N)`, `--force` skips the prompt, and with no terminal to answer they refuse and exit 1 rather than delete anything unattended.
 
 ---
 
@@ -168,7 +168,7 @@ Error: Multiple branchdiff instances for this repo. Specify one:
   Example: branchdiff pr info --port 5391
 ```
 
-This matters most in exactly the multi-agent scenario this post is about — several branchdiff sessions running concurrently for different PRs, each driven by its own script instance, none of them stepping on each other by accident.
+This matters most in exactly the multi-agent scenario this post is about — several branchdiff sessions running concurrently for different PRs, each driven by its own script instance, none of them stepping on each other by accident. For a human mid-way through that pile, `branchdiff view` opens the same inventory as a full-screen picker — browse the running instances, jump into one, kill any of them — no flags to remember.
 
 ---
 
@@ -263,6 +263,7 @@ npm install -g @encryptioner/branchdiff
 #          && brew install branchdiff
 
 branchdiff https://github.com/org/repo/pull/N --no-open   # open a PR session headlessly
+branchdiff view                                            # full-screen picker: instances, sessions, cron
 branchdiff agent guide                                     # full CLI reference for agents
 branchdiff agent list --status open                        # check what's still open
 branchdiff sync push                                        # push local comments to the PR

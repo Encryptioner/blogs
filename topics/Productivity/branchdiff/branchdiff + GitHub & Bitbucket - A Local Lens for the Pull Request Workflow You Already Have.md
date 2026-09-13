@@ -6,7 +6,7 @@ Open the PR. Switch to your editor to search for the function being changed. Swi
 
 By the time you post your review, you have made twenty tab switches to do ten minutes of actual reading. That friction is not a big problem. It is a hundred small ones. And small frictions are the exact things that cause engineers to put review off until Friday afternoon when they are too tired to read carefully.
 
-**branchdiff is not a replacement for GitHub or Bitbucket.** It is a local browser app that sits beside your editor and handles the reading, marking, commenting, and lifecycle actions — while every click that matters (merge gate, approval, audit trail, CI status) still happens on the platform, through the same APIs you would use anyway. The PR on the platform is still the source of truth. branchdiff is just a better cockpit for the part of review that does not benefit from being a cloud round-trip.
+**branchdiff is not a replacement for GitHub or Bitbucket.** It is a local app that sits beside your editor — or, with the VS Code extension, right inside it as an editor tab — and handles the reading, marking, commenting, and lifecycle actions — while every click that matters (merge gate, approval, audit trail, CI status) still happens on the platform, through the same APIs you would use anyway. The PR on the platform is still the source of truth. branchdiff is just a better cockpit for the part of review that does not benefit from being a cloud round-trip.
 
 This post explains how those two layers fit together — what lives where, and why the seam is designed the way it is.
 
@@ -46,11 +46,11 @@ branchdiff https://github.com/owner/repo/pull/123
 branchdiff https://bitbucket.org/workspace/repo/pull-requests/45
 ```
 
-It resolves the base and head refs, runs `git fetch` if needed, and opens a browser tab at `http://localhost:5391` with the diff rendered — syntax highlighting for 150+ languages, split or unified view, a sidebar of changed files, keyboard navigation (`j`/`k` next/previous file, `n`/`p` next/previous hunk). The PR on the platform is untouched.
+It resolves the base and head refs, runs `git fetch` if needed, and opens a browser tab at `http://localhost:5391` with the diff rendered — syntax highlighting for 150+ languages, split or unified view, a sidebar of changed files, keyboard navigation (`j`/`k` next/previous file, `n`/`p` next/previous hunk, `m` change map, `w` whitespace-only changes, `Shift+C`/`Shift+F` collapse/reopen the sidebar's Commits and Files panels). The PR on the platform is untouched.
 
 Named-ref comparisons (`main..feature`) get a **persistent review session** backed by a local SQLite file in `~/.branchdiff/`. Inline comments survive new commits — same idea as a GitHub PR thread, but stored on your machine, readable instantly, without a round-trip. If the author force-pushes mid-review, your view markers and drafts stay intact.
 
-Multiple sessions are the default, not a workaround. Each unique ref pair opens on its own port — the second session on `5392`, the third on `5393`, and so on. Reviewing a teammate's PR while working on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running.
+Multiple sessions are the default, not a workaround. Each unique ref pair opens on its own port — the second session on `5392`, the third on `5393`, and so on. Reviewing a teammate's PR while working on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running, and `branchdiff view` wraps that same inventory in a full-screen terminal picker where you can jump to or kill any session without remembering a flag.
 
 ---
 
@@ -160,6 +160,8 @@ npm install -g @encryptioner/branchdiff
 
 branchdiff https://github.com/your-org/your-repo/pull/123
 ```
+
+Prefer not to type URLs at all? `branchdiff view` is a full-screen terminal picker — running sessions, a new comparison, Stats, History, Changelog — navigated with arrows or digits. And the [VS Code extension](https://open-vsx.org/extension/Encryptioner/branchdiff) (Open VSX, or a manual `.vsix` from the releases page) embeds the whole UI in an editor tab, adopting or starting the local server on its own.
 
 Click the PR badge in the toolbar, watch the reviewer pills populate, push a comment back, check that it appears on the PR. The point is not "branchdiff vs. GitHub" — it is to see where your current review workflow keeps a tab open that does not need to be open.
 

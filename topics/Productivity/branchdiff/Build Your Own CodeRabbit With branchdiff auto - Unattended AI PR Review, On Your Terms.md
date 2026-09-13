@@ -24,7 +24,7 @@ Fetching remote refs...
   Review which? (numbers comma-separated, 'a'=all, 'q'=quit) a
 ```
 
-Only PRs that actually need a fresh look show up here — one already reviewed at its current commit is counted and skipped silently, never printed as a row you have to scroll past.
+Only PRs that actually need a fresh look show up here — one already reviewed at its current commit is counted and skipped silently, never printed as a row you have to scroll past. A force-push counts as movement too: the PR is re-reviewed at its new head, even when the push rewrote history rather than adding to it.
 
 Two filters keep the candidate list relevant instead of running against everything in the repo: `--source <branch>` and `--dest <branch>` narrow by branch name, so a nightly job for release PRs only can target `--dest main` and ignore feature-branch noise. `--watch <minutes>` turns the one-shot scan into a loop — check every N minutes, review whatever changed, sleep, repeat — which is the difference between "a script I remember to run" and "a bot that is just running."
 
@@ -97,6 +97,8 @@ The result: the AI reviewer walks into every non-trivial diff with a map already
 The default posture is read-only and local. `auto` runs the review, writes comments into your local session database, and stops there — nothing reaches the actual PR unless you pass `--push`. You can let it run against every open PR in a repo all week and the worst case is a pile of local drafts you never look at.
 
 The second guard is about *unattended* specifically. Run `auto` from a cron job or a CI shell with no TTY, and it refuses outright unless `--review` was explicitly passed to skip the interactive PR-selection prompt. There is no code path where a headless process silently starts reviewing PRs because nobody was watching — you have to opt in on purpose, every time.
+
+The same discipline applies to the commands that *delete* things. `auto log delete`, `auto cron removeall`, `prune-worktrees cron removeall`, `clear`, `prune`, and `state reset` all confirm with a `(y/N)` prompt first; `--force` skips it, and a non-interactive shell gets a refusal and exit 1 instead of a prompt that hangs forever. A cron-fired or scripted invocation can never destroy state by accident — it has to say `--force` out loud.
 
 ```bash
 # fails on purpose in a non-interactive shell:
@@ -178,6 +180,8 @@ This is the actual "always-on bot" capability — the part that makes it fair to
 
 `--detach` forks `auto` into the background: the terminal returns immediately, output streams to a session-scoped log file, and the process survives closing your terminal or SSH session. It requires `--review`, for the same reason as before — a backgrounded process can never answer an interactive prompt.
 
+Add `--log` and the run also records a timestamped, leveled log of everything it printed — its own output and every child's — filed by date under `~/.branchdiff/auto-logs/<date>/<runId>/`. It works in the foreground, under `--detach`, and inside cron schedules, and takes an optional size cap as its value (`--log 5MB`, anything from 100KB up) so a multi-day `--watch` run on a small disk keeps its head and tail and drops only the middle. Detached session logs get the same timestamps and cap even without `--log`.
+
 ```bash
 branchdiff auto --dest main --review --push --tool claude --detach
 ```
@@ -188,7 +192,7 @@ Started detached auto session 3f2a9c21-...-b8e0 (pid 42117).
   branchdiff auto attach 3f2a9c21-...-b8e0   # follow it live (once available)
 ```
 
-`branchdiff auto list` shows every live detached session — id, repo(s), pid, mode, watch interval, log path (`--json` for scripts). `branchdiff auto attach <id>` read-only tails the log (Ctrl-C stops watching, never the session itself). `branchdiff auto stop <id>` sends it the same signal a foreground Ctrl-C would.
+`branchdiff auto list` shows every live detached session — id, repo(s), pid, mode, watch interval, log path (`--json` for scripts) — and prints one pointer to a run's `--log` recording, not two. `branchdiff auto attach <id>` read-only tails the log (Ctrl-C stops watching, never the session itself). `branchdiff auto stop <id>` sends it the same signal a foreground Ctrl-C would. When a run was recorded, `branchdiff auto log list` groups the recordings under date headings, `auto log view --id <runId> [--lines n]` replays one (or tails a run that's still live), and `auto log delete` removes by run id, by date, or everything — behind the `(y/N)` confirmation above.
 
 The live echo you're tailing got more useful too: during a tracked `claude`/`opencode` pass it now shows thinking and tool calls as they happen, not just the final reply — `[thinking] ...` and `[tool] <name>: <headline arg>` lines interleaved with the reply text, closer to what an interactive session actually shows. Worth knowing if you're pairing `--notify` with `attach` to watch a run live rather than just get pinged at the end.
 
@@ -200,7 +204,7 @@ branchdiff auto cron add \
   --dest main --tool claude --review --approve 1 --push --watch 30
 ```
 
-One easy trap: `cron add` doesn't add `--watch` for you. Without it, the 10am job fires once, reviews whatever's open at that instant, and exits — it won't keep catching new commits until the 8pm job stops it. Pass `--watch <n>` yourself if the point is covering the whole window, same as running `auto` by hand.
+One easy trap: `cron add` doesn't add `--watch` for you. Without it, the 10am job fires once, reviews whatever's open at that instant, and exits — it won't keep catching new commits until the 8pm job stops it. Pass `--watch <n>` yourself if the point is covering the whole window, same as running `auto` by hand. Add `--log` to the schedule and every fired run is recorded under `auto-logs/` like a detached one — `cron add` says so when it writes the schedule. Removing every schedule at once (`auto cron removeall`) asks for confirmation first, same as the other destructive commands.
 
 ```bash
 branchdiff auto cron list
@@ -239,7 +243,7 @@ branchdiff auto --dest main --review --push --worktree --parallel 3
 
 **The change map is structural, not semantic.** Import wiring, symbol names, doc-comment presence — all of that is a parse, not an understanding. It can tell you area A is now wired to area B via a specific new function; it cannot tell you whether that wiring is *correct*. Treat the diagram as orientation for the review, not as a verdict on the change.
 
-**`--detach` and `cron` mean it runs while you're not looking.** That is the whole point, but it also means a bad prompt or a misconfigured `--exec` command runs unattended too. When a review does fail, branchdiff tells you why by name — rate-limit, overload, billing, missing API key, timeout — rather than an opaque error, and `--debug` writes the full stack trace to per-run logs under `~/.branchdiff/logs/`. Start with `--notify` on and check `branchdiff auto attach <id>` regularly until you trust the setup.
+**`--detach` and `cron` mean it runs while you're not looking.** That is the whole point, but it also means a bad prompt or a misconfigured `--exec` command runs unattended too. When a review does fail, branchdiff tells you why by name — rate-limit, overload, billing, missing API key, timeout — rather than an opaque error, and `--debug` writes the full stack trace to per-run debug logs under `~/.branchdiff/logs/` (a different root from the `auto-logs/` recordings `--log` keeps — debug traces versus the run's own timestamped output). Start with `--notify` on and check `branchdiff auto attach <id>` regularly until you trust the setup.
 
 **Size gating is a proxy, not judgment.** A 400-line PR that touches billing logic is riskier than a 4,000-line PR that's entirely generated fixtures. `--max-lines` catches the obvious cases, not the subtle ones.
 

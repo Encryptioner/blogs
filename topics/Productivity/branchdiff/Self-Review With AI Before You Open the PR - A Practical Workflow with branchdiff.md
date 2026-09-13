@@ -36,9 +36,9 @@ branchdiff main feature/payments
 
 A browser tab opens at `http://localhost:5391`. Because you are comparing two named refs, this is a **persistent session** — comments you (or the AI) post here survive new commits to either branch. You can iterate across multiple rounds of fixes without losing the review trail. If you want a fresh start, `--new` archives the current session and creates a clean one; archived sessions stay queryable via `branchdiff review threads --session <id>`.
 
-The diff renders with split or unified view, syntax highlighting for 150+ languages, a sidebar of changed files, and keyboard shortcuts (`j`/`k` for next/previous file, `n`/`p` for next/previous hunk).
+The diff renders with split or unified view, syntax highlighting for 150+ languages, a sidebar of changed files, and keyboard shortcuts (`j`/`k` for next/previous file, `n`/`p` for next/previous hunk, `m` change map, `w` whitespace-only changes, `Shift+C`/`Shift+F` collapse/reopen the sidebar's Commits and Files panels).
 
-Before you run anything AI-assisted, it's worth glancing at the change map. Once a diff crosses 3 files or 80 changed lines, `branchdiff agent diff` and the review skill compute one automatically — a local, deterministic block showing which areas of the branch moved, which are wired together by imports, whether the diff reads as one coherent change or several unrelated ones, with a rendered diagram per wired section. No AI tokens spent on it. There's also a toolbar button to pull it up on demand, without starting a review at all — a good very-first move on your own branch, before you even run `/branchdiff-review`, just to see the shape of what you changed.
+Before you run anything AI-assisted, it's worth glancing at the change map. Once a diff crosses 3 files or 80 changed lines, `branchdiff agent diff` and the review skill compute one automatically — a local, deterministic block showing which areas of the branch moved, which are wired together by imports, whether the diff reads as one coherent change or several unrelated ones, with a rendered diagram per wired section. No AI tokens spent on it. There's also a toolbar button — or just press `m` — to pull it up on demand, without starting a review at all — a good very-first move on your own branch, before you even run `/branchdiff-review`, just to see the shape of what you changed.
 
 ### Step 2 — run an AI review pass
 
@@ -104,7 +104,7 @@ The features that make a teammate's 40-file PR manageable pay equal dividends on
 
 **Viewed counter + stale detection.** Mark files viewed (eye icon or right-click) as you walk through. The sidebar shows `12 / 24 viewed`. Any file you marked viewed but later changed gets flipped to *stale* with an amber dot — staleness is detected via an FNV-1a hash on the diff signature, so a rebase that does not change the content does not invalidate your markers.
 
-**Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box. On the second pass after a set of fixes: *Filter → Stale* shows exactly which files need re-reading. There is a tenth — **Resolved**, files with a resolved thread, marked with a green ✓ pill; handy for confirming which of your earlier concerns are closed before you push.
+**Sidebar filters.** Nine filter chips — *Commented*, *Uncommented*, *Viewed*, *Unviewed*, *Stale*, *Collapsed*, *Expanded*, *Staged*, *Unstaged* — stack with the search box. On the second pass after a set of fixes: *Filter → Stale* shows exactly which files need re-reading. There is a tenth — **Resolved**, files with a resolved thread, marked with a green ✓ pill; handy for confirming which of your earlier concerns are closed before you push. The list itself is sortable — path, change type, or lines changed — and the choice is remembered per machine.
 
 **Collapse all / Expand all.** A quick high-level pass before diving in. Files with open comments are force-expanded so threads are never hidden behind a collapsed diff.
 
@@ -187,6 +187,7 @@ npm install -g @encryptioner/branchdiff
 #          && brew install branchdiff
 
 branchdiff skill add                         # one-time, for Claude Code
+branchdiff view                              # interactive picker: sessions, stats, history
 branchdiff main feature/your-branch          # opens local UI
 # in Claude Code:  /branchdiff-review
 # triage threads → fix → resolve → dismiss with reasons

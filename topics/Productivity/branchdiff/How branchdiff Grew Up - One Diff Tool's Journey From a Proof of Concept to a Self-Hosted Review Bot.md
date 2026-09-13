@@ -2,7 +2,7 @@
 
 Here is a sentence that sounds made up but is not: for the first four months I built a tool, and almost every meaningful feature in it came from something that annoyed me on a Tuesday. Not from a roadmap. Not from user research. From me, sitting in front of a pull request, thinking *there has to be a faster way to do this*.
 
-This is the story of how branchdiff went from one command that fixed a lie `git diff` was telling me, to a self-hosted bot that reviews pull requests across a whole directory of repos while I sleep. It is not a feature tour — there are six other posts for that. This is the build story: why each piece exists, the bugs that nearly broke it, and what building it did to how I think about software.
+This is the story of how branchdiff went from one command that fixed a lie `git diff` was telling me, to a self-hosted bot that reviews pull requests across a whole directory of repos while I sleep. It is not a feature tour — there are seven other posts for that. This is the build story: why each piece exists, the bugs that nearly broke it, and what building it did to how I think about software.
 
 ---
 
@@ -157,6 +157,14 @@ The second itch was smaller but stung in a familiar way. Once AI reviews were ru
 Both fixes are the same shape, really. The reviewer needed to be told who it was instead of guessing off a shared pointer. The AI needed to be told what was connected instead of guessing off a wall of hunks. Stop asking something to infer context you could just hand it.
 
 ![Journey epilogue: a human reading a cold diff with no orientation in v1.0 led branchdiff to fix that for humans, then an AI reading a cold diff with the same problem after auto shipped led to the change map's zero-token orientation, which raised the question of what it was actually costing, answered by stats tracking token and cost per tool and per repo](../../../assets/B-23/journey-epilogue.png)
+
+---
+
+## Then the front door mattered too
+
+The last itch was not a feature at all — it was a doorway. Every workflow above starts with a command and a URL, and the people who stuck with branchdiff were the ones already living in a terminal. So `branchdiff view` wraps everything — running sessions, a new comparison, Stats, History, Changelog, cron — in one full-screen terminal picker, arrows or digits, no flags to remember. The terminal was already the front door; it just got a lobby.
+
+And for the people who never leave the editor, the VS Code extension embeds the whole web UI in an editor tab — adopting a running local server or starting one on its own, with an activity-bar panel showing live counts and a status-bar quick pick. Install it from Open VSX, or grab the `.vsix` from the releases page. Same server, same local data; which window you happen to be sitting in stopped mattering. "Meet people where they are" turned out to be a loop, not a lesson — package managers, then platforms, then surfaces.
 
 ---
 

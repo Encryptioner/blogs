@@ -4,7 +4,7 @@ You open the PR. Thirty-eight files changed. You have already reviewed this one 
 
 This is code review for most engineers, most of the time. Not because the code is bad. Because the **mechanics around reading code** are poorly designed. Re-reading unchanged files, losing place after a force-push, copy-pasting between a diff view and an AI — none of that is the actual work of understanding intent. It is friction that accumulates until you give the PR an "LGTM" you do not mean, because you are tired and you have a meeting in ten minutes.
 
-This post is about a workflow that keeps the mechanics out of your way so you can put your attention on the part that actually requires attention. The tool is **branchdiff**: a local browser app that opens beside your editor, reads the diff from disk, and talks to GitHub or Bitbucket through the same `gh` CLI or REST API you would use anyway. The canonical PR stays on the platform. branchdiff is just the cockpit.
+This post is about a workflow that keeps the mechanics out of your way so you can put your attention on the part that actually requires attention. The tool is **branchdiff**: a local app that opens beside your editor — or inside it, via the VS Code extension — reads the diff from disk, and talks to GitHub or Bitbucket through the same `gh` CLI or REST API you would use anyway. The canonical PR stays on the platform. branchdiff is just the cockpit.
 
 ---
 
@@ -20,7 +20,7 @@ branchdiff fetches the PR head, opens a tab at `localhost:5391`, and shows the d
 
 Because this compares two named refs, the session is **persistent**. Comments survive new commits to either branch — stored locally in SQLite under `~/.branchdiff/`. If the author force-pushes mid-review, your view markers and draft comments are still there when you reopen. That single property is what makes branchdiff usable for reviews that take more than one sitting.
 
-Multiple PRs at once is the default. Each ref pair opens on its own port — second session on `5392`, third on `5393` — so reviewing your colleague's PR while iterating on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running. Same ref pair revisited? branchdiff reuses the existing session so you do not fragment the review across ports.
+Multiple PRs at once is the default. Each ref pair opens on its own port — second session on `5392`, third on `5393` — so reviewing your colleague's PR while iterating on your own branch in another tab is just two browser tabs. `branchdiff list` shows everything running, and `branchdiff view` does the same interactively — a full-screen terminal picker with jump-to and kill for any session. Same ref pair revisited? branchdiff reuses the existing session so you do not fragment the review across ports.
 
 If the PR already has comments from other reviewers, click `#123` → **Pull from PR**. Existing inline review comments come down as local threads anchored to the same lines, with author and timestamp preserved. Now you are reading the diff and the existing review in the same place, at the same time. That is the moment branchdiff stops feeling like a "diff viewer" and starts feeling like the actual review surface. Any image in a rendered comment or the PR description — a screenshot someone dropped in a thread — is click-to-fullscreen with zoom, the same viewer the change map uses.
 
@@ -46,7 +46,7 @@ There is also a **commit detail page**. Click any commit in the history sidebar 
 
 ## Step 3 — narrow the file list with sidebar filters
 
-The sidebar has nine filter chips that stack with the search box. Each one answers a specific question reviewers ask out loud:
+The sidebar has nine filter chips that stack with the search box, and the list is sortable — path, change type, or lines changed, remembered per machine. Each chip answers a specific question reviewers ask out loud:
 
 | Filter         | The question it answers                                              |
 | -------------- | -------------------------------------------------------------------- |
@@ -66,7 +66,7 @@ Filters auto-hide when inapplicable — no `Staged` chip on a branch comparison,
 
 There is a tenth chip — **Resolved**. Files with a resolved thread (a local resolve, or one resolved on the PR) get a green ✓ pill on the row; click **Resolved** to jump to the first one. It earns its keep on a re-review, the exact moment you care which concerns the author has closed.
 
-Two toolbar helpers work alongside the filters: **Collapse all** folds every file for a high-level pass; **Expand all** opens everything for a deep read. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.
+Two toolbar helpers work alongside the filters: **Collapse all** folds every file for a high-level pass; **Expand all** opens everything for a deep read. `Shift+C` and `Shift+F` collapse and reopen the sidebar's Commits and Files panels from the keyboard, alongside `m` for the change map and `w` to toggle whitespace-only changes. Files with open comment threads are force-expanded so threads are never hidden behind a collapsed diff.
 
 For working-tree reviews, the **staged / unstaged toggle** flips between `git diff --staged` and `git diff` without re-running the command. File rows show inline status badges — **S** (staged), **U** (unstaged), amber dot (stale), checkmark (viewed and current).
 
@@ -92,7 +92,7 @@ Full-file view + minimap together transform a "scrolling through hunks" review i
 
 ## Step 4.5 — orient yourself with the change map
 
-Before you scroll through forty files — or before you even kick off an AI pass in Step 5 — there is a faster question worth answering: what shape is this change? The toolbar's **Change map** button opens the same orientation diagrams the AI reviewer's general comment uses, in a modal, computed on demand. Nothing runs and no AI tokens get spent until you click it.
+Before you scroll through forty files — or before you even kick off an AI pass in Step 5 — there is a faster question worth answering: what shape is this change? The toolbar's **Change map** button — or the `m` key — opens the same orientation diagrams the AI reviewer's general comment uses, in a modal, computed on demand. Nothing runs and no AI tokens get spent until you click it.
 
 It shows which areas of the diff moved and by how much, which areas are wired together by imports (edges labeled with the actual new symbols the diff added — and if the diff gave one of those symbols a doc comment, the wired-to node's box folds that comment in), whether the PR is one coherent change or several unrelated ones stapled together, which areas are brand-new, and a titled diagram per wired section — rendered as mermaid or ASCII depending on the platform. A Mermaid/Ascii toggle switches format from that same fetch, and **Copy markdown** copies whichever format is showing.
 
@@ -171,7 +171,7 @@ npm install -g @encryptioner/branchdiff
 branchdiff https://github.com/your-org/your-repo/pull/123
 ```
 
-Add `branchdiff skill add` if you want the Claude Code slash commands. Everything else is in the toolbar.
+Add `branchdiff skill add` if you want the Claude Code slash commands. Everything else is in the toolbar — or in `branchdiff view` from the terminal, or the VS Code extension's side panel.
 
 The next time a teammate posts a 40-file PR in Slack, try opening it locally. Mark a few files viewed. Run a security audit pass. Push the comments back. See whether the review felt different — and whether you have more attention left for the parts that need it.
 

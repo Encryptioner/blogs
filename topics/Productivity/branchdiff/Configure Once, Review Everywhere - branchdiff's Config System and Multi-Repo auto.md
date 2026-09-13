@@ -15,7 +15,7 @@ branchdiff reads defaults from up to two JSON files:
 - **`~/.branchdiff/config.json`** — global, applies to every repo on the machine.
 - **`.branchdiff.json`** — local, dropped in a repo's root (or wherever you launch `auto` from).
 
-Each file has the same two top-level keys. `defaults` mirrors the root command's flags — the ones that control how a single diff view opens:
+Each file has the same top-level keys. `defaults` mirrors the root command's flags — the ones that control how a single diff view opens:
 
 ```json
 {
@@ -41,10 +41,13 @@ Each file has the same two top-level keys. `defaults` mirrors the root command's
     "worktree": true,
     "maxFiles": 200,
     "maxLines": 4000,
-    "skipAuthor": true
+    "skipAuthor": true,
+    "log": "5MB"
   }
 }
 ```
+
+`log` takes the same optional size value the `--log` flag does (`"10MB"`, anything from 100KB up), so a recording cap can become part of the policy instead of a flag you retype. A third section, `ui`, is one branchdiff maintains rather than one you edit — it remembers the diff file list's sort choice (path, change type, or lines changed) per machine, in the global file only.
 
 Drop the global file at `~/.branchdiff/config.json` and every repo on the machine inherits that policy — strictness level, which AI tool to drive, whether to push automatically — without a single flag on the command line. Now `branchdiff auto` alone does what the six-flag version used to do.
 
@@ -97,7 +100,7 @@ branchdiff config sample --global
 
 scaffolds a starter file — a handful of commonly-useful keys, not every possible flag — at `.branchdiff.json` or, with `--global`, at `~/.branchdiff/config.json`. It refuses to overwrite a file that already exists unless you pass `--force`, so running it a second time by habit doesn't clobber a config you've since hand-edited.
 
-For when that curated set isn't enough, use `config sample --full`: it writes *every* key that has a fixed built-in default, grouped under the correct `defaults`/`auto` section, instead of the starter handful. Keys that have no fixed default (`maxFiles`, `base`, `skillName`, …) aren't written into the JSON — but they're listed by name in a note beneath it, so you know they exist and can add them yourself when a repo actually needs them.
+For when that curated set isn't enough, use `config sample --full`: it writes *every* key that has a fixed built-in default, grouped under the correct `defaults`/`auto`/`ui` section, instead of the starter handful. Keys that have no fixed default (`maxFiles`, `base`, `skillName`, …) aren't written into the JSON — but they're listed by name in a note beneath it, so you know they exist and can add them yourself when a repo actually needs them.
 
 Two failure modes, handled differently on purpose:
 
@@ -160,7 +163,7 @@ And the exit code tells a script what happened without parsing that report: `0` 
 
 ![Auto push retry flow: a review pass posts comments locally, then a failed push to the PR is retried on the next cycle as a publish-only step, with no re-review and the existing verdict comment reused](../../../assets/B-21/auto-push-retry.png)
 
-`prune-worktrees` picked up two changes worth knowing before you cron it. It now stops the session server running on a `.worktrees/pr-*` checkout before removing that worktree — one you're keeping for uncommitted changes keeps its session alive, same as before. And it gained its own scheduling, `prune-worktrees cron add/list/remove/removeall`, the same shape as `auto cron`, with its schedules showing up alongside `auto`'s in the Stats dashboard.
+`prune-worktrees` picked up two changes worth knowing before you cron it. It now stops the session server running on a `.worktrees/pr-*` checkout before removing that worktree — one you're keeping for uncommitted changes keeps its session alive, same as before. And it gained its own scheduling, `prune-worktrees cron add/list/remove/removeall`, the same shape as `auto cron` (with `removeall` asking `(y/N)` first, `--force` to skip), with its schedules showing up alongside `auto`'s in the Stats dashboard.
 
 ---
 
@@ -185,7 +188,7 @@ Want only a slice of that aggregate — a script that needs totals but not the c
 
 The dashboard also gained a **Sessions** table: every review session with a real comparison behind it — PR-linked, a plain branch-pair, or a local snapshot — listing branches, files/lines reviewed, and review dates, with a click-through to full per-session detail (repo, reviewed commit, active/archived status, PR link, tool, pass count, tokens, cost). File-browser sessions with nothing to compare don't appear. Recent PRs now carries a jump link straight to its matching session row.
 
-The dashboard itself has two more things worth knowing about. A **Configs** section browses the resolved config hierarchy for any launch directory — `defaults` → `auto` → per-repo → `exec/tool` — with a per-key table showing which tier actually won, the same answer `branchdiff config --dir` prints but clickable, with copy-path / copy-content / open-in-editor on each file. And every section of the dashboard — running instances, auto sessions, cron schedules, configs — carries its own **Refresh** button, alongside a global one, so you can re-pull a single section on demand instead of reloading the page. That matters for `auto`: leave the dashboard open, hit Refresh on Auto sessions after a cron fire, and watch the latest runs land without re-navigating.
+The dashboard itself has two more things worth knowing about. A **Configs** section browses the resolved config hierarchy for any launch directory — `defaults` → `auto` → per-repo → `exec/tool` — with a per-key table showing which tier actually won, the same answer `branchdiff config --dir` prints but clickable, with copy-path / copy-content / open-in-editor on each file. And every section of the dashboard — running instances, auto sessions, cron schedules, configs — carries its own **Refresh** button, alongside a global one, so you can re-pull a single section on demand instead of reloading the page. That matters for `auto`: leave the dashboard open, hit Refresh on Auto sessions after a cron fire, and watch the latest runs land without re-navigating. Each section is also linkable — the `Jump to` pills write a `#stats-section-…` hash into the URL, so a bookmarked or shared link lands directly on the cron schedules (or any other section), and the filter and jump rows stay pinned to the top while a long dashboard scrolls under them.
 
 ---
 
