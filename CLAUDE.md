@@ -85,7 +85,6 @@ Content from this repository is published to:
 ### Accessibility Rules (enforce on every post)
 - **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.
 - **Every image needs meaningful alt text** — `![Description of content](path)` not `![](path)`. Screen readers read this aloud.
-- **Front matter**: `title`, `published`, `tags` (max 4, comma-separated), optional `cover_image` (1000×420), `series`, `canonical_url`.
 - Full reference: `guides/editor-guide.md`
 
 ### Diagrams (blogs and decks)

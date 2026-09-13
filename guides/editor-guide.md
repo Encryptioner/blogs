@@ -23,7 +23,5 @@
 ## Platform-Specific Notes
 
 ### DEV.to
-- Front matter required: `title`, `published`, `tags` (max 4, comma-separated)
-- Optional: `cover_image` (best size 1000×420), `series`, `canonical_url`
 - Embed external content with `{% embed URL %}` — tweets, GitHub issues, YouTube, etc.
 - Source: https://dev.to/p/editor_guide
