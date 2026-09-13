@@ -1,0 +1,8 @@
+flowchart TD
+    PKG["vsce package"] --> VSIX["one .vsix file"]
+    VSIX --> MS["VS Code Marketplace"]
+    VSIX --> OVX["Open VSX"]
+    VSIX --> FILE["Install from VSIX<br/>(no store, any editor,<br/>never auto-updates)"]
+    MS --> VSC["VS Code"]
+    OVX --> FORKS["Cursor · Windsurf · VSCodium<br/>Gitpod · Theia · Antigravity"]
+    OVX -.->|"also works in<br/>VS Code"| VSC

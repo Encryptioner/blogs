@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph MANIFEST["package.json — the manifest"]
+        direction TB
+        M1["contributes<br/>(commands, keybindings,<br/>views, settings)"]
+        M2["activationEvents<br/>(when to wake up)"]
+    end
+
+    subgraph CODE["src/extension.ts — your code"]
+        direction TB
+        C1["activate() / deactivate()"]
+        C2["Editor API<br/>(window, commands, workspace)"]
+    end
+
+    HOST["Extension host<br/>(separate process,<br/>crashes don't take<br/>the editor down)"]
+
+    subgraph SURFACES["Editor surfaces"]
+        direction TB
+        S1["Command Palette"]
+        S2["Status bar"]
+        S3["Sidebar panel"]
+        S4["Webview tab"]
+    end
+
+    MANIFEST --> HOST
+    CODE --> HOST
+    HOST --> SURFACES
