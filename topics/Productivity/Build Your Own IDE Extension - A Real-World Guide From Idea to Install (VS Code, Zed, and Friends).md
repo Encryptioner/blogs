@@ -266,9 +266,9 @@ VS Code has the gentlest on-ramp, but it's not the only editor people love. Here
 
 Zed takes the opposite bet from VS Code on extension power. Extensions are written in **Rust**, compiled to **WebAssembly**, and run in a sandbox. The manifest is an `extension.toml` file; you test locally by installing your folder as a "dev extension," and publishing means opening a pull request against Zed's central extensions repository — with a license file at the root of your repo (open source is required) and CI checking your submission.
 
-What Zed extensions can be: **language support** (tree-sitter grammars, language servers you can now download on demand), **themes and icon themes**, **snippets**, **debug adapters**, and **MCP context servers** — the integration path for connecting Zed's assistant to your own tools. (Slash commands used to be on this list too; Zed removed the text-threads surface they lived in, and they're unreachable from any UI now.)
+What Zed extensions can be: **language support** (tree-sitter grammars, language servers you can download on demand), **themes and icon themes**, **snippets**, **debug adapters**, and **MCP context servers** — the integration path for connecting Zed's assistant to your own tools.
 
-What they still can't be: **anything with its own UI.** No sidebars, no panels, no status bar items of your own. Extensions can now request narrowly-scoped capabilities — running specific commands, downloading files from specific hosts, installing named npm packages — but there's no general "draw a window" API. A Visual Extension API exists as an open proposal, and until it lands, Zed extensions are ingredients, not apps.
+What they still can't be: **anything with its own UI.** No sidebars, no panels, no status bar items of your own, and no general "draw a window" API. Extensions *can* reach outside the sandbox a little, through narrowly-scoped capability grants — running specific commands (`process:exec`), downloading files from specific hosts, installing named npm packages — but with nowhere to render a result, that power changes little. The Visual Extension API is an open proposal; until it lands, Zed extensions are ingredients, not apps.
 
 So what do you do if you love Zed and want your tool closer? Two honest answers:
 
