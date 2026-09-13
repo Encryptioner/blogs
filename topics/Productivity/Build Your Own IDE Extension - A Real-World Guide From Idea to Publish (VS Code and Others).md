@@ -1,4 +1,4 @@
-# Build Your Own IDE Extension: A Real-World Guide From Idea to Install (VS Code, Zed, and Friends)
+# Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others)
 
 > The most useful software you'll ever write might be the kind only you needed.
 
@@ -32,6 +32,24 @@ That diagram is the whole mental model for VS Code. Two files do almost everythi
 - **`src/extension.ts`** — your code. One function runs when the editor activates you (`activate`), one runs on shutdown (`deactivate`). Everything else is you calling editor APIs.
 
 One detail worth knowing because it makes extensions *safe to experiment with*: your code runs in a separate process the editor babysits, called the extension host. If your extension crashes, the editor doesn't. You cannot brick your setup by writing a bad extension. Worst case, you disable it. This is why the barrier to trying is much lower than it looks.
+
+---
+
+## The Many Shapes an Extension Can Take
+
+"Extension" sounds like one specific thing — a program, for programmers. It's really a whole family, and some of its most popular members barely involve code at all. A quick tour of the common types, because your idea might be a much smaller shape than you feared:
+
+- **Theme** — new colors and file icons for the whole editor. Pure JSON, zero code. Themes are one of the most crowded corners of the Marketplace, and most were built by people who would never call themselves extension developers.
+- **Snippets** — text templates that expand: type a short trigger, get a whole boilerplate block. Also mostly JSON.
+- **Syntax highlighter** — teaches the editor the colors of a new language. Usually a TextMate grammar file (`.tmLanguage`), no TypeScript required. This is how a brand-new language becomes readable in your editor overnight.
+- **Formatter** — hooks into format-on-save and tidies the whole file. Prettier reaches VS Code this way.
+- **Linter** — the red squiggles and the quick fixes. ESLint, you guessed it.
+- **Language server** — the heavyweight: autocomplete, go-to-definition, rename-everywhere. Built on the Language Server Protocol, which has a lovely property — one server works in VS Code, Neovim, Zed, JetBrains, basically everywhere at once.
+- **Debugger** — plugs the editor into a new runtime's debugging via the Debug Adapter Protocol.
+- **Keymap** — makes one editor feel like another. Vim keybindings for everything.
+- **The bridge** — wraps a tool you already love: a command, a number in the status bar, an embedded UI. The branchdiff shape, and the one this guide builds with you.
+
+The quiet punchline of that list: it's a ladder. A theme or a snippet pack is an afternoon with no code. A highlighter or formatter is a weekend. The full command-and-UI bridge is the rest of this guide. Most people who end up shipping extensions started on a bottom rung without noticing they'd climbed anything.
 
 ---
 
@@ -334,6 +352,7 @@ The most useful software you'll ever write might be the kind only you needed. Th
 ## Sources and Further Reading
 
 - [Your First Visual Studio Extension](https://code.visualstudio.com/api/get-started/your-first-extension) — official scaffolding-to-F5 walkthrough
+- [Extension Capabilities Overview](https://code.visualstudio.com/api/extension-capabilities/overview) — the official map of what extensions can be: themes, snippets, formatters, linters, language support
 - [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) — vsce, publishers, tokens, and the PAT-to-Entra transition
 - [Open VSX](https://open-vsx.org) — the marketplace for VS Code-family editors
 - [Zed Extension Capabilities](https://zed.dev/docs/extensions/capabilities) and the [Zed Publishing Guide](https://zed.dev/docs/extensions/publishing/publishing-guide.html) — what sandboxed extensions may do and how submissions work
