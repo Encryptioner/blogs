@@ -91,3 +91,8 @@ Blog numbers (B-NN) match [`INDEX.md`](../../../INDEX.md).
 - Main deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-10-zed-editor/index.html
 - Deep Dive — Internal Architecture: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-10-zed-editor/deep-dive.html
 - Blog: _none_ (deck-only topic, no companion post)
+
+## P-11 — Build Your Own IDE Extension
+
+- HTML deck: https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/P-11-build-your-own-ide-extension/index.html
+- Blog (B-28): https://github.com/Encryptioner/blogs/blob/master/topics/Development/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md

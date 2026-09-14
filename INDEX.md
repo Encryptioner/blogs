@@ -44,3 +44,4 @@
 8. Productivity: [How branchdiff Grew Up — The Build Story](./presentations/P-8-branchdiff-journey/index.html)
 9. Productivity: [Your Desk in Your Pocket — Remote Control for Mac & Ubuntu](./presentations/P-9-desk-in-your-pocket/index.html)
 10. Development: [Zed — The Editor That Treats Speed as a Feature](./presentations/P-10-zed-editor/index.html)
+11. Development: [Build Your Own IDE Extension — Idea to Publish](./presentations/P-11-build-your-own-ide-extension/index.html)

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Your Own IDE Extension — 11 · Idea to Publish, One .vsix, Every Editor</title>
+<meta name="description" content="The real-world path from 'my editor should do that' to a published extension: what extensions actually are, the five VS Code API surfaces, the gotchas that cost real afternoons, the Azure publishing detour, one .vsix into two stores, and an honest field guide to Zed, JetBrains, and Neovim.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>🧩</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+
+<style>
+:root{
+  --bg:#0B0F14;
+  --surface:#111823;
+  --elevated:#16202D;
+  --border:#223146;
+  --border-light:#2E4258;
+  --text:#E8EEF6;
+  --muted:#94A7BD;
+  --dim:#5F7488;
+  --accent:#4EA5FF;            /* VS Code blue — the editor itself */
+  --accent-2:#9CCBFF;
+  --accent-soft:rgba(78,165,255,.12);
+  --accent-glow:rgba(78,165,255,.30);
+  --violet:#B292FA;            /* other editors / field guide */
+  --violet-soft:rgba(178,146,250,.10);
+  --mint:#9AE66E;               /* good / shipped / verified */
+  --mint-soft:rgba(154,230,110,.10);
+  --danger:#FF8080;
+  --info:#6FB4FF;
+  --warn:#F2C55C;
+
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.16}
+.ambient .b1{width:620px;height:620px;background:var(--accent);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--violet);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:4.5vh 6vw 8vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+.compact .fig{margin:10px auto}
+.compact .fig img{max-height:38vh}
+.compact ul.bullets li{margin-bottom:9px}
+.compact .callout{padding:12px 18px;margin:10px 0}
+.compact .mode{padding:12px 14px}
+.compact .foot{padding-top:10px}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+h1.title{font-weight:800;font-size:clamp(2.6rem,6vw,5rem);line-height:1.04;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-weight:400;font-size:clamp(1.15rem,1.9vw,1.6rem);color:var(--muted);line-height:1.55;margin-bottom:26px;max-width:66ch}
+h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.14;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--accent)}
+p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .accent{color:var(--accent)} .violet{color:var(--violet)} .mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+ol.steps{list-style:none;counter-reset:step;margin:14px 0}
+ol.steps li{counter-increment:step;position:relative;padding-left:44px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ol.steps li::before{content:counter(step);position:absolute;left:0;top:2px;width:28px;height:28px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
+ol.steps li strong{color:var(--accent-2);font-weight:600}
+
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(78,165,255,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.accent strong{color:var(--accent)}
+.callout.mint{border-color:rgba(154,230,110,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))}
+.callout.mint strong{color:var(--mint)}
+.callout.danger{border-color:rgba(255,128,128,.28);background:linear-gradient(135deg,rgba(255,128,128,.06),var(--elevated))}
+.callout.danger strong{color:var(--danger)}
+.callout.warn{border-color:rgba(242,197,92,.28);background:linear-gradient(135deg,rgba(242,197,92,.06),var(--elevated))}
+.callout.warn strong{color:var(--warn)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block}
+.callout.danger .label{color:var(--danger)} .callout.mint .label{color:var(--mint)} .callout.warn .label{color:var(--warn)}
+
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,128,128,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(154,230,110,.30)} .box.good h4{color:var(--mint)}
+.box.warn{border-color:rgba(242,197,92,.30)} .box.warn h4{color:var(--warn)}
+.box p{font-size:clamp(.95rem,1.15vw,1.1rem);color:var(--muted);line-height:1.5;margin:0}
+.box p+p{margin-top:8px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.mode.violet h4{color:var(--violet)}
+.mode p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:140px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num.mint{color:var(--mint)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.86rem,1.15vw,1rem);color:var(--text);margin:14px 0;line-height:1.65;white-space:pre;overflow-x:auto}
+.code-block .c{color:var(--dim)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--mint)}
+.code-block .f{color:var(--info)}
+
+.fig{margin:16px auto;text-align:center;max-width:980px;cursor:zoom-in}
+.fig img{max-width:100%;max-height:50vh;object-fit:contain;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 16px 44px -20px rgba(0,0,0,.65);padding:6px}
+.fig-caption{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim);margin-top:9px;letter-spacing:.02em}
+.fig-caption b{color:var(--muted);font-weight:600}
+
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1.05vw,1rem)}
+thead th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--accent)}
+tbody th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(154,230,110,.32)}
+.tag.bad{color:var(--danger);border-color:rgba(255,128,128,.32)}
+.tag.warn{color:var(--warn);border-color:rgba(242,197,92,.32)}
+
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:28px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.78rem,.95vw,.9rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--accent);font-size:22px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){.pipeline{flex-direction:column;align-items:stretch}.pipeline .parr{transform:rotate(90deg);padding:8px 0}}
+
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(78,165,255,.32);border-radius:30px;background:var(--accent-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pill .dot.mint{background:var(--mint)} .pill .dot.violet{background:var(--violet)} .pill .dot.warn{background:var(--warn)}
+
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--accent);color:#08131F;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--accent-glow);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
+
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+
+@media (max-width:820px),(max-height:520px){
+  html,body{font-size:14px}
+  .slide{padding:3vh 5vw 7vh 5vw}
+  h3.section{font-size:clamp(1.3rem,5.6vw,1.7rem);margin-bottom:4px}
+  p.lead{font-size:1rem;line-height:1.45}
+  ul.bullets li,ol.steps li{font-size:.95rem;margin-bottom:8px;line-height:1.42}
+  ol.steps li{padding-left:36px} ol.steps li::before{width:24px;height:24px;font-size:11px}
+  .callout{padding:11px 14px;margin:9px 0;font-size:.92rem;line-height:1.42}
+  .box,.mode{padding:11px 13px} .box h4{font-size:11.5px;margin-bottom:6px} .box p,.mode p{font-size:.88rem;line-height:1.4}
+  .stat .num{font-size:1.5rem} .stat-row{gap:16px;margin:10px 0}
+  .code-block{font-size:.78rem;padding:10px 12px;line-height:1.5}
+  .vs,.three-col{gap:10px;margin:9px 0}
+  .pipeline .step{padding:10px 6px} .pipeline .step p{font-size:.8rem}
+  .fig img{max-height:36vh}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 01 · HERO -->
+  <section class="slide hero" data-title="Build your own IDE extension">
+    <span class="badge"><span class="dot"></span> Deck 11 · IDE extensions / dev tooling</span>
+    <h1 class="title">Build your own IDE extension. <em>Idea to publish.</em></h1>
+    <h2 class="subtitle">The real-world path from "my editor should do that" to a published extension — what extensions actually are, the five VS Code surfaces that cover almost every idea, the gotchas the tutorials don't warn you about, the Azure publishing detour nobody mentions, and an honest field guide to Zed, JetBrains, and Neovim.</h2>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span> Weekend-scale</span>
+      <span class="pill"><span class="dot mint"></span> One .vsix → two stores</span>
+      <span class="pill"><span class="dot violet"></span> VS Code + Cursor + Windsurf + VSCodium</span>
+      <span class="pill"><span class="dot warn"></span> Real gotchas, paid in afternoons</span>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="slide" data-title="Every developer has one">
+    <div class="slide-num">02 · the itch</div>
+    <h3 class="section">Every developer has <em>one</em>.</h3>
+    <p class="lead">That small thing your editor <em>almost</em> does. You've tolerated it for months. Maybe years.</p>
+    <ul class="bullets">
+      <li><strong>The command you retype ten times a day</strong> — the same 3–4 steps, every day, by hand.</li>
+      <li><strong>The info you keep switching to a browser to check</strong> — build status, ticket numbers, server health.</li>
+      <li><strong>The tool you love that lives in a terminal</strong> while your actual work lives three windows away.</li>
+    </ul>
+    <div class="callout accent"><span class="label">The claim</span>You can fix that yourself — <strong>in a weekend, without being an expert.</strong> An extension isn't a mystical artifact maintained by people smarter than you. It's a small program plus a form that tells the editor where to plug in. <strong>If you can write a script, you can write an extension.</strong></div>
+    <div class="callout"><span class="label">The case this deck follows</span>A CLI tool with a local web UI for PR review. The UI was fine — but using it meant <strong>a terminal, a command, a browser tab, a context switch.</strong> The fix: a VS Code extension that starts the server, shows the numbers in the sidebar, and embeds the whole UI in an editor tab.</div>
+  </section>
+
+  <!-- 03 -->
+  <section class="slide" data-title="What an extension actually is">
+    <div class="slide-num">03 · the mental model</div>
+    <h3 class="section">Strip the branding — every extension system answers <em>three questions</em>.</h3>
+    <div class="three-col">
+      <div class="mode"><span class="tech">1 · Where does it plug in?</span><p>A <strong>manifest</strong> — a small config file where you declare: I add a command, a keyboard shortcut, a sidebar panel, a setting.</p></div>
+      <div class="mode"><span class="tech">2 · When does it wake up?</span><p>Editors don't run your code constantly. It loads when something you <strong>declared</strong> happens: your command runs, a file type opens, startup finishes.</p></div>
+      <div class="mode"><span class="tech">3 · What can it touch?</span><p>An <strong>API</strong> the editor hands your code — and a <strong>sandbox</strong> deciding how far your code can reach.</p></div>
+    </div>
+    <div class="callout"><span class="label">For the non-developers</span>Think browser extensions, but for the program people <em>write code</em> in. The editor is a phone, extensions are apps, the marketplace is the app store. Same shape, different device — and just like phone apps, <strong>most extensions are tiny</strong>: one command, one panel, one quality-of-life fix.</div>
+  </section>
+
+  <!-- 04 -->
+  <section class="slide" data-title="Two files + a babysitter">
+    <div class="slide-num">04 · anatomy</div>
+    <h3 class="section">VS Code in one diagram — <em>two files</em> do almost everything.</h3>
+    <div class="fig">
+      <img src="../../assets/B-28/extension-anatomy.png" alt="Diagram showing how a VS Code extension plugs into the editor: the package.json manifest declares contributions and activation events, src/extension.ts holds activate and deactivate functions, both feed into the extension host process, which surfaces them as Command Palette entries, status bar items, sidebar panels, and webview tabs" loading="lazy">
+      <div class="fig-caption">The whole mental model — <b>manifest + one source file → extension host → editor surfaces</b>. Click to zoom.</div>
+    </div>
+    <ul class="bullets">
+      <li><strong><code class="mono">package.json</code></strong> — the manifest. A form your extension fills out: command, shortcut, settings users can tweak.</li>
+      <li><strong><strong><code class="mono">src/extension.ts</code></strong></strong> — your code. One function runs on activation, one on shutdown. Everything else is calling editor APIs.</li>
+    </ul>
+    <div class="callout mint"><span class="label">Why it's safe to experiment</span>Your code runs in a separate process the editor babysits — the <strong>extension host</strong>. If your extension crashes, the editor doesn't. <strong>You cannot brick your setup.</strong> Worst case, you disable it. The barrier to trying is much lower than it looks.</div>
+  </section>
+
+  <!-- 05 -->
+  <section class="slide compact" data-title="The nine shapes">
+    <div class="slide-num">05 · taxonomy</div>
+    <h3 class="section">Extensions come in <em>nine shapes</em>. Know them, place your idea.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Shape</th><th>What it does</th><th class="hl">You've met it as</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Command / tool</td><td>Adds a button that does a thing</td><td>The shape this deck builds</td></tr>
+        <tr><td class="mono">Syntax highlighter</td><td>Colorizes a language the editor doesn't know</td><td>Grammars for niche languages</td></tr>
+        <tr><td class="mono">Theme</td><td>Restyles the whole editor</td><td>One Dark Pro + ten thousand cousins</td></tr>
+        <tr><td class="mono">Snippet pack</td><td>Three letters expand into thirty lines</td><td><span class="mono">rafce</span> → a full React component</td></tr>
+        <tr><td class="mono">Formatter</td><td>Rewrites code to one style on save</td><td>Prettier, Black</td></tr>
+        <tr><td class="mono">Linter</td><td>The squiggles while you type</td><td>ESLint</td></tr>
+        <tr><td class="mono">Language server</td><td>Real intelligence — autocomplete, go-to-def, hover docs</td><td>rust-analyzer, Pyright</td></tr>
+        <tr><td class="mono">Debugger</td><td>Breakpoints and stepping inside the editor</td><td>Debug adapters</td></tr>
+        <tr><td class="mono">Bridge</td><td>A doorway to a tool that lives outside the editor</td><td>Docker, Remote SSH, GitLens</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout mint"><span class="label">The shortcut</span><strong>Themes and snippet packs are just JSON.</strong> No code, no API, no extension host — a palette or a pile of templates in a manifest. Plenty of people earn "published extension author" without writing a line of TypeScript. That's an honest way in.</div>
+  </section>
+
+  <!-- 06 -->
+  <section class="slide" data-title="Audit your idea">
+    <div class="slide-num">06 · before you write code</div>
+    <h3 class="section">Most failed extensions die <em>here</em> — not in the code.</h3>
+    <p class="lead">Two minutes of honesty saves a weekend.</p>
+    <div class="vs">
+      <div class="box good">
+        <h4>✓ Probably good</h4>
+        <p><b>A repeated action</b> — same 3–4 steps daily. A command + a keybinding turns it into one keypress.</p>
+        <p><b>Glanceable information</b> — whatever you'd open a browser tab to check, made ambient in a status bar or sidebar row.</p>
+        <p><b>A bridge</b> — a tool you love living outside the editor. The extension doesn't replace it; it hands you a doorway.</p>
+      </div>
+      <div class="box bad">
+        <h4>✗ Probably bad</h4>
+        <p><b>Settings or keybindings already do it.</b> Embarrassing numbers of "extensions" re-implement built-in config. Search settings first.</p>
+        <p><b>An existing extension already does it.</b> Search the marketplace twice — once for what it's called, once for what it <em>does</em>.</p>
+        <p><b>It's a whole app.</b> Needs its own navigation, accounts, a database? It should be a web app with an extension as a thin doorway.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="slide" data-title="Embed, don't rebuild">
+    <div class="slide-num">07 · the thin-client principle</div>
+    <h3 class="section"><em>Embed, don't rebuild.</em></h3>
+    <ul class="bullets">
+      <li>The obvious-looking path for the review-UI extension: rebuild the UI <strong>natively</strong> inside VS Code — native diffs, native comment threads. The APIs exist. <strong>Said no.</strong> Would repeat that decision every time.</li>
+      <li>The extension <strong>embeds</strong> the existing web UI in an editor tab; every sidebar row <strong>deep-links</strong> to the exact section of it. One UI, two viewports.</li>
+      <li>Re-implement instead, and you're maintaining <strong>two frontends forever</strong> — target a second editor, and it's four.</li>
+    </ul>
+    <div class="callout warn"><span class="label">The math</span>The extension's actual jobs are the cheap ones: <strong>start the thing, show the numbers, open the right place. That's a weekend.</strong> A native re-implementation is a quarter.</div>
+  </section>
+
+  <!-- 08 -->
+  <section class="slide" data-title="The fifteen-minute skeleton">
+    <div class="slide-num">08 · VS Code path · setup</div>
+    <h3 class="section">The <em>fifteen-minute</em> skeleton.</h3>
+    <div class="code-block"><span class="c"># Node.js installed, empty folder:</span>
+npx --package yo --package generator-code -- yo code</div>
+    <ol class="steps">
+      <li>The official scaffolder — name, identifier, <strong>TypeScript (say yes)</strong> — hands you a working extension with a sample command.</li>
+      <li>Open the folder, press <strong>F5</strong>. A second window appears — the <strong>Extension Development Host</strong> — with your extension loaded.</li>
+      <li><span class="mono">Ctrl+Shift+P</span> → type your command's name → run it. A notification pops. <strong>That's the whole loop.</strong></li>
+    </ol>
+    <div class="callout"><span class="label">You'll live in this loop</span>Edit → F5 → test in the host window → <span class="mono">Developer: Reload Window</span>. No emulator downloads, no signing certs, no device registration — <strong>compare that to any other platform you've developed for.</strong></div>
+  </section>
+
+  <!-- 09 -->
+  <section class="slide compact" data-title="The manifest">
+    <div class="slide-num">09 · VS Code path · package.json</div>
+    <h3 class="section">Half the work is <em>filling in a form</em>.</h3>
+    <p class="lead">You don't code a palette entry or a shortcut — you <strong>declare</strong> them, and the editor builds them for you.</p>
+    <div class="code-block">{
+  <span class="s">"name"</span>: <span class="s">"deploy-buddy"</span>, <span class="s">"publisher"</span>: <span class="s">"yourname"</span>,
+  <span class="s">"engines"</span>: { <span class="s">"vscode"</span>: <span class="s">"^1.85.0"</span> },
+  <span class="s">"contributes"</span>: {
+    <span class="s">"commands"</span>: [
+      { <span class="s">"command"</span>: <span class="s">"deploybuddy.deploy"</span>, <span class="s">"title"</span>: <span class="s">"Deploy current branch"</span> }
+    ],
+    <span class="s">"keybindings"</span>: [
+      { <span class="s">"command"</span>: <span class="s">"deploybuddy.deploy"</span>, <span class="s">"key"</span>: <span class="s">"ctrl+alt+d"</span>, <span class="s">"when"</span>: <span class="s">"editorTextFocus"</span> }
+    ],
+    <span class="s">"configuration"</span>: {
+      <span class="s">"properties"</span>: {
+        <span class="s">"deploybuddy.environmentUrl"</span>: { <span class="s">"type"</span>: <span class="s">"string"</span>, <span class="s">"default"</span>: <span class="s">"https://staging.example.com"</span> }
+      }
+    }
+  }
+}</div>
+    <ul class="bullets">
+      <li>That JSON = a palette entry, a shortcut that fires <strong>only</strong> when the editor has focus, and a settings screen — <strong>generated from the configuration block, free</strong>.</li>
+      <li><strong><code class="mono">engines.vscode</code> must match the editor you test in.</strong> Mismatch = the #1 reason a fresh command simply doesn't appear. Command missing? Check this first.</li>
+      <li>Modern VS Code <strong>infers activation</strong> from contributions — an empty <code class="mono">activationEvents</code> array is normal for command-driven extensions.</li>
+    </ul>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" data-title="Your first command">
+    <div class="slide-num">10 · VS Code path · extension.ts</div>
+    <h3 class="section">Your first command — <em>the whole code side</em>.</h3>
+    <div class="code-block"><span class="k">import</span> * as vscode <span class="k">from</span> <span class="s">"vscode"</span>;
+
+<span class="k">export function</span> <span class="f">activate</span>(context: vscode.ExtensionContext) {
+  <span class="k">const</span> disposable = vscode.commands.<span class="f">registerCommand</span>(
+    <span class="s">"deploybuddy.deploy"</span>,
+    <span class="k">async</span> () => {
+      <span class="k">const</span> editor = vscode.window.activeTextEditor;
+      <span class="k">if</span> (!editor) <span class="k">return</span> vscode.window.<span class="f">showErrorMessage</span>(<span class="s">"Open a file first"</span>);
+      <span class="k">const</span> branch = <span class="k">await</span> vscode.commands.<span class="f">executeCommand</span>(<span class="s">"git.currentBranch"</span>);
+      vscode.window.<span class="f">showInformationMessage</span>(<span class="s">`Deploying ${branch}…`</span>);
+      <span class="c">// your actual work here</span>
+    },
+  );
+  context.subscriptions.<span class="f">push</span>(disposable);
+}
+
+<span class="k">export function</span> <span class="f">deactivate</span>() {}</div>
+    <ul class="bullets">
+      <li>Notice what it <em>isn't</em>: no framework, no build orchestration, no lifecycle diagram. The editor calls <code class="mono">activate</code>, you register things, done.</li>
+      <li><code class="mono">subscriptions.push</code> is just <strong>"clean this up when I'm unloaded"</strong> — copy the pattern and move on.</li>
+    </ul>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide compact" data-title="Five surfaces">
+    <div class="slide-num">11 · VS Code path · the API</div>
+    <h3 class="section">The API is huge. You'll use <em>five surfaces</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Surface</th><th>What it is</th><th class="hl">Use it for</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Command Palette</td><td>Ctrl+Shift+P entries</td><td>Anything the user does occasionally</td></tr>
+        <tr><td class="mono">Quick Pick</td><td>showQuickPick() — the fuzzy dropdown</td><td>Picking one thing: environments, branches, tickets</td></tr>
+        <tr><td class="mono">Status bar</td><td>createStatusBarItem() — bottom-bar text</td><td>One number, always visible: build status, server health</td></tr>
+        <tr><td class="mono">Sidebar panel</td><td>createTreeView() — activity-bar tree</td><td>Structured info: multiple items, live counts</td></tr>
+        <tr><td class="mono">Webview</td><td>createWebviewPanel() — a browser tab inside the editor</td><td>Anything visual: dashboards, embedding a web UI</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout accent"><span class="label">If you wrap a local web tool</span>The webview is the finish line: point an iframe at <code class="mono">http://localhost:PORT</code> — Chromium treats localhost as trustworthy, so http doesn't trip security rules — and <strong>your entire UI now lives in an editor tab.</strong> Reuse one panel and repoint its <code class="mono">src</code> on navigation, instead of spawning a tab per click. <em>Embed, don't rebuild</em> — slide 07 in code.</div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide" data-title="Gotchas — rendering">
+    <div class="slide-num">12 · gotchas · rendering</div>
+    <h3 class="section">Lessons that cost <em>an afternoon each</em> — rendering.</h3>
+    <ul class="bullets">
+      <li><strong>Status bar icons are codicons only.</strong> <code class="mono">StatusBarItem</code> has no <code class="mono">iconPath</code> — the API simply can't take your custom SVG. Built-in codicon font (<code class="mono">$(rocket)</code>, <code class="mono">$(sync)</code>) or text.</li>
+      <li><strong>Custom SVGs go elsewhere — with different rules per surface.</strong> The activity bar alpha-masks your SVG and repaints it in the theme color (draw with <code class="mono">currentColor</code> and punched holes); editor-tab icons want a <code class="mono">{light, dark}</code> pair because the background flips with the theme.</li>
+      <li><strong>Some manifest changes need a full restart, not a reload.</strong> Icons, view containers, menus are read only when the extension host starts. <code class="mono">Reload Window</code> picks up your <em>code</em>; a stubborn new icon needs quit-and-relaunch.</li>
+      <li><strong>Webviews flash the wrong theme on first paint.</strong> The editor's theme reaches the iframe only after a message round trip — a fresh load briefly falls back to the <em>OS</em> theme. Pass it in the URL (<code class="mono">?theme=dark</code>) and apply with an inline script <em>before</em> your stylesheets load.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide" data-title="Gotchas — the webview sandbox">
+    <div class="slide-num">13 · gotchas · the webview sandbox</div>
+    <h3 class="section">The webview is a locked-down browser — <em>and it fails silently</em>.</h3>
+    <ul class="bullets">
+      <li><strong><code class="mono">window.open()</code> and <code class="mono">target="_blank"</code> do nothing.</strong> No error, no console spam, just silence. Your webview code must <code class="mono">postMessage</code> the URL to the extension, which routes: same-server link → a new webview tab; external → <code class="mono">vscode.env.openExternal()</code>.</li>
+      <li><strong>Set <code class="mono">retainContextWhenHidden: true</code></strong> when creating the panel — or the webview's state resets every time the user switches tabs. There's a memory cost; for a dashboard it's worth it.</li>
+      <li><strong>Keystrokes land in the iframe</strong>, where the editor's keybindings can't see them. Your embedded app must forward the workbench escapes (<code class="mono">Ctrl+Shift+P</code>, <code class="mono">Ctrl+P</code>, sidebar toggles) over <code class="mono">postMessage</code> — and the extension replays a <strong>short whitelist</strong>, nothing more.</li>
+    </ul>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide" data-title="Gotchas — processes & drift">
+    <div class="slide-num">14 · gotchas · processes &amp; drift</div>
+    <h3 class="section">The classics: <em>zombies, Windows, and drift</em>.</h3>
+    <ul class="bullets">
+      <li><strong>Windows spawns need a shell.</strong> Works on your Mac, dies for Windows users: npm-installed CLIs are <code class="mono">.cmd</code> shim files that can't be spawned directly. Pass <code class="mono">shell: true</code>. The "works on my machine" bug of extension development — Windows users will find it for you.</li>
+      <li><strong>Adopt, don't duplicate, long-running processes.</strong> If your extension starts a server, check whether one is already running for this workspace first, and attach. Otherwise every window reload spawns another copy, ports fight, users get zombies. Read the CLI's registry file — healthy match means adopt, otherwise spawn. <strong>Ten lines, entire class of bugs gone.</strong></li>
+      <li><strong>One source of truth for repeated lists.</strong> The same menu in a sidebar panel and a quick pick, hand-maintained separately — they drifted: missing rows, a copy-pasted wrong icon. The fix was boring and permanent: <strong>both surfaces render from one array in one file.</strong> Any list that appears twice in your UI will drift.</li>
+    </ul>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide" data-title="Testing like it matters">
+    <div class="slide-num">15 · testing</div>
+    <h3 class="section">F5 is for your eyes. <em>Test in the real editor.</em></h3>
+    <div class="code-block">npm install --save-dev @vscode/test-electron
+<span class="c"># package.json: "test": "node out/test/runTest.js" — the scaffold has this</span></div>
+    <ul class="bullets">
+      <li>The runner downloads an <strong>actual VS Code binary</strong> and runs your tests inside the real extension host — not a mock, the actual editor, headless.</li>
+      <li>Headless means it also runs <strong>in CI on all three operating systems</strong>. If you ship to strangers: a test asserting your commands are registered and your endpoints answer catches the entire <em>"extension loaded but nothing works"</em> class of bug reports.</li>
+      <li><strong>One quirk before it bites:</strong> the test host rejects a module that merely runs itself — it must export a <code class="mono">run()</code> function.</li>
+      <li>Keep a small <strong>manual checklist</strong> for what automation can't see — icons rendering, panels looking right, shortcuts firing. Two lists, both short.</li>
+    </ul>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide" data-title="Ship a .vsix">
+    <div class="slide-num">16 · shipping · the file</div>
+    <h3 class="section">Start with just a file — <em>the .vsix</em>.</h3>
+    <div class="code-block">npm install -g @vscode/vsce
+vsce package                        <span class="c"># → your-extension-1.0.0.vsix</span>
+code --install-extension your-extension-1.0.0.vsix</div>
+    <ul class="bullets">
+      <li>A <code class="mono">.vsix</code> is a zip with your code and manifest — installable directly via the Extensions panel's <code class="mono">⋯</code> menu → <strong>Install from VSIX…</strong>, or the CLI above.</li>
+      <li>A <code class="mono">.vscodeignore</code> file keeps junk out of the package — ship only your <code class="mono">dist/</code> bundle, manifest, README, license.</li>
+      <li>Manually installed <code class="mono">.vsix</code> files never auto-update — installing the next version's file over it just works.</li>
+    </ul>
+    <div class="callout accent"><span class="label">Do not skip past this</span>A <strong>.vsix file is a completely legitimate end state.</strong> Team tooling, an internal extension that will never be public, a personal scratch extension — package it, drop it in a shared drive or a GitHub release, done. Software that serves one team well is not a failure.</div>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide compact" data-title="The Marketplace & the Azure detour">
+    <div class="slide-num">17 · shipping · the main store</div>
+    <h3 class="section">Publishing is one command — <em>behind two accounts</em>.</h3>
+    <ol class="steps">
+      <li><strong>Create a publisher</strong> on the Visual Studio Marketplace — an ID that permanently identifies you and your extensions.</li>
+      <li><strong>Create a PAT on Azure DevOps.</strong> Yes, Azure — the Marketplace's auth lives there. Token scoped to <em>All accessible organizations</em> + <em>Marketplace → Manage</em> — anything else gets you a bare <strong>403 that doesn't tell you why</strong>.</li>
+      <li><strong>The absurd part:</strong> creating an Azure DevOps org can require linking an Azure subscription — and even a free-tier Azure account wants a card for identity verification. <em>To publish a free extension.</em> The single most common place publishing stalls out.</li>
+    </ol>
+    <div class="callout warn"><span class="label">Calendar note</span>Global PATs retire <strong>December 1, 2026</strong> — the going-forward path is Entra ID auth (workload identity federation in CI, <code class="mono">vsce publish --azure-credential</code>). Setting up fresh? Do it the new way from day one and skip the token-renewal treadmill.</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Marketplace rule</th><th class="hl">What it means for you</th></tr></thead>
+      <tbody>
+        <tr><td>Versions strictly increase</td><td>Published a broken version? You can't overwrite it — fix it by shipping the <em>next</em> version</td></tr>
+        <tr><td>The listing is a snapshot</td><td>README, icon, description update only when you publish. No "refresh listing" button</td></tr>
+        <tr><td>No SVGs in listings</td><td>Icon, badges, README images — raster only, https URLs</td></tr>
+        <tr><td>Removal is forever</td><td>Unpublishing removes it from every user; names stay reserved. Prefer leaving an old version up</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide compact" data-title="Open VSX — five more editors">
+    <div class="slide-num">18 · shipping · the second store</div>
+    <h3 class="section">One extra step — <em>five more editors</em>.</h3>
+    <p class="lead">Marketplace terms allow <em>Microsoft builds</em> of VS Code only. Cursor, Windsurf, VSCodium, Gitpod, Theia — all built on VS Code's open-source core, all banned from the main store. They share a second store: <strong>Open VSX</strong>. And it takes the <em>same .vsix you already built</em>.</p>
+    <div class="fig">
+      <img src="../../assets/B-28/vsix-distribution.png" alt="Diagram showing one vsix file flowing to three destinations: the VS Code Marketplace serving VS Code users, Open VSX serving Cursor, Windsurf, VSCodium, Gitpod, Theia and Antigravity users, and direct Install-from-VSX reaching any editor without a store, with Open VSX also noted as usable by VS Code itself" loading="lazy">
+      <div class="fig-caption">The solo-developer distribution strategy — <b>build one .vsix, publish it twice</b>. Click to zoom.</div>
+    </div>
+    <ul class="bullets">
+      <li><strong>The Eclipse saga, so you don't hit it blind:</strong> sign in with GitHub → not enough. You need an <strong>Eclipse Foundation account</strong> (separate registration), sign the publisher agreement, and <em>link your GitHub inside your Eclipse profile</em>. Skip the link → a bare redirect that looks like an OAuth bug; the real reason lives in a background request (<code class="mono">eclipse-missing-github-id</code>) the page never shows.</li>
+      <li>Then: namespace matching your publisher ID exactly, generate a token, <code class="mono">npx ovsx publish</code>. Every editor from stock VS Code to Cursor can now install your work.</li>
+    </ul>
+  </section>
+
+  <!-- 19 -->
+  <section class="slide compact" data-title="The field guide">
+    <div class="slide-num">19 · beyond VS Code</div>
+    <h3 class="section">The rest of the editor world — <em>the honest state</em>.</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th class="hl">VS Code family</th><th>Zed</th><th>JetBrains</th><th>Neovim</th></tr></thead>
+      <tbody>
+        <tr><th>Language</th><td class="hl">TypeScript / JS</td><td>Rust → WASM</td><td>Kotlin / Java</td><td>Lua</td></tr>
+        <tr><th>Custom UI</th><td class="hl">Webviews, panels, status bar</td><td>None yet (open RFC)</td><td>Full IDE-grade UI</td><td>Full TUI</td></tr>
+        <tr><th>Distribution</th><td class="hl">Marketplace + Open VSX</td><td>PR to central repo</td><td>JetBrains Marketplace</td><td>Git repos</td></tr>
+        <tr><th>First result</th><td class="hl">An evening</td><td>An evening (non-UI)</td><td>A weekend or two</td><td>An evening</td></tr>
+        <tr><th>Reach</th><td class="hl">Every VS Code-based editor</td><td>Zed users</td><td>All JetBrains IDEs</td><td>Neovim users</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="bullets">
+      <li><strong>Zed:</strong> sandboxed Rust→WASM extensions — languages, themes, snippets, debug adapters, MCP context servers — but <strong>no UI of your own</strong> (sidebars, panels, status items: none). The route that works today: <code class="mono">tasks.json</code> runs your CLI on a keystroke and the terminal renders <code class="mono">localhost</code> URLs clickable; an MCP server covers the smart integrations. <em>Sometimes the right extension is a config file.</em></li>
+      <li><strong>JetBrains:</strong> the inverse trade — first-class plugins that can rebuild any part of the IDE, in exchange for a JVM desktop-application framework (Gradle, the debugger, the build times). Last stop on the tour, not the first.</li>
+      <li><strong>Neovim:</strong> your config <em>is</em> the extension system. Lua modules, no manifest, no store, no review — total freedom, zero hand-holding. A personal plugin can be an evening; distribution is entirely your problem.</li>
+    </ul>
+  </section>
+
+  <!-- 20 -->
+  <section class="slide" data-title="Which one first?">
+    <div class="slide-num">20 · the decision</div>
+    <h3 class="section">Which one first? <em>Reach per effort.</em></h3>
+    <ul class="bullets">
+      <li><strong>Default: VS Code, then Open VSX.</strong> One TypeScript codebase, two publish commands — stock VS Code <em>plus</em> Cursor, Windsurf, VSCodium. The largest developer audience on earth for extension work. Nothing else comes close.</li>
+      <li><strong>Team lives in JetBrains IDEs</strong> and the idea needs to live inside the editor → go Kotlin and budget the learning curve. It's the only sanctioned way in.</li>
+      <li><strong>Your tool's real home is a web UI</strong> → build the thinnest VS Code bridge (embed + deep links), and for Zed don't build at all — tasks plus clickable URLs cover it today.</li>
+      <li><strong>It's just for you</strong> → build for whatever you actually use, ship it as a <code class="mono">.vsix</code> or a config file, skip the stores entirely.</li>
+    </ul>
+    <div class="callout mint"><span class="label">Start absurdly small</span>One command that does one thing you actually do daily. Ship that, use it for a week, <strong>let the extension tell you what it wants to become next</strong> — the review extension started as "start the server without typing a command"; the sidebar counts, the embedded tab, the quick picks were all <em>pull</em>, added because daily use kept asking. Never seen one ruined by starting too small. The big-bang ones — plenty.</div>
+  </section>
+
+  <!-- 21 -->
+  <section class="slide" data-title="Start absurdly small">
+    <div class="slide-num">21 · the path from here</div>
+    <h3 class="section">The gap is <em>shorter than it looks</em>.</h3>
+    <ol class="steps">
+      <li><strong>Today:</strong> <span class="mono">npx --package yo --package generator-code -- yo code</span>, press F5, change the sample command's message to something that makes you smile. <em>You're now an extension developer.</em></li>
+      <li><strong>This week:</strong> pick the one repetitive thing you actually do daily — make a command for it, add a keybinding in the manifest.</li>
+      <li><strong>When it's useful:</strong> <span class="mono">vsce package</span> and install the .vsix properly — you'll feel the difference the first time it's just <em>there</em> after a restart.</li>
+      <li><strong>If the world needs it:</strong> publish — Marketplace for VS Code, Open VSX for everything VS Code-shaped. The Azure detour is a rite of passage, not a sign you're doing it wrong.</li>
+    </ol>
+    <p class="lead" style="margin-top:14px">The most useful software you'll ever write might be the kind only you needed. There's exactly one way to find out.</p>
+    <div class="end-links">
+      <a class="primary" href="https://github.com/Encryptioner/blogs/blob/master/topics/Development/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md" target="_blank" rel="noopener">Read the full guide — B-28</a>
+      <a class="ghost" href="https://code.visualstudio.com/api" target="_blank" rel="noopener">VS Code Extension API docs ↗</a>
+      <a class="ghost" href="https://open-vsx.org" target="_blank" rel="noopener">open-vsx.org ↗</a>
+      <a class="ghost" href="https://github.com/encryptioner/branchdiff-releases" target="_blank" rel="noopener">branchdiff — the case study ↗</a>
+    </div>
+    <div class="foot">Deck 11 · Build Your Own IDE Extension — companion to blog B-28</div>
+  </section>
+
+</div>
+
+<!-- lightbox + overlays -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-21">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.dk-help,.dk-goto,.fig,.callout,table,.code-block,.vs,.box,.three-col,.mode,.stat-row,.pipeline,.table-wrap,.end-links,.foot',
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+</body>
+</html>

@@ -69,6 +69,7 @@ When in doubt, grep for the previous deck (e.g. `P-7`) — every file it appears
 4. Create `assets/B-{number}/` if the deck or its companion blog needs images.
 5. Register the deck in **every** listing (see table above): `INDEX.md` (`## Presentations`), `README.md` (`## Presentations`), `presentations/index.html` (a `.card` + bump the deck count), and `presentations/docs/PUBLIC_LINKS.md` (a `## P-N — Title` section with the deck URL + companion blog line).
 6. Commit and create a PR to master
+7. To preview an HTML deck locally: see `presentations/docs/CHECKLIST.md` §7 (Local testing workflow)
 
 ### Updating Existing Content
 - Blog posts may have multiple versions (v1, v2) as indicated in filenames
