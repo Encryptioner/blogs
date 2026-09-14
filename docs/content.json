@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-13T08:47:22.362Z",
+  "generatedAt": "2026-09-14T17:39:46.462Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
   "counts": {
     "blog": 36,
-    "presentation": 8,
+    "presentation": 9,
     "assets": 68
   },
   "topics": [
@@ -19,6 +19,24 @@
     "Software Business"
   ],
   "items": [
+    {
+      "slug": "build-your-own-ide-extension",
+      "type": "presentation",
+      "title": "Build your own IDE extension. Idea to publish",
+      "topic": "Presentations",
+      "subtopic": null,
+      "description": "The real-world path from 'my editor should do that' to a published extension: what extensions actually are, the five VS Code API surfaces, the gotchas that…",
+      "words": 3352,
+      "readingTime": 17,
+      "date": "2026-09-14",
+      "firstDate": "2026-09-14",
+      "sourcePath": "presentations/P-11-build-your-own-ide-extension/index.html",
+      "url": "/blogs/presentation/build-your-own-ide-extension",
+      "cover": null,
+      "deckPath": "/blogs/content/presentations/P-11-build-your-own-ide-extension/index.html",
+      "deckDir": "P-11-build-your-own-ide-extension",
+      "supplementary": []
+    },
     {
       "slug": "my-go-to-engineering-newsletters-30-summarized",
       "type": "blog",
