@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-14T17:39:46.462Z",
+  "generatedAt": "2026-09-14T17:53:25.911Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
@@ -82,7 +82,7 @@
       "firstDate": "2026-05-09",
       "sourcePath": "topics/Productivity/branchdiff/branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have.md",
       "url": "/blogs/blog/branchdiff-github-bitbucket-a-local-lens-for-the-pull-request-workflow-you-already-have",
-      "cover": "/blogs/content/assets/B-13/platform-vs-local-split.png",
+      "cover": "/blogs/content/assets/B-13/pr-description-insert.png",
       "supplementary": []
     },
     {
@@ -98,7 +98,7 @@
       "firstDate": "2026-08-02",
       "sourcePath": "topics/Productivity/branchdiff/Build Your Own CodeRabbit With branchdiff auto - Unattended AI PR Review, On Your Terms.md",
       "url": "/blogs/blog/build-your-own-coderabbit-with-branchdiff-auto-unattended-ai-pr-review-on-your-terms",
-      "cover": "/blogs/content/assets/B-20/stack-ancestor-context.png",
+      "cover": "/blogs/content/assets/B-20/change-map-internals.png",
       "supplementary": []
     },
     {
@@ -114,7 +114,7 @@
       "firstDate": "2026-09-13",
       "sourcePath": "topics/Development/Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others).md",
       "url": "/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others",
-      "cover": "/blogs/content/assets/B-28/extension-anatomy.png",
+      "cover": "/blogs/content/assets/B-28/vsix-distribution.png",
       "supplementary": []
     },
     {
@@ -130,7 +130,7 @@
       "firstDate": "2026-08-02",
       "sourcePath": "topics/Productivity/branchdiff/Configure Once, Review Everywhere - branchdiff's Config System and Multi-Repo auto.md",
       "url": "/blogs/blog/configure-once-review-everywhere-branchdiff-s-config-system-and-multi-repo-auto",
-      "cover": "/blogs/content/assets/B-21/auto-push-retry.png",
+      "cover": null,
       "supplementary": []
     },
     {
@@ -244,7 +244,7 @@
       "firstDate": "2026-08-02",
       "sourcePath": "topics/Productivity/branchdiff/Manage the Whole PR Lifecycle Without Leaving the Terminal - branchdiff's pr, sync, and session Commands.md",
       "url": "/blogs/blog/manage-the-whole-pr-lifecycle-without-leaving-the-terminal-branchdiff-s-pr-sync-and",
-      "cover": "/blogs/content/assets/B-22/prune-worktrees-flow.png",
+      "cover": null,
       "supplementary": []
     },
     {
@@ -326,7 +326,7 @@
       "firstDate": "2026-05-09",
       "sourcePath": "topics/Productivity/branchdiff/Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff.md",
       "url": "/blogs/blog/self-review-with-ai-before-you-open-the-pr-a-practical-workflow-with-branchdiff",
-      "cover": "/blogs/content/assets/B-14/self-review-before-after.png",
+      "cover": "/blogs/content/assets/B-14/self-review-4-steps.png",
       "supplementary": []
     },
     {
@@ -616,7 +616,7 @@
       "firstDate": "2026-03-14",
       "sourcePath": "topics/Productivity/Claude Code/Claude Code Configuration Blueprint - The Complete Guide for Production Teams.md",
       "url": "/blogs/blog/claude-code-configuration-blueprint-the-complete-guide-for-production-teams",
-      "cover": "/blogs/content/assets/B-11/Claude-Code-Configuration-Blueprint-The%20Complete-Guide-for-Production-Teams.png",
+      "cover": null,
       "supplementary": []
     },
     {
