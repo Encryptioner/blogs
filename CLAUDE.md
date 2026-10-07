@@ -82,6 +82,7 @@ Content from this repository is published to:
 - DEV Community (https://dev.to/mir_mursalin_ankur)
 - Medium (https://mir-mursalin-ankur.medium.com/)
 - Nerddevs (https://nerddevs.com/author/ankur/)
+- Substack (https://ankurmursalin.substack.com/) — all blogs B-1..B-28; workflow, scripts and brand kit in `guides/substack/README.md`
 
 ### Accessibility Rules (enforce on every post)
 - **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.

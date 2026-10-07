@@ -40,3 +40,10 @@ AGENTS.md
 GEMINI.md
 memory
 
+# Substack publishing scratch (generated JSON, MCP snapshots/screenshots)
+*.tmp.json
+posts.json
+.snap.*
+.substack-*
+*.tmp
+.cache/
