@@ -146,7 +146,7 @@ Substack's public site (`*.substack.com`) is light and ignores the OS `prefers-c
   later: full-bleed, text-free, checked as a visitor.
 - One accent with ~4.3:1 contrast on both backgrounds.
 
-Applied (see `session-log.md`): Website editor Theme **Custom** (header Standard, hero Media feature, white background,
+Applied (see `session-log.md`): Website editor Theme **Custom** (header Standard, white background,
 accent `#008A63`), hero **Media feature** (chosen by the owner after comparing Feature / Newspaper / Highlight), nav Home / Notes / Archive / About, rewritten About page, shortened profile bio.
 
 ### Manual steps (not available through the API)

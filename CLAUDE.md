@@ -86,6 +86,7 @@ Content from this repository is published to:
 
 ### Accessibility Rules (enforce on every post)
 - **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.
+- **First image = post cover** (right under the title): ~1200×630, aspect 0.5–2.2, no title baked in at the left edge — it drives the site card, social/OG image and the Substack hero. Details: `guides/substack/README.md`
 - **Every image needs meaningful alt text** — `![Description of content](path)` not `![](path)`. Screen readers read this aloud.
 - Full reference: `guides/editor-guide.md`
 
