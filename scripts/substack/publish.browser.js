@@ -8,6 +8,7 @@
 //   await createDrafts(uid)             -> [{n,id}]   create a draft per post
 //   await updateBodies(map)             -> statuses   re-push bodies (fix + re-run; works on published posts too)
 //   await publishAll(map, {send:false}) -> statuses   publish; send:false = no email blast
+//   await setCover(map, n, 'zzcover')    -> [put, publish]   re-host a cover image (file input id=zzcover) and set it as post n's cover_image
 //   await editorLoads(map)              -> ids that crash the editor ("Something has gone wrong")
 
 const load = async () => JSON.parse(await document.getElementById('zzup').files[0].text());
@@ -61,4 +62,12 @@ async function editorLoads(map) { // hidden-iframe smoke test; run with dialogs 
     f.remove();
   }
   return bad;
+}
+
+async function setCover(map, n, inputId = 'zzcover') { // attach assets/B-N/cover.png to <input type=file id=zzcover>
+  const data = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(document.getElementById(inputId).files[0]); });
+  const up = await (await fetch('/api/v1/image', { method: 'POST', headers: J, body: JSON.stringify({ image: data }) })).json();
+  const a = await fetch('/api/v1/drafts/' + map[n], { method: 'PUT', headers: J, body: JSON.stringify({ cover_image: up.url }) });
+  const b = await fetch(`/api/v1/drafts/${map[n]}/publish`, { method: 'POST', headers: J, body: JSON.stringify({ send: false, share_automatically: false }) }); // live page updates only on publish
+  return [a.status, b.status];
 }

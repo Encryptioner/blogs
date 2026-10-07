@@ -56,6 +56,7 @@ node scripts/substack/substack.mjs push  29                 # create draft (or u
 node scripts/substack/substack.mjs push  29 --publish       # go live, no email
 node scripts/substack/substack.mjs push  29 --publish --send-email   # only if you want subscribers emailed
 node scripts/substack/substack.mjs status                   # which blogs are on Substack
+node scripts/substack/substack.mjs cover 29 banner.webp     # build assets/B-29/cover.png (1200×630) from any banner, prints the line to paste under the title
 ```
 
 - **New blog**: add it to `INDEX.md` first (that is the list the script reads), `push` it, then add the row to
@@ -92,7 +93,8 @@ MCP the JSON is handed to the page through an injected `<input type=file>` + `up
   image in the post). Fix = put a ~1200×630 image first in the blog (see the cover row in §1; `assets/B-28/cover.png` is the recipe).
 - Your dev.to banners exist for B-1, 2, 7, 11, 28 and can be padded to 1200×630 the same way. Per-post status: `published-posts.md`.
 - Verified: the cover appears once on the Substack post page and once on the blog site (the cover field only feeds hero/cards/OG tags).
-- Re-host a cover by hand: `POST /api/v1/image {image: dataURL}` → `PUT /api/v1/drafts/:id {cover_image: url}` → `POST …/publish {send:false}`.
+- `check` warns when a post has no image or its first image is a poor cover shape; the `cover` command fixes it (needs ImageMagick).
+- Re-host a cover by hand (or `setCover()` in `publish.browser.js`): `POST /api/v1/image {image: dataURL}` → `PUT /api/v1/drafts/:id {cover_image: url}` → `POST …/publish {send:false}`.
 
 ## 5. Pitfalls (all hit during the first publish)
 

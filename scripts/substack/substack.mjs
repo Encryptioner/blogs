@@ -4,6 +4,8 @@
 //   node scripts/substack/substack.mjs check   <B-N|all>             lint markdown for Substack look & feel (no network except image HEADs)
 //   node scripts/substack/substack.mjs push    <B-N|all> [flags]     create the draft, or update the existing post (ids in post-ids.json)
 //   node scripts/substack/substack.mjs status                        list posts + ids known to the repo
+//   node scripts/substack/substack.mjs cover <B-N> <image>           make assets/B-N/cover.png (1200x630, original centered on a blurred copy of itself)
+//                                                                    from any banner; then paste the printed line right under the post's # title
 //
 // push flags:  --dry-run          convert + lint, print what would happen, change nothing
 //              --publish          also publish a draft that is not live yet (default: leave as draft)
@@ -20,6 +22,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
+import { execFileSync } from 'child_process';
 import { convert, convertPost, listBlogs, ROOT, devtoUrls, resolveLocalImages, CACHE } from './md-to-substack.mjs';
 
 const MarkdownIt = createRequire(import.meta.url)(process.env.MDIT || 'markdown-it');
@@ -41,6 +44,16 @@ function pick(t) {
   return hit;
 }
 function die(m) { console.error('✗ ' + m); process.exit(1); }
+
+// ---------- images ----------
+// width/height via ImageMagick (null if unavailable). src = local path or http(s) URL.
+async function dims(src) {
+  try {
+    const buf = /^https?:/.test(src) ? Buffer.from(await (await fetch(src)).arrayBuffer()) : fs.readFileSync(src);
+    const [w, h] = execFileSync('magick', ['identify', '-format', '%w %h', '-[0]'], { input: buf, stdio: ['pipe', 'pipe', 'ignore'] }).toString().split(' ').map(Number);
+    return w && h ? { w, h } : null;
+  } catch { return null; }
+}
 
 // ---------- lint ----------
 async function lint({ n, file }) {
@@ -71,6 +84,13 @@ async function lint({ n, file }) {
     }
   }
   const c = convert(file);
+  // cover = first image (Substack hero/cards/social + blog-site card); must be aspect 0.5-2.2 like the site generator requires
+  if (!c.cover) out.push(['warn', 'no image in the post → no cover. Put a ~1200x630 image right under the title (node scripts/substack/substack.mjs cover <B-N> <image>)']);
+  else {
+    const rel = c.cover.startsWith(CDN) ? path.join(ROOT, decodeURIComponent(c.cover.slice(CDN.length))) : c.cover;
+    const d = await dims(rel);
+    if (d) { const r = d.w / d.h; if (r < 0.5 || r > 2.2) out.push(['warn', `first image is ${d.w}x${d.h} (aspect ${r.toFixed(2)}): outside 0.5-2.2, so it is a poor cover. Use a ~1200x630 image first (cover command)`]); }
+  }
   if (c.title.length > 100) out.push(['warn', `title is ${c.title.length} chars; email subject lines cut at ~100`]);
   if (c.subtitle.length < 40) out.push(['warn', 'first paragraph is short — it is used as the subtitle/preview']);
   return out;
@@ -145,13 +165,27 @@ async function push(blogs) {
   if (!dry) console.log('\nNext: add new ids to guides/substack/published-posts.md (post-ids.json is already updated).');
 }
 
+// ---------- cover ----------
+function makeCover(n, image) {
+  if (!n || !image || !fs.existsSync(image)) die('usage: cover <B-N> <image file>');
+  const num = Number(String(n).replace(/^B-?/i, '')), out = path.join(ROOT, `assets/B-${num}/cover.png`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const bg = path.join(path.dirname(out), '.cover-bg.tmp.png');
+  execFileSync('magick', [image + '[0]', '-resize', '1200x630^', '-gravity', 'center', '-extent', '1200x630', '-blur', '0x28', '-modulate', '85', bg]);
+  execFileSync('magick', [bg, '(', image + '[0]', '-resize', '1200x', ')', '-gravity', 'center', '-composite', '-strip', out]);
+  fs.rmSync(bg);
+  console.log(`✓ ${path.relative(ROOT, out)} (1200x630). Add right under the blog's "# Title" (write real alt text):\n\n![<describe the image>](${path.relative(path.dirname(findBlog(num)), out)})\n\nThen push assets to master before publishing.`);
+}
+const findBlog = (n) => (listBlogs().find((b) => b.n === n) || die(`No blog B-${n} in INDEX.md`)).file;
+
 // ---------- main ----------
 if (cmd === 'check') process.exit((await runCheck(pick(target))) ? 1 : 0);
 else if (cmd === 'push') {
   const blogs = pick(target);
   if (!has('--skip-check')) { if (await runCheck(blogs)) die('lint errors — fix them or pass --skip-check'); }
   await push(blogs);
-} else if (cmd === 'status') {
+} else if (cmd === 'cover') makeCover(target, flags[0]);
+else if (cmd === 'status') {
   const map = ids();
   for (const b of listBlogs()) console.log(`B-${b.n}`.padEnd(5), map[b.n] ? String(map[b.n]) : '— not on Substack', path.basename(b.file).slice(0, 70));
 } else console.log(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 22).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
