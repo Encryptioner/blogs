@@ -4,7 +4,7 @@
 //   node scripts/substack/substack.mjs check   <B-N|all>             lint markdown for Substack look & feel (no network except image HEADs)
 //   node scripts/substack/substack.mjs push    <B-N|all> [flags]     create the draft, or update the existing post (ids in post-ids.json)
 //   node scripts/substack/substack.mjs status                        list posts + ids known to the repo
-//   node scripts/substack/substack.mjs cover <B-N> <image>           make assets/B-N/cover.png (1200x630, original centered on a blurred copy of itself)
+//   node scripts/substack/substack.mjs cover <B-N> <image>           make assets/B-N/cover.png (1200x630: original fitted and centered on a blurred copy of itself; nothing cropped)
 //                                                                    from any banner; then paste the printed line right under the post's # title
 //
 // push flags:  --dry-run          convert + lint, print what would happen, change nothing
@@ -23,6 +23,7 @@ import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
 import { execFileSync } from 'child_process';
+import { createHash } from 'crypto';
 import { convert, convertPost, listBlogs, ROOT, devtoUrls, resolveLocalImages, CACHE } from './md-to-substack.mjs';
 
 const MarkdownIt = createRequire(import.meta.url)(process.env.MDIT || 'markdown-it');
@@ -82,6 +83,17 @@ async function lint({ n, file }) {
         catch (e) { out.push(['error', `image fetch failed: ${url}`]); }
       }
     }
+  }
+  // same picture used twice (same file, or different files with identical bytes, e.g. a dev.to banner saved next to its copy)
+  const seen = new Map();
+  const imgSrcs = [...raw.matchAll(/!\[[^\]]*\]\(([^)\s]+)[^)]*\)|<img\b[^>]*\bsrc="([^"]+)"/g)].map((m) => m[1] || m[2]);
+  for (const src of imgSrcs) {
+    let key = src, buf = null;
+    try {
+      buf = /^https?:/.test(src) ? Buffer.from(await (await fetch(src)).arrayBuffer()) : fs.readFileSync(path.resolve(path.dirname(file), decodeURIComponent(src)));
+      key = 'sha:' + createHash('sha1').update(buf).digest('hex');
+    } catch { /* unreadable: fall back to the path */ }
+    if (seen.has(key)) out.push(['warn', `duplicate image: ${src} is the same picture as ${seen.get(key)}`]); else seen.set(key, src);
   }
   const c = convert(file);
   // cover = first image (Substack hero/cards/social + blog-site card); must be aspect 0.5-2.2 like the site generator requires
@@ -172,7 +184,7 @@ function makeCover(n, image) {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const bg = path.join(path.dirname(out), '.cover-bg.tmp.png');
   execFileSync('magick', [image + '[0]', '-resize', '1200x630^', '-gravity', 'center', '-extent', '1200x630', '-blur', '0x28', '-modulate', '85', bg]);
-  execFileSync('magick', [bg, '(', image + '[0]', '-resize', '1200x', ')', '-gravity', 'center', '-composite', '-strip', out]);
+  execFileSync('magick', [bg, '(', image + '[0]', '-resize', '1200x630', ')', '-gravity', 'center', '-composite', '-strip', out]);
   fs.rmSync(bg);
   console.log(`✓ ${path.relative(ROOT, out)} (1200x630). Add right under the blog's "# Title" (write real alt text):\n\n![<describe the image>](${path.relative(path.dirname(findBlog(num)), out)})\n\nThen push assets to master before publishing.`);
 }

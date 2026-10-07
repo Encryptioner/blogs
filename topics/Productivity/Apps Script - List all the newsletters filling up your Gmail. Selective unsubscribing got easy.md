@@ -1,8 +1,6 @@
 # Apps Script - List all the newsletters filling up your Gmail. Selective unsubscribing got easy
 
-<div align="center">
-  <img src="https://developers.google.com/static/apps-script/images/landing-page-hero.svg" alt="google-app-script"/>
-</div>
+![Illustration of a developer at a laptop in front of a stopwatch, with gears, a web page layout and a rising growth chart behind](../../assets/B-2/cover.png)
 
 -----
 

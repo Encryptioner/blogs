@@ -5,9 +5,7 @@
 
 ---
 
-<div align="center">
-  <img src="../../../assets/B-11/Claude-Code-Configuration-Blueprint-The Complete-Guide-for-Production-Teams.png"/>
-</div>
+![Claude Code configuration blueprint: a glowing Claude Code logo at the center, with security protocols, skills and workflow optimization, and production settings and deployment around it](../../../assets/B-11/cover.png)
 
 ## Who This Is For
 

@@ -88,12 +88,14 @@ MCP the JSON is handed to the page through an injected `<input type=file>` + `up
 
 ### Covers (what is set, and why some posts have none)
 - Publishing auto-fills `cover_image` from the post's first image (as the jsDelivr URL). The CLI/`brand` flow then re-hosts it on Substack
-  and sets it explicitly when the image's aspect ratio is 0.5–2.2 (**15 posts**: B-6–10, 12, 15–18, 23–26, 28).
-- Awkward auto covers (**B-1, 2, 11, 13, 14, 20, 21, 22**: tiny logo, SVG, very wide/narrow diagrams) and none at all (**B-3, 4, 5, 19, 27**: no
+  and sets it explicitly when the image's aspect ratio is 0.5–2.2 (**17 posts**: B-2, 6–12, 15–18, 23–26, 28).
+- Awkward auto covers (**B-1, 13, 14, 20, 21, 22**: tiny logo, very wide/narrow diagrams) and none at all (**B-3, 4, 5, 19, 27**: no
   image in the post). Fix = put a ~1200×630 image first in the blog (see the cover row in §1; `assets/B-28/cover.png` is the recipe).
-- Your dev.to banners exist for B-1, 2, 7, 11, 28 and can be padded to 1200×630 the same way. Per-post status: `published-posts.md`.
+- Never repeat a picture in a post. When a post already shows its banner, *replace* that image with the 1200×630 cover instead of adding another (B-11 did
+  exactly this); `check` flags the same picture used twice, even under different file names. Your dev.to banners were used for B-2, B-11, B-28; B-1's
+  is a 250×100 animated logo (too small to scale up), so it needs a real image. Per-post status: `published-posts.md`.
 - Verified: the cover appears once on the Substack post page and once on the blog site (the cover field only feeds hero/cards/OG tags).
-- `check` warns when a post has no image or its first image is a poor cover shape; the `cover` command fixes it (needs ImageMagick).
+- `check` warns when a post has no image, its first image is a poor cover shape, or a picture appears twice; the `cover` command fixes it (needs ImageMagick).
 - Re-host a cover by hand (or `setCover()` in `publish.browser.js`): `POST /api/v1/image {image: dataURL}` → `PUT /api/v1/drafts/:id {cover_image: url}` → `POST …/publish {send:false}`.
 
 ## 5. Pitfalls (all hit during the first publish)

@@ -5,7 +5,7 @@ Source of truth for blog → Substack mapping (`scripts/substack/post-ids.json` 
 | Blog | Title | Substack post id | URL | Cover |
 |---|---|---|---|---|
 | B-1 | pnpm - A better package manager for Node.js | 219198582 | https://ankurmursalin.substack.com/p/pnpm-a-better-package-manager-for | auto, awkward: tiny logo |
-| B-2 | Apps Script - List all the newsletters filling up your Gmail. Selective unsubscribing got easy | 219198583 | https://ankurmursalin.substack.com/p/apps-script-list-all-the-newsletters | auto, awkward: SVG |
+| B-2 | Apps Script - List all the newsletters filling up your Gmail. Selective unsubscribing got easy | 219198583 | https://ankurmursalin.substack.com/p/apps-script-list-all-the-newsletters | yes (Substack-hosted) |
 | B-3 | 📬 My Go-To Engineering Newsletters (30+ Summarized) | 219198584 | https://ankurmursalin.substack.com/p/my-go-to-engineering-newsletters | none (no image in blog) |
 | B-4 | Give Google Sheet Access Only to Form Submitters — With Apps Script | 219198587 | https://ankurmursalin.substack.com/p/give-google-sheet-access-only-to | none (no image in blog) |
 | B-5 | Integrating Bitbucket MCP with Cursor: A Practical Guide for Developers | 219198588 | https://ankurmursalin.substack.com/p/integrating-bitbucket-mcp-with-cursor | none (no image in blog) |
@@ -14,7 +14,7 @@ Source of truth for blog → Substack mapping (`scripts/substack/post-ids.json` 
 | B-8 | The Complete Guide to Software Business Models: How Tech Companies Actually Make Money | 219198594 | https://ankurmursalin.substack.com/p/the-complete-guide-to-software-business | yes (Substack-hosted) |
 | B-9 | Inside Bangladesh's Software Industry: Companies, Models, and Opportunities | 219198596 | https://ankurmursalin.substack.com/p/inside-bangladeshs-software-industry | yes (Substack-hosted) |
 | B-10 | Navigating Bangladesh's Software Industry - A Practical Guide for Developers in 2026 | 219198599 | https://ankurmursalin.substack.com/p/navigating-bangladeshs-software-industry | yes (Substack-hosted) |
-| B-11 | Claude Code Configuration Blueprint - The Complete Guide for Production Teams | 219198601 | https://ankurmursalin.substack.com/p/claude-code-configuration-blueprint | auto, awkward: too wide (2.38) |
+| B-11 | Claude Code Configuration Blueprint - The Complete Guide for Production Teams | 219198601 | https://ankurmursalin.substack.com/p/claude-code-configuration-blueprint | yes (Substack-hosted) |
 | B-12 | Graphify + code-review-graph: Build a Self-Updating Knowledge Graph for Claude Code and other AI Coding Agent | 219198603 | https://ankurmursalin.substack.com/p/graphify-code-review-graph-build | yes (Substack-hosted) |
 | B-13 | branchdiff + GitHub & Bitbucket - A Local Lens for the Pull Request Workflow You Already Have | 219198605 | https://ankurmursalin.substack.com/p/branchdiff-github-and-bitbucket-a | auto, awkward: too wide (2.22) |
 | B-14 | Self-Review With AI Before You Open the PR - A Practical Workflow with branchdiff | 219198606 | https://ankurmursalin.substack.com/p/self-review-with-ai-before-you-open | auto, awkward: too wide (2.35) |
