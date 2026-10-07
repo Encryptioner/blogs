@@ -15,6 +15,7 @@ native (real headings, lists, code blocks, images), not pasted.
 | Browser-console fallback + brand/About/bio scripts | `scripts/substack/publish.browser.js`, `brand.browser.js` |
 | Brand assets | `assets/brand/` |
 | Everything done on 2026-10-07, in order | `guides/substack/session-log.md` |
+| Checklist if the publication name changes | `guides/substack/rename-checklist.md` |
 
 ## 1. Write markdown that looks good on Substack
 
@@ -144,7 +145,7 @@ boxes in the dark reader, and shrink on phones (wide tables get small; tap to zo
 ## 6. Brand kit
 
 Publication name on Substack: **Ankur Ships Value** (the blog site and its favicon keep "Ankur's Writing"; the "A" mark fits both).
-Name rationale: a promise (what readers get = results that work) plus the author's name; max 3 words; no money talk or location in the copy.
+Name rationale: a promise (what readers get = results that work) plus the author's name; max 3 words.
 
 | Token | Value |
 |---|---|
