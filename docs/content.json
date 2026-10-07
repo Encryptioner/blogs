@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-07T04:01:28.471Z",
+  "generatedAt": "2026-10-07T04:19:49.834Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
   "counts": {
     "blog": 36,
     "presentation": 9,
-    "assets": 70
+    "assets": 73
   },
   "topics": [
     "Career",
@@ -320,7 +320,7 @@
       "firstDate": "2024-01-28",
       "sourcePath": "topics/Node.js/pnpm - A better package manager for Node.js.md",
       "url": "/blogs/blog/pnpm-a-better-package-manager-for-node-js",
-      "cover": null,
+      "cover": "/blogs/content/assets/B-1/pnpm-logo.gif",
       "supplementary": []
     },
     {
