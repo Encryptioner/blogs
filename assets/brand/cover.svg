@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 400" role="img" aria-label="Abstract mint-green banner with the Ankur's Writing mark">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06231b"/><stop offset="1" stop-color="#0d3a2e"/></linearGradient>
+    <linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00e3a8"/><stop offset="1" stop-color="#00996d"/></linearGradient>
+  </defs>
+  <rect width="1600" height="400" fill="url(#g)"/>
+  <g fill="none" stroke="#00e3a8" stroke-opacity=".14" stroke-width="2"><path d="M0 400 250 0M120 400 370 0M240 400 490 0M1100 400 1350 0M1220 400 1470 0M1340 400 1590 0M1460 400 1710 0"/></g>
+  <g transform="translate(700 100) scale(.4)"><rect width="500" height="500" rx="120" fill="url(#m)"/>
+  <path d="M150 376 250 134l100 242M200 300h100" fill="none" stroke="#06231b" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -10)"/></g>
+</svg>
