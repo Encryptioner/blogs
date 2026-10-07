@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-07T03:46:20.643Z",
+  "generatedAt": "2026-10-07T04:01:28.471Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
   "counts": {
     "blog": 36,
     "presentation": 9,
-    "assets": 69
+    "assets": 70
   },
   "topics": [
     "Career",
@@ -48,7 +48,7 @@
       "firstDate": "2025-01-26",
       "sourcePath": "topics/Productivity/Apps Script - List all the newsletters filling up your Gmail. Selective unsubscribing got easy.md",
       "url": "/blogs/blog/apps-script-list-all-the-newsletters-filling-up-your-gmail-selective-unsubscribing-got",
-      "cover": null,
+      "cover": "/blogs/content/assets/B-2/cover.png",
       "supplementary": []
     },
     {
@@ -112,7 +112,7 @@
       "firstDate": "2026-03-14",
       "sourcePath": "topics/Productivity/Claude Code/Claude Code Configuration Blueprint - The Complete Guide for Production Teams.md",
       "url": "/blogs/blog/claude-code-configuration-blueprint-the-complete-guide-for-production-teams",
-      "cover": null,
+      "cover": "/blogs/content/assets/B-11/cover.png",
       "supplementary": []
     },
     {
