@@ -105,6 +105,15 @@ async function uploadImage(buf, hash) {
   return url;
 }
 
+// Post cover (Media feature hero, social cards) = the post's first image, re-hosted on Substack, only if its shape suits a
+// cover (aspect 0.5-2.2, same rule as the blog site). Wide diagrams are skipped so they don't get cropped into the hero.
+async function coverImage(url) {
+  const buf = Buffer.from(await (await fetch(url)).arrayBuffer());
+  const up = await api('POST', '/api/v1/image', { image: 'data:image/png;base64,' + buf.toString('base64') });
+  const r = up.imageWidth / up.imageHeight;
+  return r >= 0.5 && r <= 2.2 ? up.url : null;
+}
+
 async function push(blogs) {
   const map = ids();
   const dev = await devtoUrls();
@@ -114,6 +123,7 @@ async function push(blogs) {
     const c = convertPost(b.file, dev, tm);
     if (!dry) await resolveLocalImages(c.body, uploadImage, imageCache());
     const payload = { draft_title: c.title.slice(0, 250), draft_subtitle: c.subtitle, draft_body: JSON.stringify(c.body) };
+    if (!dry && c.cover) { const cv = await coverImage(c.cover); if (cv) payload.cover_image = cv; }
     const id = map[b.n];
     if (dry) { console.log(`[dry] B-${b.n} ${id ? 'update ' + id : 'create'} "${c.title.slice(0, 60)}" (${payload.draft_body.length} bytes)`); continue; }
     let pid = id;

@@ -24,7 +24,8 @@ Follow `CLAUDE.md` (accessibility rules) plus these Substack-specific points. `c
 |---|---|
 | `# Title` once at the top, then `##` / `###` / `####` | The title becomes the Substack title; body headings are clamped to h2–h4. Never skip levels. |
 | **First paragraph = a real hook, 40–170 chars+** | It is the subtitle and the email/preview text (cut at 170 chars on a word boundary). Don't open with an image or a badge line. |
-| Every image has alt text and lives under `assets/B-NN/` **pushed to `master`** | Images are referenced as `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…`; unpushed = 404. The first image becomes the post thumbnail on the homepage and in cards, so make it the best one. |
+| Every image has alt text and lives under `assets/B-NN/` **pushed to `master`** | Images are referenced as `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…`; unpushed = 404. |
+| **First image = the cover** (right after the `# Title`), about **1200×630** (aspect 0.5–2.2) | It is the post's thumbnail and hero on the Substack homepage (Media feature layout), the social/OG image, and the blog site's card image (`blogs-and-presentations` ignores a first image outside that ratio, e.g. a 1000×420 dev.to banner or a 5:1 diagram). To use a wide banner, pad it to 1200×630 (original centered, blurred copy as background) — see `assets/B-28/cover.png`. Avoid covers with the title baked in on the left: the Media feature hero fades that side. |
 | Prefer PNG diagrams (see `guides/diagrams-guide.md`), light theme | Substack's site is light by default; a dark diagram on white looks like a hole. Wide diagrams (≥1200px) are fine, they scale down. |
 | Tag every code fence (`ts`, `bash`, `json`, `text` for ASCII diagrams) | Consistent monospace rendering. Keep lines ≤100 cols; Substack code blocks scroll sideways on phones. |
 | Tables: keep cells short; first column = the row's name | Substack has **no table support** (its editor silently drops a table node). Default **list style**: 2-column tables → `• **term** — value`; 3+ columns → a bold row title with one sub-bullet per column (*Header:* value). Posts that also exist on DEV get a closing line linking to the DEV version, where tables render natively. Image style is an opt-in (see *Tables* below). |
@@ -145,12 +146,11 @@ Substack's public site (`*.substack.com`) is light and ignores the OS `prefers-c
   later: full-bleed, text-free, checked as a visitor.
 - One accent with ~4.3:1 contrast on both backgrounds.
 
-Applied (see `session-log.md`): Website editor Theme **Custom** (header Standard, hero Feature, white background,
-accent `#008A63`), nav Home / Notes / Archive / About, rewritten About page, shortened profile bio.
+Applied (see `session-log.md`): Website editor Theme **Custom** (header Standard, hero Media feature, white background,
+accent `#008A63`), hero **Media feature** (chosen by the owner after comparing Feature / Newspaper / Highlight), nav Home / Notes / Archive / About, rewritten About page, shortened profile bio.
 
 ### Manual steps (not available through the API)
-- Website editor: fonts (currently SF Pro), extra nav items (GitHub, dev.to). Hero styles Newspaper/Highlight/Magazine
-  are image-heavy and crop the wide diagrams — Feature is the least bad; "Cropping" only offers Center/Smart.
+- Website editor: fonts (currently SF Pro), extra nav items (GitHub, dev.to). Hero: **Media feature** is in use (cover image on the right, title on a dark fade on the left; it uses each post's `cover_image`). Newspaper/Highlight/Magazine were image-heavy and cropped the wide diagrams; "Cropping" only offers Center/Smart.
 - Custom domain (Settings → Publication details), e.g. `writing.<yourdomain>`.
 - Enable 2FA (dashboard banner).
 - Publisher agreement "I agree": Dashboard → Revenue → Payments. Only needed for paid subscriptions.
