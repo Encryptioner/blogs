@@ -60,7 +60,22 @@ When in doubt, grep for the previous deck (e.g. `P-7`) — every file it appears
 3. Write the blog in the appropriate `topics/{category}/` directory
 4. Create `assets/B-{number}/` folder for any images or supporting files
 5. Register the blog in every applicable listing (see table above): at minimum `INDEX.md` (`## Blogs`) and `README.md` (topic section). If it has a companion deck, also add its line under that deck in `presentations/docs/PUBLIC_LINKS.md`.
-6. Commit and create a PR to master
+6. Start with a cover image and end with the standard closing block (see "Every post: cover and closing block" below).
+7. Commit and create a PR to master. After it is on `master`: publish to Substack (`guides/substack/README.md`) and rebuild the site (see "Publishing the site").
+
+### Every post: cover and closing block
+- **Cover**: the first image, right under the `# Title`, ~1200×630 (aspect 0.5–2.2), real alt text, **no title baked into its left edge**. It is the card/OG image on the site and the hero on Substack. Make it with `node scripts/substack/substack.mjs cover <B-N> <banner>`. If the post already shows that banner, **replace** it, never add a second copy.
+- **Never repeat a picture** in a post (same file, or identical bytes under another name). `substack.mjs check` flags it.
+- **Images must be pushed to `master` before publishing**: Substack posts load them from `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…` (a CDN that serves this repo). Renaming or deleting a pushed image breaks live Substack posts.
+- **Closing block**: end with `## Let's Connect` (link list), then this callout exactly, so every platform shows the same text:
+
+```
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.
+```
+- **Tone**: write like the author, plainly. No emoji decoration, badges or stock "AI" flourishes in post copy or callouts.
+- **Show content changes to the owner before publishing** anywhere; publishing is a separate, confirmed step.
 
 ### Adding a New Presentation Deck
 1. Determine the next deck number (`P-N`) from INDEX.md (`## Presentations`)
@@ -82,7 +97,16 @@ Content from this repository is published to:
 - DEV Community (https://dev.to/mir_mursalin_ankur)
 - Medium (https://mir-mursalin-ankur.medium.com/)
 - Nerddevs (https://nerddevs.com/author/ankur/)
-- Substack (https://ankurmursalin.substack.com/) — all blogs B-1..B-28; workflow, scripts and brand kit in `guides/substack/README.md`
+- Substack (https://ankurmursalin.substack.com/) — all blogs B-1..B-28; workflow, scripts and brand kit in `guides/substack/README.md`. Markdown is the single source: no Substack-only edits in the converter. Check with `node scripts/substack/substack.mjs check <B-N|all>`, push with `push <B-N>`; a live post only changes after re-publishing (the CLI does it); never email subscribers unless asked (`--send-email`). Tables become list rows (Substack has none).
+
+### Publishing the site
+The public site (https://encryptioner.github.io/blogs/, served from `docs/`) is generated; never edit `docs/` by hand. After blog content (`topics/`, `presentations/`, `assets/`) is merged to `master`:
+```bash
+cd ../various-projects/blogs-and-presentations
+pnpm site:publish --dry-run   # sync, verify, build, nothing written
+pnpm site:publish             # replaces docs/, commits "chore(site): rebuild", pushes the current branch
+```
+It refuses to run on a dirty blogs tree. Docs-only changes (`guides/`, `scripts/`, `CLAUDE.md`) need no rebuild.
 
 ### Accessibility Rules (enforce on every post)
 - **No `#` (h1) in post body** — the title is already h1. Start sections at `##` (h2), nest with `###`/`####`. Never skip levels.
