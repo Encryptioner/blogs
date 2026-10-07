@@ -13,8 +13,8 @@ async function applyBrand() {
     url[f.name] = (await (await fetch('/api/v1/image', { method: 'POST', headers: J, body: JSON.stringify({ image: data }) })).json()).url;
   }
   return put('/api/v1/publication', {
-    name: "Ankur's Writing",
-    hero_text: 'Practical engineering notes by Ankur Mursalin: AI-assisted dev workflows, software architecture, and the tools I build. Lead full-stack engineer, 7+ years in TypeScript, Node.js and cloud.',
+    name: 'Ankur Ships Value',
+    hero_text: 'Practical engineering that delivers results. AI workflows, architecture and dev tools, from a lead engineer.',
     logo_url: url['logo-square.png'], logo_url_wide: null, cover_photo_url: null, // cover intentionally unset (see README → Light and dark themes)
     theme_var_background_pop: '#008A63', // ~4.3:1 on white AND on near-black
     copyright: 'Mir Mursalin Ankur',

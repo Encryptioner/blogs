@@ -143,7 +143,8 @@ boxes in the dark reader, and shrink on phones (wide tables get small; tap to zo
 
 ## 6. Brand kit
 
-Matches the blog site (`docs/favicon.svg`): "Ankur's Writing".
+Publication name on Substack: **Ankur Ships Value** (the blog site and its favicon keep "Ankur's Writing"; the "A" mark fits both).
+Name rationale: a promise (what readers get = results that work) plus the author's name; max 3 words; no money talk or location in the copy.
 
 | Token | Value |
 |---|---|
@@ -153,7 +154,7 @@ Matches the blog site (`docs/favicon.svg`): "Ankur's Writing".
 | Amber accent | `#f2b84b` |
 | Substack accent (`theme_var_background_pop`) | `#008A63` (~4.3:1 on white **and** near-black; `#00996D`/`#00e3a8` fail one theme) |
 | Type | Substack "SF Pro" (Website editor) |
-| Tagline | AI-assisted dev workflows · architecture · tools I build |
+| Tagline | Practical engineering that delivers results. AI workflows, architecture and dev tools, from a lead engineer. |
 
 Assets: `assets/brand/logo-square.{svg,png}` (1024², the only one in use). `cover.{svg,png}` is kept for reference but
 **not applied**: Substack shows the cover as a wide strip on the visitor subscribe overlay and it read as an odd
