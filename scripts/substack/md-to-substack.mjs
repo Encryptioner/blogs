@@ -178,15 +178,6 @@ export async function devtoUrls(user = 'mir_mursalin_ankur') {
     return new Map(list.map((a) => [norm(a.title), a.url]));
   } catch { return new Map(); }
 }
-/** Substack cannot render tables. If the post has any and also exists on DEV, end it with a link there. */
-export function addDevFooter(c, devMap) {
-  const hasTable = JSON.stringify(c.body).includes('"bulletList"') && c.hadTable;
-  const url = devMap.get(norm(c.title));
-  if (!hasTable || !url) return c;
-  const link = { type: 'text', text: 'read it on DEV Community', marks: [{ type: 'link', attrs: { href: url } }] };
-  c.body.content.push({ type: 'horizontalRule' }, { type: 'paragraph', content: [{ type: 'text', text: 'Tables in this post read best as real tables: ', marks: [{ type: 'italic' }] }, link, { type: 'text', text: '.', marks: [{ type: 'italic' }] }] });
-  return c;
-}
 
 /** Blogs from INDEX.md `## Blogs`: [{ n, file }] (n = B-number). */
 export function listBlogs() {
@@ -213,14 +204,14 @@ export function convert(file, { tables } = {}) {
 }
 
 /**
- * Table policy (Substack has no tables). mode "list" (DEFAULT): readable list rows, plus a link to the DEV copy when the
- * post exists on dev.to. "image": every table rendered as an image. "auto": lists + DEV link where a DEV copy exists,
- * images otherwise. Opt in with `--tables=image|auto` (CLI) or SUBSTACK_TABLES_MODE.
+ * Table policy (Substack has no tables). mode "list" (DEFAULT): readable list rows. "image": every table rendered as an
+ * image. "auto": lists for posts that also exist on dev.to, images for the rest. Opt in with `--tables=image|auto`
+ * (CLI) or SUBSTACK_TABLES_MODE.
  */
 export function convertPost(file, devMap, mode = 'list') {
   const c = convert(file, { tables: mode === 'image' ? 'image' : 'list' });
-  if (!c.hadTable || mode === 'list' || mode === 'image') return mode === 'list' ? addDevFooter(c, devMap) : c;
-  return devMap.get(norm(c.title)) ? addDevFooter(c, devMap) : convert(file, { tables: 'image' });
+  if (mode !== 'auto' || !c.hadTable || devMap.get(norm(c.title))) return c;
+  return convert(file, { tables: 'image' });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === 'all') {

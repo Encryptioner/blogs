@@ -197,3 +197,17 @@ branchdiff main feat
 ```
 
 It still does exactly what it did on April 10th — show you the real diff, not the phantom one. Everything else grew up around that single, stubborn idea.
+
+## Let's Connect
+
+Thanks for reading. You can find me here:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

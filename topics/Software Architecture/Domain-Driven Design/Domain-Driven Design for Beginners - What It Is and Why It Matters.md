@@ -259,3 +259,17 @@ Northwind isn't finished. In the [deep-dive post](./Domain-Driven%20Design%20Dee
 - ByteByteGo — [Domain-Driven Design (DDD) Demystified](https://blog.bytebytego.com/p/domain-driven-design-ddd-demystified)
 - Nikki Siapno, Level Up Coding — [Domain-Driven Design, Broken Down](https://blog.levelupcoding.com/p/domain-driven-design-broken-down)
 - Companion deck: [Intro — DDD for Beginners](../../../presentations/P-6-domain-driven-design/intro.html)
+
+## Let's Connect
+
+Thanks for reading. You can find me here:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

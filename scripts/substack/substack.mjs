@@ -9,9 +9,8 @@
 //              --publish          also publish a draft that is not live yet (default: leave as draft)
 //              --send-email       email subscribers on publish (default: NO email)
 //              --skip-check       push even if lint reports errors
-//              --tables=list|image|auto   Substack has no tables. list (DEFAULT): list rows + a link to the DEV copy if the post is on dev.to.
-//                                 image: every table as a rendered image (needs Chrome + ImageMagick). auto: list + DEV link where a DEV copy
-//                                 exists, images otherwise
+//              --tables=list|image|auto   Substack has no tables. list (DEFAULT): list rows. image: every table as a rendered image (needs
+//                                 Chrome + ImageMagick). auto: lists for posts that also exist on dev.to, images for the rest
 //
 // Auth (push only): SUBSTACK_SID = value of the `substack.sid` cookie from a logged-in browser
 //   (DevTools → Application → Cookies → https://substack.com). It is a password: keep it in your shell env,

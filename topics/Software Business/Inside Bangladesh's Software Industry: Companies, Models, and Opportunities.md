@@ -705,3 +705,7 @@ Check more on
 - [Github](https://github.com/Encryptioner)
 - [X (Twitter)](https://twitter.com/AnkurMursalin)
 - [Nerddevs](https://nerddevs.com/author/ankur/)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

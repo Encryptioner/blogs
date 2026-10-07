@@ -145,3 +145,7 @@ Check more on
 - [Nerddevs](https://nerddevs.com/author/ankur/)
 
 -----
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

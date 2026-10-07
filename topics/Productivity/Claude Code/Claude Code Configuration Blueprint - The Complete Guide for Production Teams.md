@@ -494,4 +494,7 @@ I'm always excited to hear about what you're building! If you found this guide h
 - **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
 - **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
 - **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
-- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

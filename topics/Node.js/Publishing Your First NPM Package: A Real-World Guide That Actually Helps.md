@@ -567,3 +567,7 @@ I'm always excited to hear about what you're building! If you found this guide h
 - **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
 
 Drop a message if you publish your first package using this guide — I'd love to check it out!
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

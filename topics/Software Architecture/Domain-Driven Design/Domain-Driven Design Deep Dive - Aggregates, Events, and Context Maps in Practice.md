@@ -337,3 +337,17 @@ The [third post](./Domain-Driven%20Design%20in%20Production%20-%20A%20Real%20Bui
 - Nikki Siapno, Level Up Coding — [Domain-Driven Design, Broken Down](https://blog.levelupcoding.com/p/domain-driven-design-broken-down)
 - Level Up Coding — [LUC #77: Domain-Driven Design Demystified](https://blog.levelupcoding.com/luc-77-domain-driven-design-demystified-bridging-development-and-business-needs)
 - Companion deck: [Deep Dive — Aggregates, Events, Context Maps](../../../presentations/P-6-domain-driven-design/deep-dive.html)
+
+## Let's Connect
+
+Thanks for reading. You can find me here:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

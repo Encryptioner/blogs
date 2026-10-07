@@ -122,3 +122,17 @@ And the reminder that's closed both prior posts, still true here: simple CRUD ap
 - Nikki Siapno, Level Up Coding — [Domain-Driven Design, Broken Down](https://blog.levelupcoding.com/p/domain-driven-design-broken-down)
 - Companion deck: [Real Build — Domain-Driven Design in Production](../../../presentations/P-6-domain-driven-design/real-build.html)
 - Previously: [Intro](./Domain-Driven%20Design%20for%20Beginners%20-%20What%20It%20Is%20and%20Why%20It%20Matters.md) · [Deep Dive](./Domain-Driven%20Design%20Deep%20Dive%20-%20Aggregates%2C%20Events%2C%20and%20Context%20Maps%20in%20Practice.md)
+
+## Let's Connect
+
+Thanks for reading. You can find me here:
+
+- **Website**: [encryptioner.github.io](https://encryptioner.github.io)
+- **LinkedIn**: [Mir Mursalin Ankur](https://www.linkedin.com/in/mir-mursalin-ankur)
+- **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
+- **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
+- **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.

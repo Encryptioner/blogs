@@ -285,6 +285,9 @@ I am always excited to hear what you are building. If this guide helped, or if y
 - **GitHub**: [@Encryptioner](https://github.com/Encryptioner)
 - **X (Twitter)**: [@AnkurMursalin](https://twitter.com/AnkurMursalin)
 - **Technical Writing**: [Nerddevs](https://nerddevs.com/author/ankur/)
-- **Support**: [SupportKori](https://www.supportkori.com/mirmursalinankur)
 
 *branchdiff releases, install guide, and changelog: [encryptioner.github.io/branchdiff-releases](https://encryptioner.github.io/branchdiff-releases/)*
+
+> **Stay in touch.** Get new posts in your inbox: [subscribe to my newsletter on Substack](https://ankurmursalin.substack.com/).
+>
+> **Support my work.** If this helped, you can [support me on SupportKori](https://www.supportkori.com/mirmursalinankur). Thank you.
