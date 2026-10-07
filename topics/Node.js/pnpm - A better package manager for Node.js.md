@@ -1,7 +1,7 @@
 # pnpm - A better package manager for Node.js
 
 <div align="center">
-  <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/konqmhymdp515yau8vcw.gif" alt="pnpm"/>
+  <img src="../../assets/B-1/pnpm-logo.gif" alt="pnpm"/>
 </div>
 
 ### We will talk about pnpm, but first let's have a brief introduction on package manager
@@ -20,8 +20,8 @@
 - Redundant use of device space - I am pointing inefficient use of non-volatile memory (SSD, HDD). It is common that one can have multiple similar project. In that case, most of the packages (and their version) will be same. However, for each one of them, a package will be copied to multiple `project specific directory`. Those `node_modules` directories will gradually take up device space which u need to store other resources. U may all have seen this meme 😀
 
 <div align="center">
- <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/zjskj9fk5z5nr31auh5s.jpg" alt="big-node-modules" height="200px" />
- <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/130c8dn74ox6idf0ma7x.jpg" alt="long-npm-install" height="200px" />
+ <img src="../../assets/B-1/big-node-modules.jpg" alt="big-node-modules" height="200px" />
+ <img src="../../assets/B-1/long-npm-install.jpg" alt="long-npm-install" height="200px" />
 </div>
   
 - Long installation time - U may not worry about disk space. But lengthy installation time will scare you. For a relatively simple project, required packages can be large. `npm install` requires a copy of the package twice. First in `global cache directory` and later in `project specific directory`. Copying this every time for every new project will surely kill your time

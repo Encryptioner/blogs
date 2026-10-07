@@ -9,8 +9,12 @@
 //
 // push flags:  --dry-run          convert + lint, print what would happen, change nothing
 //              --publish          also publish a draft that is not live yet (default: leave as draft)
-//              --send-email       email subscribers on publish (default: NO email)
+//              --send-email       email ALL subscribers (the newsletter) when a draft is published; needs --publish. Default: NO email.
+//                                 Substack only emails on a post's FIRST publish; a post that is already live is updated silently.
+//                                 Asks you to type "send" first; --yes skips the question (for scripts).
 //              --skip-check       push even if lint reports errors
+//              --images=substack|repo   substack (DEFAULT): upload every image to Substack and use those copies (no dependence on GitHub/jsDelivr
+//                                 or dev.to hotlinks, resized for phones). repo: keep the jsDelivr/original URLs
 //              --tables=list|image|auto   Substack has no tables. list (DEFAULT): list rows. image: every table as a rendered image (needs
 //                                 Chrome + ImageMagick). auto: lists for posts that also exist on dev.to, images for the rest
 //
@@ -24,6 +28,7 @@ import path from 'path';
 import { createRequire } from 'module';
 import { execFileSync } from 'child_process';
 import { createHash } from 'crypto';
+import readline from 'readline/promises';
 import { convert, convertPost, listBlogs, ROOT, devtoUrls, resolveLocalImages, CACHE } from './md-to-substack.mjs';
 
 const MarkdownIt = createRequire(import.meta.url)(process.env.MDIT || 'markdown-it');
@@ -146,7 +151,42 @@ async function coverImage(url) {
   return r >= 0.5 && r <= 2.2 ? up.url : null;
 }
 
+// Re-host every body image on Substack (any src not already on Substack). Cached by source URL in .cache/substack/uploaded.json.
+const onSubstack = (u) => /substack-post-media|substackcdn\.com/.test(u);
+const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' };
+async function rehostImages(doc) {
+  const cache = imageCache(); let n = 0;
+  const host = async (src) => {
+    const key = 'src:' + src;
+    if (cache[key]) return cache[key];
+    try {
+      const buf = Buffer.from(await (await fetch(src)).arrayBuffer());
+      const ext = path.extname(new URL(src).pathname).slice(1).toLowerCase();
+      const up = await api('POST', '/api/v1/image', { image: `data:${MIME[ext] || 'image/png'};base64,${buf.toString('base64')}` });
+      cache[key] = up.url; fs.writeFileSync(CACHE_JSON, JSON.stringify(cache));
+      return up.url;
+    } catch (e) { console.error(`  keeping original (upload failed): ${src.slice(-60)} ${e.message || ''}`); return null; }
+  };
+  const walk = async (node) => {
+    if (node.type === 'image2' && !onSubstack(node.attrs.src)) { const url = await host(node.attrs.src); if (url) { node.attrs.src = url; n++; } }
+    for (const c of node.content || []) await walk(c);
+  };
+  await walk(doc); return n;
+}
+
+async function confirmEmail(blogs) {
+  const names = blogs.map((b) => 'B-' + b.n).join(', ');
+  console.log(`\n⚠  --send-email: publishing ${names} will EMAIL every subscriber of ${PUB}.substack.com (only for posts not live yet).`);
+  if (flags.includes('--yes')) return;
+  if (!process.stdin.isTTY) die('refusing to email without a terminal to confirm; pass --yes to confirm explicitly');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const a = (await rl.question('Type "send" to continue, anything else to cancel: ')).trim(); rl.close();
+  if (a !== 'send') die('cancelled, nothing was sent');
+}
+
 async function push(blogs) {
+  if (has('--send-email') && !has('--publish')) die('--send-email only applies together with --publish');
+  if (has('--send-email') && !has('--dry-run')) await confirmEmail(blogs);
   const map = ids();
   const dev = await devtoUrls();
   const dry = has('--dry-run');
@@ -154,6 +194,7 @@ async function push(blogs) {
     const tm = (flags.find((f) => f.startsWith('--tables=')) || '--tables=list').split('=')[1];
     const c = convertPost(b.file, dev, tm);
     if (!dry) await resolveLocalImages(c.body, uploadImage, imageCache());
+    if (!dry && !flags.includes('--images=repo')) await rehostImages(c.body);
     const payload = { draft_title: c.title.slice(0, 250), draft_subtitle: c.subtitle, draft_body: JSON.stringify(c.body) };
     if (!dry && c.cover) { const cv = await coverImage(c.cover); if (cv) payload.cover_image = cv; }
     const id = map[b.n];
@@ -167,10 +208,11 @@ async function push(blogs) {
     }
     let state = 'draft saved';
     const post = (await api('GET', `/api/v1/posts/by-id/${pid}`)).post;
+    if (post?.is_published && has('--send-email')) console.log(`  B-${b.n} is already live: updated, but Substack does not email an existing post`);
     if (post?.is_published) { // PUT only changes the draft copy; re-publishing is what updates the public page
       await api('POST', `/api/v1/drafts/${pid}/publish`, { send: false, share_automatically: false }); state = 'live post updated';
     }
-    else if (has('--publish')) { await api('POST', `/api/v1/drafts/${pid}/publish`, { send: has('--send-email'), share_automatically: false }); state = `published${has('--send-email') ? ' + emailed' : ' (no email)'}`; }
+    else if (has('--publish')) { await api('POST', `/api/v1/drafts/${pid}/publish`, { send: has('--send-email'), share_automatically: false }); state = `published${has('--send-email') ? ' + emailed to subscribers' : ' (no email)'}`; }
     console.log(`✓ B-${b.n} ${state} → https://${PUB}.substack.com/publish/post/${pid}`);
     await sleep(1500);
   }
