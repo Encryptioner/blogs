@@ -85,6 +85,15 @@ MCP the JSON is handed to the page through an injected `<input type=file>` + `up
 4. **Dark** — the Substack app/reader (substack.com) follows dark mode; the subdomain site stays light. Code blocks and
    diagrams with transparent backgrounds are the usual victims; use opaque light backgrounds on diagrams.
 
+### Covers (what is set, and why some posts have none)
+- Publishing auto-fills `cover_image` from the post's first image (as the jsDelivr URL). The CLI/`brand` flow then re-hosts it on Substack
+  and sets it explicitly when the image's aspect ratio is 0.5–2.2 (**15 posts**: B-6–10, 12, 15–18, 23–26, 28).
+- Awkward auto covers (**B-1, 2, 11, 13, 14, 20, 21, 22**: tiny logo, SVG, very wide/narrow diagrams) and none at all (**B-3, 4, 5, 19, 27**: no
+  image in the post). Fix = put a ~1200×630 image first in the blog (see the cover row in §1; `assets/B-28/cover.png` is the recipe).
+- Your dev.to banners exist for B-1, 2, 7, 11, 28 and can be padded to 1200×630 the same way. Per-post status: `published-posts.md`.
+- Verified: the cover appears once on the Substack post page and once on the blog site (the cover field only feeds hero/cards/OG tags).
+- Re-host a cover by hand: `POST /api/v1/image {image: dataURL}` → `PUT /api/v1/drafts/:id {cover_image: url}` → `POST …/publish {send:false}`.
+
 ## 5. Pitfalls (all hit during the first publish)
 
 - **"Something has gone wrong. Please refresh the page…" in the editor** = tiptap `Invalid JSON content` (see the
