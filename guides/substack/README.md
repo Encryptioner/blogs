@@ -29,6 +29,7 @@ Follow `CLAUDE.md` (accessibility rules) plus these Substack-specific points. `c
 | Tag every code fence (`ts`, `bash`, `json`, `text` for ASCII diagrams) | Consistent monospace rendering. Keep lines ≤100 cols; Substack code blocks scroll sideways on phones. |
 | Tables: keep cells short; first column = the row's name | Substack has **no table support** (its editor silently drops a table node). Default **list style**: 2-column tables → `• **term** — value`; 3+ columns → a bold row title with one sub-bullet per column (*Header:* value). Posts that also exist on DEV get a closing line linking to the DEV version, where tables render natively. Image style is an opt-in (see *Tables* below). |
 | Plain inline formatting only: bold, italic, `code`, links, strikethrough | Bold/links inside `` `code` `` are dropped (the editor forbids mixing `code` with other marks). |
+| End every post with the standard **Let's Connect** block: link list, then the *Stay in touch / Support my work* callout (blockquote, no emoji) | Same text on every platform, so Substack needs no special handling. The callout lives in the markdown of each blog; copy it from any recent post (e.g. B-16). |
 | Keep titles ≤ 100 chars | Email subject lines get cut. |
 | No raw HTML except `<img>` | Everything else is dropped (e.g. `<div align=center>`, `<details>`). |
 
@@ -96,6 +97,7 @@ MCP the JSON is handed to the page through an injected `<input type=file>` + `up
 - **Edits to a live post only show after re-publishing.** `PUT /api/v1/drafts/:id` changes the draft copy; the public page
   updates on `POST /api/v1/drafts/:id/publish` (`send:false`). The CLI does this automatically; the first table fix
   looked "not applied" for exactly this reason.
+- Do not add Substack-only text in the converter; the markdown is the single source (an earlier CTA injection and a DEV-link footer were removed for that reason).
 - Tables: a monospace block showed raw `**` markdown and overflowed phones, so it is not used. Default = list style.
 
 ### Tables (decision: list style now, image kept as an option)
