@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-07T03:39:13.178Z",
+  "generatedAt": "2026-10-07T03:46:20.643Z",
   "base": "/blogs",
   "site": "https://encryptioner.github.io",
   "repoUrl": "https://github.com/Encryptioner/blogs",
   "counts": {
     "blog": 36,
     "presentation": 9,
-    "assets": 68
+    "assets": 69
   },
   "topics": [
     "Career",
@@ -96,7 +96,7 @@
       "firstDate": "2026-09-13",
       "sourcePath": "topics/Development/Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others).md",
       "url": "/blogs/blog/build-your-own-ide-extension-a-real-world-guide-from-idea-to-publish-vs-code-and-others",
-      "cover": "/blogs/content/assets/B-28/vsix-distribution.png",
+      "cover": "/blogs/content/assets/B-28/cover.png",
       "supplementary": []
     },
     {
