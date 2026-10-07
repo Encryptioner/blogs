@@ -24,7 +24,7 @@ Follow `CLAUDE.md` (accessibility rules) plus these Substack-specific points. `c
 |---|---|
 | `# Title` once at the top, then `##` / `###` / `####` | The title becomes the Substack title; body headings are clamped to h2–h4. Never skip levels. |
 | **First paragraph = a real hook, 40–170 chars+** | It is the subtitle and the email/preview text (cut at 170 chars on a word boundary). Don't open with an image or a badge line. |
-| Every image has alt text and lives under `assets/B-NN/` **pushed to `master`** | Images are referenced as `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…`; unpushed = 404. |
+| Every image has alt text and lives under `assets/B-NN/` (**never an external/dev.to link**), **pushed to `master`** | The converter reads images from the repo via `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…` (unpushed = 404), and `push` then re-hosts every image on Substack, so live posts do not depend on the repo or on third parties. `check` warns on external image links. |
 | **First image = the cover** (right after the `# Title`), about **1200×630** (aspect 0.5–2.2) | It is the post's thumbnail and hero on the Substack homepage (Media feature layout), the social/OG image, and the blog site's card image (`blogs-and-presentations` ignores a first image outside that ratio, e.g. a 1000×420 dev.to banner or a 5:1 diagram). To use a wide banner, pad it to 1200×630 (original centered, blurred copy as background) — see `assets/B-28/cover.png`. Avoid covers with the title baked in on the left: the Media feature hero fades that side. |
 | Prefer PNG diagrams (see `guides/diagrams-guide.md`), light theme | Substack's site is light by default; a dark diagram on white looks like a hole. Wide diagrams (≥1200px) are fine, they scale down. |
 | Tag every code fence (`ts`, `bash`, `json`, `text` for ASCII diagrams) | Consistent monospace rendering. Keep lines ≤100 cols; Substack code blocks scroll sideways on phones. |
@@ -68,9 +68,21 @@ node scripts/substack/substack.mjs cover 29 banner.webp     # build assets/B-29/
 - Series with a companion deck (`P-N`): Substack takes no slide decks; link the deck's public URL
   (`presentations/docs/PUBLIC_LINKS.md`) in the post body.
 
+### Email / newsletter
+Substack has no separate "send" step: publishing and emailing happen in one action, at a post's first publish (editor: *Continue* → send via email and
+publish, or publish to the web only). The CLI mirrors that:
+
+```bash
+node scripts/substack/substack.mjs push 29 --publish                 # live on the site, NO email (default)
+node scripts/substack/substack.mjs push 29 --publish --send-email    # live AND emailed to all subscribers; asks you to type "send"
+node scripts/substack/substack.mjs push 29 --publish --send-email --yes   # same, no question (scripts only)
+```
+`--send-email` needs `--publish`, refuses without a terminal unless `--yes`, and cannot email a post that is already live (it only updates it).
+The 28 existing posts were published web-only, so they were not emailed. To tell subscribers about them, publish a new post with `--send-email`.
+
 ### Exit codes / safety
 `push` refuses to run when `check` reports **errors** (unreachable image). It never publishes without `--publish`
-and never emails without `--send-email`.
+and never emails without `--send-email` (plus the confirmation above).
 
 ### No cookie handy? Browser fallback
 Run the converter (`node scripts/substack/md-to-substack.mjs all /tmp/posts.json`), open the publish dashboard

@@ -66,6 +66,7 @@ When in doubt, grep for the previous deck (e.g. `P-7`) — every file it appears
 ### Every post: cover and closing block
 - **Cover**: the first image, right under the `# Title`, ~1200×630 (aspect 0.5–2.2), real alt text, **no title baked into its left edge**. It is the card/OG image on the site and the hero on Substack. Make it with `node scripts/substack/substack.mjs cover <B-N> <banner>`. If the post already shows that banner, **replace** it, never add a second copy.
 - **Never repeat a picture** in a post (same file, or identical bytes under another name). `substack.mjs check` flags it.
+- **Keep every image in `assets/B-N/` and reference it by relative path. No external or dev.to image links** (hotlinks break; B-1's were moved into the repo). Linking to someone else's article is fine; embedding their image is not.
 - **Images must be pushed to `master` before publishing**: Substack posts load them from `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…` (a CDN that serves this repo). Renaming or deleting a pushed image breaks live Substack posts.
 - **Closing block**: end with `## Let's Connect` (link list), then this callout exactly, so every platform shows the same text:
 

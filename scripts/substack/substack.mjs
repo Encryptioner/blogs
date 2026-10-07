@@ -83,6 +83,7 @@ async function lint({ n, file }) {
       if (c.type === 'image') {
         if (!c.content.trim()) out.push(['warn', `image without alt text: ${c.attrGet('src')}`]);
         const src = c.attrGet('src');
+        if (/^https?:/.test(src)) out.push(['warn', `external image link: keep the file in assets/B-${n}/ and reference it by relative path (${src.slice(0, 70)})`]);
         const url = /^https?:/.test(src) ? src : CDN + path.relative(ROOT, path.resolve(path.dirname(file), decodeURIComponent(src))).split('/').map(encodeURIComponent).join('/');
         try { const r = await fetch(url, { method: 'HEAD' }); if (!r.ok) out.push(['error', `image not reachable (${r.status}) — push assets to master first: ${url}`]); }
         catch (e) { out.push(['error', `image fetch failed: ${url}`]); }
