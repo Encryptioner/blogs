@@ -1,5 +1,7 @@
 # Build Your Own IDE Extension: A Real-World Guide From Idea to Publish (VS Code and Others)
 
+![Build Your Own IDE Extension: a developer holds a glowing cube labelled My Extension, with lines connecting it to a command, theme, linter, syntax highlighter, formatter, language server, debugger and bridge, next to the VS Code, JetBrains, Atom and Neovim logos](../../assets/B-28/cover.png)
+
 > The most useful software you'll ever write might be the kind only you needed.
 
 Every developer has one. That small thing your editor _almost_ does — the command you retype ten times a day, the info you keep switching to a browser to check, the tool you love that lives in a terminal while your actual work lives three windows away. You've tolerated it for months. Maybe years.
