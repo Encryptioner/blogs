@@ -27,7 +27,7 @@ Follow `CLAUDE.md` (accessibility rules) plus these Substack-specific points. `c
 | Every image has alt text and lives under `assets/B-NN/` **pushed to `master`** | Images are referenced as `cdn.jsdelivr.net/gh/Encryptioner/blogs@master/…`; unpushed = 404. The first image becomes the post thumbnail on the homepage and in cards, so make it the best one. |
 | Prefer PNG diagrams (see `guides/diagrams-guide.md`), light theme | Substack's site is light by default; a dark diagram on white looks like a hole. Wide diagrams (≥1200px) are fine, they scale down. |
 | Tag every code fence (`ts`, `bash`, `json`, `text` for ASCII diagrams) | Consistent monospace rendering. Keep lines ≤100 cols; Substack code blocks scroll sideways on phones. |
-| Tables: keep cells short; first column = the row's name | Substack has **no table support** (its editor silently drops a table node). Rows are converted: 2-column tables → `• **term** — value`; 3+ columns → a bold row title with one sub-bullet per column (*Header:* value). Posts that also exist on DEV get a closing line linking to the DEV version, where tables render natively. |
+| Tables: keep cells short; first column = the row's name | Substack has **no table support** (its editor silently drops a table node). Default **list style**: 2-column tables → `• **term** — value`; 3+ columns → a bold row title with one sub-bullet per column (*Header:* value). Posts that also exist on DEV get a closing line linking to the DEV version, where tables render natively. Image style is an opt-in (see *Tables* below). |
 | Plain inline formatting only: bold, italic, `code`, links, strikethrough | Bold/links inside `` `code` `` are dropped (the editor forbids mixing `code` with other marks). |
 | Keep titles ≤ 100 chars | Email subject lines get cut. |
 | No raw HTML except `<img>` | Everything else is dropped (e.g. `<div align=center>`, `<details>`). |
@@ -96,8 +96,19 @@ MCP the JSON is handed to the page through an injected `<input type=file>` + `up
 - **Edits to a live post only show after re-publishing.** `PUT /api/v1/drafts/:id` changes the draft copy; the public page
   updates on `POST /api/v1/drafts/:id/publish` (`send:false`). The CLI does this automatically; the first table fix
   looked "not applied" for exactly this reason.
-- Tables: a monospace block showed raw `**` markdown and overflowed phones; images were rejected (heavy, not selectable,
-  not theme-aware). Nested bullets scan best. A markdown→PNG table script is possible on request but is **not** used.
+- Tables: a monospace block showed raw `**` markdown and overflowed phones, so it is not used. Default = list style.
+
+### Tables (decision: list style now, image kept as an option)
+| Flag | Result |
+|---|---|
+| `--tables=list` (**default**) | list rows (above) + closing "read it on DEV" link when the post exists on dev.to |
+| `--tables=image` | every table rendered as a PNG (headless Chrome → ImageMagick trim), uploaded to Substack's image store, alt text = the table's text |
+| `--tables=auto` | lists + DEV link where a DEV copy exists, images for the rest |
+
+Image mode needs Chrome (or `CHROME=/path`) and `magick`; PNGs are cached in `.cache/substack/tables/` (git-ignored, safe
+to delete) and re-used. Trade-offs: images look like a markdown-preview table but are not selectable/searchable, are white
+boxes in the dark reader, and shrink on phones (wide tables get small; tap to zoom). Switching later = run
+`push all --tables=image` (or per post `push 16 --tables=image`); nothing else changes.
 - `send:false` on publish — otherwise every post emails all subscribers.
 - `homepage_type` can't be changed via `PUT /api/v1/publication` (400); use the Website editor.
 - Check the public site logged out (`?nocache=N`); visitor pages are cached for minutes.

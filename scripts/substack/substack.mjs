@@ -9,6 +9,9 @@
 //              --publish          also publish a draft that is not live yet (default: leave as draft)
 //              --send-email       email subscribers on publish (default: NO email)
 //              --skip-check       push even if lint reports errors
+//              --tables=list|image|auto   Substack has no tables. list (DEFAULT): list rows + a link to the DEV copy if the post is on dev.to.
+//                                 image: every table as a rendered image (needs Chrome + ImageMagick). auto: list + DEV link where a DEV copy
+//                                 exists, images otherwise
 //
 // Auth (push only): SUBSTACK_SID = value of the `substack.sid` cookie from a logged-in browser
 //   (DevTools → Application → Cookies → https://substack.com). It is a password: keep it in your shell env,
@@ -18,7 +21,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
-import { convert, listBlogs, ROOT, devtoUrls, addDevFooter } from './md-to-substack.mjs';
+import { convert, convertPost, listBlogs, ROOT, devtoUrls, resolveLocalImages, CACHE } from './md-to-substack.mjs';
 
 const MarkdownIt = createRequire(import.meta.url)(process.env.MDIT || 'markdown-it');
 const IDS_FILE = path.join(ROOT, 'scripts/substack/post-ids.json');
@@ -95,12 +98,22 @@ async function api(method, url, body) {
   return t ? JSON.parse(t) : {};
 }
 
+const CACHE_JSON = path.join(path.dirname(CACHE), 'uploaded.json'); // hash -> Substack image URL (git-ignored)
+let _ic; const imageCache = () => (_ic ??= fs.existsSync(CACHE_JSON) ? JSON.parse(fs.readFileSync(CACHE_JSON, 'utf8')) : {});
+async function uploadImage(buf, hash) {
+  const url = (await api('POST', '/api/v1/image', { image: 'data:image/png;base64,' + buf.toString('base64') })).url;
+  imageCache()[hash] = url; fs.writeFileSync(CACHE_JSON, JSON.stringify(imageCache()));
+  return url;
+}
+
 async function push(blogs) {
   const map = ids();
   const dev = await devtoUrls();
   const dry = has('--dry-run');
   for (const b of blogs) {
-    const c = addDevFooter(convert(b.file), dev);
+    const tm = (flags.find((f) => f.startsWith('--tables=')) || '--tables=list').split('=')[1];
+    const c = convertPost(b.file, dev, tm);
+    if (!dry) await resolveLocalImages(c.body, uploadImage, imageCache());
     const payload = { draft_title: c.title.slice(0, 250), draft_subtitle: c.subtitle, draft_body: JSON.stringify(c.body) };
     const id = map[b.n];
     if (dry) { console.log(`[dry] B-${b.n} ${id ? 'update ' + id : 'create'} "${c.title.slice(0, 60)}" (${payload.draft_body.length} bytes)`); continue; }

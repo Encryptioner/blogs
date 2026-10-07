@@ -8,6 +8,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'child_process';
+import crypto from 'crypto';
 import { createRequire } from 'module';
 const MarkdownIt = createRequire(import.meta.url)(process.env.MDIT || 'markdown-it');
 
@@ -62,6 +64,56 @@ function htmlBlock(content, file) {
   return out;
 }
 
+// ---- optional: tables as images (SUBSTACK_TABLES=image or convertPost auto-policy) ----
+// Renders each table with real HTML/CSS in headless Chrome (markdown-preview look, bold/links/code kept), trims it with
+// ImageMagick, caches PNGs in .cache/substack/tables (git-ignored) and emits an image node with src "file:<hash>".
+// resolveLocalImages() swaps those for Substack-hosted URLs at push time. Needs Chrome (or CHROME=path) + `magick`.
+export const CACHE = path.join(root, '.cache/substack/tables');
+let TABLE_MODE = process.env.SUBSTACK_TABLES || 'list';
+const CHROME = [process.env.CHROME, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', 'google-chrome', 'chromium'].filter(Boolean);
+const TABLE_CSS = `body{margin:0;padding:10px;background:#fff;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#1f2328}
+table{border-collapse:collapse}th,td{border:1px solid #d0d7de;padding:7px 11px;text-align:left;vertical-align:top}
+th{background:#f6f8fa;font-weight:600}tr:nth-child(even) td{background:#fbfcfd}code{font:14px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eff1f3;border-radius:4px;padding:1px 5px}a{color:#0969da;text-decoration:none}`;
+
+function renderTablePng(html) {
+  const hash = crypto.createHash('sha1').update(TABLE_CSS + html).digest('hex').slice(0, 12);
+  const out = path.join(CACHE, hash + '.png');
+  if (fs.existsSync(out)) return hash;
+  fs.mkdirSync(CACHE, { recursive: true });
+  const page = path.join(CACHE, hash + '.html'), raw = path.join(CACHE, hash + '.raw.png');
+  fs.writeFileSync(page, `<!doctype html><meta charset="utf-8"><style>${TABLE_CSS}</style>${html}`);
+  let done = false;
+  for (const bin of CHROME) {
+    try { execFileSync(bin, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=2', '--window-size=580,3200', `--screenshot=${raw}`, 'file://' + page], { stdio: 'ignore', timeout: 40000 }); done = fs.existsSync(raw); if (done) break; } catch { /* next */ }
+  }
+  if (!done) throw new Error('no headless Chrome (set CHROME=/path/to/chrome)');
+  execFileSync('magick', [raw, '-fuzz', '1%', '-trim', '+repage', '-bordercolor', 'white', '-border', '14', out]);
+  fs.rmSync(page); fs.rmSync(raw);
+  return hash;
+}
+
+function tableToImage(tokens, i) {
+  let j = i; while (tokens[j].type !== 'table_close') j++;
+  const hash = renderTablePng(md.renderer.render(tokens.slice(i, j + 1), md.options, {}));
+  const rows = []; let row = null;
+  for (let k = i; k < j; k++) { const t = tokens[k]; if (t.type === 'tr_open') row = []; else if (t.type === 'tr_close') rows.push(row); else if (t.type === 'inline') row.push(t.content.replace(/[*`]|\[([^\]]*)\]\([^)]*\)/g, '$1')); }
+  return [img('file:' + hash, ('Table: ' + rows.map((r) => r.join(' | ')).join(' / ')).slice(0, 700)), j];
+}
+
+/** Replace "file:<hash>" image srcs with upload(buffer, hash) -> url. `cache` = {hash:url} to skip re-uploads. */
+export async function resolveLocalImages(doc, upload, cache = {}) {
+  let n = 0;
+  const walk = async (node) => {
+    if (node.type === 'image2' && /^file:/.test(node.attrs.src)) {
+      const hash = node.attrs.src.slice(5);
+      cache[hash] ??= await upload(fs.readFileSync(path.join(CACHE, hash + '.png')), hash);
+      node.attrs.src = cache[hash]; n++;
+    }
+    for (const c of node.content || []) await walk(c);
+  };
+  await walk(doc); return n;
+}
+
 // Substack has no table node (the editor silently drops one), and a monospace block shows raw markdown and
 // overflows phones. So rows become list items that scan like table rows:
 //   2 columns:  • **term** — value
@@ -97,7 +149,7 @@ function blocks(tokens, file, i = 0, end = tokens.length) {
     else if (t.type === 'fence' || t.type === 'codeBlock') { const attrs = t.info ? { language: t.info.trim().split(/\s+/)[0] } : {}; out.push({ type: 'codeBlock', attrs, content: [{ type: 'text', text: t.content.replace(/\n$/, '') || ' ' }] }); i++; }
     else if (t.type === 'hr') { out.push({ type: 'horizontalRule' }); i++; }
     else if (t.type === 'html_block') { out.push(...htmlBlock(t.content, file)); i++; }
-    else if (t.type === 'table_open') { const [b, j] = tableToList(tokens, i, file); out.push(b); i = j + 1; }
+    else if (t.type === 'table_open') { let b, j; if (TABLE_MODE === 'image') { try { [b, j] = tableToImage(tokens, i); } catch (e) { console.error('table image failed → list:', e.message); [b, j] = tableToList(tokens, i, file); } } else [b, j] = tableToList(tokens, i, file); out.push(b); i = j + 1; }
     else if (/^(bullet|ordered)_list_open$/.test(t.type) || t.type === 'blockquote_open') {
       const close = t.type.replace('_open', '_close'); let depth = 0, j = i;
       for (; j < end; j++) { if (tokens[j].type === t.type) depth++; if (tokens[j].type === close && --depth === 0) break; }
@@ -144,7 +196,8 @@ export function listBlogs() {
 }
 
 /** markdown file -> { title, subtitle, cover, body } where body is the Substack draft_body doc. */
-export function convert(file) {
+export function convert(file, { tables } = {}) {
+  TABLE_MODE = tables || process.env.SUBSTACK_TABLES || 'list';
   let src = fs.readFileSync(file, 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '');
   const m = /^#\s+(.+)$/m.exec(src);
   const title = m ? m[1].trim() : path.basename(file, '.md');
@@ -159,9 +212,20 @@ export function convert(file) {
   return { title, subtitle, hadTable, cover: firstImg ? firstImg.content[0].attrs.src : null, body: doc };
 }
 
+/**
+ * Table policy (Substack has no tables). mode "list" (DEFAULT): readable list rows, plus a link to the DEV copy when the
+ * post exists on dev.to. "image": every table rendered as an image. "auto": lists + DEV link where a DEV copy exists,
+ * images otherwise. Opt in with `--tables=image|auto` (CLI) or SUBSTACK_TABLES_MODE.
+ */
+export function convertPost(file, devMap, mode = 'list') {
+  const c = convert(file, { tables: mode === 'image' ? 'image' : 'list' });
+  if (!c.hadTable || mode === 'list' || mode === 'image') return mode === 'list' ? addDevFooter(c, devMap) : c;
+  return devMap.get(norm(c.title)) ? addDevFooter(c, devMap) : convert(file, { tables: 'image' });
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === 'all') {
   const dev = await devtoUrls();
-  const out = listBlogs().map(({ n, file }) => ({ n, ...addDevFooter(convert(file), dev) }));
+  const out = listBlogs().map(({ n, file }) => ({ n, ...convertPost(file, dev, process.env.SUBSTACK_TABLES_MODE || 'list') }));
   fs.writeFileSync(process.argv[3], JSON.stringify(out));
   for (const o of out) console.log(o.n, o.title.slice(0, 60), o.body.content.length, JSON.stringify(o.body).length);
 }

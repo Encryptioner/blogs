@@ -62,3 +62,7 @@ Revert cheatsheet: name `PUT /api/v1/publication {name:"Mir Mursalin Ankur"}`; t
 33. Substack tables: tested a native `table/tableRow/tableCell` doc → editor loads but silently drops it. So no true tables. Image rendering (headless Chrome → PNG) was prototyped, rejected by the user (many files, not a table feel); code removed, `.cache/` added to `.gitignore`, leftover cache deleted.
 34. Final rendering: 2-col tables `**term** — value`; 3+ cols bold row title + italic-header sub-bullets. Footer line "Tables in this post read best as real tables: read it on DEV Community" on the 10 table posts that exist on dev.to (B-7..14, 26, 28; dev.to API match by title). 10 newer table posts (B-15..21, 24, 25, 27) have no DEV version.
 35. Audit (visitor, 390px and 1200px, hidden iframes): first 14 posts no horizontal overflow, 0 broken images, 0 tables-as-code; all 28: 0 table-like code blocks in live `body_html`.
+
+## 11. Table image mode built, kept optional
+36. Built `--tables=image|auto|list` (headless Chrome → PNG, ImageMagick trim, cached in git-ignored `.cache/substack/tables`, uploaded via `POST /api/v1/image` at push time, alt text = table text). Rendered all 36 tables for the 10 posts without a DEV copy (B-15..21, 24, 25, 27) and checked the output looks like a markdown-preview table.
+37. Decision (user): **list style stays the default**; image mode is an option for later. Defaults switched to `list`; nothing re-published (live site already list style). Cache PNGs deleted.
