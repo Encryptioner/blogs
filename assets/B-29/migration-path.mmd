@@ -1,0 +1,9 @@
+flowchart LR
+    A["Baseline<br/>Node + pnpm"] --> B["Phase 1<br/>Bun install in CI only"]
+    B --> C["Phase 2<br/>Bun for scripts and tests"]
+    C --> D["Phase 3<br/>Bun runtime on staging"]
+    D --> E["Phase 4<br/>Bun runtime on production"]
+    B -. rollback .-> A
+    C -. rollback .-> B
+    D -. rollback .-> C
+    E -. rollback .-> D

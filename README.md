@@ -8,6 +8,7 @@ Blogs & Presentations on various topics. Check [Index](./INDEX.md) for complete 
 
 #### Development
 - [Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)](./topics/Development/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md)
+- [Can Bun Replace Node in a Large Production Monorepo? A Tiered Migration Field Report](./topics/Development/Bun/Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo%20-%20A%20Tiered%20Migration%20Field%20Report.md)
 
 #### Node.js
 - [pnpm - A better package manager for Node.js](./topics/Node.js/pnpm%20-%20A%20better%20package%20manager%20for%20Node.js.md)

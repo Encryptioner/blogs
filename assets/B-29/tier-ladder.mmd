@@ -1,0 +1,7 @@
+flowchart BT
+    T1["Tier 1: Package manager<br/>bun install"] --> T2["Tier 2: Script and test runner<br/>bun run / test"]
+    T2 --> T3["Tier 3: Server runtime<br/>bun dist/server.js"]
+    T3 --> T4["Tier 4: Bundler<br/>replace webpack / Vite"]
+    T1 -.- R1["Risk: low"]
+    T3 -.- R3["Risk: native modules, resolver hooks, driver quirks"]
+    T4 -.- R4["Risk: highest, build pipeline rewrite"]
