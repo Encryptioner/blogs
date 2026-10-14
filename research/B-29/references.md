@@ -22,6 +22,9 @@ All accessed 2026-10-13. "Primary" = official docs. "Secondary" = community writ
 | 16 | libuv | https://libuv.org | Primary | The cross-platform async I/O library powering Node's event loop (layer 3). Accessed 2026-10-14 |
 | 17 | Bun 1.0 (Bun blog) | https://bun.com/blog/bun-v1.0 | Primary | Zig + JavaScriptCore instead of Rust/V8; Node-compatible from day one (layers 1, 2, 4). Accessed 2026-10-14 |
 | 18 | Announcing Stable V8 Bindings for Rust (Deno blog) | https://deno.com/blog/rusty-v8-stabilized | Primary | Deno written in Rust on Rusty V8 bindings (layers 1, 2). Accessed 2026-10-14 |
+| 19 | Rewriting Bun in Rust (Bun blog) | https://bun.com/blog/bun-in-rust | Primary | Bun v1.4.0 (2026-05): ~535K lines Zig → Rust; last Zig = 1.3.14; JavaScriptCore and other C/C++ libs stay; release channels stable + canary, no LTS. Layers 2, 3. Accessed 2026-10-14 |
+| 20 | Stability and releases (Deno docs) | https://docs.deno.com/runtime/fundamentals/stability_and_releases | Primary | Deno channels: stable minor every 12 weeks, LTS since 2.1 (~6 months of backported fixes, ended 2026-04-30), canary per commit. Accessed 2026-10-14 |
+| 21 | Previous releases (nodejs.org) | https://nodejs.org/en/about/previous-releases | Primary | Node: major every 6 months; even-numbered October lines become LTS with 30 months total support; odd lines ~6 months, never LTS. Accessed 2026-10-14 |
 
 ## Own measurements
 

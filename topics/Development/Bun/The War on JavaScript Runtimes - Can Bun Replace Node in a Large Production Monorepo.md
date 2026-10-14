@@ -17,7 +17,7 @@ Before the war, the territory. A JavaScript runtime is the program that takes yo
 ![Stack diagram of a JavaScript runtime: app code on top, then modules and packages, platform APIs and event loop, native bindings, JS engine, and the operating system underneath](../../../assets/B-29/runtime-anatomy.png)
 
 - **Layer 1 — the JS engine.** The parser, interpreter, JIT compiler, and garbage collector. Node and Deno embed V8 [15]; Bun embeds JavaScriptCore, Safari's engine [17]. This layer is a solved problem in all three — engines are mature, fast, and interchangeable.
-- **Layer 2 — the native bindings.** The glue that exposes the operating system to JavaScript. Node's bindings are largely C++; Deno's are Rust, through the Rusty V8 bindings [18]; Bun's are Zig [17]. This is where each runtime's identity starts.
+- **Layer 2 — the native bindings.** The glue that exposes the operating system to JavaScript. Node's bindings are largely C++; Deno's are Rust, through the Rusty V8 bindings [18]; Bun's were Zig through 1.3.x and were rewritten in Rust for v1.4.0 (May 2026) [19]. This is where each runtime's identity starts.
 - **Layer 3 — platform APIs and the event loop.** `fs`, `net`, `http`, timers, and the loop that schedules async I/O on a single thread. Node's loop comes from libuv [16]; Deno and Bun each wrote their own on top of their bindings. Nearly every "runtime bug" you will meet lives here or above.
 - **Layer 4 — modules and packages.** How code loads: npm, `node_modules` layout, lockfiles, install scripts, TypeScript stripping. This layer has no specification, only Node's behavior as de facto law.
 
@@ -30,6 +30,16 @@ This war had three sides. Node shipped in 2009 and became the gravity well: ever
 The interesting part is what Deno did next. Deno 2, in October 2024, reversed the founding bet and shipped full Node and npm backwards compatibility [14] — the ecosystem it rejected became the price of admission. And it still was not enough to stay independent: on October 9, 2026, Deno announced it is joining Cloudflare, with the runtime on roughly a year of maintenance releases and Deno Deploy winding down [12].
 
 So the field is down to Node and Bun, and the loser's story is the lens for this whole report: compatibility with the existing ecosystem beat a cleaner design, even after Deno conceded and added it. That is why everything below measures Bun by its Node compatibility — the gaps, the one missing `node:v8` call — rather than by its speed claims.
+
+## Release Trains and LTS
+
+Speed is not the only thing a runtime team ships. How a project versions, patches, and supports its releases decides how much upgrade work lands on you, and the three projects could not differ more.
+
+- **Node ships on a fixed train.** A new major every six months: the April release is Current-only, while the October one — even-numbered, like 22, 24, 26 — becomes LTS and is supported for 30 months [21]. Odd-numbered lines live about six months and never become LTS. The practical meaning: pin an even Node in your Docker image and you can ignore upgrades for two years.
+- **Deno had an LTS channel, briefly.** Stable minors on a 12-week schedule, an LTS channel since 2.1 with about six months of backported critical fixes, canary builds on every commit [20]. That LTS line ended in April 2026 — the maintenance-mode reality arrived before the support window did [12].
+- **Bun has no LTS at all.** One rolling stable channel with frequent patch and minor releases, plus a canary channel (`bun upgrade --canary`) for pre-release work [19]. Nothing is designated safe to sit on; the assumption is you keep moving.
+
+That last point prices differently per tier. At tiers 1–2 a moving runtime is a mild tax — an upgrade is a version bump in CI. At tier 3 it means the version you pin carries no promised support window, and the jump from 1.3 to 1.4 is the proof: a minor-looking bump that carried a full rewrite of the runtime's ~535K lines of Zig to Rust [19]. This report's probes ran on 1.3.10, the last Zig line — worth remembering when you compare numbers.
 
 ## The Case Study (Sanitized)
 
@@ -153,8 +163,11 @@ I would rerun the server probe against real MongoDB and Redis to explain the exi
 16. libuv: https://libuv.org
 17. Bun, "Bun 1.0": https://bun.com/blog/bun-v1.0
 18. Deno, "Announcing Stable V8 Bindings for Rust" (Rusty V8): https://deno.com/blog/rusty-v8-stabilized
+19. Bun, "Rewriting Bun in Rust" (v1.4.0, May 2026): https://bun.com/blog/bun-in-rust
+20. Deno, "Stability and releases" (channels and cadence): https://docs.deno.com/runtime/fundamentals/stability_and_releases
+21. Node.js, "Previous releases" (LTS schedule and support windows): https://nodejs.org/en/about/previous-releases
 
-All accessed 2026-10-13 (references 12–18 on 2026-10-14). Timings are my own single-run measurements with Bun 1.3.10, Node 24 and pnpm 10.
+All accessed 2026-10-13 (references 12–21 on 2026-10-14). Timings are my own single-run measurements with Bun 1.3.10, Node 24 and pnpm 10.
 
 ## Let's Connect
 

@@ -94,4 +94,14 @@ No production runtime switch is recommended.
 
 ## Runtime anatomy framing (added with the deep-dive)
 
-The blog and deck open with a four-layer model of a JavaScript runtime — 1) JS engine, 2) native bindings, 3) platform APIs + event loop, 4) modules/packages. Node and Deno embed V8; Bun embeds JavaScriptCore. Bindings: C++ (Node), Rust via Rusty V8 (Deno), Zig (Bun). Node's loop is libuv; Deno and Bun wrote their own. The point of the model: "Node compatibility" is a layer-4 property plus a slice of layer 3 — every Bun verdict in the report is a verdict on layer 4, and Deno's arc (rewrite layer 4, then walk it back) is the cautionary tale. Sources: references 15–18 in `references.md`. Diagram: `assets/B-29/runtime-anatomy.png` (rendered LR so one PNG serves both blog and deck).
+The blog and deck open with a four-layer model of a JavaScript runtime — 1) JS engine, 2) native bindings, 3) platform APIs + event loop, 4) modules/packages. Node and Deno embed V8; Bun embeds JavaScriptCore. Bindings: C++ (Node), Rust via Rusty V8 (Deno), Rust in Bun since the v1.4.0 rewrite (Zig through 1.3.x; probes here ran on 1.3.10, the last Zig line) [19]. Node's loop is libuv; Deno and Bun wrote their own. The point of the model: "Node compatibility" is a layer-4 property plus a slice of layer 3 — every Bun verdict in the report is a verdict on layer 4, and Deno's arc (rewrite layer 4, then walk it back) is the cautionary tale. Sources: references 15–18 in `references.md`. Diagram: `assets/B-29/runtime-anatomy.png` (rendered LR so one PNG serves both blog and deck).
+
+## Release trains and LTS (added with the 2026-10-14 update)
+
+How each runtime ships updates, now covered in the blog ("Release Trains and LTS") and deck slide 05:
+
+- **Node** — major every 6 months; even-numbered October lines become LTS with 30 months of total support (Active, then Maintenance); odd lines are Current-only for ~6 months. Pin an even line, stay quiet ~2 years [21].
+- **Deno** — stable minor every 12 weeks; LTS channel since 2.1 with ~6 months of backported critical fixes — that channel ended 2026-04-30, before the Cloudflare announcement; canary builds per commit [20].
+- **Bun** — no LTS at all: one rolling stable channel plus canary (`bun upgrade --canary`). The 1.3 → 1.4 minor bump carried a full Zig → Rust rewrite of ~535K lines (merged 2026-05-14, 19 regressions, all fixed; binaries ~20% smaller, ~2–5% faster) [19]. Anthropic acquired Bun in December 2025.
+
+Pricing per tier: at tiers 1–2 the moving release train is a cheap CI version bump; at tier 3 "no LTS" means the pinned version has no promised support window.

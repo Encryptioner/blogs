@@ -15,9 +15,11 @@ What I found:
 
 My recommendation: adopt Bun as an optional package manager and script launcher, move the client to Vite, and earn the server runtime switch with a soak test.
 
+One more thing worth knowing before picking a side: the three projects ship updates very differently. Node pins even-numbered releases as LTS with 30 months of support. Deno's LTS channel ended in April. Bun has no LTS at all — and its 1.3 to 1.4 bump carried a full rewrite of the runtime from Zig to Rust (v1.4, May 2026). The post now covers each runtime's release train and what "no LTS" costs at each adoption tier.
+
 Single runs, so read the timings as direction. Full write-up with measurements, caveats and references:
 https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md
 
 #Bun #NodeJS #TypeScript #WebDevelopment #SoftwareEngineering
 
-Sources: Bun docs (Node compatibility, lifecycle scripts, isolated installs), Vue CLI, Deno's "Deno is joining Cloudflare" announcement. Full list in the post.
+Sources: Bun docs (Node compatibility, lifecycle scripts, isolated installs), Bun's "Rewriting Bun in Rust" post, Node.js release schedule, Deno stability docs, Vue CLI, Deno's "Deno is joining Cloudflare" announcement. Full list in the post.

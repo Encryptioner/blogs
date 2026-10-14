@@ -55,16 +55,21 @@ if [[ "$THEME" == "dark" ]]; then
 fi
 
 mkdir -p "$(dirname "$OUT")"
-cp "$MMD" "${OUT}.mmd"
+# ponytail: skip the sidecar copy when source already lives at the destination
+# (rendering in place) — cp errors out on identical paths
+if [ "$(cd "$(dirname "$MMD")" && pwd)/$(basename "$MMD")" != "$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT").mmd" ]; then
+  cp "$MMD" "${OUT}.mmd"
+fi
 
 # Two separate mmdc calls, not one SVG->PNG pipeline: mermaid node labels are
 # HTML foreignObject content (so multi-line labels with <br/> work), and
 # scripts/svg-to-png.sh's rsvg-convert backend is a pure-SVG rasterizer — it
 # silently drops foreignObject text, leaving empty boxes. mmdc's own puppeteer
 # renders PNG through a real browser, so labels come through either way.
+# mmdc 12 removed -w/--width; --scale 2 gives the same crisp ~2x PNG.
 npx --yes -p @mermaid-js/mermaid-cli mmdc \
   -i "$MMD" -o "${OUT}.svg" -c "$CONFIG" -b "$BG" -t "$MMDC_THEME"
 npx --yes -p @mermaid-js/mermaid-cli mmdc \
-  -i "$MMD" -o "${OUT}.png" -c "$CONFIG" -b "$BG" -t "$MMDC_THEME" -w 1600
+  -i "$MMD" -o "${OUT}.png" -c "$CONFIG" -b "$BG" -t "$MMDC_THEME" --scale 2
 
 echo "rendered: ${OUT}.mmd / .svg / .png (theme: ${THEME})"

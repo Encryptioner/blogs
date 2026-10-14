@@ -341,8 +341,8 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
         <thead><tr><th>Layer</th><th>Node</th><th>Deno</th><th class="hl">Bun</th></tr></thead>
         <tbody>
           <tr><th>1 · Engine</th><td>V8 <span class="mono">[15]</span></td><td>V8 <span class="mono">[18]</span></td><td class="hl">JavaScriptCore <span class="mono">[17]</span></td></tr>
-          <tr><th>2 · Bindings</th><td>C++</td><td>Rust — Rusty V8 <span class="mono">[18]</span></td><td class="hl">Zig <span class="mono">[17]</span></td></tr>
-          <tr><th>3 · Loop + APIs</th><td>libuv <span class="mono">[16]</span></td><td>own, on Rust</td><td class="hl">own, on Zig</td></tr>
+          <tr><th>2 · Bindings</th><td>C++</td><td>Rust — Rusty V8 <span class="mono">[18]</span></td><td class="hl">Rust since v1.4 — was Zig <span class="mono">[19]</span></td></tr>
+          <tr><th>3 · Loop + APIs</th><td>libuv <span class="mono">[16]</span></td><td>own, on Rust</td><td class="hl">own, on Rust (Zig ≤ 1.3)</td></tr>
           <tr><th>4 · Modules</th><td>npm + node_modules</td><td>URL-first → npm since Deno 2 <span class="mono">[14]</span></td><td class="hl">npm-compatible from day one <span class="mono">[1]</span></td></tr>
         </tbody>
       </table>
@@ -357,14 +357,31 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
     <div class="three-col">
       <div class="mode"><span class="tech">2009 · the incumbent</span><h4>Node</h4><p>The gravity well. Every tool, tutorial, and CI image in this report's baseline targets it first — 17+ years of ecosystem compounding.</p></div>
       <div class="mode violet"><span class="tech">2020 · the reformer — exited 2026</span><h4>Deno</h4><p>Node's original author's clean-slate rethink: TypeScript- and security-first, famously without npm <span class="mono">[13]</span>. Deno 2 reversed the founding bet — full Node/npm compatibility <span class="mono">[14]</span>. Joined Cloudflare, Oct 2026 <span class="mono">[12]</span>.</p></div>
-      <div class="mode"><span class="tech">2022 · the challenger</span><h4>Bun</h4><p>Entered from the opposite direction: Node-compatible from day one, selling raw speed <span class="mono">[1]</span>. Now the last independent challenger.</p></div>
+      <div class="mode"><span class="tech">2022 · the challenger</span><h4>Bun</h4><p>Entered from the opposite direction: Node-compatible from day one, selling raw speed <span class="mono">[1]</span>. Now the last independent challenger — bindings rewritten Zig → Rust in v1.4, May 2026 <span class="mono">[19]</span>.</p></div>
     </div>
     <div class="callout violet"><b>What Deno's exit teaches — and why it frames this deck:</b> clean slates lose to ecosystem gravity. Deno even shipped npm compatibility and still consolidated. So this report measures Bun by its <i>Node compatibility</i> — the gaps, the one missing <span class="mono">node:v8</span> call — not by its speed claims.</div>
   </section>
 
+  <!-- 02b · RELEASE TRAINS -->
+  <section class="slide" data-title="Release trains and LTS">
+    <div class="slide-num">05 · the war so far</div>
+    <h3 class="section">How they ship: <em>release trains and support windows</em>.</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Node</th><th>Deno</th><th class="hl">Bun</th></tr></thead>
+        <tbody>
+          <tr><th>Cadence</th><td>major every 6 months <span class="mono">[21]</span></td><td>stable minor every 12 weeks <span class="mono">[20]</span></td><td class="hl">frequent stable + canary <span class="mono">[19]</span></td></tr>
+          <tr><th>LTS</th><td>even lines only — 30 months of support <span class="mono">[21]</span></td><td>LTS channel since 2.1 — ended Apr 2026 <span class="mono">[20]</span></td><td class="hl">none</td></tr>
+          <tr><th>Can you sit still?</th><td>yes — pin an even line, quiet for ~2 years</td><td>no — maintenance mode under Cloudflare <span class="mono">[12]</span></td><td class="hl">no — keep moving</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout accent"><b>Why it matters to the ladder:</b> at tiers 1–2 a moving runtime is a cheap version bump in CI. At tier 3, "no LTS" means the pinned version carries no promised support window — and the 1.3 → 1.4 minor bump carried a full Zig → Rust rewrite of ~535K lines <span class="mono">[19]</span>. This deck's probes ran on 1.3.10, the last Zig line.</div>
+  </section>
+
   <!-- 03 · FOUR DECISIONS -->
   <section class="slide" data-title="One question, four decisions">
-    <div class="slide-num">05 · the frame</div>
+    <div class="slide-num">06 · the frame</div>
     <h3 class="section">The one-word answer is <em>always wrong</em>.</h3>
     <p class="lead">"Should we move to Bun?" gets a yes or a no — and with Deno joining Cloudflare this month, Node and Bun are the only two independent runtimes left. But "Bun" is four separate tools, and each one can be adopted — or rejected — on its own:</p>
     <div class="table-wrap">
@@ -383,7 +400,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 03 · CASE STUDY -->
   <section class="slide compact" data-title="The case study, sanitized">
-    <div class="slide-num">06 · the case study</div>
+    <div class="slide-num">07 · the case study</div>
     <h3 class="section">The subject: <em>two sibling production monorepos</em>.</h3>
     <div class="two-col">
       <div class="mode">
@@ -403,7 +420,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 04 · FOUR TIERS -->
   <section class="slide compact" data-title="The four tiers">
-    <div class="slide-num">07 · the ladder</div>
+    <div class="slide-num">08 · the ladder</div>
     <h3 class="section">Four tiers, <em>climbed one at a time</em>.</h3>
     <div class="fig">
       <img src="../../assets/B-29/tier-ladder.png" alt="Ladder of four Bun adoption tiers — package manager, script and test runner, server runtime, bundler — with risk rising at each step" loading="lazy">
@@ -414,7 +431,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 05 · TIER 1 TIMINGS -->
   <section class="slide" data-title="Tier 1 — the install timings">
-    <div class="slide-num">08 · tier 1 — package manager</div>
+    <div class="slide-num">09 · tier 1 — package manager</div>
     <h3 class="section">Tier 1 works. It's just <em>not faster</em> here.</h3>
     <p class="lead"><span class="mono">bun install</span> read the existing <span class="mono">pnpm-lock.yaml</span> and resolved <b>exactly the same set</b> — 2 181 and 1 963 packages, zero differences. The timings:</p>
     <div class="table-wrap">
@@ -433,7 +450,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 06 · TIER 1 BEYOND SPEED -->
   <section class="slide" data-title="Tier 1 — beyond speed">
-    <div class="slide-num">09 · tier 1 — what actually bites</div>
+    <div class="slide-num">10 · tier 1 — what actually bites</div>
     <h3 class="section">Two details matter <em>more than speed</em>.</h3>
     <div class="vs">
       <div class="box warn">
@@ -450,7 +467,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 07 · TIER 2 -->
   <section class="slide" data-title="Tier 2 — launch vs force">
-    <div class="slide-num">10 · tier 2 — scripts and tests</div>
+    <div class="slide-num">11 · tier 2 — scripts and tests</div>
     <h3 class="section">The pattern: <em>launch is safe, force is where surprises start</em>.</h3>
     <div class="vs">
       <div class="box good">
@@ -469,7 +486,7 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
 
   <!-- 08 · node:v8 GAP -->
   <section class="slide" data-title="The node:v8 gap">
-    <div class="slide-num">11 · tier 2 — the crash explained</div>
+    <div class="slide-num">12 · tier 2 — the crash explained</div>
     <h3 class="section">One failing test file, <em>one missing Node API</em>.</h3>
     <div class="code-block"><span class="c"># Repo B, vitest with Bun's runtime forced:</span>
 NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span class="k">not yet implemented in Bun</span>
@@ -485,7 +502,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 09 · TIER 3 WORKED -->
   <section class="slide compact" data-title="Tier 3 — what worked">
-    <div class="slide-num">12 · tier 3 — server runtime</div>
+    <div class="slide-num">13 · tier 3 — server runtime</div>
     <h3 class="section">The server <em>boots, and everything loads</em>.</h3>
     <p class="lead">Compiled output and TypeScript source both ran through queue and Redis setup, and the path alias resolved. Then small probes, one by one:</p>
     <div class="three-col">
@@ -498,7 +515,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 10 · TIER 3 RED FLAG -->
   <section class="slide" data-title="Tier 3 — the red flag">
-    <div class="slide-num">13 · tier 3 — what stopped me</div>
+    <div class="slide-num">14 · tier 3 — what stopped me</div>
     <h3 class="section">Then the part that <em>stopped me cold</em>.</h3>
     <div class="callout danger"><span class="label">the unexplained exit</span>Database deliberately unreachable. The full app — in <b>both repos</b> — <b>exited with code 1 about 30 to 40 seconds after the connection failed</b>. Node, same code: stays alive and logs the error. Small Mongoose and logging probes behave identically on both runtimes, so the cause could not be isolated. Never tested against a reachable database.</div>
     <div class="vs">
@@ -516,7 +533,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 11 · TIER 4 -->
   <section class="slide" data-title="Tier 4 — the client falls over">
-    <div class="slide-num">14 · tier 4 — bundler</div>
+    <div class="slide-num">15 · tier 4 — bundler</div>
     <h3 class="section">The webpack client: <em>this is where it fell over</em>.</h3>
     <div class="table-wrap">
       <table>
@@ -534,7 +551,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 12 · VITE -->
   <section class="slide" data-title="The real fix: Vite">
-    <div class="slide-num">15 · tier 4 — the actual move</div>
+    <div class="slide-num">16 · tier 4 — the actual move</div>
     <h3 class="section">The client's real problem isn't Bun. <em>It's webpack.</em></h3>
     <ul class="bullets">
       <li><strong>Vue CLI is in maintenance mode</strong> <span class="muted">— and it points users to Vite itself. The tool under your client is already end-of-life-ish.</span></li>
@@ -546,7 +563,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 13 · WHAT WOULD BITE YOU -->
   <section class="slide" data-title="What would bite you">
-    <div class="slide-num">16 · transfer to your repo</div>
+    <div class="slide-num">17 · transfer to your repo</div>
     <h3 class="section">What would bite <em>in your own repo</em>.</h3>
     <ul class="checklist" style="max-width:80ch">
       <li><b>Native modules + postinstall scripts</b> — Bun's trust model differs from pnpm's; list <span class="mono">trustedDependencies</span> explicitly.</li>
@@ -560,7 +577,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 14 · MIGRATION PATH -->
   <section class="slide compact" data-title="The phased path">
-    <div class="slide-num">17 · the migration path</div>
+    <div class="slide-num">18 · the migration path</div>
     <h3 class="section">Phased, with a <em>rollback at every step</em>.</h3>
     <div class="fig">
       <img src="../../assets/B-29/migration-path.png" alt="Phased migration flow — Bun as package manager, Bun to launch scripts, client moved to Vite, Bun as server runtime last — with a rollback exit after each phase" loading="lazy">
@@ -576,7 +593,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 15 · WHEN (NOT) TO -->
   <section class="slide" data-title="When not to migrate">
-    <div class="slide-num">18 · the decision</div>
+    <div class="slide-num">19 · the decision</div>
     <h3 class="section">Stay or go? <em>Evidence, not vibes.</em></h3>
     <div class="vs">
       <div class="box bad">
@@ -597,7 +614,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 16 · VERIFY NEXT -->
   <section class="slide" data-title="What I'd verify next">
-    <div class="slide-num">19 · open ends</div>
+    <div class="slide-num">20 · open ends</div>
     <h3 class="section">What I would <em>verify next</em>.</h3>
     <ul class="checklist" style="max-width:72ch">
       <li><b>Re-run the server probe against real MongoDB and Redis</b> — explain the exit code 1 before any runtime conversation continues.</li>
@@ -615,7 +632,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 17 · REFERENCES -->
   <section class="slide" data-title="References">
-    <div class="slide-num">20 · references</div>
+    <div class="slide-num">21 · references</div>
     <h3 class="section">Sources — <em>primary first</em>.</h3>
     <ul class="refs">
       <li data-n="1"><a href="https://bun.com/docs/runtime/nodejs-compat" target="_blank" rel="noopener">Bun — Node.js compatibility</a></li>
@@ -636,13 +653,16 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
       <li data-n="16"><a href="https://libuv.org" target="_blank" rel="noopener">libuv — the async I/O library behind Node's event loop</a></li>
       <li data-n="17"><a href="https://bun.com/blog/bun-v1.0" target="_blank" rel="noopener">Bun — "Bun 1.0" (Zig + JavaScriptCore, Node-compatible from day one)</a></li>
       <li data-n="18"><a href="https://deno.com/blog/rusty-v8-stabilized" target="_blank" rel="noopener">Deno — "Stable V8 Bindings for Rust" (Rusty V8)</a></li>
+      <li data-n="19"><a href="https://bun.com/blog/bun-in-rust" target="_blank" rel="noopener">Bun — "Rewriting Bun in Rust" (v1.4.0; release channels, no LTS)</a></li>
+      <li data-n="20"><a href="https://docs.deno.com/runtime/fundamentals/stability_and_releases" target="_blank" rel="noopener">Deno — "Stability and releases" (stable/LTS/canary cadence)</a></li>
+      <li data-n="21"><a href="https://nodejs.org/en/about/previous-releases" target="_blank" rel="noopener">Node.js — "Previous releases" (even-line LTS, 30-month support)</a></li>
     </ul>
-    <div class="foot">Accessed 2026-10-13 (references 12–18: 2026-10-14). Timings are single-run measurements: Bun 1.3.10, Node 24, pnpm 10. 10–11 corroborate symptoms seen in our own runs.</div>
+    <div class="foot">Accessed 2026-10-13 (references 12–21: 2026-10-14). Timings are single-run measurements: Bun 1.3.10, Node 24, pnpm 10. 10–11 corroborate symptoms seen in our own runs.</div>
   </section>
 
   <!-- 18 · END -->
   <section class="slide hero" data-title="Four verdicts, one path">
-    <div class="slide-num">21 · take it away</div>
+    <div class="slide-num">22 · take it away</div>
     <h3 class="section">Bun is not one decision. <em>Make four of them.</em></h3>
     <p class="lead">Take the easy wins at the bottom of the ladder, fix the client where it actually hurts, and make the runtime earn its way in. Rollback at every step.</p>
     <div class="end-links">
@@ -663,7 +683,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-21">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-22">
 </div>
 
 <div class="dk-help" id="helpOverlay">

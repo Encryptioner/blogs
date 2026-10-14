@@ -28,6 +28,17 @@ Public path for every presentation **and its companion blog post** (markdown
 blob link or raw-content proxy link, per format) is documented in
 [`PUBLIC_LINKS.md`](./PUBLIC_LINKS.md).
 
+## Opening a deck locally
+
+Plain viewing: double-click the deck's `index.html` (or open it via `file://`).
+Engine CSS/JS load from absolute jsDelivr URLs, so a deck works straight from
+a checkout — but you always see the *live* CDN copy of those shared files.
+
+Iterating on shared assets (`deck.js` / chrome CSS): see
+[`CHECKLIST.md`](./CHECKLIST.md) §7 — temporarily swap the jsDelivr prefix to
+a relative `../assets/` path, serve `presentations/` with
+`python3 -m http.server`, then swap back to the absolute URL before committing.
+
 ## Decks wired in
 
 | Deck | Engine | Canvas | Slide sel | Extra features |

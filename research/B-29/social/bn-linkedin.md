@@ -15,9 +15,11 @@
 
 আমার সুপারিশ: Bun-কে ঐচ্ছিক প্যাকেজ ম্যানেজার ও স্ক্রিপ্ট লঞ্চার হিসেবে নিন, ক্লায়েন্ট Vite-এ সরান, আর সার্ভার রানটাইমে যাওয়ার আগে soak test করুন।
 
+পক্ষ বাছার আগে আরেকটা জিনিস জানা দরকার: তিনটা প্রজেক্টের আপডেট-মডেল সম্পূর্ণ আলাদা। Node-এ even-numbered রিলিজ LTS হয়, ৩০ মাস সাপোর্ট। Deno-র LTS চ্যানেল এপ্রিলে শেষ। Bun-এর কোনো LTS নেই — আর ১.৩ থেকে ১.৪-এর মাইনর বাম্পেই পুরো রানটাইম Zig থেকে Rust-এ রিরাইট হয়ে গেছে (v1.4, মে ২০২৬)। লেখায় এখন প্রতিটা রানটাইমের রিলিজ-ট্রেন আর প্রতি ধাপে "LTS নেই" মানে কত খরচ, সেটা আছে।
+
 সবগুলো এক মেশিনে একবার করে চালানো, তাই সময়গুলোকে দিকনির্দেশনা হিসেবে দেখুন। মাপজোখ, সীমাবদ্ধতা ও রেফারেন্সসহ পুরো লেখা (ইংরেজিতে):
 https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md
 
 #Bun #NodeJS #TypeScript #WebDevelopment #SoftwareEngineering
 
-সূত্র: Bun অফিশিয়াল ডক (Node compatibility, lifecycle scripts, isolated installs), Vue CLI। পুরো তালিকা লেখায় আছে।
+সূত্র: Bun অফিশিয়াল ডক (Node compatibility, lifecycle scripts, isolated installs), Bun-এর "Rewriting Bun in Rust" পোস্ট, Node.js রিলিজ শিডিউল, Deno stability ডক, Vue CLI। পুরো তালিকা লেখায় আছে।

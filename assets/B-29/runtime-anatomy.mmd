@@ -6,7 +6,7 @@ flowchart LR
     subgraph RT["One JavaScript runtime — four layers"]
         L4["4 · Modules and packages<br/>npm, node_modules, lockfiles,<br/>install scripts"]
         L3["3 · Platform APIs + event loop<br/>fs, net, http, timers,<br/>async I/O on one thread"]
-        L2["2 · Native bindings<br/>C++ in Node · Rust in Deno · Zig in Bun"]
+        L2["2 · Native bindings<br/>C++ in Node · Rust in Deno · Rust in Bun (v1.4)"]
         L1["1 · JS engine<br/>parser, interpreter,<br/>JIT compiler, GC"]
     end
     os["Operating system<br/>files, sockets, threads"]

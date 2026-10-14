@@ -10,25 +10,26 @@ Framing (references 12–14): slides 02–03 open with the runtime-anatomy deep-
 |---|-------|---------|-------|
 | 01 | Hero | Title, verdict subtitle, pills (Bun 1.3.10 / Node 24 / pnpm 10 / 2 monorepos / 4 tiers), link to post | Hook: "Bun is not one decision. It is four." |
 | 02 | What a runtime is | `runtime-anatomy.png` (LR strip) + callout: engine is a solved problem; compatibility is a layer-4 property | The technical deep-dive before the war; refs 15–18 land on slide 03 |
-| 03 | Same anatomy, three builds | Layer × runtime table: engine V8/V8/JavaScriptCore, bindings C++/Rust/Zig, loop libuv/own/own, modules npm/URL-first→npm/npm-compat | Rows 3–4 are where the runtimes actually differ |
-| 04 | The war so far | Three-col Node (2009) / Deno (2020, exited 2026) / Bun (2022), refs 12–14 + violet callout: compatibility beat the clean slate | Deno gets real presence before the matchup is measured |
-| 05 | One question, four decisions | Why one-word answers fail; verdict strip per tier (yes / yes, with caveats / not yet / no) | Set the frame before any data |
-| 06 | The case study | Two sibling pnpm monorepos, 5 packages each, stack table, baseline | Name the honesty caveats up front: throwaway copies, dummy config, no reachable DB/Redis, single runs = direction |
-| 07 | The four tiers | `tier-ladder.png` | Each tier adopted or rejected on its own |
-| 08 | Tier 1 — install timings | pnpm vs bun table (warm/cold/hoisted) | Punchline: on a warm pnpm store, Bun was not faster |
-| 09 | Tier 1 — beyond speed | `trustedDependencies` vs `onlyBuiltDependencies`; isolated linker vs `shamefully-hoist`; the Babel-plugin failure | Two config truths matter more than the timings |
-| 10 | Tier 2 — launch vs force | Wins (shared builds 9.2→5.6 s, vue-tsc 2–4×) vs losses (tsc 46.7→86.8 s, vitest bson fail, `bun test` hang) | Pattern: launching tools is safe; forcing the runtime is where surprises start |
-| 11 | The `node:v8` gap | `NotImplementedError: isBuildingSnapshot`; bson 7.3.3 vs 7.2.0; a dependency bump can flip it | Pin `bson`; community reports corroborate. Code block wraps on phones, scrolls on desktop |
-| 12 | Tier 3 — what worked | Boots to connect stage; probe grid: sharp, puppeteer, Mongoose, mongodb, BullMQ, ioredis, socket.io, module-alias | |
-| 13 | Tier 3 — the red flag | Exit code 1, 30–40 s after DB connection fails; Node stays alive; unexplained; plus watch/PM2 caveats | "Cheap to find in a probe, expensive to production" |
-| 14 | Tier 4 — client build falls over | Result table: Node 3:36 OK; isolated: instant Babel fail; hoisted + `--bun`: 5:21 CSS fail; Repo B: 28-min hang vs 1:43 | |
-| 15 | The real client fix is Vite | Vue CLI is maintenance mode; 3–6 days per client (estimate) | Do it for its own reasons, then ask what Bun adds |
-| 16 | What would bite you | Checklist: native modules, hidden hoisting, Node API gaps, `.env` autoload (`NODE_ENV=production` in CI), memory flags, docs gaps | |
-| 17 | The phased path | `migration-path.png` + 4 steps, each with rollback | Rollback is the design, not an afterthought |
-| 18 | When (not) to migrate | Stay-vs-go boxes | Migrate on a concrete payoff, not the hype |
-| 19 | Verify next + verdict | Follow-ups checklist; "I would not switch the production runtime today" | |
-| 20 | References | Condensed mirror of the blog's 18 references | |
-| 21 | End | Links: full post, Bun docs, Vite, back to all decks | |
+| 03 | Same anatomy, three builds | Layer × runtime table: engine V8/V8/JavaScriptCore, bindings C++/Rust/Rust (v1.4 rewrite, was Zig ≤ 1.3), loop libuv/own/own, modules npm/URL-first→npm/npm-compat | Rows 3–4 are where the runtimes actually differ |
+| 04 | The war so far | Three-col Node (2009) / Deno (2020, exited 2026) / Bun (2022, Zig→Rust rewrite v1.4 May 2026), refs 12–14 + violet callout: compatibility beat the clean slate | Deno gets real presence before the matchup is measured |
+| 05 | Release trains and LTS | Cadence/LTS/sit-still table: Node 6-month majors + even-line 30-month LTS; Deno 12-week minors, LTS channel ended Apr 2026; Bun no LTS, stable + canary, 1.3→1.4 rode the Zig→Rust rewrite | Mirrors the blog's "Release Trains and LTS" section; refs 19–21 |
+| 06 | One question, four decisions | Why one-word answers fail; verdict strip per tier (yes / yes, with caveats / not yet / no) | Set the frame before any data |
+| 07 | The case study | Two sibling pnpm monorepos, 5 packages each, stack table, baseline | Name the honesty caveats up front: throwaway copies, dummy config, no reachable DB/Redis, single runs = direction |
+| 08 | The four tiers | `tier-ladder.png` | Each tier adopted or rejected on its own |
+| 09 | Tier 1 — install timings | pnpm vs bun table (warm/cold/hoisted) | Punchline: on a warm pnpm store, Bun was not faster |
+| 10 | Tier 1 — beyond speed | `trustedDependencies` vs `onlyBuiltDependencies`; isolated linker vs `shamefully-hoist`; the Babel-plugin failure | Two config truths matter more than the timings |
+| 11 | Tier 2 — launch vs force | Wins (shared builds 9.2→5.6 s, vue-tsc 2–4×) vs losses (tsc 46.7→86.8 s, vitest bson fail, `bun test` hang) | Pattern: launching tools is safe; forcing the runtime is where surprises start |
+| 12 | The `node:v8` gap | `NotImplementedError: isBuildingSnapshot`; bson 7.3.3 vs 7.2.0; a dependency bump can flip it | Pin `bson`; community reports corroborate. Code block wraps on phones, scrolls on desktop |
+| 13 | Tier 3 — what worked | Boots to connect stage; probe grid: sharp, puppeteer, Mongoose, mongodb, BullMQ, ioredis, socket.io, module-alias | |
+| 14 | Tier 3 — the red flag | Exit code 1, 30–40 s after DB connection fails; Node stays alive; unexplained; plus watch/PM2 caveats | "Cheap to find in a probe, expensive to production" |
+| 15 | Tier 4 — client build falls over | Result table: Node 3:36 OK; isolated: instant Babel fail; hoisted + `--bun`: 5:21 CSS fail; Repo B: 28-min hang vs 1:43 | |
+| 16 | The real client fix is Vite | Vue CLI is maintenance mode; 3–6 days per client (estimate) | Do it for its own reasons, then ask what Bun adds |
+| 17 | What would bite you | Checklist: native modules, hidden hoisting, Node API gaps, `.env` autoload (`NODE_ENV=production` in CI), memory flags, docs gaps | |
+| 18 | The phased path | `migration-path.png` + 4 steps, each with rollback | Rollback is the design, not an afterthought |
+| 19 | When (not) to migrate | Stay-vs-go boxes | Migrate on a concrete payoff, not the hype |
+| 20 | Verify next + verdict | Follow-ups checklist; "I would not switch the production runtime today" | |
+| 21 | References | Condensed mirror of the blog's 21 references | |
+| 22 | End | Links: full post, Bun docs, Vite, back to all decks | |
 
 ## Sanitization
 
