@@ -1,4 +1,4 @@
-# Can Bun Replace Node in a Large Production Monorepo? A Tiered Migration Field Report
+# The War on JavaScript Runtimes: Can Bun Replace Node in a Large Production Monorepo?
 
 ![Four stacked blocks showing Bun adoption tiers rising from package manager to bundler, with risk growing at each step](../../../assets/B-29/cover.png)
 
@@ -6,18 +6,41 @@
 
 "Should we move to Bun?" is a question I keep hearing, and it usually gets a one-word answer. In a large codebase that answer is almost always wrong, because the question hides four separate decisions with very different risk. I recently probed two sibling production monorepos for exactly this, without touching the real repos, and this post is what I measured, what broke, and what I would do.
 
+The timing is not a coincidence. Deno just left the field, and the short version below is now a two-runtime question.
+
 Short version: Bun is an easy yes as a package manager and script runner, a "not yet" as a production server runtime, and not a drop-in for a webpack-based Vue client.
+
+## What Is a JavaScript Runtime, Exactly?
+
+Before the war, the territory. A JavaScript runtime is the program that takes your `.js` or `.ts` and makes it able to touch the real world: files, sockets, timers, other processes. The language itself — syntax, types, promises — is specified elsewhere and looks the same everywhere. What a runtime adds is everything around the language, and it comes in four layers:
+
+![Stack diagram of a JavaScript runtime: app code on top, then modules and packages, platform APIs and event loop, native bindings, JS engine, and the operating system underneath](../../../assets/B-29/runtime-anatomy.png)
+
+- **Layer 1 — the JS engine.** The parser, interpreter, JIT compiler, and garbage collector. Node and Deno embed V8 [15]; Bun embeds JavaScriptCore, Safari's engine [17]. This layer is a solved problem in all three — engines are mature, fast, and interchangeable.
+- **Layer 2 — the native bindings.** The glue that exposes the operating system to JavaScript. Node's bindings are largely C++; Deno's are Rust, through the Rusty V8 bindings [18]; Bun's are Zig [17]. This is where each runtime's identity starts.
+- **Layer 3 — platform APIs and the event loop.** `fs`, `net`, `http`, timers, and the loop that schedules async I/O on a single thread. Node's loop comes from libuv [16]; Deno and Bun each wrote their own on top of their bindings. Nearly every "runtime bug" you will meet lives here or above.
+- **Layer 4 — modules and packages.** How code loads: npm, `node_modules` layout, lockfiles, install scripts, TypeScript stripping. This layer has no specification, only Node's behavior as de facto law.
+
+Here is why this matters for everything that follows: "Node compatibility" is a layer-4 property, plus a slice of layer 3. When this report says Bun is or is not compatible, it is never talking about the engine — it is talking about how faithfully Bun reproduces Node's upper layers. Every verdict below is therefore a verdict on layer 4, and that is exactly the layer where Deno bet wrong and lost.
+
+## The War So Far
+
+This war had three sides. Node shipped in 2009 and became the gravity well: every tool, tutorial, and CI image targets it first. Deno arrived in 2020 as a clean-slate rethink from Node's original author — TypeScript-first, security-first, and famously without npm [13]. Bun arrived in 2022 from the opposite direction: Node-compatible from day one, selling raw speed [1].
+
+The interesting part is what Deno did next. Deno 2, in October 2024, reversed the founding bet and shipped full Node and npm backwards compatibility [14] — the ecosystem it rejected became the price of admission. And it still was not enough to stay independent: on October 9, 2026, Deno announced it is joining Cloudflare, with the runtime on roughly a year of maintenance releases and Deno Deploy winding down [12].
+
+So the field is down to Node and Bun, and the loser's story is the lens for this whole report: compatibility with the existing ecosystem beat a cleaner design, even after Deno conceded and added it. That is why everything below measures Bun by its Node compatibility — the gaps, the one missing `node:v8` call — rather than by its speed claims.
 
 ## The Case Study (Sanitized)
 
-Two pnpm monorepos from one product family: an admin portal and a student portal. Each has five packages (client, server, and three shared TypeScript packages).
+Two pnpm monorepos from one product family: a back-office app and its customer-facing twin. Each has five packages (client, server, and three shared TypeScript packages).
 
 - **Server:** Express 4, Mongoose 6 on the mongodb 4 driver, BullMQ, ioredis, socket.io, sharp, puppeteer, and `module-alias` for path aliases. Built with `tsc`, started with `node dist/...` under PM2.
 - **Client:** Vue CLI on webpack 5.
 - **Baseline:** Node 24, pnpm 10, CI and Docker both on a `node:24` image.
 - **Tool under test:** Bun 1.3.10.
 
-I worked on throwaway copies with dummy config, and I had no reachable database or Redis. So "the server boots" below means it reached the connect stage. Every number is a single run on a laptop with other load, and the pnpm store was warm. Treat the timings as direction, not benchmarks.
+I worked on throwaway copies with dummy config, and I had no reachable database or Redis. So "the server boots" below means it reached the connect stage. Every number is a single run on one machine under other load, and the pnpm store was warm. Treat the timings as direction, not benchmarks.
 
 ## The Four Tiers
 
@@ -29,7 +52,7 @@ Each tier can be adopted, or rejected, on its own.
 
 `bun install` read the existing `pnpm-lock.yaml` and resolved exactly the same set of packages: 2181 in one repo, 1963 in the other, zero differences [6]. Workspace links (`workspace:*`) resolved, and the sharp and puppeteer postinstalls ran.
 
-| Install | Admin | Student |
+| Install | Repo A (larger) | Repo B (smaller) |
 |---------|-------|---------|
 | pnpm, warm store | 17.2 s | 17.0 s |
 | Bun, cold cache | 45.7 s | n/a |
@@ -60,7 +83,7 @@ The pattern to notice: using Bun to launch tools is safe, and forcing Bun's runt
 
 Running the compiled server under Bun, and the TypeScript source directly, both got through queue and Redis setup, and the path alias worked. Small probes confirmed sharp, headless puppeteer (including PDF output), Mongoose, the mongodb driver, BullMQ, ioredis, socket.io (polling and websocket), and `module-alias` all load and work [1].
 
-Then the part that stopped me. With the database deliberately unreachable, the full app exited with code 1 about 30 to 40 seconds after the connection failed, in both repos. Node stayed alive and logged the error. Small Mongoose and logging probes behaved the same on both runtimes, so I could not isolate the cause, and I never tested against a reachable database. An unexplained process exit is exactly the kind of difference that is cheap to find on a laptop and expensive to find in production.
+Then the part that stopped me. With the database deliberately unreachable, the full app exited with code 1 about 30 to 40 seconds after the connection failed, in both repos. Node stayed alive and logged the error. Small Mongoose and logging probes behaved the same on both runtimes, so I could not isolate the cause, and I never tested against a reachable database. An unexplained process exit is exactly the kind of difference that is cheap to find in a probe and expensive to find in production.
 
 Two smaller findings:
 
@@ -123,8 +146,15 @@ I would rerun the server probe against real MongoDB and Redis to explain the exi
 9. Vue CLI: https://cli.vuejs.org/
 10. "Why Mongoose crashes in Bun and how to fix the v8 startupSnapshot bug" (Medium, community write-up): https://medium.com/@zehan9211/why-mongoose-crashes-in-bun-and-how-to-fix-the-v8-startupsnapshot-bug-d8eb5e5ef385
 11. "Functions throwing NotImplementedError" (Railway Station, community thread): https://station.railway.com/questions/functions-throwing-not-implemented-error-eefb43c4
+12. Deno, "Deno is joining Cloudflare": https://deno.com/blog/cloudflare
+13. Deno, "Deno 1.0": https://deno.com/blog/v1
+14. Deno, "Announcing Deno 2": https://deno.com/blog/v2.0
+15. Node.js, "About Node.js": https://nodejs.org/en/about
+16. libuv: https://libuv.org
+17. Bun, "Bun 1.0": https://bun.com/blog/bun-v1.0
+18. Deno, "Announcing Stable V8 Bindings for Rust" (Rusty V8): https://deno.com/blog/rusty-v8-stabilized
 
-All accessed 2026-10-13. Timings are my own single-run measurements with Bun 1.3.10, Node 24 and pnpm 10 on a laptop.
+All accessed 2026-10-13 (references 12–18 on 2026-10-14). Timings are my own single-run measurements with Bun 1.3.10, Node 24 and pnpm 10.
 
 ## Let's Connect
 

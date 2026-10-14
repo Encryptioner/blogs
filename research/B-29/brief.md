@@ -1,4 +1,4 @@
-# B-29 Brief: Can Bun Replace Node in a Large Production Monorepo?
+# B-29 Brief: The War on JavaScript Runtimes — Can Bun Replace Node in a Large Production Monorepo?
 
 ## Thesis
 
@@ -10,7 +10,9 @@ Backend and full-stack developers running Express/Mongoose/Vue monorepos on Node
 
 ## Angle
 
-An honest field report from probing two sibling pnpm monorepos (an Express API plus a Vue admin client, and its student-facing twin) for Bun feasibility. What worked, what broke, what the evidence says, with measurements and references. Failures are findings, not embarrassments.
+An honest field report from probing two sibling pnpm monorepos (an Express API plus two Vue clients of one product family) for Bun feasibility. What worked, what broke, what the evidence says, with measurements and references. Failures are findings, not embarrassments.
+
+News hook: Deno joined Cloudflare on 2026-10-09 — runtime on a ~1-year maintenance clock, Deploy winding down — so the independent-runtime field is down to Node and Bun. Framing is the three-way runtime war and why Bun's compat-first bet outlived Deno's clean slate (Deno 1.0 no npm → Deno 2 npm compat → still consolidated); the blog's "The War So Far" section and deck slide 04 carry it. The post also opens with a "what is a JavaScript runtime" deep-dive (four layers, engine to packages; refs 15–18) — "Node compatibility" is a layer-4 property, which is the lens for every Bun verdict.
 
 ## Scope
 
@@ -19,12 +21,12 @@ Out: Bun as a bundler for new projects, benchmarks of toy apps, framework compar
 
 ## Sanitization
 
-The case study is "a large Express + Vue LMS monorepo". See `guides/post-architecture.md` for the checklist. Source of truth for findings is the sanitized section of `research.md`.
+The case study is "a large Express + Vue monorepo". See `guides/post-architecture.md` for the checklist. Source of truth for findings is the sanitized section of `research.md`.
 
 ## Deliverables
 
 - `topics/Development/Bun/<Title>.md` (English, B-29)
-- `assets/B-29/` cover and diagrams (tier ladder, migration path)
+- `assets/B-29/` cover and diagrams (tier ladder, migration path, runtime anatomy)
 - `research.md`, `references.md`
 - `social/{en,bn}-{linkedin,facebook}.md`
 - `deck-brief.md` later, for the presentation

@@ -31,7 +31,7 @@
 26. Productivity: [Your Desk in Your Pocket - Free Remote Control for Mac & Ubuntu, Same Room or Anywhere on Earth](./topics/Productivity/Your%20Desk%20in%20Your%20Pocket%20-%20Free%20Remote%20Control%20for%20Mac%20%26%20Ubuntu%2C%20Same%20Room%20or%20Anywhere%20on%20Earth.md)
 27. Productivity: [When Your Desktop Needs You - Free Notifications From Mac & Ubuntu to Your Phone (and Why You'll Never Hear Its Speakers)](./topics/Productivity/When%20Your%20Desktop%20Needs%20You%20-%20Free%20Notifications%20From%20Mac%20%26%20Ubuntu%20to%20Your%20Phone%20(and%20Why%20You'll%20Never%20Hear%20Its%20Speakers).md)
 28. Development: [Build Your Own IDE Extension - A Real-World Guide From Idea to Publish (VS Code and Others)](./topics/Development/Build%20Your%20Own%20IDE%20Extension%20-%20A%20Real-World%20Guide%20From%20Idea%20to%20Publish%20(VS%20Code%20and%20Others).md)
-29. Development: [Can Bun Replace Node in a Large Production Monorepo? A Tiered Migration Field Report](./topics/Development/Bun/Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo%20-%20A%20Tiered%20Migration%20Field%20Report.md)
+29. Development: [The War on JavaScript Runtimes: Can Bun Replace Node in a Large Production Monorepo?](./topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md)
 
 ## Presentations
 0. All topics: [All Presentations — topic-grouped index](./presentations/index.html)
@@ -46,3 +46,4 @@
 9. Productivity: [Your Desk in Your Pocket — Remote Control for Mac & Ubuntu](./presentations/P-9-desk-in-your-pocket/index.html)
 10. Development: [Zed — The Editor That Treats Speed as a Feature](./presentations/P-10-zed-editor/index.html)
 11. Development: [Build Your Own IDE Extension — Idea to Publish](./presentations/P-11-build-your-own-ide-extension/index.html)
+12. Development: [The War on JavaScript Runtimes — a Tiered Field Report](./presentations/P-12-runtime-war/index.html)

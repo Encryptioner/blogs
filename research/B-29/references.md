@@ -15,10 +15,17 @@ All accessed 2026-10-13. "Primary" = official docs. "Secondary" = community writ
 | 9 | Vue CLI | https://cli.vuejs.org/ | Primary | Maintenance-mode notice, Vite as the recommended path |
 | 10 | Why Mongoose crashes in Bun and how to fix the v8 startupSnapshot bug (Medium) | https://medium.com/@zehan9211/why-mongoose-crashes-in-bun-and-how-to-fix-the-v8-startupsnapshot-bug-d8eb5e5ef385 | Secondary | Same `node:v8` snapshot gap we hit. Site blocks bots (HTTP 403), not re-read |
 | 11 | Functions throwing NotImplementedError (Railway Station) | https://station.railway.com/questions/functions-throwing-not-implemented-error-eefb43c4 | Secondary | Same `NotImplementedError` reported by another user |
+| 12 | Deno is joining Cloudflare (Deno blog) | https://deno.com/blog/cloudflare | Primary | News hook: Deno joins Cloudflare, ~1 year of runtime maintenance releases, Deploy winds down. Accessed 2026-10-14 (others 2026-10-13) |
+| 13 | Deno 1.0 (Deno blog) | https://deno.com/blog/v1 | Primary | 2020 launch, clean-slate rethink from Node's original author, no npm. Accessed 2026-10-14 |
+| 14 | Announcing Deno 2 (Deno blog) | https://deno.com/blog/v2.0 | Primary | 2024-10-09, full Node/npm backwards compatibility — the founding bet reversed. Accessed 2026-10-14 |
+| 15 | About Node.js (nodejs.org) | https://nodejs.org/en/about | Primary | Node embeds V8; non-blocking event-driven I/O. Runtime anatomy layer 1/3. Accessed 2026-10-14 |
+| 16 | libuv | https://libuv.org | Primary | The cross-platform async I/O library powering Node's event loop (layer 3). Accessed 2026-10-14 |
+| 17 | Bun 1.0 (Bun blog) | https://bun.com/blog/bun-v1.0 | Primary | Zig + JavaScriptCore instead of Rust/V8; Node-compatible from day one (layers 1, 2, 4). Accessed 2026-10-14 |
+| 18 | Announcing Stable V8 Bindings for Rust (Deno blog) | https://deno.com/blog/rusty-v8-stabilized | Primary | Deno written in Rust on Rusty V8 bindings (layers 1, 2). Accessed 2026-10-14 |
 
 ## Own measurements
 
-Bun 1.3.10 on Node 24 / pnpm 10, Apple-silicon laptop class, single runs, cold and warm cache as noted in `research.md`. Commands used: `bun install`, `bun install --linker hoisted`, `bun run --filter`, `bun --bun x vitest`, `bun --bun x vue-tsc`, `bun dist/bin/www.js`.
+Bun 1.3.10 on Node 24 / pnpm 10, single runs, cold and warm cache as noted in `research.md`. Commands used: `bun install`, `bun install --linker hoisted`, `bun run --filter`, `bun --bun x vitest`, `bun --bun x vue-tsc`, `bun dist/bin/www.js`.
 
 ## Dropped
 

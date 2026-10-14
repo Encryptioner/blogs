@@ -47,7 +47,7 @@ Blog numbers follow `INDEX.md`. The `research/B-N` number always equals the `ass
 
 Before anything leaves `research/`:
 
-- No project, customer, company or repo names. Use a description: "a large Express + Vue LMS monorepo".
+- No project, customer, company or repo names. Use a description: "a large Express + Vue monorepo".
 - No domains, hostnames, IPs, bucket names, database names, ports tied to real infra.
 - No absolute paths, usernames, device names, or machine identifiers.
 - No env values, tokens, keys, certificates, or config contents.

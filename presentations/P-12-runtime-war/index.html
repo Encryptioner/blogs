@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The War on JavaScript Runtimes · 12 — a Tiered Field Report</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>🥟</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-chrome.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/css/deck-mobile.css">
+<script src="https://cdn.jsdelivr.net/gh/Encryptioner/blogs@master/presentations/assets/js/deck.js"></script>
+
+<style>
+:root{
+  --bg:#0A0D14;
+  --surface:#111624;
+  --elevated:#161D30;
+  --border:#242E47;
+  --border-light:#33405F;
+  --text:#E9EDF6;
+  --muted:#9BA6BF;
+  --dim:#657089;
+  --accent:#FFB224;            /* Bun amber — the tool under test */
+  --accent-2:#FFD98A;
+  --accent-soft:rgba(255,178,36,.12);
+  --accent-glow:rgba(255,178,36,.30);
+  --violet:#A78BFA;            /* mechanism — runtime internals */
+  --violet-soft:rgba(167,139,250,.10);
+  --mint:#34D399;              /* Node baseline / verified working */
+  --mint-soft:rgba(52,211,153,.10);
+  --danger:#FF7B72;
+  --info:#7DB8FF;
+  --warn:#F2CC60;
+
+  /* shared-chrome aliases (deck-chrome.css reads these) */
+  --dk-bg:var(--bg); --dk-surface:var(--surface); --dk-elevated:var(--elevated);
+  --dk-border:var(--border); --dk-border-soft:var(--border-light);
+  --dk-text:var(--text); --dk-muted:var(--muted); --dk-dim:var(--dim);
+  --dk-accent:var(--accent); --dk-accent-soft:var(--accent-soft); --dk-accent-glow:var(--accent-glow);
+  --dk-danger:var(--danger); --dk-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ambient background blobs */
+.ambient{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.ambient .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.18}
+.ambient .b1{width:620px;height:620px;background:var(--accent);top:-220px;right:-160px}
+.ambient .b2{width:520px;height:520px;background:var(--violet);bottom:-220px;left:-120px;opacity:.10}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:4.5vh 6vw 8vh 6vw;opacity:0;transform:translateY(18px);transition:opacity .5s cubic-bezier(.22,.61,.36,1),transform .5s cubic-bezier(.22,.61,.36,1);pointer-events:none;overflow-y:auto}
+/* density layer for figure-heavy slides — keeps every slide ≥0.9 fit scale */
+.compact .fig{margin:10px auto}
+.compact .fig img{max-height:38vh}
+.compact .fig-caption{margin-top:6px}
+.compact ul.bullets li{margin-bottom:9px}
+.compact .callout{padding:12px 18px;margin:10px 0}
+.compact .mode{padding:12px 14px}
+.compact .foot{padding-top:10px}
+.slide[data-active="true"]{opacity:1;transform:none;pointer-events:auto}
+.slide[data-state="prev"]{transform:translateY(-18px)}
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--accent)}
+.slide-num{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}
+.slide-num .deep{color:var(--warn)}
+h1.title{font-weight:800;font-size:clamp(2.6rem,6vw,5rem);line-height:1.02;letter-spacing:-.03em;margin-bottom:14px}
+h1.title em{font-style:normal;color:var(--accent)}
+h2.subtitle{font-weight:400;font-size:clamp(1.2rem,2vw,1.7rem);color:var(--muted);line-height:1.5;margin-bottom:26px;max-width:60ch}
+h3.section{font-weight:700;font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.12;letter-spacing:-.02em;margin-bottom:6px}
+h3.section em{font-style:normal;color:var(--accent)}
+
+p{font-size:clamp(1.05rem,1.4vw,1.3rem);color:var(--text);margin-bottom:10px}
+p.lead{font-size:clamp(1.15rem,1.7vw,1.45rem);color:var(--muted);line-height:1.6;margin-bottom:10px}
+.muted{color:var(--muted)}
+.dim{color:var(--dim)}
+.accent{color:var(--accent)}
+.violet{color:var(--violet)}
+.mint{color:var(--mint)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* bullet lists */
+ul.bullets{list-style:none;margin:14px 0}
+ul.bullets li{position:relative;padding-left:26px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ul.bullets li::before{content:'';position:absolute;left:0;top:11px;width:8px;height:8px;border:1.5px solid var(--accent);transform:rotate(45deg);background:var(--bg)}
+ul.bullets li strong{color:var(--accent-2);font-weight:600}
+ul.bullets li .muted{color:var(--muted)}
+
+/* numbered steps */
+ol.steps{list-style:none;counter-reset:step;margin:14px 0}
+ol.steps li{counter-increment:step;position:relative;padding-left:44px;margin-bottom:13px;font-size:clamp(1.02rem,1.35vw,1.25rem);line-height:1.5;color:var(--text)}
+ol.steps li::before{content:counter(step);position:absolute;left:0;top:2px;width:28px;height:28px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)}
+ol.steps li strong{color:var(--accent-2);font-weight:600}
+
+/* checklist */
+.checklist{list-style:none;margin:14px 0}
+.checklist li{position:relative;padding-left:34px;margin-bottom:11px;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.45;color:var(--text)}
+.checklist li::before{content:'';position:absolute;left:0;top:3px;width:17px;height:17px;border:1.5px solid var(--border-light);border-radius:4px;background:var(--surface)}
+.checklist li:after{content:'';position:absolute;left:5px;top:7px;width:8px;height:4px;border-left:1.5px solid var(--mint);border-bottom:1.5px solid var(--mint);transform:rotate(-45deg);opacity:.7}
+.checklist li strong{color:var(--mint)}
+
+/* callout cards */
+.callout{background:linear-gradient(135deg,var(--surface),var(--elevated));border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin:14px 0;position:relative;overflow:hidden;font-size:clamp(1rem,1.3vw,1.2rem);line-height:1.5;color:var(--muted)}
+.callout strong{color:var(--text)}
+.callout a{color:var(--accent);text-decoration:underline}
+.callout.accent{border-color:rgba(255,178,36,.32);background:linear-gradient(135deg,var(--accent-soft),var(--elevated))}
+.callout.accent strong{color:var(--accent)}
+.callout.mint{border-color:rgba(52,211,153,.30);background:linear-gradient(135deg,var(--mint-soft),var(--elevated))}
+.callout.mint strong{color:var(--mint)}
+.callout.danger{border-color:rgba(255,123,114,.28);background:linear-gradient(135deg,rgba(255,123,114,.06),var(--elevated))}
+.callout.danger strong{color:var(--danger)}
+.callout.warn{border-color:rgba(242,204,96,.28);background:linear-gradient(135deg,rgba(242,204,96,.06),var(--elevated))}
+.callout.warn strong{color:var(--warn)}
+.callout .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block}
+.callout.danger .label{color:var(--danger)}
+.callout.mint .label{color:var(--mint)}
+.callout.warn .label{color:var(--warn)}
+
+/* vs / boxes */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:14px 0}
+@media(max-width:820px){.vs{grid-template-columns:1fr}}
+.box{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--surface)}
+.box h4{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+.box.bad{border-color:rgba(255,123,114,.30)} .box.bad h4{color:var(--danger)}
+.box.good{border-color:rgba(52,211,153,.30)} .box.good h4{color:var(--mint)}
+.box.warn{border-color:rgba(242,204,96,.30)} .box.warn h4{color:var(--warn)}
+.box p{font-size:clamp(.95rem,1.15vw,1.1rem);color:var(--muted);line-height:1.5;margin:0}
+.box p+p{margin-top:8px}
+
+/* columns */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;margin:14px 0}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:14px 0}
+@media(max-width:820px){.three-col{grid-template-columns:1fr}}
+.mode{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface)}
+.mode h4{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.mode.violet h4{color:var(--violet)}
+.mode p{font-size:clamp(.92rem,1.1vw,1.05rem);color:var(--muted);line-height:1.45;margin:0}
+.mode .tech{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mint);display:block;margin-bottom:6px;letter-spacing:.02em}
+
+/* stat row */
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin:16px 0}
+.stat{flex:1;min-width:140px}
+.stat .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--accent);letter-spacing:-.02em}
+.stat .num.mint{color:var(--mint)}
+.stat .num.bad{color:var(--danger)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* code block */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--text);margin:14px 0;line-height:1.7;white-space:pre;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.code-block::-webkit-scrollbar{height:6px}
+.code-block::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+.code-block .c{color:var(--dim)}
+.code-block .k{color:var(--accent)}
+.code-block .s{color:var(--mint)}
+.code-block .f{color:var(--info)}
+
+/* comparison table */
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:clamp(.82rem,1.05vw,1rem)}
+thead th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+thead th.hl{color:var(--accent)}
+tbody th{background:var(--elevated);text-align:left;padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.hl{background:var(--accent-soft);border-left:2px solid var(--accent)}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;background:var(--bg);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.tag.good{color:var(--mint);border-color:rgba(52,211,153,.32)}
+.tag.bad{color:var(--danger);border-color:rgba(255,123,114,.32)}
+.tag.warn{color:var(--warn);border-color:rgba(242,204,96,.32)}
+
+/* figures — diagrams (click for lightbox, wired by deck.js) */
+.fig{margin:16px auto;text-align:center;max-width:980px;cursor:zoom-in}
+.fig img{max-width:100%;max-height:50vh;object-fit:contain;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 16px 44px -20px rgba(0,0,0,.65);padding:6px}
+.fig-caption{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim);margin-top:9px;letter-spacing:.02em}
+.fig-caption b{color:var(--muted);font-weight:600}
+
+/* pipeline */
+.pipeline{display:flex;align-items:stretch;gap:0;justify-content:center;margin:20px 0}
+.pipeline .step{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pipeline .step .ico{font-size:28px;line-height:1}
+.pipeline .step h5{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);letter-spacing:.03em}
+.pipeline .step p{font-size:clamp(.78rem,.95vw,.9rem);color:var(--muted);line-height:1.3;margin:0}
+.pipeline .parr{display:grid;place-items:center;padding:0 5px;color:var(--accent);font-size:22px;font-family:'JetBrains Mono',monospace}
+@media(max-width:900px){
+  .pipeline{flex-direction:column;align-items:stretch}
+  .pipeline .parr{transform:rotate(90deg);padding:8px 0}
+}
+
+/* hero */
+.hero{justify-content:center;padding:8vh 8vw}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:6px 14px;border:1px solid rgba(255,178,36,.32);border-radius:30px;background:var(--accent-soft);margin-bottom:26px}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--accent-glow)}50%{opacity:.6;box-shadow:0 0 0 7px transparent}}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pill .dot.mint{background:var(--mint)}
+.pill .dot.violet{background:var(--violet)}
+.pill .dot.warn{background:var(--warn)}
+.hero-meta{margin-top:auto;padding-top:34px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.hero-meta .hook{font-family:'JetBrains Mono',monospace;font-size:.92rem;color:var(--accent)}
+.hero-meta .hook a{color:var(--accent);text-decoration:underline}
+
+/* end links */
+.end-links{display:flex;flex-direction:column;gap:11px;margin-top:22px;align-items:flex-start}
+.end-links a.primary{background:var(--accent);color:#0A0D14;font-weight:700;padding:12px 22px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:14px;box-shadow:0 0 30px -8px var(--accent-glow);transition:transform .2s}
+.end-links a.primary:hover{transform:translateY(-2px)}
+.end-links a.ghost{color:var(--muted);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;transition:color .2s,border-color .2s}
+.end-links a.ghost:hover{color:var(--accent);border-color:var(--accent)}
+
+.foot{margin-top:auto;padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--dim);border-top:1px solid var(--border)}
+
+/* references */
+ul.refs{list-style:none;margin:14px 0;columns:2;column-gap:34px}
+@media(max-width:900px){ul.refs{columns:1}}
+ul.refs li{break-inside:avoid;margin-bottom:10px;padding-left:34px;position:relative;font-size:clamp(.8rem,1vw,.95rem);line-height:1.45;color:var(--muted)}
+ul.refs li::before{content:attr(data-n);position:absolute;left:0;top:1px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+ul.refs li a{color:var(--muted);text-decoration:underline}
+
+/* phone-portrait density pass — stacked columns make slides tall; shrink non-essentials
+   so fitFluidSlide never has to scale below ~0.9 (readability contract) */
+@media (max-width:820px),(max-height:520px){
+  html,body{font-size:14px}
+  .slide,.hero{padding:3vh 5vw 7vh 5vw}
+  h3.section{font-size:clamp(1.3rem,5.6vw,1.7rem);margin-bottom:4px}
+  p.lead{font-size:1rem;line-height:1.45}
+  ul.bullets li,ol.steps li{font-size:.95rem;margin-bottom:8px;line-height:1.42}
+  ol.steps li{padding-left:36px}
+  ol.steps li::before{width:24px;height:24px;font-size:11px}
+  .callout{padding:11px 14px;margin:9px 0;font-size:.92rem;line-height:1.42}
+  .box,.mode{padding:11px 13px}
+  .box h4{font-size:11.5px;margin-bottom:6px}
+  .box p,.mode p{font-size:.88rem;line-height:1.4}
+  .fig{margin:8px auto}
+  .fig img{max-height:34vh}
+  .fig-caption{font-size:11px;margin-top:5px}
+  .stat .num{font-size:1.5rem}
+  .stat-row{gap:16px;margin:10px 0}
+  .code-block{font-size:.8rem;padding:10px 12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-x:visible}
+  .mono{overflow-wrap:anywhere}
+  .checklist li{font-size:.92rem;margin-bottom:8px}
+  .vs,.three-col{gap:10px;margin:9px 0}
+  .pipeline .step{padding:10px 6px}
+  .pipeline .step p{font-size:.8rem}
+  .compact .fig img{max-height:30vh}
+  ul.refs{columns:1}
+  ul.refs li{margin-bottom:6px;font-size:.78rem;line-height:1.38}
+  .hero{padding:2vh 5vw 6vh 5vw}
+  .hero .badge{margin-bottom:14px;padding:5px 12px}
+  .pills{gap:8px;margin-top:16px}
+  .pill{font-size:12px;padding:6px 11px}
+  .hero-meta{padding-top:18px}
+}
+/* landscape-phone refinement (wide-but-short): keep the pipeline horizontal, shrink figures harder */
+@media (min-width:821px) and (max-height:520px){
+  .fig img{max-height:26vh}
+  .compact .fig img{max-height:24vh}
+  .pipeline{flex-direction:row}
+  .pipeline .parr{transform:none;padding:0 5px}
+  ul.refs{columns:2}
+  ul.refs li{margin-bottom:6px;font-size:.74rem;line-height:1.35}
+  .two-col{grid-template-columns:1fr 1fr}
+  .hero{padding:2vh 6vw 5vh 6vw}
+  .hero h1.title{font-size:1.9rem;margin-bottom:8px}
+  .hero h2.subtitle{font-size:1rem;margin-bottom:12px}
+  .hero .badge{margin-bottom:10px}
+  .pills{margin-top:12px}
+  .hero-meta{padding-top:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="dk-topbar"><div class="dk-progress" id="progress"></div></div>
+
+<div class="dk-chrome">
+  <span class="dk-pill"><span class="dk-num" id="curNum">01</span> / <span id="totalNum"></span></span>
+  <span class="dk-pill dk-title" id="curTitle">Title</span>
+</div>
+
+<nav class="dk-nav">
+  <button data-dk="prev" title="Previous (←)">‹</button>
+  <span class="dk-count" id="counter">01</span>
+  <button data-dk="next" title="Next (→)">›</button>
+  <button data-dk="overview" title="Overview (O)">▦</button>
+  <button data-dk="goto" title="Go to slide (G)">#</button>
+  <button data-dk="help" title="Help (?)">?</button>
+  <button data-dk="fullscreen" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- 01 · HERO -->
+  <section class="slide hero" data-title="The War on JavaScript Runtimes">
+    <span class="badge"><span class="dot"></span> Deck 12 · the runtime war, measured</span>
+    <h1 class="title">The war on JavaScript runtimes. <em>Three entered. Two are left.</em></h1>
+    <h2 class="subtitle">"Should we move to Bun?" looks like one question. In a large production monorepo it is <b>four decisions with very different risk</b> — package manager, script runner, server runtime, bundler. Deno just left the field to Cloudflare, so this deck measures the two left standing: what worked, what broke, and the phased path I would take.</h2>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span> Bun 1.3.10</span>
+      <span class="pill"><span class="dot mint"></span> Node 24 · pnpm 10</span>
+      <span class="pill"><span class="dot violet"></span> 2 sibling monorepos</span>
+      <span class="pill"><span class="dot warn"></span> 4 adoption tiers</span>
+      <span class="pill"><span class="dot violet"></span> Deno → Cloudflare · Oct 2026</span>
+      <span class="pill"><span class="dot mint"></span> single runs, not benchmarks</span>
+    </div>
+    <div class="hero-meta">
+      <span class="hook">Bun is not one decision. It is four, and they carry very different risk.</span>
+      <span class="hook"><a href="https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md" target="_blank" rel="noopener">read the full post ↗</a></span>
+    </div>
+  </section>
+
+  <!-- 02 · WHAT A RUNTIME IS -->
+  <section class="slide compact" data-title="What a runtime is">
+    <div class="slide-num">02 · the territory</div>
+    <h3 class="section">First, the territory: <em>what a runtime actually is</em>.</h3>
+    <p class="lead">The language is specified elsewhere and looks the same everywhere. A runtime is the program around it that reaches the real world — files, sockets, timers, processes. Four layers:</p>
+    <div class="fig">
+      <img src="../../assets/B-29/runtime-anatomy.png" alt="Flow diagram: app code passes through four runtime layers — modules and packages, platform APIs and event loop, native bindings, JS engine — down to the operating system" loading="lazy">
+      <div class="fig-caption">Code enters at layer 4 and every request for the real world ends at the OS. <b>Click to zoom.</b></div>
+    </div>
+    <div class="callout violet"><b>Why this picture carries the whole deck:</b> the engine (layer 1) is a solved problem in all three runtimes. "Compatibility" is a layer-4 property — how code loads — plus a slice of layer 3. That is where the war is fought.</div>
+  </section>
+
+  <!-- 03 · SAME ANATOMY, THREE BUILDS -->
+  <section class="slide" data-title="Same anatomy, three builds">
+    <div class="slide-num">03 · the territory</div>
+    <h3 class="section">Same anatomy, <em>three different builds</em>.</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Node</th><th>Deno</th><th class="hl">Bun</th></tr></thead>
+        <tbody>
+          <tr><th>1 · Engine</th><td>V8 <span class="mono">[15]</span></td><td>V8 <span class="mono">[18]</span></td><td class="hl">JavaScriptCore <span class="mono">[17]</span></td></tr>
+          <tr><th>2 · Bindings</th><td>C++</td><td>Rust — Rusty V8 <span class="mono">[18]</span></td><td class="hl">Zig <span class="mono">[17]</span></td></tr>
+          <tr><th>3 · Loop + APIs</th><td>libuv <span class="mono">[16]</span></td><td>own, on Rust</td><td class="hl">own, on Zig</td></tr>
+          <tr><th>4 · Modules</th><td>npm + node_modules</td><td>URL-first → npm since Deno 2 <span class="mono">[14]</span></td><td class="hl">npm-compatible from day one <span class="mono">[1]</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout accent"><b>The rows that matter are 3 and 4.</b> Deno rewrote layer 4 and spent four years walking it back <span class="mono">[13][14]</span>. Bun started at Node's layer 4 and never left it. Every verdict in this deck is a verdict on Bun's layer 4 — the gaps you'll see are loading-and-API gaps, not engine gaps.</div>
+  </section>
+
+  <!-- 02 · THE WAR SO FAR -->
+  <section class="slide compact" data-title="The war so far">
+    <div class="slide-num">04 · the war so far</div>
+    <h3 class="section">Three runtimes went to war. <em>The field just narrowed.</em></h3>
+    <div class="three-col">
+      <div class="mode"><span class="tech">2009 · the incumbent</span><h4>Node</h4><p>The gravity well. Every tool, tutorial, and CI image in this report's baseline targets it first — 17+ years of ecosystem compounding.</p></div>
+      <div class="mode violet"><span class="tech">2020 · the reformer — exited 2026</span><h4>Deno</h4><p>Node's original author's clean-slate rethink: TypeScript- and security-first, famously without npm <span class="mono">[13]</span>. Deno 2 reversed the founding bet — full Node/npm compatibility <span class="mono">[14]</span>. Joined Cloudflare, Oct 2026 <span class="mono">[12]</span>.</p></div>
+      <div class="mode"><span class="tech">2022 · the challenger</span><h4>Bun</h4><p>Entered from the opposite direction: Node-compatible from day one, selling raw speed <span class="mono">[1]</span>. Now the last independent challenger.</p></div>
+    </div>
+    <div class="callout violet"><b>What Deno's exit teaches — and why it frames this deck:</b> clean slates lose to ecosystem gravity. Deno even shipped npm compatibility and still consolidated. So this report measures Bun by its <i>Node compatibility</i> — the gaps, the one missing <span class="mono">node:v8</span> call — not by its speed claims.</div>
+  </section>
+
+  <!-- 03 · FOUR DECISIONS -->
+  <section class="slide" data-title="One question, four decisions">
+    <div class="slide-num">05 · the frame</div>
+    <h3 class="section">The one-word answer is <em>always wrong</em>.</h3>
+    <p class="lead">"Should we move to Bun?" gets a yes or a no — and with Deno joining Cloudflare this month, Node and Bun are the only two independent runtimes left. But "Bun" is four separate tools, and each one can be adopted — or rejected — on its own:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tier</th><th class="hl">What it replaces</th><th>Verdict from the field</th></tr></thead>
+        <tbody>
+          <tr><th>1 · Package manager</th><td><span class="mono">pnpm install</span></td><td><span class="tag good">yes — with two config truths</span></td></tr>
+          <tr><th>2 · Script + test runner</th><td><span class="mono">pnpm run</span> launching tools</td><td><span class="tag good">yes — launch, don't force</span></td></tr>
+          <tr><th>3 · Server runtime</th><td><span class="mono">node dist/…</span> under PM2</td><td><span class="tag warn">not yet — one unexplained exit</span></td></tr>
+          <tr><th>4 · Bundler</th><td>webpack 5 via Vue CLI</td><td><span class="tag bad">no — move to Vite instead</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout accent"><b>Everything that follows is evidence for those four verdicts</b> — measured on throwaway copies, single runs, dummy config, no reachable database. Treat every timing as direction, not benchmark.</div>
+  </section>
+
+  <!-- 03 · CASE STUDY -->
+  <section class="slide compact" data-title="The case study, sanitized">
+    <div class="slide-num">06 · the case study</div>
+    <h3 class="section">The subject: <em>two sibling production monorepos</em>.</h3>
+    <div class="two-col">
+      <div class="mode">
+        <span class="tech">what's inside</span>
+        <h4>Each repo, 5 packages</h4>
+        <p>Vue client + Express server + three shared TypeScript packages. Server: Mongoose 6 on the mongodb 4 driver, BullMQ, ioredis, socket.io, sharp, puppeteer, <span class="mono">module-alias</span> path aliases. Client: Vue CLI on webpack 5.</p>
+      </div>
+      <div class="mode">
+        <span class="tech">the baseline</span>
+        <h4>Node 24 · pnpm 10</h4>
+        <p>Built with <span class="mono">tsc</span>, started with <span class="mono">node dist/…</span> under PM2. CI and Docker both on a <span class="mono">node:24</span> image. Tool under test: <b>Bun 1.3.10</b>.</p>
+      </div>
+    </div>
+    <div class="callout warn"><span class="label">read this before any number</span>Probes ran on <b>throwaway copies with dummy config</b> — no secrets, and no reachable database or Redis, so "boots" means <i>reached the connect stage</i>. Every number is a single run on one machine under other load, warm pnpm store. Failures here are findings, not verdicts on Bun the project.</div>
+    <div class="foot">Nothing in the real repos was touched. Repo A = larger (2 181 packages), Repo B = smaller (1 963).</div>
+  </section>
+
+  <!-- 04 · FOUR TIERS -->
+  <section class="slide compact" data-title="The four tiers">
+    <div class="slide-num">07 · the ladder</div>
+    <h3 class="section">Four tiers, <em>climbed one at a time</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-29/tier-ladder.png" alt="Ladder of four Bun adoption tiers — package manager, script and test runner, server runtime, bundler — with risk rising at each step" loading="lazy">
+      <div class="fig-caption">Risk rises with every tier — and <b>each tier can be adopted or rejected on its own</b>. Click to zoom.</div>
+    </div>
+    <div class="callout accent"><b>The mistake to avoid:</b> treating tier 1's easy win as evidence for tier 3. Different tier, different risk, different evidence needed.</div>
+  </section>
+
+  <!-- 05 · TIER 1 TIMINGS -->
+  <section class="slide" data-title="Tier 1 — the install timings">
+    <div class="slide-num">08 · tier 1 — package manager</div>
+    <h3 class="section">Tier 1 works. It's just <em>not faster</em> here.</h3>
+    <p class="lead"><span class="mono">bun install</span> read the existing <span class="mono">pnpm-lock.yaml</span> and resolved <b>exactly the same set</b> — 2 181 and 1 963 packages, zero differences. The timings:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Install</th><th class="hl">Repo A (larger)</th><th>Repo B (smaller)</th></tr></thead>
+        <tbody>
+          <tr><th>pnpm, warm store</th><td class="hl">17.2 s</td><td>17.0 s</td></tr>
+          <tr><th>Bun, cold cache</th><td>45.7 s</td><td>n/a</td></tr>
+          <tr><th>Bun, warm cache</th><td>22.8 s</td><td>23.2 s</td></tr>
+          <tr><th>Bun, --linker hoisted</th><td>18.8 s</td><td>not run</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn"><b>This is where the hype and the measurement part ways.</b> On a warm pnpm store, Bun was not faster at installing — and <span class="mono">node_modules</span> stayed around 1 GB either way. If you were hoping for a big install-time win, this tier doesn't give you one.</div>
+  </section>
+
+  <!-- 06 · TIER 1 BEYOND SPEED -->
+  <section class="slide" data-title="Tier 1 — beyond speed">
+    <div class="slide-num">09 · tier 1 — what actually bites</div>
+    <h3 class="section">Two details matter <em>more than speed</em>.</h3>
+    <div class="vs">
+      <div class="box warn">
+        <h4>🔑 The trust model is not shared</h4>
+        <p>Bun <b>ignores pnpm's <span class="mono">onlyBuiltDependencies</span></b> and uses its own trusted-dependency list. With sharp and puppeteer postinstalls in play, you must set <span class="mono">trustedDependencies</span> explicitly — or lifecycle scripts silently don't run the way pnpm ran them.</p>
+      </div>
+      <div class="box warn">
+        <h4>📦 The default linker is not pnpm's</h4>
+        <p>Bun's isolated linker does <b>not</b> reproduce <span class="mono">shamefully-hoist</span>. Anything that works only because pnpm hoists breaks — the Vue CLI build failed immediately on a missing Babel plugin until <span class="mono">--linker hoisted</span> fixed it.</p>
+      </div>
+    </div>
+    <div class="callout mint"><b>So tier 1's verdict:</b> works, resolves identically — adopt it <i>optionally</i>, with <span class="mono">linker = "hoisted"</span> and explicit <span class="mono">trustedDependencies</span>, and keep the pnpm lockfile for rollback. Just don't adopt it for speed that isn't there.</div>
+  </section>
+
+  <!-- 07 · TIER 2 -->
+  <section class="slide" data-title="Tier 2 — launch vs force">
+    <div class="slide-num">10 · tier 2 — scripts and tests</div>
+    <h3 class="section">The pattern: <em>launch is safe, force is where surprises start</em>.</h3>
+    <div class="vs">
+      <div class="box good">
+        <h4>✅ Where Bun won</h4>
+        <p>Shared-package builds: <b>9.2 s → 5.6 s</b>, output byte-identical.</p>
+        <p><span class="mono">vue-tsc</span> under <span class="mono">--bun</span>: <b>2× to 4× faster</b> — 36.8 s vs 81.5 s, and 5.2 s vs 20.9 s. Zero errors. That's a real CI win.</p>
+      </div>
+      <div class="box bad">
+        <h4>❌ Where Bun lost</h4>
+        <p>Server <span class="mono">tsc</span> forced onto the Bun runtime: <b>86.8 s vs 46.7 s on Node</b> — the compiler got slower, not faster.</p>
+        <p><span class="mono">bun test</span> on the full suite: <b>hung past ten minutes</b>, killed. One pure unit file passed.</p>
+      </div>
+    </div>
+    <div class="callout accent"><b>The distinction that explains all of it:</b> Bun <i>launching</i> a tool (Node runtime underneath) — safe, sometimes faster. Bun's runtime <i>forced onto</i> the tool (<span class="mono">--bun</span>) — that's where vitest died too, next slide.</div>
+  </section>
+
+  <!-- 08 · node:v8 GAP -->
+  <section class="slide" data-title="The node:v8 gap">
+    <div class="slide-num">11 · tier 2 — the crash explained</div>
+    <h3 class="section">One failing test file, <em>one missing Node API</em>.</h3>
+    <div class="code-block"><span class="c"># Repo B, vitest with Bun's runtime forced:</span>
+NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span class="k">not yet implemented in Bun</span>
+<span class="c"># trace: mongodb-memory-server → bson@7.3.3 → v8.startupSnapshot</span>
+<span class="c"># same repo, older bson@7.2.0 → passes. Repo A resolves 7.2.0 → passes.</span></div>
+    <ul class="bullets">
+      <li><strong>A plain dependency bump can flip this.</strong> <span class="muted">Nothing in your code changes — <span class="mono">bson</span> moves from 7.2.0 to 7.3.3 and every test file fails under <span class="mono">--bun</span>.</span></li>
+      <li><strong>Not just me:</strong> <span class="muted">a community write-up and a hosting-forum thread report the same <span class="mono">node:v8</span> snapshot gap.</span></li>
+      <li><strong>Fix today:</strong> <span class="muted">pin <span class="mono">bson</span> where the gap bites, and re-check Bun's release notes — this is the kind of gap that closes.</span></li>
+    </ul>
+    <div class="foot">Node-API surface is a moving target: "compatible" is a percentage, not a boolean.</div>
+  </section>
+
+  <!-- 09 · TIER 3 WORKED -->
+  <section class="slide compact" data-title="Tier 3 — what worked">
+    <div class="slide-num">12 · tier 3 — server runtime</div>
+    <h3 class="section">The server <em>boots, and everything loads</em>.</h3>
+    <p class="lead">Compiled output and TypeScript source both ran through queue and Redis setup, and the path alias resolved. Then small probes, one by one:</p>
+    <div class="three-col">
+      <div class="mode"><span class="tech">probes · passed</span><h4>Data layer</h4><p><span class="mono">mongoose</span> 6, the <span class="mono">mongodb</span> 4 driver, <span class="mono">ioredis</span>, <span class="mono">bullmq</span> — all load and answer.</p></div>
+      <div class="mode"><span class="tech">probes · passed</span><h4>Heavy natives</h4><p><span class="mono">sharp</span>, headless <span class="mono">puppeteer</span> — including PDF output — work under Bun.</p></div>
+      <div class="mode"><span class="tech">probes · passed</span><h4>Edge + plumbing</h4><p><span class="mono">socket.io</span> (polling and websocket), <span class="mono">module-alias</span> path aliases — fine.</p></div>
+    </div>
+    <div class="callout mint"><b>8 of 8 probe categories pass, and <span class="mono">.ts</span> source runs directly</b> — but "passed" means the probe completed: with no reachable database, the full app never served a request.</div>
+  </section>
+
+  <!-- 10 · TIER 3 RED FLAG -->
+  <section class="slide" data-title="Tier 3 — the red flag">
+    <div class="slide-num">13 · tier 3 — what stopped me</div>
+    <h3 class="section">Then the part that <em>stopped me cold</em>.</h3>
+    <div class="callout danger"><span class="label">the unexplained exit</span>Database deliberately unreachable. The full app — in <b>both repos</b> — <b>exited with code 1 about 30 to 40 seconds after the connection failed</b>. Node, same code: stays alive and logs the error. Small Mongoose and logging probes behave identically on both runtimes, so the cause could not be isolated. Never tested against a reachable database.</div>
+    <div class="vs">
+      <div class="box warn">
+        <h4>👀 bun --watch ≠ nodemon</h4>
+        <p>No ignore glob, and in my test the <b>process ID did not change</b> across a restart. Not a drop-in.</p>
+      </div>
+      <div class="box warn">
+        <h4>⚙️ PM2 can run Bun…</h4>
+        <p><span class="mono">interpreter: bun</span> works — but existing <span class="mono">node_args</span> heap flags <b>don't apply</b>. Your memory tuning silently disappears.</p>
+      </div>
+    </div>
+    <div class="callout"><b>Why this one blocks the tier:</b> an unexplained process exit is cheap to find in a probe and expensive to find in production. Explain it against a real database first, then soak-test on staging.</div>
+  </section>
+
+  <!-- 11 · TIER 4 -->
+  <section class="slide" data-title="Tier 4 — the client falls over">
+    <div class="slide-num">14 · tier 4 — bundler</div>
+    <h3 class="section">The webpack client: <em>this is where it fell over</em>.</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Vue CLI build attempt</th><th class="hl">Result</th></tr></thead>
+        <tbody>
+          <tr><th>Node, baseline</th><td><span class="tag good">3:36 — works</span></td></tr>
+          <tr><th>Bun default (isolated) install</th><td><span class="tag bad">fails at once — missing Babel plugin</span></td></tr>
+          <tr><th>Hoisted install + bun --bun</th><td><span class="tag bad">fails after 5:21 — two CSS data-URL errors</span></td></tr>
+          <tr><th>Repo B, hoisted + bun --bun</th><td><span class="tag bad">hangs 28 min at 0% CPU — killed</span> <span class="muted">(Node: 1:43)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn"><b>Every Bun path is slower or dead</b> — and a 28-minute silent hang inside a type-checker child process is the worst failure mode there is: no error, no progress, no clue.</div>
+  </section>
+
+  <!-- 12 · VITE -->
+  <section class="slide" data-title="The real fix: Vite">
+    <div class="slide-num">15 · tier 4 — the actual move</div>
+    <h3 class="section">The client's real problem isn't Bun. <em>It's webpack.</em></h3>
+    <ul class="bullets">
+      <li><strong>Vue CLI is in maintenance mode</strong> <span class="muted">— and it points users to Vite itself. The tool under your client is already end-of-life-ish.</span></li>
+      <li><strong>The port is estimated at 3 to 6 days per client</strong> <span class="muted">— webpack config, polyfill fallbacks, an HTML asset rule, the PWA plugin, two <span class="mono">process.env</span> uses → <span class="mono">import.meta.env</span>. An estimate, not a measurement.</span></li>
+      <li><strong>It's worth doing regardless of Bun.</strong> <span class="muted">The client build was the slowest part of the toolchain on Node already.</span></li>
+    </ul>
+    <div class="callout mint"><b>Sequencing beats heroics:</b> move the client to Vite for its own reasons — <i>then</i> ask what Bun's bundler adds. Don't entangle the two migrations.</div>
+  </section>
+
+  <!-- 13 · WHAT WOULD BITE YOU -->
+  <section class="slide" data-title="What would bite you">
+    <div class="slide-num">16 · transfer to your repo</div>
+    <h3 class="section">What would bite <em>in your own repo</em>.</h3>
+    <ul class="checklist" style="max-width:80ch">
+      <li><b>Native modules + postinstall scripts</b> — Bun's trust model differs from pnpm's; list <span class="mono">trustedDependencies</span> explicitly.</li>
+      <li><b>Hidden hoisting assumptions</b> — if a tool works only because pnpm hoists, the isolated linker will break it.</li>
+      <li><b>Node API gaps</b> — <span class="mono">node:v8</span> snapshot support missing in 1.3.10; a dependency bump can trigger it.</li>
+      <li><b>Environment loading</b> — Bun auto-loads <span class="mono">.env</span>. CI pipelines that write <span class="mono">NODE_ENV=production</span> into that file silently change behaviour.</li>
+      <li><b>Memory flags</b> — heap flags tuned for Node don't carry to Bun (and even the Node baseline needed headroom here).</li>
+      <li><b>Docs gaps</b> — no official Bun guidance found for Mongoose, puppeteer, sharp, or Bitbucket Pipelines; the Docker guide covers a basic image only.</li>
+    </ul>
+  </section>
+
+  <!-- 14 · MIGRATION PATH -->
+  <section class="slide compact" data-title="The phased path">
+    <div class="slide-num">17 · the migration path</div>
+    <h3 class="section">Phased, with a <em>rollback at every step</em>.</h3>
+    <div class="fig">
+      <img src="../../assets/B-29/migration-path.png" alt="Phased migration flow — Bun as package manager, Bun to launch scripts, client moved to Vite, Bun as server runtime last — with a rollback exit after each phase" loading="lazy">
+      <div class="fig-caption">Four phases, each exitable — <b>rollback is part of the design</b>, not an afterthought. Click to zoom.</div>
+    </div>
+    <ol class="steps">
+      <li><strong>Bun as package manager, optional</strong> <span class="muted">— hoisted linker, explicit <span class="mono">trustedDependencies</span>, keep <span class="mono">pnpm-lock.yaml</span>. Rollback: delete <span class="mono">bun.lock</span>, run <span class="mono">pnpm i</span>.</span></li>
+      <li><strong>Bun to launch scripts</strong> <span class="muted">— <span class="mono">tsc</span> stays on the Node runtime, <span class="mono">vue-tsc</span> goes <span class="mono">--bun</span>, pin <span class="mono">bson</span> where the v8 gap bites.</span></li>
+      <li><strong>Client to Vite</strong> <span class="muted">— independent of Bun; the real fix for the slowest toolchain step.</span></li>
+      <li><strong>Bun as server runtime, last</strong> <span class="muted">— only after the exit-on-DB-failure is explained against real services, then a staging soak test.</span></li>
+    </ol>
+  </section>
+
+  <!-- 15 · WHEN (NOT) TO -->
+  <section class="slide" data-title="When not to migrate">
+    <div class="slide-num">18 · the decision</div>
+    <h3 class="section">Stay or go? <em>Evidence, not vibes.</em></h3>
+    <div class="vs">
+      <div class="box bad">
+        <h4>🛑 Stay put when…</h4>
+        <p>Install time is already fine and <b>nobody is asking for Bun</b> — tier 1 gave no speed win here.</p>
+        <p>You rely on native modules + a webpack client and <b>can't afford a soak test</b>.</p>
+        <p>Your tests depend on in-memory database helpers that <b>touch Node internals</b>.</p>
+      </div>
+      <div class="box good">
+        <h4>🚀 Migrate when there's a concrete payoff</h4>
+        <p><b>Faster type-checking in CI</b> — the vue-tsc 2–4× win is real and repeatable.</p>
+        <p><b>One fewer tool to install</b> — a runtime, package manager, and runner in one binary.</p>
+        <p><b>A fresh service with no legacy baggage</b> — no webpack, no hoisting history, no heap-flag folklore.</p>
+      </div>
+    </div>
+    <div class="callout accent"><b>And the line I'd hold:</b> I would not switch the production runtime today. Tiers 1–2, yes; tier 3 earns its way in with an explained failure and a soak test.</div>
+  </section>
+
+  <!-- 16 · VERIFY NEXT -->
+  <section class="slide" data-title="What I'd verify next">
+    <div class="slide-num">19 · open ends</div>
+    <h3 class="section">What I would <em>verify next</em>.</h3>
+    <ul class="checklist" style="max-width:72ch">
+      <li><b>Re-run the server probe against real MongoDB and Redis</b> — explain the exit code 1 before any runtime conversation continues.</li>
+      <li><b>Repeat the install timings</b> — several runs, cold pnpm store, before claiming install parity either way.</li>
+      <li><b>Track Bun releases for the <span class="mono">node:v8</span> gap</b> — when it closes, tier 2's biggest caveat shrinks with it.</li>
+    </ul>
+    <div class="stat-row">
+      <div class="stat"><div class="num">1</div><div class="label">unexplained exit</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">repos, same symptom</div></div>
+      <div class="stat"><div class="num mint">4</div><div class="label">tiers, 4 verdicts</div></div>
+      <div class="stat"><div class="num mint">0</div><div class="label">production switches made</div></div>
+    </div>
+    <div class="foot">A field report is a snapshot: Bun 1.3.10, one day, two repos. Re-verify before you decide.</div>
+  </section>
+
+  <!-- 17 · REFERENCES -->
+  <section class="slide" data-title="References">
+    <div class="slide-num">20 · references</div>
+    <h3 class="section">Sources — <em>primary first</em>.</h3>
+    <ul class="refs">
+      <li data-n="1"><a href="https://bun.com/docs/runtime/nodejs-compat" target="_blank" rel="noopener">Bun — Node.js compatibility</a></li>
+      <li data-n="2"><a href="https://bun.com/docs/runtime/watch-mode" target="_blank" rel="noopener">Bun — Watch mode</a></li>
+      <li data-n="3"><a href="https://bun.com/docs/guides/ecosystem/pm2" target="_blank" rel="noopener">Bun — Run Bun as a daemon with PM2</a></li>
+      <li data-n="4"><a href="https://bun.com/docs/guides/ecosystem/docker" target="_blank" rel="noopener">Bun — Containerize with Docker</a></li>
+      <li data-n="5"><a href="https://bun.com/docs/install/lifecycle" target="_blank" rel="noopener">Bun — Lifecycle scripts</a></li>
+      <li data-n="6"><a href="https://bun.com/docs/install/lockfile" target="_blank" rel="noopener">Bun — Lockfile</a></li>
+      <li data-n="7"><a href="https://bun.com/docs/install/isolated" target="_blank" rel="noopener">Bun — Isolated installs</a></li>
+      <li data-n="8"><a href="https://bun.com/docs/runtime/typescript" target="_blank" rel="noopener">Bun — TypeScript</a></li>
+      <li data-n="9"><a href="https://cli.vuejs.org/" target="_blank" rel="noopener">Vue CLI — maintenance-mode notice</a></li>
+      <li data-n="10"><a href="https://medium.com/@zehan9211/why-mongoose-crashes-in-bun-and-how-to-fix-the-v8-startupsnapshot-bug-d8eb5e5ef385" target="_blank" rel="noopener">Community write-up — the v8 startupSnapshot bug</a></li>
+      <li data-n="11"><a href="https://station.railway.com/questions/functions-throwing-not-implemented-error-eefb43c4" target="_blank" rel="noopener">Community thread — NotImplementedError reports</a></li>
+      <li data-n="12"><a href="https://deno.com/blog/cloudflare" target="_blank" rel="noopener">Deno — "Deno is joining Cloudflare" (the news hook)</a></li>
+      <li data-n="13"><a href="https://deno.com/blog/v1" target="_blank" rel="noopener">Deno — "Deno 1.0" (2020 launch, from Node's original author)</a></li>
+      <li data-n="14"><a href="https://deno.com/blog/v2.0" target="_blank" rel="noopener">Deno — "Announcing Deno 2" (Node/npm backwards compatibility)</a></li>
+      <li data-n="15"><a href="https://nodejs.org/en/about" target="_blank" rel="noopener">Node.js — About (V8, non-blocking I/O)</a></li>
+      <li data-n="16"><a href="https://libuv.org" target="_blank" rel="noopener">libuv — the async I/O library behind Node's event loop</a></li>
+      <li data-n="17"><a href="https://bun.com/blog/bun-v1.0" target="_blank" rel="noopener">Bun — "Bun 1.0" (Zig + JavaScriptCore, Node-compatible from day one)</a></li>
+      <li data-n="18"><a href="https://deno.com/blog/rusty-v8-stabilized" target="_blank" rel="noopener">Deno — "Stable V8 Bindings for Rust" (Rusty V8)</a></li>
+    </ul>
+    <div class="foot">Accessed 2026-10-13 (references 12–18: 2026-10-14). Timings are single-run measurements: Bun 1.3.10, Node 24, pnpm 10. 10–11 corroborate symptoms seen in our own runs.</div>
+  </section>
+
+  <!-- 18 · END -->
+  <section class="slide hero" data-title="Four verdicts, one path">
+    <div class="slide-num">21 · take it away</div>
+    <h3 class="section">Bun is not one decision. <em>Make four of them.</em></h3>
+    <p class="lead">Take the easy wins at the bottom of the ladder, fix the client where it actually hurts, and make the runtime earn its way in. Rollback at every step.</p>
+    <div class="end-links">
+      <a class="primary" href="https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md" target="_blank" rel="noopener">↗ Read the full field report (B-29) — every number, caveat, and reference</a>
+      <a class="ghost" href="https://bun.com/docs/runtime/nodejs-compat" target="_blank" rel="noopener">↗ Bun — Node.js compatibility docs</a>
+      <a class="ghost" href="https://vite.dev/guide/" target="_blank" rel="noopener">↗ Vite — the client migration guide</a>
+      <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
+    </div>
+    <div class="foot">Field report: Bun 1.3.10 · Node 24 · pnpm 10 · two sibling monorepos · single runs on throwaway copies</div>
+  </section>
+
+</div>
+
+<!-- lightbox + overlays -->
+<div class="dk-lightbox" id="lightbox">
+  <div class="dk-lb-close" title="Close (Esc)">✕</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<div class="dk-goto" id="gotoOverlay">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-21">
+</div>
+
+<div class="dk-help" id="helpOverlay">
+  <div class="dk-help-card">
+    <h3>Deck Controls</h3>
+    <table>
+      <tr><td><kbd>&rarr;</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+      <tr><td><kbd>&larr;</kbd></td><td>Previous slide</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First / last slide</td></tr>
+      <tr><td><kbd>1</kbd>&ndash;<kbd>9</kbd></td><td>Jump to slide N</td></tr>
+      <tr><td><kbd>O</kbd></td><td>Overview grid</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go to slide</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Toggle fullscreen</td></tr>
+      <tr><td><kbd>B</kbd></td><td>Blackout screen</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td>Click diagram</td><td>Zoom (lightbox)</td></tr>
+      <tr><td>Click left / right half</td><td>Prev / next slide</td></tr>
+      <tr><td>Swipe (touch)</td><td>Prev / next slide</td></tr>
+    </table>
+    <div class="close-hint">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+</div>
+
+<div class="dk-overview" id="overview">
+  <h3>All slides — click to jump</h3>
+  <div class="dk-overview-grid" id="overviewGrid"></div>
+</div>
+
+<script>
+Deck.mount({
+  slide: '.slide',
+  reveal: 'attr',
+  progress: '#progress', curNum: '#curNum', totalNum: '#totalNum',
+  counter: '#counter', curTitle: '#curTitle',
+  hash: true, clickAdvance: true, swipe: true,
+  ignoreClick: 'a,button,input,.dk-nav,.dk-chrome,.dk-topbar,.dk-lightbox,.dk-overview,.dk-help,.dk-goto,.fig,.callout,table,.code-block,.vs,.box,.three-col,.mode,.stat-row,.pipeline,.table-wrap,.end-links,.foot',
+  lightbox: { toggle: 'attr' },
+  overview: { titleSelector: 'h3.section, h1.title' },
+  goto: { overlay: '#gotoOverlay', input: '#gotoInput' },
+  help: { overlay: '#helpOverlay' },
+  blackout: true
+});
+</script>
+</body>
+</html>

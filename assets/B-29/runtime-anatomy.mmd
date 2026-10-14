@@ -1,0 +1,17 @@
+---
+title: Anatomy of a JavaScript runtime — four layers
+---
+flowchart LR
+    app["Your JavaScript<br/>and TypeScript code"]
+    subgraph RT["One JavaScript runtime — four layers"]
+        L4["4 · Modules and packages<br/>npm, node_modules, lockfiles,<br/>install scripts"]
+        L3["3 · Platform APIs + event loop<br/>fs, net, http, timers,<br/>async I/O on one thread"]
+        L2["2 · Native bindings<br/>C++ in Node · Rust in Deno · Zig in Bun"]
+        L1["1 · JS engine<br/>parser, interpreter,<br/>JIT compiler, GC"]
+    end
+    os["Operating system<br/>files, sockets, threads"]
+    app --> L4
+    L4 --> L3
+    L3 --> L2
+    L2 --> L1
+    L1 --> os

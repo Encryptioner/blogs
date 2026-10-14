@@ -2,9 +2,11 @@
 
 Node-এর বদলে Bun ব্যবহার করা যায় কি না, সেটা দুইটা বড় প্রোডাকশন কোডবেসে ধাপে ধাপে পরীক্ষা করে দেখলাম। আসল রিপোতে হাত না দিয়ে, কপি করে।
 
+এখন কথাটা উঠছে কেন: Deno Cloudflare-এ চলে গেছে, রানটাইমটা আর এক বছরের মেইনটেন্যান্সে। ইন্ডিপেন্ডেন্ট রানটাইম বলতে এখন Node আর Bun।
+
 সোজা ফলাফল: প্যাকেজ ম্যানেজার আর স্ক্রিপ্ট লঞ্চার হিসেবে বেশ ভালো, প্রোডাকশন সার্ভার রানটাইম হিসেবে এখনো প্রস্তুত না, আর webpack-ভিত্তিক Vue অ্যাপের জন্য সরাসরি বদলি না। দুইটা চমক ছিল: warm cache-এ ইনস্টলে pnpm-এর চেয়ে দ্রুত হয়নি, আর ডাটাবেস ফেইল করার প্রায় ৩০ সেকেন্ড পর সার্ভার নিজে নিজেই বন্ধ হয়ে গেছে, যেটা Node-এ হয়নি, কারণও বের করতে পারিনি।
 
 বড় প্রজেক্টে Bun নিয়ে ভাবলে ধাপে ধাপে যান, প্রতিটা ধাপে rollback রেখে। সংখ্যা ও রেফারেন্সসহ পুরো লেখা (ইংরেজিতে):
-https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo%20-%20A%20Tiered%20Migration%20Field%20Report.md
+https://github.com/Encryptioner/blogs/blob/master/topics/Development/Bun/The%20War%20on%20JavaScript%20Runtimes%20-%20Can%20Bun%20Replace%20Node%20in%20a%20Large%20Production%20Monorepo.md
 
 সূত্র: Bun অফিশিয়াল ডক। বাকিটা লেখায় আছে।

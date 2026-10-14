@@ -1,18 +1,18 @@
 # B-29 Research: Bun Feasibility on a Large Express + Vue Monorepo
 
-Sanitized. Case study = two sibling pnpm monorepos (an admin portal and a student portal) from one product family: Express 4 API, Mongoose 6 + mongodb 4 driver, BullMQ, ioredis, socket.io, sharp, puppeteer, module-alias, vitest, Vue CLI (webpack 5) clients. Baseline: Node 24, pnpm 10, `tsc` build then `node dist/...` under PM2, CI and Docker on a `node:24` image. Tool under test: Bun 1.3.10.
+Sanitized. Case study = two sibling pnpm monorepos (one back-office app, one customer-facing) from one product family: Express 4 API, Mongoose 6 + mongodb 4 driver, BullMQ, ioredis, socket.io, sharp, puppeteer, module-alias, vitest, Vue CLI (webpack 5) clients. Baseline: Node 24, pnpm 10, `tsc` build then `node dist/...` under PM2, CI and Docker on a `node:24` image. Tool under test: Bun 1.3.10.
 
 ## Method and caveats
 
 - Probes ran on throwaway copies, never on the real repos. Config files were dummies built from the example files; no secrets were read.
 - No reachable database or Redis. "Boots" means it reached the connect stage.
-- Each number is a **single run** on a laptop with other load. The pnpm store was warm; the Bun cache was cold only for the first install. Install times are not apples to apples.
-- The Node vitest baseline in the admin copy already had 28 failing tests in 4 files (dummy configs). "Same" below means the same failing set.
+- Each number is a **single run** on one machine under other load. The pnpm store was warm; the Bun cache was cold only for the first install. Install times are not apples to apples.
+- The Node vitest baseline in the Repo A copy already had 28 failing tests in 4 files (dummy configs). "Same" below means the same failing set.
 - Findings came from a research subagent that returned them as text. Source URLs were re-checked for existence (HTTP 200, one 403 from a bot block) but not re-read.
 
 ## Tier 1: package manager
 
-| Result | Admin | Student |
+| Result | Repo A (larger) | Repo B (smaller) |
 |--------|-------|---------|
 | `bun install` from `pnpm-lock.yaml` | 2181 packages, identical resolution | 1963 packages, identical resolution |
 | pnpm install (warm store) | 17.2 s | 17.0 s |
@@ -30,9 +30,9 @@ Sanitized. Case study = two sibling pnpm monorepos (an admin portal and a studen
 
 - Shared-package builds (three `tsc` packages): pnpm 9.2 s, `bun run --filter` 5.6 s, `bun --bun` 8.9 s. Output byte-identical.
 - Server `tsc` with the repo's 1536 MB heap flag ran out of memory in the copy. Node at 4 GB: 46.7 s. `bun x tsc` (Node runtime): 48.6 s. `bun --bun tsc`: 86.8 s. Output identical, 0 errors.
-- vitest, admin: Node 193 s, `bun --bun x vitest` 204 s, same failing set.
-- vitest, student: Node 34/34 pass; `bun x vitest` (Node runtime) pass; `bun --bun x vitest` failed all 4 files with `NotImplementedError: node:v8 isBuildingSnapshot is not yet implemented in Bun`, traced to `bson@7.3.3` via mongodb-memory-server. Admin resolved `bson@7.2.0` and passed. Same Bun gap is described in a community write-up and a hosting-forum thread (see references).
-- `bun test` hung over 10 minutes on the full admin suite (killed). A single pure unit file passed.
+- vitest, Repo A: Node 193 s, `bun --bun x vitest` 204 s, same failing set.
+- vitest, Repo B: Node 34/34 pass; `bun x vitest` (Node runtime) pass; `bun --bun x vitest` failed all 4 files with `NotImplementedError: node:v8 isBuildingSnapshot is not yet implemented in Bun`, traced to `bson@7.3.3` via mongodb-memory-server. Repo A resolved `bson@7.2.0` and passed. Same Bun gap is described in a community write-up and a hosting-forum thread (see references).
+- `bun test` hung over 10 minutes on the full Repo A suite (killed). A single pure unit file passed.
 
 ## Tier 3: server runtime (DB and Redis at a dead port)
 
@@ -44,12 +44,12 @@ Sanitized. Case study = two sibling pnpm monorepos (an admin portal and a studen
 
 ## Tier 4: client build
 
-- Admin `vue-cli-service build` on Node: 3:36.
+- Repo A `vue-cli-service build` on Node: 3:36.
 - Bun isolated install: fails at once with `Cannot find module '@babel/plugin-transform-runtime'`.
 - Hoisted install on Node: works, 3:45.
 - Hoisted install with `bun --bun`: fails after 5:21 with two css-loader errors on `url(data:...)` inside third-party CSS.
-- Student `bun --bun` build hung at 0% CPU for 28 minutes in fork-ts-checker child processes (killed). Node baseline: 1:43.
-- `vue-tsc` under `bun --bun`: admin 36.8 s vs 81.5 s Node, student 5.2 s vs 20.9 s (student runs likely warm). 0 errors.
+- Repo B `bun --bun` build hung at 0% CPU for 28 minutes in fork-ts-checker child processes (killed). Node baseline: 1:43.
+- `vue-tsc` under `bun --bun`: Repo A 36.8 s vs 81.5 s Node, Repo B 5.2 s vs 20.9 s (Repo B runs likely warm). 0 errors.
 - Vite migration (assessed, not done): Vue CLI is in maintenance mode. Work: replace the webpack config (ProvidePlugin, polyfill fallbacks, an html asset rule, the PWA plugin) and move two `process.env` uses to `import.meta.env`. Estimate 3 to 6 days per client. This is an estimate, not a measurement.
 
 ## Repo differences that matter
@@ -91,3 +91,7 @@ No production runtime switch is recommended.
 - Re-run the server-runtime probe against a reachable MongoDB and Redis to explain the exit code 1.
 - Repeat install timings with several runs and a cold pnpm store.
 - Re-check Bun's latest release notes for the `node:v8` snapshot gap.
+
+## Runtime anatomy framing (added with the deep-dive)
+
+The blog and deck open with a four-layer model of a JavaScript runtime — 1) JS engine, 2) native bindings, 3) platform APIs + event loop, 4) modules/packages. Node and Deno embed V8; Bun embeds JavaScriptCore. Bindings: C++ (Node), Rust via Rusty V8 (Deno), Zig (Bun). Node's loop is libuv; Deno and Bun wrote their own. The point of the model: "Node compatibility" is a layer-4 property plus a slice of layer 3 — every Bun verdict in the report is a verdict on layer 4, and Deno's arc (rewrite layer 4, then walk it back) is the cautionary tale. Sources: references 15–18 in `references.md`. Diagram: `assets/B-29/runtime-anatomy.png` (rendered LR so one PNG serves both blog and deck).
