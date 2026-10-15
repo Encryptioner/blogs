@@ -4,7 +4,7 @@
 
 Why now: Deno just joined Cloudflare, with its runtime on a one-year maintenance clock and Deploy winding down. The independent-runtime field is down to Node and Bun.
 
-I probed two sibling production monorepos (Express + Mongoose API, Vue client, pnpm, Node 24) for Bun feasibility, on throwaway copies, and measured each tier on its own. The post also opens with what a JavaScript runtime actually is — four layers, and the war is fought on the top ones, not the engine.
+I probed two sibling production monorepos (Express + Mongoose API, Vue client, pnpm, Node 24) for Bun feasibility, on throwaway copies, and measured each tier on its own. Then I ran a third, newer API (Express 5, TypeORM, PostgreSQL) as a contrast. The post also opens with what a JavaScript runtime actually is — four layers, and the war is fought on the top ones, not the engine.
 
 What I found:
 
@@ -12,6 +12,8 @@ What I found:
 - Script runner: mostly works. Building shared packages dropped from 9.2s to 5.6s, and vue-tsc ran about 2x to 4x faster. Forcing Bun's runtime onto tsc made it slower.
 - Server runtime: sharp, puppeteer, Mongoose, BullMQ and socket.io all loaded. But the app exited with code 1 about 30 seconds after the database connection failed, and Node did not. I could not explain it, so I would not ship it.
 - Client bundler: Vue CLI under Bun failed or hung. Moving to Vite is worth doing with or without Bun.
+
+The contrast was useful. The newer API ran on Bun with two small fixes: its tests went from about 10s on Jest to about 3s, and none of the unexplained exits appeared. So the verdict follows your dependency tree, not Bun alone. If you want several instances, plan for single-process instances behind a proxy: PM2 cluster mode did not run Bun in my check, and `reusePort` was ignored on `node:http` in Bun 1.3.11. Restarting two instances one at a time never took both down.
 
 My recommendation: adopt Bun as an optional package manager and script launcher, move the client to Vite, and earn the server runtime switch with a soak test.
 

@@ -105,3 +105,58 @@ How each runtime ships updates, now covered in the blog ("Release Trains and LTS
 - **Bun** — no LTS at all: one rolling stable channel plus canary (`bun upgrade --canary`). The 1.3 → 1.4 minor bump carried a full Zig → Rust rewrite of ~535K lines (merged 2026-05-14, 19 regressions, all fixed; binaries ~20% smaller, ~2–5% faster) [19]. Anthropic acquired Bun in December 2025.
 
 Pricing per tier: at tiers 1–2 the moving release train is a cheap CI version bump; at tier 3 "no LTS" means the pinned version has no promised support window.
+
+## Second probe: a newer API service (added 2026-10-15)
+
+Sanitized. A third service, newer and smaller than the two monorepos above, used as a contrast. Stack: Express 5, TypeORM 1.x on PostgreSQL, BullMQ with ioredis, native bcrypt, jsonwebtoken, zod, multer, the AWS S3 client, pino, about 570 Jest tests. Linux x86_64 with AVX2, Node 24, **Bun 1.3.11** (the first two probes used 1.3.10), pnpm 10.
+
+### Method and caveats
+
+- A fresh clone, never the working copy. Two small changes were applied to the clone and nothing was committed.
+- A throwaway PostgreSQL 16 container for the database, removed afterwards. A local Redis with a separate BullMQ key prefix. A local fake S3 endpoint for uploads. Real object storage, SMS and email providers were not used.
+- Single runs. Schema for the API probe was created from the entities with the ORM's synchronize option, because the project's migrations cannot build an empty database (they fail on Node too).
+- No hostnames, ports, database names, credentials, or project names are recorded here.
+
+### Results
+
+| Check | Node 24 | Bun 1.3.11 |
+|-------|---------|------------|
+| Jest, about 570 tests | all pass, 9.5 s (10.6 s with `--runInBand`) | n/a |
+| `bun test`, unchanged | n/a | 534 pass, 16 fail, 1 error |
+| `bun test`, relation fix only | n/a | 566 pass, 5 fail |
+| `bun test`, relation fix + preload | n/a | all pass, 3.1 s |
+| `tsc --noEmit` | clean | clean |
+| API boot, readiness check, helmet headers | works | works |
+| SIGTERM shutdown | clean | clean, 17 ms |
+| Job worker | scheduled job runs, clean exit | same |
+| Seed script, four kinds of login (native bcrypt, JWT) | works | works |
+| CRUD with non-ASCII text, validation error, 401 | works | same |
+| Login rate limit | 11th failed try gives 429 | same |
+| S3 upload via fake endpoint | n/a | signed `PutObject` arrived with correct bytes and type; mismatched content refused |
+| ORM migration CLI | `show` and `run` work | same; both fail on an empty database after the first migration (no baseline migration in the project) |
+| Vite builds, two clients | 1.08 s and 0.34 s | 1.05 s and 0.36 s, same output |
+
+### The failures
+
+- **16 test failures, one cause: circular entity imports.** `ReferenceError: Cannot access 'X' before initialization` at the first query that touches a related entity. Fix: wrap the type of each relation field in TypeORM's `Relation<T>` (documented for ESM projects, ref 22). 17 fields in 7 entity files, type-only, no change under Node; `tsc` unchanged. The exact mechanism (emitted decorator metadata versus module load order) was not isolated.
+- **5 further failures: test setup.** Two security tests install a recorder before the app loads. Jest runs the setup file for every test file; Bun's runner does not read Jest config and shares loaded modules across files. Fix: import the recorder from the setup file and add `[test] preload` in `bunfig.toml` (ref 23). After that Jest and Bun both pass everything.
+- No equivalent of the tier-3 exit-after-database-failure appeared. It was not tried against an unreachable database in this probe, so the earlier exit is neither confirmed nor ruled out here.
+
+### Several instances and process managers
+
+- PM2's cluster mode ran Node, not Bun, in an earlier check. Bun's PM2 guide documents only the `interpreter` setting (ref 3).
+- `reusePort` on Linux, two processes on one port: Node `http` server works (14 / 26 of 40 requests); Bun 1.3.11 `node:http` ignores the option and the second process gets `EADDRINUSE`; `Bun.serve` works (25 / 15 of 40) but Express cannot run on it (refs 24, 25). On macOS Node reports `ENOTSUP` and Bun silently ignores it.
+- OxMgr 0.5.0 (ref 26), installed from npm with its own home directory so nothing outside the trial was touched. Two instances of the built server on two ports, `restart_policy = always`, a `curl` health command.
+  - Rolling `restart` of instance 0 then 1, probing both every 50 ms: 111 probes, one instance down in 28, both down in 0. Each instance ready in about 0.87 s after restart.
+  - `reload` of a single instance without `reuse_port`: the process was replaced, but 25 of 205 probes failed (about half a second).
+  - `stop`: 0.22 s, the server logged its graceful shutdown.
+  - `apply` with an unchanged config did not redeploy a running instance; it only restarted the one that was stopped.
+  - Each Bun instance used about 160 MB resident.
+  - Production mode needs the app's security config file; with it missing, OxMgr marked both instances errored after three restarts.
+- Not tested: killing an instance with SIGKILL and timing the automatic restart (the command was refused in the session), a real reverse proxy (a probe loop stood in for its retry), the worker under OxMgr, the memory-limit restart, start on boot, Bun 1.4, long soak.
+
+### Takeaways added to the blog
+
+- Two probes of one runtime disagree: the older tree hit an unexplained exit and a webpack failure; the newer API hit only two fixable problems. The verdict follows the dependency tree.
+- Bun's test runner is the clearest win (about 3x here) and needs config work, not code work.
+- A server on Bun is a process-manager design problem as much as a runtime one: two single-process instances behind a proxy, restarted one at a time.

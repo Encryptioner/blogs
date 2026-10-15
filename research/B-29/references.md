@@ -37,3 +37,13 @@ A community-forum thread returned by the search was about an unrelated product a
 ## Lead, not a source
 
 The idea originated from an AI-assistant answer about Bun vs Node. It is not cited.
+
+## Added 2026-10-15 (second probe)
+
+22. TypeORM, FAQ, "How to use TypeORM in ESM projects?": https://typeorm.io/docs/help/faq/ — accessed 2026-10-15. Supports: wrap relation types in the `Relation` wrapper to avoid circular-import problems; do not use it on non-relation column types. The page does not contain the exact error text, so the error wording rests on my own run.
+23. Bun, "Test runner configuration" (preload scripts): https://bun.com/docs/test/configuration — accessed 2026-10-15. Supports: `[test] preload = [...]` in `bunfig.toml`, equivalent to `--preload`.
+24. Bun, "Run multiple processes with `reusePort`": https://bun.com/docs/guides/http/cluster — accessed 2026-10-15. Supports: `reusePort` on `Bun.serve`, Linux only, ignored on Windows and macOS. It does not mention `node:http`; the finding that `node:http` ignores it is my own test on 1.3.11.
+25. Node.js, `net` API, `server.listen` options: https://nodejs.org/api/net.html — accessed 2026-10-15. Supports: `reusePort`, available since v23.1 / v22.12, on some platforms only (for example Linux 3.9+), and raises an error where unsupported. The platform list was read through a summary; re-check the live page before quoting it.
+26. OxMgr: https://github.com/Vladimir-Urik/OxMgr — accessed 2026-10-15. Supports: a Rust process manager, MIT, v0.5.0 latest at the time, restart policies, health checks, PM2 ecosystem-file compatibility. Its README does not mention Bun; the Bun results are my own trial.
+
+Own measurements for the second probe: Bun 1.3.11 and Node 24.14 on Linux x86_64. Commands used: `bun test`, `pnpm exec jest`, `bun src/server.ts`, `bun ./node_modules/typeorm/cli.js migration:run`, `bun --bun x vite build`, `oxmgr apply`, `oxmgr restart`, `oxmgr reload`.

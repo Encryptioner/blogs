@@ -4,11 +4,11 @@
 
 > Bun is not one decision. It is four, and they carry very different risk.
 
-"Should we move to Bun?" is a question I keep hearing, and it usually gets a one-word answer. In a large codebase that answer is almost always wrong, because the question hides four separate decisions with very different risk. I recently probed two sibling production monorepos for exactly this, without touching the real repos, and this post is what I measured, what broke, and what I would do.
+"Should we move to Bun?" is a question I keep hearing, and it usually gets a one-word answer. In a large codebase that answer is almost always wrong, because the question hides four separate decisions with very different risk. I recently probed two sibling production monorepos for exactly this, without touching the real repos, and then a third, newer API service as a contrast. This post is what I measured, what broke, and what I would do.
 
 The timing is not a coincidence. Deno just left the field, and the short version below is now a two-runtime question.
 
-Short version: Bun is an easy yes as a package manager and script runner, a "not yet" as a production server runtime, and not a drop-in for a webpack-based Vue client.
+Short version: Bun is an easy yes as a package manager and script runner, a "not yet" as a production server runtime for an older dependency tree, and not a drop-in for a webpack-based Vue client. A newer, smaller API did much better, so the verdict depends on what your code pulls in, not on Bun alone.
 
 ## What Is a JavaScript Runtime, Exactly?
 
@@ -111,6 +111,48 @@ This is where it fell over.
 
 Vue CLI itself is in maintenance mode and points users to Vite [9]. I estimated 3 to 6 days to port each client's webpack config to Vite. That is an estimate, not a measurement, but it is work worth doing regardless of Bun. Move the client to Vite for its own reasons, then ask what Bun adds.
 
+The later probe in the next section supports this. Two Vite-built clients built in about one second and about a third of a second, and the output was the same whether Node or Bun launched the build. The part that fell over above was webpack, not the build step itself.
+
+## A Second Data Point: A Newer API
+
+To check that the failures above were not just "Bun versus a big legacy repo", I ran the same kind of probe on a different service: a newer, smaller API on a more modern stack. It uses Express 5, TypeORM 1.x on PostgreSQL, BullMQ with ioredis, native bcrypt, JWT, zod, multer, the AWS S3 client, and about 570 Jest tests. This time I had a real database (a throwaway PostgreSQL container) and a real Redis, on a Linux x86_64 machine with Node 24 and Bun 1.3.11. As before, this ran on a throwaway copy and nothing was committed.
+
+| Check | Result on Bun |
+|-------|---------------|
+| Test suite, unchanged | 16 failures and 1 error out of about 570 |
+| Test suite, after two small changes | all pass in about 3 s |
+| Type check (`tsc`) | clean |
+| API boot, readiness check, security headers | works |
+| Clean shutdown on SIGTERM | exits in under 20 ms |
+| Background job worker | ran a scheduled job, exited cleanly |
+| Seed script with native bcrypt, four kinds of login | works |
+| Create, read, update, delete with non-ASCII text | works |
+| Validation errors, missing token, login rate limit | same behaviour as Node |
+| File upload through the S3 client to a local fake | signed request arrived intact; a file with the wrong content was refused |
+| TypeORM migration CLI | runs, and fails on an empty database exactly as it does on Node |
+
+Nothing like the unexplained exit from tier 3 appeared. That is the useful contrast: the same runtime that exited on one tree ran this one without incident. I cannot say why, because I never explained the first exit. It is consistent with the problem living in a specific dependency combination rather than in Bun's server runtime in general.
+
+The 16 failures had a single cause, and it is one to know about if you use TypeORM:
+
+- **Circular entity imports.** Entities that reference each other fail at start-up with `ReferenceError: Cannot access 'X' before initialization`. The likely cause is decorator metadata: a reference to the related class is emitted at module load, and with circular imports that reference can arrive before the class exists. TypeORM's documented fix for ESM projects is to wrap relation types in its `Relation<T>` type [22]. I applied it to 17 relation fields in 7 entity files. It is type-only, so behaviour does not change, and Node and the type check were unaffected.
+- **Test setup does not carry over.** Bun's test runner does not read a Jest config, and it shares loaded modules across test files, where Jest isolates them. Two tests that needed a recorder installed before the app loaded failed until I preloaded the setup file with `[test] preload` in `bunfig.toml` [23] and imported the recorder there. After that, Jest and Bun both passed everything.
+
+The speed claim held for tests and not much else. The suite took about 3 seconds under Bun, against 9.5 to 10.6 seconds under Jest on the same machine, a bit over three times faster. The Vite builds were about the same speed on both runtimes on this machine. I did not repeat the memory comparison here.
+
+So the honest summary of the two probes: Bun can run a modern TypeScript API with a fair amount of native code, and the hard failures I hit were in an older tree with specific dependencies and in a webpack client.
+
+## Running More Than One Instance
+
+A server runtime is not only the runtime. If you run several API instances for zero-downtime deploys, the process manager decides what is possible, and this is where Bun changes the design.
+
+- **PM2's cluster mode does not run Bun.** Bun's PM2 guide shows only the `interpreter` setting [3]. In my check, cluster mode started Node workers instead of Bun, so each instance has to be its own process in fork mode.
+- **Port sharing is runtime-specific.** Node's `http` server supports `reusePort` on Linux, so two processes can share one port [25]. In Bun 1.3.11, `Bun.serve` honours it on Linux [24], but Express listens through `node:http`, where the option was ignored and a second process got `EADDRINUSE`. So a hot "start the new process on the same port" reload is not available to an Express app on Bun, at least on that version.
+- **The practical answer is two instances on two ports behind a reverse proxy**, restarted one at a time. I tested this with OxMgr 0.5.0, a Rust process manager [26], running two Bun instances, with a probe hitting both every 50 ms during a rolling restart. Across 111 probes, one instance was down in 28 of them and both were down in none. Each instance was back in under a second.
+- **A single-instance `reload` was not zero-downtime.** Without `reuse_port`, it replaced the process but dropped 25 of 205 probes, roughly half a second.
+
+OxMgr did what I needed, but it is a 0.x project from one maintainer. For production I would take PM2 in fork mode or plain systemd units first, and revisit it later. That is a maturity judgement, not a failure I observed.
+
 ## What Would Bite You in Your Own Repo
 
 - **Native modules and postinstall scripts.** Bun's trust model differs from pnpm's, so list `trustedDependencies` explicitly.
@@ -118,6 +160,9 @@ Vue CLI itself is in maintenance mode and points users to Vite [9]. I estimated 
 - **Node API gaps.** `node:v8` snapshot support is missing in 1.3.10, and a dependency bump can trigger it [1].
 - **Environment loading.** Bun auto-loads `.env`. Both of my CI pipelines wrote `NODE_ENV=production` into that file, which would silently change behaviour.
 - **Memory flags.** The server's `tsc` build ran out of memory with the repo's 1536 MB heap flag in my copy, so even the Node baseline needed headroom.
+- **Circular imports in ORM entities.** Entities that reference each other can fail at start-up under Bun. TypeORM's `Relation<T>` wrapper fixes it without changing behaviour [22].
+- **Test config does not carry over.** Bun's runner ignores Jest config and shares modules across test files, so setup that Jest runs per file may need a `bunfig.toml` preload [23].
+- **Process manager.** PM2's cluster mode will not run Bun, and `reusePort` on `node:http` was ignored in 1.3.11, so plan for several single-process instances behind a proxy.
 - **Docs gaps.** I found no official Bun guidance for Mongoose, puppeteer, sharp or Bitbucket Pipelines, and the official Docker guide covers only a basic image [4]. Those conclusions rest on my own probes.
 
 ## A Phased Migration Path With Rollback
@@ -127,9 +172,9 @@ Vue CLI itself is in maintenance mode and points users to Vite [9]. I estimated 
 1. **Bun as the package manager, optional.** Use `linker = "hoisted"`, explicit `trustedDependencies`, and keep `pnpm-lock.yaml`. Rollback: delete `bun.lock` and run `pnpm i`.
 2. **Bun to launch scripts.** Use `bun run --filter`, keep `tsc` on the Node runtime, run `vue-tsc` with `--bun`, and pin the `bson` version where the `node:v8` gap bites.
 3. **Move the client to Vite.** Independent of Bun, and the real fix for the slowest part of the toolchain.
-4. **Bun as the server runtime.** Only after the exit-on-DB-failure is explained against a real database and Redis, followed by a soak test on staging.
+4. **Bun as the server runtime.** Only after a soak test on staging. For the older tree, first explain the exit-on-DB-failure against a real database and Redis. For a newer service like the one in the second probe, start with the background worker, then the API as two single-process instances restarted one at a time.
 
-I would not switch the production runtime today.
+I would not switch the production runtime today for the older tree. For the newer API, I would trial it on staging, because the probe found only small, fixable problems.
 
 ## When Not to Migrate
 
@@ -142,6 +187,8 @@ Migrate when there is a concrete payoff: faster type-checking in CI, one fewer t
 ## What I Would Verify Next
 
 I would rerun the server probe against real MongoDB and Redis to explain the exit, repeat the install timings several times with a cold pnpm store, and check whether newer Bun releases fill the `node:v8` gap.
+
+For the second probe: repeat it on Bun 1.4, where `reusePort` on `node:http` may behave differently, kill an instance outright and time the automatic restart, and run a long soak with real object storage and real email or SMS providers, which I did not use. I also did not compare memory use on Linux.
 
 ## References
 
@@ -166,8 +213,13 @@ I would rerun the server probe against real MongoDB and Redis to explain the exi
 19. Bun, "Rewriting Bun in Rust" (v1.4.0, May 2026): https://bun.com/blog/bun-in-rust
 20. Deno, "Stability and releases" (channels and cadence): https://docs.deno.com/runtime/fundamentals/stability_and_releases
 21. Node.js, "Previous releases" (LTS schedule and support windows): https://nodejs.org/en/about/previous-releases
+22. TypeORM, FAQ, "How to use TypeORM in ESM projects?" (the `Relation` wrapper type): https://typeorm.io/docs/help/faq/
+23. Bun, "Test runner configuration" (`[test] preload` in `bunfig.toml`): https://bun.com/docs/test/configuration
+24. Bun, "Run multiple processes with `reusePort`" (Linux only, `Bun.serve`): https://bun.com/docs/guides/http/cluster
+25. Node.js, `net` API, `server.listen` options (`reusePort`): https://nodejs.org/api/net.html
+26. OxMgr, a Rust process manager (v0.5.0, MIT): https://github.com/Vladimir-Urik/OxMgr
 
-All accessed 2026-10-13 (references 12–21 on 2026-10-14). Timings are my own single-run measurements with Bun 1.3.10, Node 24 and pnpm 10.
+All accessed 2026-10-13 (references 12–21 on 2026-10-14, 22–26 on 2026-10-15). Timings are my own single-run measurements. The first two probes used Bun 1.3.10, Node 24 and pnpm 10. The newer-API probe used Bun 1.3.11 and Node 24 on Linux x86_64.
 
 ## Let's Connect
 

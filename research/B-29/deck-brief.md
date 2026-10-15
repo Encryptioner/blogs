@@ -24,12 +24,14 @@ Framing (references 12–14): slides 02–03 open with the runtime-anatomy deep-
 | 14 | Tier 3 — the red flag | Exit code 1, 30–40 s after DB connection fails; Node stays alive; unexplained; plus watch/PM2 caveats | "Cheap to find in a probe, expensive to production" |
 | 15 | Tier 4 — client build falls over | Result table: Node 3:36 OK; isolated: instant Babel fail; hoisted + `--bun`: 5:21 CSS fail; Repo B: 28-min hang vs 1:43 | |
 | 16 | The real client fix is Vite | Vue CLI is maintenance mode; 3–6 days per client (estimate) | Do it for its own reasons, then ask what Bun adds |
-| 17 | What would bite you | Checklist: native modules, hidden hoisting, Node API gaps, `.env` autoload (`NODE_ENV=production` in CI), memory flags, docs gaps | |
-| 18 | The phased path | `migration-path.png` + 4 steps, each with rollback | Rollback is the design, not an afterthought |
-| 19 | When (not) to migrate | Stay-vs-go boxes | Migrate on a concrete payoff, not the hype |
-| 20 | Verify next + verdict | Follow-ups checklist; "I would not switch the production runtime today" | |
-| 21 | References | Condensed mirror of the blog's 21 references | |
-| 22 | End | Links: full post, Bun docs, Vite, back to all decks | |
+| 17 | A second data point: a newer API | Table of results on a newer Express 5 + TypeORM API (Bun 1.3.11, Linux): tests ~3 s vs 9.5–10.6 s, boot, worker, logins, upload; callout: no unexplained exit this time | Added 2026-10-15; mirrors the blog's "A Second Data Point" section |
+| 18 | One fix, and a design constraint | Circular entity imports (`Relation<T>`), test preload; PM2 cluster mode, `reusePort` ignored on `node:http`; OxMgr rolling restart 111 probes, both down 0; single reload 25/205 | Mirrors "Running More Than One Instance"; refs 22–26 |
+| 19 | What would bite you | Checklist: native modules, hidden hoisting, Node API gaps, `.env` autoload (`NODE_ENV=production` in CI), memory flags, docs gaps | |
+| 20 | The phased path | `migration-path.png` + 4 steps, each with rollback | Rollback is the design, not an afterthought |
+| 21 | When (not) to migrate | Stay-vs-go boxes | Migrate on a concrete payoff, not the hype |
+| 22 | Verify next + verdict | Follow-ups checklist; "I would not switch the production runtime today" | |
+| 23 | References | Condensed mirror of the blog's 26 references | |
+| 24 | End | Links: full post, Bun docs, Vite, back to all decks | |
 
 ## Sanitization
 

@@ -307,9 +307,9 @@ ul.refs li a{color:var(--muted);text-decoration:underline}
     <h1 class="title">The war on JavaScript runtimes. <em>Three entered. Two are left.</em></h1>
     <h2 class="subtitle">"Should we move to Bun?" looks like one question. In a large production monorepo it is <b>four decisions with very different risk</b> — package manager, script runner, server runtime, bundler. Deno just left the field to Cloudflare, so this deck measures the two left standing: what worked, what broke, and the phased path I would take.</h2>
     <div class="pills">
-      <span class="pill"><span class="dot"></span> Bun 1.3.10</span>
+      <span class="pill"><span class="dot"></span> Bun 1.3.10 · 1.3.11</span>
       <span class="pill"><span class="dot mint"></span> Node 24 · pnpm 10</span>
-      <span class="pill"><span class="dot violet"></span> 2 sibling monorepos</span>
+      <span class="pill"><span class="dot violet"></span> 2 sibling monorepos + a newer API</span>
       <span class="pill"><span class="dot warn"></span> 4 adoption tiers</span>
       <span class="pill"><span class="dot violet"></span> Deno → Cloudflare · Oct 2026</span>
       <span class="pill"><span class="dot mint"></span> single runs, not benchmarks</span>
@@ -561,9 +561,46 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
     <div class="callout mint"><b>Sequencing beats heroics:</b> move the client to Vite for its own reasons — <i>then</i> ask what Bun's bundler adds. Don't entangle the two migrations.</div>
   </section>
 
+  <!-- 12b · SECOND DATA POINT -->
+  <section class="slide" data-title="A second data point: a newer API">
+    <div class="slide-num">17 · a second data point</div>
+    <h3 class="section">A newer API, <em>a very different result</em>.</h3>
+    <p class="lead">Express 5, TypeORM 1.x on PostgreSQL, BullMQ, native bcrypt, about 570 tests. Real database and Redis this time, on Linux with Bun 1.3.11.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th class="hl">Result on Bun</th></tr></thead>
+        <tbody>
+          <tr><th>Tests, unchanged</th><td>16 failures, 1 error — one root cause</td></tr>
+          <tr><th>Tests, after two small changes</th><td class="hl">all pass in ~3 s (Jest: 9.5–10.6 s)</td></tr>
+          <tr><th>Boot, SIGTERM, background worker</th><td>works; exits in under 20 ms</td></tr>
+          <tr><th>Native bcrypt logins, CRUD, validation, rate limit</th><td>same as Node</td></tr>
+          <tr><th>S3 upload (local fake)</th><td>signed request intact; bad content refused</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout mint"><b>No unexplained exit this time.</b> The same runtime that exited on the older tree ran this one cleanly — consistent with a specific dependency combination, not Bun's server runtime in general. Vite builds were also about equal on both runtimes.</div>
+  </section>
+
+  <!-- 12c · WHAT BROKE AND THE PROCESS MANAGER -->
+  <section class="slide" data-title="One root cause, and the process manager">
+    <div class="slide-num">18 · a second data point</div>
+    <h3 class="section">One fix, and <em>a design constraint</em>.</h3>
+    <div class="vs">
+      <div class="box warn">
+        <h4>Circular entity imports</h4>
+        <p><span class="mono">Cannot access 'X' before initialization</span>. Wrapping 17 relation fields in TypeORM's <span class="mono">Relation&lt;T&gt;</span> <span class="mono">[22]</span> fixed it — type-only, no behaviour change. Tests also need a <span class="mono">bunfig.toml</span> preload <span class="mono">[23]</span>, because Bun ignores Jest config.</p>
+      </div>
+      <div class="box warn">
+        <h4>More than one instance</h4>
+        <p>PM2 cluster mode didn't run Bun in my check. <span class="mono">reusePort</span> works on Node and <span class="mono">Bun.serve</span> <span class="mono">[24][25]</span>, but was ignored on <span class="mono">node:http</span> in 1.3.11 — so Express on Bun can't hot-reload on one port.</p>
+      </div>
+    </div>
+    <div class="callout"><b>The answer: two single-process instances behind a proxy, restarted one at a time.</b> With OxMgr 0.5.0 <span class="mono">[26]</span> and a probe every 50 ms: 111 probes, one instance down in 28, <b>both down in none</b>. A single-instance reload dropped 25 of 205. OxMgr worked, but it is 0.x from one maintainer — PM2 fork mode or systemd first.</div>
+  </section>
+
   <!-- 13 · WHAT WOULD BITE YOU -->
   <section class="slide" data-title="What would bite you">
-    <div class="slide-num">17 · transfer to your repo</div>
+    <div class="slide-num">19 · transfer to your repo</div>
     <h3 class="section">What would bite <em>in your own repo</em>.</h3>
     <ul class="checklist" style="max-width:80ch">
       <li><b>Native modules + postinstall scripts</b> — Bun's trust model differs from pnpm's; list <span class="mono">trustedDependencies</span> explicitly.</li>
@@ -577,7 +614,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 14 · MIGRATION PATH -->
   <section class="slide compact" data-title="The phased path">
-    <div class="slide-num">18 · the migration path</div>
+    <div class="slide-num">20 · the migration path</div>
     <h3 class="section">Phased, with a <em>rollback at every step</em>.</h3>
     <div class="fig">
       <img src="../../assets/B-29/migration-path.png" alt="Phased migration flow — Bun as package manager, Bun to launch scripts, client moved to Vite, Bun as server runtime last — with a rollback exit after each phase" loading="lazy">
@@ -587,13 +624,13 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
       <li><strong>Bun as package manager, optional</strong> <span class="muted">— hoisted linker, explicit <span class="mono">trustedDependencies</span>, keep <span class="mono">pnpm-lock.yaml</span>. Rollback: delete <span class="mono">bun.lock</span>, run <span class="mono">pnpm i</span>.</span></li>
       <li><strong>Bun to launch scripts</strong> <span class="muted">— <span class="mono">tsc</span> stays on the Node runtime, <span class="mono">vue-tsc</span> goes <span class="mono">--bun</span>, pin <span class="mono">bson</span> where the v8 gap bites.</span></li>
       <li><strong>Client to Vite</strong> <span class="muted">— independent of Bun; the real fix for the slowest toolchain step.</span></li>
-      <li><strong>Bun as server runtime, last</strong> <span class="muted">— only after the exit-on-DB-failure is explained against real services, then a staging soak test.</span></li>
+      <li><strong>Bun as server runtime, last</strong> <span class="muted">— older tree: only after the exit-on-DB-failure is explained against real services. Newer API: worker first, then two single-process instances restarted one at a time. Staging soak test either way.</span></li>
     </ol>
   </section>
 
   <!-- 15 · WHEN (NOT) TO -->
   <section class="slide" data-title="When not to migrate">
-    <div class="slide-num">19 · the decision</div>
+    <div class="slide-num">21 · the decision</div>
     <h3 class="section">Stay or go? <em>Evidence, not vibes.</em></h3>
     <div class="vs">
       <div class="box bad">
@@ -614,7 +651,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 16 · VERIFY NEXT -->
   <section class="slide" data-title="What I'd verify next">
-    <div class="slide-num">20 · open ends</div>
+    <div class="slide-num">22 · open ends</div>
     <h3 class="section">What I would <em>verify next</em>.</h3>
     <ul class="checklist" style="max-width:72ch">
       <li><b>Re-run the server probe against real MongoDB and Redis</b> — explain the exit code 1 before any runtime conversation continues.</li>
@@ -632,7 +669,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 
   <!-- 17 · REFERENCES -->
   <section class="slide" data-title="References">
-    <div class="slide-num">21 · references</div>
+    <div class="slide-num">23 · references</div>
     <h3 class="section">Sources — <em>primary first</em>.</h3>
     <ul class="refs">
       <li data-n="1"><a href="https://bun.com/docs/runtime/nodejs-compat" target="_blank" rel="noopener">Bun — Node.js compatibility</a></li>
@@ -656,13 +693,18 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
       <li data-n="19"><a href="https://bun.com/blog/bun-in-rust" target="_blank" rel="noopener">Bun — "Rewriting Bun in Rust" (v1.4.0; release channels, no LTS)</a></li>
       <li data-n="20"><a href="https://docs.deno.com/runtime/fundamentals/stability_and_releases" target="_blank" rel="noopener">Deno — "Stability and releases" (stable/LTS/canary cadence)</a></li>
       <li data-n="21"><a href="https://nodejs.org/en/about/previous-releases" target="_blank" rel="noopener">Node.js — "Previous releases" (even-line LTS, 30-month support)</a></li>
+      <li data-n="22"><a href="https://typeorm.io/docs/help/faq/" target="_blank" rel="noopener">TypeORM — FAQ, ESM projects (the Relation wrapper type)</a></li>
+      <li data-n="23"><a href="https://bun.com/docs/test/configuration" target="_blank" rel="noopener">Bun — Test runner configuration (bunfig.toml preload)</a></li>
+      <li data-n="24"><a href="https://bun.com/docs/guides/http/cluster" target="_blank" rel="noopener">Bun — reusePort (Linux only, Bun.serve)</a></li>
+      <li data-n="25"><a href="https://nodejs.org/api/net.html" target="_blank" rel="noopener">Node.js — net API, server.listen reusePort</a></li>
+      <li data-n="26"><a href="https://github.com/Vladimir-Urik/OxMgr" target="_blank" rel="noopener">OxMgr — a Rust process manager (v0.5.0, MIT)</a></li>
     </ul>
-    <div class="foot">Accessed 2026-10-13 (references 12–21: 2026-10-14). Timings are single-run measurements: Bun 1.3.10, Node 24, pnpm 10. 10–11 corroborate symptoms seen in our own runs.</div>
+    <div class="foot">Accessed 2026-10-13 (12–21: 2026-10-14; 22–26: 2026-10-15). Single-run measurements. First two probes: Bun 1.3.10, Node 24, pnpm 10. Newer-API probe: Bun 1.3.11, Node 24, Linux x86_64. 10–11 corroborate symptoms seen in our own runs.</div>
   </section>
 
   <!-- 18 · END -->
   <section class="slide hero" data-title="Four verdicts, one path">
-    <div class="slide-num">22 · take it away</div>
+    <div class="slide-num">24 · take it away</div>
     <h3 class="section">Bun is not one decision. <em>Make four of them.</em></h3>
     <p class="lead">Take the easy wins at the bottom of the ladder, fix the client where it actually hurts, and make the runtime earn its way in. Rollback at every step.</p>
     <div class="end-links">
@@ -671,7 +713,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
       <a class="ghost" href="https://vite.dev/guide/" target="_blank" rel="noopener">↗ Vite — the client migration guide</a>
       <a class="ghost" href="https://encryptioner.github.io/public-websites/any-page/#raw.githubusercontent.com/Encryptioner/blogs/refs/heads/master/presentations/index.html" target="_blank" rel="noopener">↑ Back to all decks</a>
     </div>
-    <div class="foot">Field report: Bun 1.3.10 · Node 24 · pnpm 10 · two sibling monorepos · single runs on throwaway copies</div>
+    <div class="foot">Field report: Bun 1.3.10 and 1.3.11 · Node 24 · pnpm 10 · two sibling monorepos plus a newer API · single runs on throwaway copies</div>
   </section>
 
 </div>
@@ -683,7 +725,7 @@ NotImplementedError: <span class="f">node:v8</span> isBuildingSnapshot is <span 
 </div>
 
 <div class="dk-goto" id="gotoOverlay">
-  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-22">
+  <input type="text" id="gotoInput" maxlength="2" inputmode="numeric" placeholder="1-24">
 </div>
 
 <div class="dk-help" id="helpOverlay">
